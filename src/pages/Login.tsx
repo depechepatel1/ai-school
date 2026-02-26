@@ -83,6 +83,12 @@ export default function Login() {
               <Link to="/signup" className="text-primary hover:underline">Sign up</Link>
             </p>
           </div>
+
+          {/* ICP Filing Footer */}
+          <div className="pt-4 border-t border-border text-center space-y-1">
+            <p className="text-[11px] text-muted-foreground/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+            <p className="text-[11px] text-muted-foreground/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
+          </div>
         </div>
       </motion.div>
     </div>
