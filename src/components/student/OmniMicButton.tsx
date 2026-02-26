@@ -1,11 +1,13 @@
 import { Mic, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface OmniMicButtonProps {
-  onClick: () => void;
   teacherHint: string | null;
 }
 
-export default function OmniMicButton({ onClick, teacherHint }: OmniMicButtonProps) {
+export default function OmniMicButton({ teacherHint }: OmniMicButtonProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="absolute bottom-24 right-8 z-50 flex flex-col items-end gap-2">
       {teacherHint && (
@@ -14,7 +16,7 @@ export default function OmniMicButton({ onClick, teacherHint }: OmniMicButtonPro
           {teacherHint}
         </div>
       )}
-      <button onClick={onClick} className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-[0_0_30px_rgba(37,99,235,0.5)] border-2 border-white/20 flex items-center justify-center hover:scale-110 transition-transform group animate-fade-in-up">
+      <button onClick={() => navigate("/speaking")} className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-[0_0_30px_rgba(37,99,235,0.5)] border-2 border-white/20 flex items-center justify-center hover:scale-110 transition-transform group animate-fade-in-up">
         <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping opacity-75" />
         <Mic className="w-8 h-8 text-white drop-shadow-md group-hover:text-blue-100" />
       </button>

@@ -5,10 +5,9 @@ import SatelliteWidget from "./SatelliteWidget";
 
 interface RightPillarProps {
   onNavigate: (section: string) => void;
-  setShowOmniMic: (show: boolean) => void;
 }
 
-export default function RightPillar({ onNavigate, setShowOmniMic }: RightPillarProps) {
+export default function RightPillar({ onNavigate }: RightPillarProps) {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   return (
@@ -48,7 +47,7 @@ export default function RightPillar({ onNavigate, setShowOmniMic }: RightPillarP
 
       {/* Satellite Widget */}
       <div className="flex-1 flex items-center justify-center relative overflow-visible mt-4 -translate-x-8">
-        <SatelliteWidget onNavigate={onNavigate} onSpeakClick={() => setShowOmniMic(true)} />
+        <SatelliteWidget onNavigate={onNavigate} />
       </div>
     </div>
   );
