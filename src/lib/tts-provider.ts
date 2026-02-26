@@ -135,6 +135,19 @@ export function stopSpeaking(): void {
   if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
+/** Preload/warm up voices so the first real utterance plays instantly */
+export function preloadVoices(): void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  ensureVoices();
+  // Speak a silent utterance to prime the engine
+  const warmup = new SpeechSynthesisUtterance("");
+  warmup.volume = 0;
+  warmup.rate = 10;
+  const voice = cachedVoices["uk"] || cachedVoices["us"];
+  if (voice) warmup.voice = voice;
+  speechSynthesis.speak(warmup);
+}
+
 /** Get the name of the active voice for an accent (useful for UI badges) */
 export function getActiveVoiceName(accent: Accent): string {
   if (!voicesReady) ensureVoices();
