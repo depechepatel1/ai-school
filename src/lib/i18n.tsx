@@ -6,6 +6,7 @@ const translations: Record<string, Record<Lang, string>> = {
   // Brand
   "brand.subtitle": { en: "Next Gen Learning", zh: "新一代智能学习" },
   "brand.title": { en: "AI School", zh: "AI 学校" },
+  "brand.edition": { en: "IELTS Edition", zh: "雅思版" },
 
   // Auth - Login
   "login.subtitle": { en: "Sign in to continue your practice", zh: "登录以继续练习" },
