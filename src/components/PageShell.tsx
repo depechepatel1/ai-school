@@ -23,7 +23,7 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, playIntroVideo = false, customVideoUrl, fullWidth = false }: PageShellProps) {
-  const loopVideo = customVideoUrl || VIDEO_2;
+  const loopVideo = customVideoUrl || VIDEO_1;
   const useIntro = playIntroVideo && !customVideoUrl;
   const [isMuted, setIsMuted] = useState(true);
   const [showVideo2, setShowVideo2] = useState(!useIntro);
@@ -81,7 +81,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
           {useIntro && (
             <video
               ref={video1Ref}
-              src={VIDEO_1}
+              src={VIDEO_2}
               autoPlay
               playsInline
               muted={isMuted}
