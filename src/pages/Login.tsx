@@ -4,13 +4,13 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
-import { LogIn } from "lucide-react";
+import { LogIn, ArrowRight } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
 export default function Login() {
@@ -38,64 +38,90 @@ export default function Login() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
-        className="flex-1 flex flex-col justify-between"
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+        className="flex-1 flex flex-col justify-center"
       >
-        {/* Header */}
-        <motion.div variants={fadeUp} className="text-center space-y-1">
-          <div className="flex justify-center items-center gap-2 mb-1">
+        {/* Brand */}
+        <motion.div variants={fadeUp} className="text-center mb-8">
+          <div className="flex justify-center items-center gap-2 mb-3">
             <NeuralLogo />
             <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
           </div>
-          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
-            AI School
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+            Welcome Back
           </h1>
-          <p className="text-xs text-gray-400 pt-1">Sign in to continue your practice</p>
+          <p className="text-sm text-gray-400 mt-2">Sign in to continue your practice</p>
         </motion.div>
 
         {/* Form */}
         <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
-          />
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 pl-1">Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 pl-1">Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-[11px] text-blue-400/80 hover:text-blue-300 transition-colors">
+              Forgot password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(37,99,235,0.25)] hover:shadow-[0_0_40px_rgba(37,99,235,0.4)]"
           >
-            <LogIn className="w-4 h-4" />
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? (
+              <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <>
+                Sign In
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </motion.form>
 
-        {/* Links */}
-        <motion.div variants={fadeUp} className="text-center space-y-2">
-          <Link to="/forgot-password" className="text-xs text-blue-400 hover:underline block">
-            Forgot password?
+        {/* Divider + Signup */}
+        <motion.div variants={fadeUp} className="mt-8 text-center">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/10" />
+            <span className="text-[10px] text-gray-600 uppercase tracking-widest">New here?</span>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/10" />
+          </div>
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-semibold text-gray-300 hover:text-white hover:bg-white/[0.08] hover:border-white/15 transition-all"
+          >
+            Create an Account
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
-          <p className="text-[11px] text-gray-500">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-blue-400 hover:underline">Sign up</Link>
-          </p>
         </motion.div>
 
         {/* ICP Footer */}
-        <motion.div variants={fadeUp} className="pt-3 border-t border-white/5 text-center space-y-0.5">
-          <p className="text-[9px] text-gray-600">ICP备案号：京ICP备2026XXXXXXXX号</p>
-          <p className="text-[9px] text-gray-600">APP备案号：京ICP备2026XXXXXXXX号A</p>
+        <motion.div variants={fadeUp} className="mt-auto pt-6 text-center space-y-0.5">
+          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+          <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
         </motion.div>
       </motion.div>
     </PageShell>
