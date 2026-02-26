@@ -325,7 +325,7 @@ function ProsodyVisualizer({ data, activeWordIndex }: { data: WordData[]; active
                 weight = "font-semibold";
                 color = isActive ? "text-cyan-300" : "text-white";
               } else {
-                color = isActive ? "text-cyan-500" : "text-gray-500";
+                color = isActive ? "text-cyan-500" : "text-gray-600";
               }
               return (
                 <span
