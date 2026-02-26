@@ -1282,34 +1282,31 @@ export default function SpeakingStudio() {
             {/* Bottom area */}
             <div className="absolute bottom-0 left-0 right-0 pb-2 pt-24 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black via-black/85 to-transparent">
               {/* Topic & progress indicator */}
-              {practiceType === "pronunciation" && (
-                <div className="mb-3 flex flex-col items-center gap-1.5 w-full max-w-md mx-auto">
-                  <div className="flex items-center gap-3 w-full justify-center">
-                    {currentTopic && (
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">
-                        {currentTopic}
-                      </span>
-                    )}
-                    {curriculumTotal > 0 && (
-                      <span className="text-[10px] text-white/50 font-mono tabular-nums">
-                        {globalSentenceIndex + 1} / {curriculumTotal}
-                      </span>
-                    )}
-                  </div>
+              {practiceType === "pronunciation" && currentTopic && (
+                <div className="mb-2 flex items-center gap-3 justify-center">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">
+                    {currentTopic}
+                  </span>
                   {curriculumTotal > 0 && (
-                    <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${((globalSentenceIndex + 1) / curriculumTotal) * 100}%` }}
-                      />
-                    </div>
+                    <span className="text-[10px] text-white/50 font-mono tabular-nums">
+                      {globalSentenceIndex + 1} / {curriculumTotal}
+                    </span>
                   )}
                 </div>
               )}
               <div className="mb-1 w-full text-center relative z-10">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
-              <div className="w-full max-w-3xl grid grid-rows-2 gap-2 mb-2">
+              <div className="w-full max-w-3xl flex flex-col gap-2 mb-2">
+                {/* Progress bar */}
+                {practiceType === "pronunciation" && curriculumTotal > 0 && (
+                  <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${((globalSentenceIndex + 1) / curriculumTotal) * 100}%` }}
+                    />
+                  </div>
+                )}
                 {/* Target contour */}
                 <div
                   onClick={handlePlayModel}
