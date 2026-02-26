@@ -1,21 +1,27 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
+import NeuralLogo from "@/components/NeuralLogo";
+import PageShell from "@/components/PageShell";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/lib/i18n";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+};
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { updatePassword } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
-    // Check if we have a recovery token in the URL hash
     const hash = window.location.hash;
     if (!hash.includes("type=recovery")) {
       navigate("/login");
@@ -27,34 +33,65 @@ export default function ResetPassword() {
     setIsLoading(true);
     try {
       await updatePassword(password);
-      toast({ title: "Password updated!", description: "You can now sign in with your new password." });
+      toast({ title: t("reset.success"), description: t("reset.successDesc") });
       navigate("/login");
     } catch (err: any) {
-      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+      toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="glass-card p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold gradient-text">Set New Password</h1>
-            <p className="text-muted-foreground text-sm">Enter your new password below</p>
+    <PageShell>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+        className="flex-1 flex flex-col justify-center"
+      >
+        {/* Language Toggle */}
+        <motion.div variants={fadeUp} className="flex justify-end mb-2">
+          <LanguageToggle />
+        </motion.div>
+
+        {/* Brand */}
+        <motion.div variants={fadeUp} className="text-center mb-8">
+          <div className="flex justify-center mb-3">
+            <NeuralLogo />
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
-              <Input id="password" type="password" placeholder="Min 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Updating..." : "Update Password"}
-            </Button>
-          </form>
-        </div>
+          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+            {t("reset.title")}
+          </h1>
+          <p className="text-sm text-gray-400 mt-2">{t("reset.subtitle")}</p>
+        </motion.div>
+
+        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 pl-1">{t("reset.newPassword")}</label>
+            <input
+              type="password"
+              placeholder={t("reset.placeholder")}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(37,99,235,0.25)]"
+          >
+            {isLoading ? (
+              <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              t("reset.update")
+            )}
+          </button>
+        </motion.form>
       </motion.div>
-    </div>
+    </PageShell>
   );
 }

@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut, ChevronRight, BookOpen } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/lib/i18n";
 import { fetchClasses, createClass, getCurrentUserId } from "@/services/db";
 
 interface ClassInfo {
@@ -25,6 +27,7 @@ export default function TeacherDashboard() {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [newClassName, setNewClassName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => { loadClasses(); }, []);
 
@@ -44,16 +47,16 @@ export default function TeacherDashboard() {
       await createClass(newClassName.trim(), userId);
       setNewClassName("");
       loadClasses();
-      toast({ title: "Class created!" });
+      toast({ title: t("teacher.classCreated") });
     } catch (err: any) {
-      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+      toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
     }
     setIsCreating(false);
   };
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Copied!", description: `Join code ${code} copied.` });
+    toast({ title: t("teacher.copied"), description: t("teacher.joinCodeCopied") });
   };
 
   return (
@@ -69,21 +72,24 @@ export default function TeacherDashboard() {
           <div className="flex items-center gap-2.5">
             <NeuralLogo />
             <div>
-              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">AI School</h1>
+              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">{t("brand.title")}</h1>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-[9px] font-semibold text-emerald-300">
-                <BookOpen className="w-3 h-3" /> Teacher Portal
+                <BookOpen className="w-3 h-3" /> {t("portal.teacher")}
               </span>
             </div>
           </div>
-          <button onClick={signOut} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition-all">
-            <LogOut className="w-3 h-3" /> Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <button onClick={signOut} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition-all">
+              <LogOut className="w-3 h-3" /> {t("common.signOut")}
+            </button>
+          </div>
         </motion.div>
 
         {/* Create class */}
         <motion.div variants={fadeUp} className="flex gap-2 mb-4">
           <input
-            placeholder="New class name..."
+            placeholder={t("teacher.newClassPlaceholder")}
             value={newClassName}
             onChange={(e) => setNewClassName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreateClass()}
@@ -94,7 +100,7 @@ export default function TeacherDashboard() {
             disabled={isCreating || !newClassName.trim()}
             className="px-3 h-9 rounded-xl bg-blue-500/15 border border-blue-400/20 text-blue-300 text-[10px] font-semibold hover:bg-blue-500/25 disabled:opacity-40 transition-all flex items-center gap-1.5"
           >
-            <Plus className="w-3 h-3" /> Create
+            <Plus className="w-3 h-3" /> {t("teacher.create")}
           </button>
         </motion.div>
 
@@ -105,7 +111,7 @@ export default function TeacherDashboard() {
               <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-3">
                 <Users className="w-5 h-5 text-gray-600" />
               </div>
-              <p className="text-xs text-gray-500">No classes yet. Create one above!</p>
+              <p className="text-xs text-gray-500">{t("teacher.noClasses")}</p>
             </motion.div>
           )}
           {classes.map((c) => (
@@ -136,8 +142,8 @@ export default function TeacherDashboard() {
         {/* Bottom feature cards */}
         <div className="space-y-2 mt-auto">
           {[
-            { icon: <BarChart3 className="w-4 h-4" />, title: "Student Analytics", tag: "Soon" },
-            { icon: <MessageSquare className="w-4 h-4" />, title: "Conversation Review", tag: "Soon" },
+            { icon: <BarChart3 className="w-4 h-4" />, title: t("teacher.studentAnalytics"), tag: t("teacher.soon") },
+            { icon: <MessageSquare className="w-4 h-4" />, title: t("teacher.conversationReview"), tag: t("teacher.soon") },
           ].map((item, i) => (
             <motion.div
               key={i}

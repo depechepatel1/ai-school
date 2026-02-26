@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { LogOut, Users, BarChart3, Clock, ChevronRight, Heart } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/lib/i18n";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -11,6 +13,7 @@ const fadeUp = {
 
 export default function ParentDashboard() {
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <PageShell>
@@ -25,15 +28,18 @@ export default function ParentDashboard() {
           <div className="flex items-center gap-2.5">
             <NeuralLogo />
             <div>
-              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">AI School</h1>
+              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">{t("brand.title")}</h1>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-400/20 text-[9px] font-semibold text-rose-300">
-                <Heart className="w-3 h-3" /> Parent Portal
+                <Heart className="w-3 h-3" /> {t("portal.parent")}
               </span>
             </div>
           </div>
-          <button onClick={signOut} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition-all">
-            <LogOut className="w-3 h-3" /> Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <button onClick={signOut} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition-all">
+              <LogOut className="w-3 h-3" /> {t("common.signOut")}
+            </button>
+          </div>
         </motion.div>
 
         {/* Link child — hero card */}
@@ -41,12 +47,12 @@ export default function ParentDashboard() {
           <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-400/20 flex items-center justify-center mx-auto mb-3">
             <Users className="w-6 h-6 text-blue-400" />
           </div>
-          <h2 className="text-sm font-bold text-gray-200 mb-1">Link Your Child's Account</h2>
+          <h2 className="text-sm font-bold text-gray-200 mb-1">{t("parent.linkTitle")}</h2>
           <p className="text-[11px] text-gray-500 max-w-[240px] mx-auto leading-relaxed">
-            Enter your child's student code to link their account and track their learning progress.
+            {t("parent.linkDesc")}
           </p>
           <button className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-400/20 text-xs font-semibold text-blue-300 hover:bg-blue-500/25 transition-all">
-            Link Account
+            {t("parent.linkButton")}
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </motion.div>
@@ -54,8 +60,8 @@ export default function ParentDashboard() {
         {/* Feature cards */}
         <div className="flex-1 flex flex-col gap-3">
           {[
-            { icon: <BarChart3 className="w-5 h-5" />, title: "Progress Overview", desc: "View learning stats, scores, and improvement trends", tag: "Coming Soon" },
-            { icon: <Clock className="w-5 h-5" />, title: "Recent Activity", desc: "See latest practice sessions and time spent", tag: "Coming Soon" },
+            { icon: <BarChart3 className="w-5 h-5" />, title: t("parent.progressOverview"), desc: t("parent.progressDesc"), tag: t("parent.comingSoon") },
+            { icon: <Clock className="w-5 h-5" />, title: t("parent.recentActivity"), desc: t("parent.recentDesc"), tag: t("parent.comingSoon") },
           ].map((item, i) => (
             <motion.div
               key={i}
