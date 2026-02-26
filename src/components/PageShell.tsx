@@ -116,6 +116,17 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                 }, 50);
               }
             }}
+            onPlay={() => {
+              // Prefetch next video in sequence
+              if (!shouldLoop && videoList.length > 1) {
+                const nextIdx = (currentVideoIndex + 1) % videoList.length;
+                const prefetchVideo = document.createElement("link");
+                prefetchVideo.rel = "prefetch";
+                prefetchVideo.as = "video";
+                prefetchVideo.href = videoList[nextIdx];
+                document.head.appendChild(prefetchVideo);
+              }
+            }}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${useIntro && !introFinished ? "opacity-0" : "opacity-100"}`}
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
           />
