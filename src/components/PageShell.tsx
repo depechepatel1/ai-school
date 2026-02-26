@@ -126,13 +126,13 @@ export default function PageShell({ children, playIntroVideo = false, customVide
         </div>
 
         {/* Content Layer - Right Sidebar (Glass Card) */}
-        <div className="absolute right-0 top-0 bottom-0 w-[40%] min-w-[340px] z-20 flex flex-col justify-center p-8">
-          <div className="relative group">
+        <div className="absolute right-0 top-0 bottom-0 w-[40%] min-w-[340px] z-20 flex flex-col py-3 pr-4 pl-0">
+          <div className="relative group flex-1 flex flex-col">
             {/* Glow */}
             <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-[2.5rem] blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700" />
 
             {/* Glass Container */}
-            <div className="relative w-full max-h-[720px] px-6 py-6 rounded-[2.5rem] bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
+            <div className="relative w-full flex-1 px-6 py-6 rounded-[2.5rem] bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
               {/* Subtle reflection */}
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
