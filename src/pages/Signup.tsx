@@ -4,9 +4,11 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, UserPlus, GraduationCap, Users, Heart } from "lucide-react";
 
 type AppRole = "student" | "teacher" | "parent";
@@ -23,11 +25,17 @@ export default function Signup() {
   const [displayName, setDisplayName] = useState("");
   const [selectedRole, setSelectedRole] = useState<AppRole>("student");
   const [isLoading, setIsLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [isMinor, setIsMinor] = useState(false);
+  const [guardianAgreed, setGuardianAgreed] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
+  const canSubmit = agreed && (!isMinor || guardianAgreed);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSubmit) return;
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, selectedRole);
@@ -91,7 +99,62 @@ export default function Signup() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" placeholder="Min 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
-            <Button type="submit" className="w-full orange-glow" disabled={isLoading}>
+
+            {/* PRC Consent Section */}
+            <div className="space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="agree"
+                  checked={agreed}
+                  onCheckedChange={(v) => setAgreed(v === true)}
+                />
+                <label htmlFor="agree" className="text-sm leading-snug text-foreground/90 cursor-pointer">
+                  我已阅读并同意{" "}
+                  <Link to="/terms" className="text-primary hover:underline" target="_blank">《用户协议》</Link>
+                  {" "}和{" "}
+                  <Link to="/privacy" className="text-primary hover:underline" target="_blank">《隐私政策》</Link>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="minor-mode" className="text-sm text-muted-foreground cursor-pointer">
+                  未成年人模式 (Minor Mode) / 不满14周岁
+                </Label>
+                <Switch
+                  id="minor-mode"
+                  checked={isMinor}
+                  onCheckedChange={(v) => {
+                    setIsMinor(v);
+                    if (!v) setGuardianAgreed(false);
+                  }}
+                />
+              </div>
+
+              <AnimatePresence>
+                {isMinor && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-start gap-3 pt-2 border-t border-border">
+                      <Checkbox
+                        id="guardian-agree"
+                        checked={guardianAgreed}
+                        onCheckedChange={(v) => setGuardianAgreed(v === true)}
+                      />
+                      <label htmlFor="guardian-agree" className="text-sm leading-snug text-foreground/90 cursor-pointer">
+                        我已获得监护人同意，且监护人已阅读并同意上述协议
+                      </label>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Button type="submit" className="w-full orange-glow" disabled={isLoading || !canSubmit}>
               <UserPlus className="w-4 h-4 mr-2" />
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
@@ -101,6 +164,12 @@ export default function Signup() {
             Already have an account?{" "}
             <Link to="/login" className="text-primary hover:underline">Sign in</Link>
           </p>
+
+          {/* ICP Filing Footer */}
+          <div className="pt-4 border-t border-border text-center space-y-1">
+            <p className="text-[11px] text-muted-foreground/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+            <p className="text-[11px] text-muted-foreground/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
+          </div>
         </div>
       </motion.div>
     </div>
