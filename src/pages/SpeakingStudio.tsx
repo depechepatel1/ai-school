@@ -71,8 +71,10 @@ interface TestState {
 // CANVAS VISUALIZERS
 // ============================================================
 
-function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying: boolean }) {
+function TargetContourCanvas({ data, isPlaying, activeWordIndex }: { data: WordData[]; isPlaying: boolean; activeWordIndex: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+  const progressRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -86,9 +88,34 @@ function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying:
     const w = rect.width;
     const h = rect.height;
     const allSyllables = data.flatMap((d) => d.syllables);
+    const pad = 12;
+    const drawW = w - pad * 2;
+
+    const getPoints = () => allSyllables.map((s, i) => ({
+      x: pad + i * (drawW / Math.max(1, allSyllables.length - 1)),
+      y: s.pitch === 2 && s.stress === 2 ? h * 0.15
+        : s.pitch === 2 ? h * 0.3
+        : s.pitch === -1 ? h * 0.85
+        : h * 0.6,
+    }));
+
+    // Calculate progress based on activeWordIndex
+    const totalWords = data.length;
+    const targetProgress = isPlaying && totalWords > 0
+      ? Math.min(1, (activeWordIndex + 1) / totalWords)
+      : isPlaying ? 0.02 : 0;
 
     const draw = () => {
+      // Smoothly animate progress
+      if (isPlaying) {
+        progressRef.current += (targetProgress - progressRef.current) * 0.08;
+      } else {
+        progressRef.current *= 0.92; // fade out
+      }
+
       ctx.clearRect(0, 0, w, h);
+
+      // Center line
       ctx.strokeStyle = "rgba(255,255,255,0.05)";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -96,34 +123,102 @@ function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying:
       ctx.lineTo(w, h / 2);
       ctx.stroke();
 
-      const pad = 12;
-      const drawW = w - pad * 2;
-      const points = allSyllables.map((s, i) => ({
-        x: pad + i * (drawW / Math.max(1, allSyllables.length - 1)),
-        y: s.pitch === 2 && s.stress === 2 ? h * 0.15
-          : s.pitch === 2 ? h * 0.3
-          : s.pitch === -1 ? h * 0.85
-          : h * 0.6,
-      }));
+      const points = getPoints();
+      if (points.length === 0) return;
+
+      // Draw dim trail (full line)
       ctx.beginPath();
-      if (points.length > 0) ctx.moveTo(points[0].x, points[0].y);
+      ctx.moveTo(points[0].x, points[0].y);
       for (let i = 1; i < points.length; i++) {
         ctx.lineTo(points[i].x, points[i].y);
       }
-      if (points.length === 1) ctx.lineTo(points[0].x + 1, points[0].y);
-      const grad = ctx.createLinearGradient(0, 0, w, 0);
-      grad.addColorStop(0, "#22d3ee");
-      grad.addColorStop(1, "#3b82f6");
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(34,211,238,0.15)";
+      ctx.lineWidth = 2;
       ctx.lineCap = "round";
-      ctx.shadowColor = "#22d3ee";
-      ctx.shadowBlur = 10;
+      ctx.lineJoin = "round";
       ctx.stroke();
-      ctx.shadowBlur = 0;
+
+      // Draw lit portion (played segment)
+      if (progressRef.current > 0.005) {
+        const litEndX = pad + progressRef.current * drawW;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          if (points[i].x > litEndX) {
+            // Interpolate to exact cutoff
+            const prev = points[i - 1];
+            const t = (litEndX - prev.x) / (points[i].x - prev.x);
+            ctx.lineTo(prev.x + t * (points[i].x - prev.x), prev.y + t * (points[i].y - prev.y));
+            break;
+          }
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        const grad = ctx.createLinearGradient(0, 0, litEndX, 0);
+        grad.addColorStop(0, "#22d3ee");
+        grad.addColorStop(1, "#3b82f6");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowColor = "#22d3ee";
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Playhead dot
+        const dotX = litEndX;
+        const dotY = (() => {
+          for (let i = 1; i < points.length; i++) {
+            if (points[i].x >= dotX) {
+              const prev = points[i - 1];
+              const t = (dotX - prev.x) / (points[i].x - prev.x);
+              return prev.y + t * (points[i].y - prev.y);
+            }
+          }
+          return points[points.length - 1].y;
+        })();
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#22d3ee";
+        ctx.shadowColor = "#22d3ee";
+        ctx.shadowBlur = 16;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else {
+        // Static: draw full bright line
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        grad.addColorStop(0, "#22d3ee");
+        grad.addColorStop(1, "#3b82f6");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowColor = "#22d3ee";
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      if (isPlaying || progressRef.current > 0.01) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
-    draw();
-  }, [data, isPlaying]);
+
+    if (isPlaying) {
+      animRef.current = requestAnimationFrame(draw);
+    } else {
+      draw();
+    }
+
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [data, isPlaying, activeWordIndex]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
@@ -1313,7 +1408,7 @@ export default function SpeakingStudio() {
                     Target Contour
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
-                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} />
+                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} />
                   </div>
                 </div>
                 {/* Live input */}
