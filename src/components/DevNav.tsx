@@ -8,7 +8,9 @@ const routes = [
   { path: "/login", label: "Login" },
   { path: "/signup", label: "Signup" },
   { path: "/forgot-password", label: "Forgot PW" },
+  { path: "/reset-password", label: "Reset PW" },
   { path: "/student", label: "Student" },
+  { path: "/speaking", label: "Speaking Studio" },
   { path: "/teacher", label: "Teacher" },
   { path: "/parent", label: "Parent" },
 ];
