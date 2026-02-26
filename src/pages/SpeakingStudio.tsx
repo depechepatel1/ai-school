@@ -100,16 +100,17 @@ function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying:
       const drawW = w - pad * 2;
       const points = allSyllables.map((s, i) => ({
         x: pad + i * (drawW / Math.max(1, allSyllables.length - 1)),
-        y: s.pitch === 2 ? h * 0.2 : s.pitch === -1 ? h * 0.8 : h * 0.7,
+        y: s.pitch === 2 && s.stress === 2 ? h * 0.15
+          : s.pitch === 2 ? h * 0.3
+          : s.pitch === -1 ? h * 0.85
+          : h * 0.6,
       }));
       ctx.beginPath();
       if (points.length > 0) ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 0; i < points.length - 1; i++) {
-        const p0 = points[i],
-          p1 = points[i + 1];
-        ctx.quadraticCurveTo(p0.x, p0.y, (p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
       }
-      if (points.length > 0) ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+      if (points.length === 1) ctx.lineTo(points[0].x + 1, points[0].y);
       const grad = ctx.createLinearGradient(0, 0, w, 0);
       grad.addColorStop(0, "#22d3ee");
       grad.addColorStop(1, "#3b82f6");
