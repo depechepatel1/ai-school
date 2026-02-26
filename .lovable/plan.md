@@ -1,50 +1,105 @@
 
 
-## Plan: Abstracted Voice & Backend Layer for China Deployment
+## Plan: Speech Analysis Provider Abstraction + Curriculum Integration + Pitch Detection
 
-### Context
-Yes — Microsoft Edge on all platforms (PC, iPad, mobile) is a solid approach for China. Edge ships with high-quality "Natural" neural voices (en-GB and en-US female options like "Sonia" and "Jenny") that work offline with no API calls, so no firewall issues. The current `tts.ts` already prioritizes these voices.
+### Overview
+Build the entire pronunciation practice pipeline with a pluggable speech analysis layer, so the interim browser-based pitch detection works now and can be swapped to Aliyun Speech Analysis API with one config change later.
 
-### What This Plan Does
-1. **Create a TTS provider abstraction** (`src/lib/tts-provider.ts`) with a unified interface that currently uses browser `SpeechSynthesis` but can be swapped to Aliyun DashScope TTS with one config change
-2. **Create an STT provider abstraction** (`src/lib/stt-provider.ts`) wrapping the current Web Speech API, with a plug point for Aliyun speech recognition
-3. **Add accent-aware voice selection** — the existing UK/US toggle in SpeakingStudio will pick the correct Edge Natural voice (en-GB vs en-US)
-4. **Update SpeakingStudio** to use the new provider abstractions instead of raw `SpeechSynthesis`
-5. **Add a central config** (`src/lib/provider-config.ts`) with feature flags for TTS provider (`"browser" | "aliyun"`), STT provider (`"browser" | "aliyun"`), and backend (`"supabase" | "memfire"`) — all defaulting to browser/current
+### 1. Add `speech_analysis` provider to config
 
-### Implementation Details
+**Modify `src/lib/provider-config.ts`**
+- Add `speechAnalysis: "browser" as "browser" | "aliyun"` to PROVIDERS
 
-**`src/lib/provider-config.ts`** — Central config
-```typescript
-export const PROVIDERS = {
-  tts: "browser" as "browser" | "aliyun",
-  stt: "browser" as "browser" | "aliyun", 
-  backend: "supabase" as "supabase" | "memfire",
-};
+### 2. Create speech analysis provider abstraction
+
+**Create `src/lib/speech-analysis-provider.ts`**
+- Unified interface:
+```text
+interface SpeechAnalysisResult {
+  overallScore: number;          // 0-100
+  pitchContour: number[];        // normalized 0-1 pitch values
+  fluencyScore?: number;
+  pronunciationScore?: number;
+  wordScores?: { word: string; score: number; feedback?: string }[];
+}
+
+interface SpeechAnalysisProvider {
+  analyze(audioData: Float32Array, sampleRate: number, referenceText: string, accent: Accent): Promise<SpeechAnalysisResult>;
+  getContourRealtime?(audioChunk: Float32Array, sampleRate: number): number[];  // for live visualization
+}
+```
+- `"browser"` implementation: uses local pitch detector + prosody contour matching (DTW)
+- `"aliyun"` placeholder: will call a future `aliyun-speech-analysis` edge function, return its structured response
+
+### 3. Create pitch detector (browser interim)
+
+**Create `src/lib/pitch-detector.ts`**
+- Autocorrelation-based F0 extraction from `Float32Array` audio frames
+- `detectPitch(buffer, sampleRate) → frequency in Hz or null`
+- `extractContour(analyserNode, duration) → number[]` for real-time contour building
+
+### 4. Create contour matching / scoring
+
+**Create `src/lib/contour-match.ts`**
+- `generateTargetContour(prosodyData: WordData[]) → number[]` — converts prosody pitch values to normalized contour
+- `matchContours(target: number[], user: number[]) → number` — DTW-based similarity score (0-100)
+- Used by the browser speech analysis provider; Aliyun provider will return its own scores
+
+### 5. Create import-curriculum edge function
+
+**Create `supabase/functions/import-curriculum/index.ts`**
+- Accepts POST with JSON array of `{id, module, target_sound, sentence}` items
+- Uses service role key to bypass RLS
+- Maps fields and batch-inserts into `curriculum_items` table
+- One-time use for data seeding
+
+### 6. Add curriculum fetch functions
+
+**Modify `src/services/db.ts`**
+- `fetchCurriculumPage(track, bandLevel?, offset, limit)` — paginated fetch
+- `prefetchNextItem(track, currentSortOrder)` — fetch single next item
+
+### 7. Update SpeakingStudio shadowing mode
+
+**Modify `src/pages/SpeakingStudio.tsx`**
+- Replace hardcoded `PRONUNCIATION_SENTENCES` with DB-driven sequential curriculum
+- Prefetch next sentence while current one is practiced
+- Replace `Math.floor(Math.random() * 30) + 70` score with speech analysis provider result
+- Feed real pitch contour from `LiveInputCanvas` into the analysis provider
+- Show module/target_sound info from curriculum item
+- Add "Next" button for sequential advancement
+
+### 8. Enhance LiveInputCanvas with pitch extraction
+
+**Modify `LiveInputCanvas` in `SpeakingStudio.tsx`**
+- Add pitch detection alongside existing amplitude tracking
+- Store pitch contour history for post-recording analysis
+- Pass contour data up via callback for scoring
+
+### Architecture for Aliyun Swap
+
+When Aliyun API is ready:
+1. Set `PROVIDERS.speechAnalysis = "aliyun"` in provider-config
+2. Create `supabase/functions/aliyun-speech-analysis/index.ts` edge function
+3. The Aliyun provider implementation sends recorded audio to the edge function, receives structured scores
+4. No UI component changes needed — the provider abstraction handles everything
+
+```text
+Current (browser):
+  Mic → pitch-detector.ts → contour-match.ts → score
+  
+Future (Aliyun):
+  Mic → audio blob → edge function → Aliyun API → structured scores
+  
+Both return: SpeechAnalysisResult { overallScore, pitchContour, wordScores }
 ```
 
-**`src/lib/tts-provider.ts`** — Unified TTS interface
-- `speak(text, accent: "uk" | "us", options?)` → returns `{ stop(), onEnd() }`
-- `"browser"` mode: uses existing Edge Natural voice logic, selecting en-GB or en-US based on accent param
-- `"aliyun"` mode: placeholder that calls a future `aliyun-tts` edge function, returns audio blob
-- Word boundary events forwarded for prosody highlighting
-
-**`src/lib/stt-provider.ts`** — Unified STT interface
-- `startListening(lang)` / `stopListening()` / `onResult` / `onInterim`
-- `"browser"` mode: wraps current Web Speech API
-- `"aliyun"` mode: placeholder for future Aliyun Paraformer API via edge function
-
-**`src/pages/SpeakingStudio.tsx`** changes:
-- `handlePlayModel` and `speakTeacherText` call `ttsProvider.speak(text, accent)` instead of raw `SpeechSynthesisUtterance`
-- Speech recognition uses `sttProvider` instead of raw `SpeechRecognition`
-- Accent toggle (already in UI) passes `"uk" | "us"` to TTS provider
-
-**No edge functions needed now** — browser TTS/STT requires no backend. When you get the Aliyun API key later, we add one edge function (`aliyun-tts`) and flip the config flag.
-
-### Files to Create/Modify
-- **Create** `src/lib/provider-config.ts`
-- **Create** `src/lib/tts-provider.ts`
-- **Create** `src/lib/stt-provider.ts`
-- **Modify** `src/pages/SpeakingStudio.tsx` — use providers
-- **Modify** `src/lib/tts.ts` — refactor to export accent-aware voice selection for reuse
+### Files Summary
+- **Create** `src/lib/speech-analysis-provider.ts`
+- **Create** `src/lib/pitch-detector.ts`
+- **Create** `src/lib/contour-match.ts`
+- **Create** `supabase/functions/import-curriculum/index.ts`
+- **Modify** `src/lib/provider-config.ts` — add `speechAnalysis` flag
+- **Modify** `src/services/db.ts` — add curriculum fetch functions
+- **Modify** `src/pages/SpeakingStudio.tsx` — DB curriculum, real scoring, pitch contour
 
