@@ -6,6 +6,12 @@ const ERROR_MAP: Record<string, string> = {
   'User not found': 'No account found with this email.',
   'Email rate limit exceeded': 'Too many attempts. Please try again later.',
   'For security purposes': 'Too many attempts. Please try again later.',
+  'violates row-level security': 'Permission denied.',
+  'duplicate key value': 'This item already exists.',
+  'foreign key constraint': 'Invalid reference. Please check your input.',
+  'violates check constraint': 'Invalid input value.',
+  'FetchError': 'Network error. Please check your connection.',
+  'Failed to fetch': 'Network error. Please check your connection.',
 };
 
 export function getSafeErrorMessage(error: unknown): string {

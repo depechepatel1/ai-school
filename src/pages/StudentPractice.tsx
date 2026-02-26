@@ -96,7 +96,7 @@ export default function StudentPractice() {
       .insert({ user_id: user.id, title: "New Conversation" })
       .select()
       .single();
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" }); return; }
     setConversations((prev) => [data, ...prev]);
     setActiveConversationId(data.id);
     setMessages([]);
