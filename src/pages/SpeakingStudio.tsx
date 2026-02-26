@@ -1289,7 +1289,7 @@ export default function SpeakingStudio() {
         {mode === "shadowing" && (
           <>
             {/* Bottom area */}
-            <div className="absolute bottom-0 left-0 right-0 pb-2 pt-24 px-24 flex flex-col items-center z-40">
+            <div className="absolute bottom-0 left-0 right-0 pb-2 pt-24 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
               {/* Topic & progress indicator */}
               {practiceType === "pronunciation" && currentTopic && (
                 <div className="mb-2 flex items-center gap-3 justify-center">
