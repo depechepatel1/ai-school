@@ -1,44 +1,37 @@
 
 
-## Current State
-
-- **Login, Signup, ForgotPassword**: Already have the "AI School" header with NeuralLogo branding.
-- **TeacherDashboard**: Has "Teacher" label with "Manage classes & students" subtitle, but no "AI School" branding.
-- **ParentDashboard**: Has "Parent Portal" label with "Monitor your child's progress" subtitle, but no "AI School" branding.
-- **StudentPractice**: Has no header label at all — jumps straight into the chat sidebar/content area.
-
-There is only **one Login page** shared by all roles. The "3 types" the user refers to are the 3 **dashboard pages** after login (Student, Teacher, Parent).
-
 ## Plan
 
-### 1. Add consistent "AI School" + role label headers to all 3 dashboards
+### 1. Delete LandingPage
+- Delete `src/pages/LandingPage.tsx` — it's unused (not imported in App.tsx)
 
-Each dashboard will get a compact header strip at the top with:
-- NeuralLogo + "AI School" title (consistent branding)
-- A role-specific colored badge/pill below (e.g., "Student Portal", "Teacher Portal", "Parent Portal") with role-appropriate icon and color
-- Sign Out button aligned to the right
+### 2. Ensure `/signup` is the default entry point
+- `src/pages/Index.tsx`: Change the unauthenticated redirect from `/signup` to `/signup` (already correct, no change needed)
 
-**StudentPractice.tsx**: Add a compact header bar above the chat area with NeuralLogo, "AI School" title, a blue "Student" badge with GraduationCap icon, and Sign Out on the right.
+### 3. Create a shared language toggle component
+- Create `src/components/LanguageToggle.tsx` — a small button/pill that toggles between English and Chinese
+- Create `src/lib/i18n.tsx` — a React context + hook (`useLanguage`) that stores the current language (`"en" | "zh"`) in state (persisted to localStorage)
+- Contains a translations dictionary for all UI strings across pages
 
-**TeacherDashboard.tsx**: Restructure existing header to add "AI School" title above "Teacher Portal" badge (emerald colored, BookOpen icon).
+### 4. Add the language toggle to all pages
+The toggle will be placed in a consistent position across all pages. For pages inside PageShell, it goes at the top-right of the glass card content area.
 
-**ParentDashboard.tsx**: Same treatment — add "AI School" title above "Parent Portal" badge (rose colored, Heart icon).
+**Files to update:**
+- `src/components/PageShell.tsx` — wrap children with `LanguageProvider`; optionally place the toggle inside the glass card
+- `src/pages/Login.tsx` — replace hardcoded English strings with `t("key")` calls
+- `src/pages/Signup.tsx` — same treatment
+- `src/pages/ForgotPassword.tsx` — same
+- `src/pages/ResetPassword.tsx` — same (also refactor to use PageShell for consistency)
+- `src/pages/StudentPractice.tsx` — same
+- `src/pages/TeacherDashboard.tsx` — same
+- `src/pages/ParentDashboard.tsx` — same
 
-### 2. Suggested Improvements
+### 5. Translation scope
+All user-facing strings will be translated: headers, labels, placeholders, buttons, role names, footer text, empty states, and feature card titles. Legal content (privacy/terms) is already in Chinese and won't be duplicated in English.
 
-Here are concrete improvements to consider for the app:
-
-1. **Landing page has its own iPad frame** — it duplicates the entire PageShell layout (video, dev panel, compliance footer) instead of using PageShell. Refactoring it to use PageShell would eliminate ~100 lines of duplicate code and ensure consistent behavior.
-
-2. **No email verification feedback on Login** — after signup, users are told to verify email, but if they try to log in without verifying, the error message is generic. A specific "Please verify your email first" message would improve UX.
-
-3. **Student chat has no "AI School" context** — the AI chat currently has no system prompt visible in the code (it's in the edge function). Adding visible subject/topic selection (e.g., IELTS Speaking Part 1/2/3) would make the practice more structured.
-
-4. **Parent "Link Account" button does nothing** — it's a static placeholder. Implementing a join-code input flow (similar to how teachers share codes) would connect the parent/student relationship.
-
-5. **No loading state for initial data fetch** — TeacherDashboard and ParentDashboard show empty states immediately rather than a brief skeleton/spinner while data loads.
-
-6. **Mobile responsiveness** — the entire app is locked to a 1024x768 iPad frame. On actual mobile devices, the frame is tiny. Consider adding responsive breakpoints or a mobile-native layout.
-
-7. **Dark mode only** — there's no theme toggle. The `next-themes` package is already installed but unused.
+### Technical approach
+- `useLanguage()` hook returns `{ lang, setLang, t }` where `t(key)` returns the translated string
+- The toggle is a small `中/EN` pill button placed consistently in the top-right of each page header
+- The `LanguageProvider` wraps the app at the `App.tsx` level so all pages share the same state
+- localStorage key: `"app-lang"`
 
