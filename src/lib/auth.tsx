@@ -59,14 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
-        data: { display_name: displayName },
+        data: { display_name: displayName, role: selectedRole },
         emailRedirectTo: window.location.origin,
       },
     });
     if (error) throw error;
-    if (data.user) {
-      await insertUserRole(data.user.id, selectedRole);
-    }
   };
 
   const signIn = async (email: string, password: string) => {
