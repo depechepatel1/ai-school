@@ -1290,14 +1290,6 @@ export default function SpeakingStudio() {
           <>
             {/* Bottom area */}
             <div className="absolute bottom-0 left-0 right-0 pb-2 pt-16 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
-              {/* Progress indicator */}
-              {practiceType === "pronunciation" && curriculumTotal > 0 && (
-                <div className="mb-2 flex items-center gap-3 justify-center">
-                  <span className="text-[10px] text-white/50 font-mono tabular-nums">
-                    {globalSentenceIndex + 1} / {curriculumTotal}
-                  </span>
-                </div>
-              )}
               <div className="mb-1 w-full text-center relative z-10">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
