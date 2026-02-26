@@ -1,37 +1,21 @@
 
 
-## Plan
+## Fix Video Playback Logic
 
-### 1. Delete LandingPage
-- Delete `src/pages/LandingPage.tsx` — it's unused (not imported in App.tsx)
+The current code has the video roles inverted. Here's what needs to change:
 
-### 2. Ensure `/signup` is the default entry point
-- `src/pages/Index.tsx`: Change the unauthenticated redirect from `/signup` to `/signup` (already correct, no change needed)
+### `src/components/PageShell.tsx`
 
-### 3. Create a shared language toggle component
-- Create `src/components/LanguageToggle.tsx` — a small button/pill that toggles between English and Chinese
-- Create `src/lib/i18n.tsx` — a React context + hook (`useLanguage`) that stores the current language (`"en" | "zh"`) in state (persisted to localStorage)
-- Contains a translations dictionary for all UI strings across pages
+1. **Swap the video constants' roles** (or rename for clarity):
+   - `VIDEO_1` (Script video) = the **app-wide looping** background
+   - `VIDEO_2` (Welcome video) = the **one-time intro** played only on the student dashboard
 
-### 4. Add the language toggle to all pages
-The toggle will be placed in a consistent position across all pages. For pages inside PageShell, it goes at the top-right of the glass card content area.
+2. **Update the playback logic**:
+   - When `playIntroVideo` is true (student dashboard): play VIDEO_2 once as intro, then transition to VIDEO_1 looping
+   - When `playIntroVideo` is false (all other pages): immediately loop VIDEO_1
+   - Currently the code does the opposite — the intro video plays first then loops VIDEO_2. We swap which video is the intro and which is the loop.
 
-**Files to update:**
-- `src/components/PageShell.tsx` — wrap children with `LanguageProvider`; optionally place the toggle inside the glass card
-- `src/pages/Login.tsx` — replace hardcoded English strings with `t("key")` calls
-- `src/pages/Signup.tsx` — same treatment
-- `src/pages/ForgotPassword.tsx` — same
-- `src/pages/ResetPassword.tsx` — same (also refactor to use PageShell for consistency)
-- `src/pages/StudentPractice.tsx` — same
-- `src/pages/TeacherDashboard.tsx` — same
-- `src/pages/ParentDashboard.tsx` — same
+3. **Concrete change**: In the video rendering section, the intro `<video>` should use `VIDEO_2` (new welcome video) and the looping `<video>` should use `VIDEO_1` (original script video). The `loopVideo` variable should default to `VIDEO_1` instead of `VIDEO_2`.
 
-### 5. Translation scope
-All user-facing strings will be translated: headers, labels, placeholders, buttons, role names, footer text, empty states, and feature card titles. Legal content (privacy/terms) is already in Chinese and won't be duplicated in English.
-
-### Technical approach
-- `useLanguage()` hook returns `{ lang, setLang, t }` where `t(key)` returns the translated string
-- The toggle is a small `中/EN` pill button placed consistently in the top-right of each page header
-- The `LanguageProvider` wraps the app at the `App.tsx` level so all pages share the same state
-- localStorage key: `"app-lang"`
+This is a single-file edit to `src/components/PageShell.tsx` — no new components or migrations needed.
 
