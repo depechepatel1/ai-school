@@ -1336,66 +1336,66 @@ export default function SpeakingStudio() {
               </div>
             </div>
             {/* Right action bar */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-6 flex flex-col items-center gap-2 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-2.5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
+            <div className="absolute top-1/2 -translate-y-1/2 right-6 flex flex-col items-center gap-3 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-3 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
               {/* Listen */}
               <button
                 onClick={handlePlayModel}
-                className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`}
+                className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`}
                 title="Hear Teacher Model"
               >
-                <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <Headphones className="w-6 h-6 group-hover:scale-110 transition-transform" />
               </button>
 
               {/* Divider */}
-              <div className="w-6 h-px bg-white/[0.06]" />
+              <div className="w-7 h-px bg-white/[0.06]" />
 
               {/* Record */}
               <button
                 onClick={handleRecord}
-                className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`}
+                className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`}
                 title={isRecording ? "Stop" : "Record"}
               >
                 {isRecording ? (
-                  <div className="w-5 h-5 bg-white rounded-sm animate-pulse" />
+                  <div className="w-6 h-6 bg-white rounded-sm animate-pulse" />
                 ) : (
-                  <Mic className="w-7 h-7 text-white/80" />
+                  <Mic className="w-8 h-8 text-white/80" />
                 )}
               </button>
 
               {/* Divider */}
-              <div className="w-6 h-px bg-white/[0.06]" />
+              <div className="w-7 h-px bg-white/[0.06]" />
 
               {/* Replay */}
               {lastRecordingUrl && (
                 <button
-                  className="relative w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all duration-300 group"
+                  className="relative w-14 h-14 rounded-2xl flex items-center justify-center text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all duration-300 group"
                   title="Replay"
                 >
-                  <Play className="w-5 h-5 ml-0.5 group-hover:scale-110 transition-transform" />
+                  <Play className="w-6 h-6 ml-0.5 group-hover:scale-110 transition-transform" />
                 </button>
               )}
 
               {/* Ghost Mode */}
               <button
                 onClick={() => setGhostMode(!ghostMode)}
-                className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`}
+                className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`}
                 title="Ghost Mode"
               >
-                <Ghost className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <Ghost className="w-6 h-6 group-hover:scale-110 transition-transform" />
               </button>
 
               {/* Divider */}
-              <div className="w-6 h-px bg-white/[0.06]" />
+              <div className="w-7 h-px bg-white/[0.06]" />
 
               {/* Next Sentence */}
               {practiceType === "pronunciation" && (
                 <button
                   onClick={handleNextSentence}
                   disabled={curriculumLoading}
-                  className="relative w-12 h-12 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30"
+                  className="relative w-14 h-14 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30"
                   title="Next Sentence"
                 >
-                  <SkipForward className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <SkipForward className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 </button>
               )}
             </div>
