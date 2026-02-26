@@ -9,14 +9,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, GraduationCap, Users, Heart, X, ArrowLeft } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/lib/i18n";
 
 type AppRole = "student" | "teacher" | "parent";
-
-const roles: { value: AppRole; label: string; icon: React.ReactNode }[] = [
-  { value: "student", label: "Student", icon: <GraduationCap className="w-3.5 h-3.5" /> },
-  { value: "teacher", label: "Teacher", icon: <Users className="w-3.5 h-3.5" /> },
-  { value: "parent", label: "Parent", icon: <Heart className="w-3.5 h-3.5" /> },
-];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -172,6 +168,13 @@ export default function Signup() {
   const [legalModal, setLegalModal] = useState<"privacy" | "terms" | null>(null);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const roles: { value: AppRole; label: string; icon: React.ReactNode }[] = [
+    { value: "student", label: t("role.student"), icon: <GraduationCap className="w-3.5 h-3.5" /> },
+    { value: "teacher", label: t("role.teacher"), icon: <Users className="w-3.5 h-3.5" /> },
+    { value: "parent", label: t("role.parent"), icon: <Heart className="w-3.5 h-3.5" /> },
+  ];
 
   const canSubmit = agreed && (!isMinor || guardianAgreed);
 
@@ -181,10 +184,10 @@ export default function Signup() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, selectedRole);
-      toast({ title: "Account created!", description: "Please check your email to verify your account." });
+      toast({ title: t("signup.created"), description: t("signup.verifyEmail") });
       navigate("/login");
     } catch (err: any) {
-      toast({ title: "Signup failed", description: getSafeErrorMessage(err), variant: "destructive" });
+      toast({ title: t("signup.failed"), description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -198,14 +201,19 @@ export default function Signup() {
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
         className="flex-1 flex flex-col"
       >
+        {/* Language Toggle */}
+        <motion.div variants={fadeUp} className="flex justify-end mb-1">
+          <LanguageToggle />
+        </motion.div>
+
         {/* Compact Header */}
         <motion.div variants={fadeUp} className="text-center mb-4">
           <div className="flex justify-center items-center gap-2 mb-1.5">
             <NeuralLogo />
-            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
+            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">{t("brand.subtitle")}</span>
           </div>
           <h1 className="text-2xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
-            AI School
+            {t("brand.title")}
           </h1>
         </motion.div>
 
@@ -232,7 +240,7 @@ export default function Signup() {
         <motion.form variants={fadeUp} onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-3">
           <div className="space-y-2.5">
             <input
-              placeholder="Display Name"
+              placeholder={t("signup.displayName")}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
@@ -240,7 +248,7 @@ export default function Signup() {
             />
             <input
               type="email"
-              placeholder="Email"
+              placeholder={t("signup.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -248,7 +256,7 @@ export default function Signup() {
             />
             <input
               type="password"
-              placeholder="Password (min 6 chars)"
+              placeholder={t("signup.password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -270,7 +278,7 @@ export default function Signup() {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-500">未成年人模式 / 不满14周岁</span>
+              <span className="text-[10px] text-gray-500">{t("signup.minorMode")}</span>
               <Switch
                 id="minor-mode"
                 checked={isMinor}
@@ -308,14 +316,14 @@ export default function Signup() {
             className="w-full h-11 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_25px_rgba(37,99,235,0.25)]"
           >
             <UserPlus className="w-4 h-4" />
-            {isLoading ? "Creating..." : "Create Account"}
+            {isLoading ? t("signup.creating") : t("signup.createAccount")}
           </button>
 
           {/* Sign-in link + ICP */}
           <div className="text-center space-y-2 pt-1">
             <p className="text-[11px] text-gray-500">
-              Already have an account?{" "}
-              <Link to="/login" className="text-blue-400 hover:underline">Sign in</Link>
+              {t("signup.alreadyHaveAccount")}{" "}
+              <Link to="/login" className="text-blue-400 hover:underline">{t("signup.signIn")}</Link>
             </p>
             <div className="pt-2 border-t border-white/[0.04] space-y-0.5">
               <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>

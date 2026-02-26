@@ -9,6 +9,8 @@ import NeuralLogo from "@/components/NeuralLogo";
 import { speakText, stopSpeaking } from "@/lib/tts";
 import { useSpeechRecognition } from "@/lib/stt";
 import PageShell from "@/components/PageShell";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/lib/i18n";
 import {
   fetchConversations,
   createConversation as dbCreateConversation,
@@ -43,6 +45,7 @@ export default function StudentPractice() {
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   const { isListening, startListening, stopListening, transcript } = useSpeechRecognition();
 
@@ -76,7 +79,7 @@ export default function StudentPractice() {
       setMessages([]);
       setSidebarOpen(false);
     } catch (err: any) {
-      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+      toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
     }
   };
 
@@ -101,7 +104,7 @@ export default function StudentPractice() {
       }
       if (ttsEnabled) speakText(aiContent);
     } catch (err: any) {
-      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+      toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -118,12 +121,13 @@ export default function StudentPractice() {
         <div className="flex items-center gap-2">
           <NeuralLogo />
           <div>
-            <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">AI School</h1>
+            <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">{t("brand.title")}</h1>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-400/20 text-[9px] font-semibold text-blue-300">
-              <GraduationCap className="w-3 h-3" /> Student Portal
+              <GraduationCap className="w-3 h-3" /> {t("portal.student")}
             </span>
           </div>
         </div>
+        <LanguageToggle />
       </div>
 
       <div className="flex flex-1 -mx-2 min-h-0">
@@ -134,7 +138,7 @@ export default function StudentPractice() {
               onClick={createConversation}
               className="w-full flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-blue-500/15 border border-blue-400/20 text-blue-300 text-[10px] font-semibold hover:bg-blue-500/25 transition-all"
             >
-              <Plus className="w-3 h-3" /> New Chat
+              <Plus className="w-3 h-3" /> {t("student.newChat")}
             </button>
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-hide px-1.5 space-y-0.5">
@@ -154,7 +158,7 @@ export default function StudentPractice() {
           </div>
           <div className="p-2 border-t border-white/[0.06]">
             <button onClick={signOut} className="w-full flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition-all">
-              <LogOut className="w-3 h-3" /> Sign Out
+              <LogOut className="w-3 h-3" /> {t("common.signOut")}
             </button>
           </div>
         </div>
@@ -167,13 +171,13 @@ export default function StudentPractice() {
                 <div className="w-14 h-14 rounded-2xl bg-blue-500/[0.08] border border-blue-400/10 flex items-center justify-center mx-auto">
                   <Send className="w-6 h-6 text-blue-400/60" />
                 </div>
-                <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">Ready to Practice?</h2>
-                <p className="text-[11px] text-gray-500 max-w-[200px] mx-auto leading-relaxed">Start a conversation to practice English speaking with AI.</p>
+                <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">{t("student.readyTitle")}</h2>
+                <p className="text-[11px] text-gray-500 max-w-[200px] mx-auto leading-relaxed">{t("student.readyDesc")}</p>
                 <button
                   onClick={createConversation}
                   className="px-5 py-2.5 rounded-xl bg-blue-500/15 border border-blue-400/20 text-blue-300 text-xs font-semibold hover:bg-blue-500/25 transition-all inline-flex items-center gap-1.5"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Start Chat
+                  <Plus className="w-3.5 h-3.5" /> {t("student.startChat")}
                 </button>
               </div>
             </div>
@@ -227,7 +231,7 @@ export default function StudentPractice() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type or hold mic..."
+                    placeholder={t("student.inputPlaceholder")}
                     className="flex-1 h-8 px-2 bg-transparent text-xs text-white placeholder:text-gray-600 focus:outline-none"
                   />
                   <button
