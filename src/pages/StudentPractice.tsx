@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import PageShell from "@/components/PageShell";
-import OmniChatModal from "@/components/OmniChatModal";
+
 import LeftPillar from "@/components/student/LeftPillar";
 import RightPillar from "@/components/student/RightPillar";
 import BottomDock from "@/components/student/BottomDock";
@@ -15,7 +15,6 @@ export default function StudentPractice() {
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [showOmniMic, setShowOmniMic] = useState(false);
   const [teacherHint, setTeacherHint] = useState<string | null>(null);
 
   const handleEmailClick = (subject: string, body: string) => {
@@ -31,7 +30,6 @@ export default function StudentPractice() {
       <div className="relative w-full h-full text-white animate-fade-in-up font-outfit">
         <HomeworkModal isOpen={showHomeworkModal} onClose={() => setShowHomeworkModal(false)} />
         <ScheduleModal isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} />
-        <OmniChatModal isOpen={showOmniMic} onClose={() => setShowOmniMic(false)} />
 
         <LeftPillar
           onShowSkills={() => setShowSkills(!showSkills)}
@@ -41,9 +39,9 @@ export default function StudentPractice() {
           handleEmailClick={handleEmailClick}
           setTeacherHint={setTeacherHint}
         />
-        <RightPillar onNavigate={handleNavigate} setShowOmniMic={setShowOmniMic} />
+        <RightPillar onNavigate={handleNavigate} />
         <BottomDock setShowHomeworkModal={setShowHomeworkModal} setCalendarOpen={setCalendarOpen} onSettings={signOut} />
-        <OmniMicButton onClick={() => setShowOmniMic(true)} teacherHint={teacherHint} />
+        <OmniMicButton teacherHint={teacherHint} />
       </div>
     </PageShell>
   );
