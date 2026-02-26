@@ -149,13 +149,13 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-4xl mx-6 max-h-[85vh] rounded-3xl bg-black/60 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden"
+        className="relative z-10 w-full max-w-4xl mx-6 max-h-[85vh] rounded-3xl bg-black/60 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden"
       >
         {/* Reflection */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
         {/* Close / Back button */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-md border-b border-white/5">
+        <div className="shrink-0 z-20 flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-md border-b border-white/5">
           <button
             onClick={onClose}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -172,7 +172,7 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
         </div>
 
         {/* Content */}
-        <div className="px-8 py-6 overflow-y-auto max-h-[calc(85vh-60px)] scrollbar-hide">
+        <div className="px-8 py-6 overflow-y-auto flex-1 scrollbar-hide">
           {type === "privacy" ? <PrivacyContent /> : <TermsContent />}
         </div>
       </motion.div>
