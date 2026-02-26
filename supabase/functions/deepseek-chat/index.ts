@@ -60,12 +60,16 @@ serve(async (req) => {
       });
     }
 
-    // --- Input validation ---
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) {
-      throw new Error("DEEPSEEK_API_KEY is not configured");
+    // --- AI Provider Configuration (env-driven) ---
+    const AI_API_KEY = Deno.env.get("AI_API_KEY") || Deno.env.get("DEEPSEEK_API_KEY");
+    const AI_API_BASE_URL = Deno.env.get("AI_API_BASE_URL") || "https://api.deepseek.com/v1";
+    const AI_MODEL = Deno.env.get("AI_MODEL") || "deepseek-chat";
+
+    if (!AI_API_KEY) {
+      throw new Error("AI_API_KEY (or DEEPSEEK_API_KEY) is not configured");
     }
 
+    // --- Input validation ---
     const { messages } = await req.json();
 
     if (!Array.isArray(messages)) {
@@ -110,14 +114,15 @@ serve(async (req) => {
       ...validMessages,
     ];
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    // --- OpenAI-compatible chat completions call ---
+    const response = await fetch(`${AI_API_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+        Authorization: `Bearer ${AI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: AI_MODEL,
         messages: apiMessages,
         temperature: 0.7,
         max_tokens: 500,
@@ -126,7 +131,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+      throw new Error(`AI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
