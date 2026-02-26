@@ -91,13 +91,17 @@ function TargetContourCanvas({ data, isPlaying, activeWordIndex }: { data: WordD
     const pad = 12;
     const drawW = w - pad * 2;
 
-    const getPoints = () => allSyllables.map((s, i) => ({
-      x: pad + i * (drawW / Math.max(1, allSyllables.length - 1)),
-      y: s.pitch === 2 && s.stress === 2 ? h * 0.15
-        : s.pitch === 2 ? h * 0.3
-        : s.pitch === -1 ? h * 0.85
-        : h * 0.6,
-    }));
+    const getPoints = () => allSyllables.map((s, i) => {
+      let y: number;
+      if (s.pitch === 2 && s.stress === 2) y = h * 0.08;
+      else if (s.pitch === 2 && s.stress === 1) y = h * 0.2;
+      else if (s.pitch === 2) y = h * 0.3;
+      else if (s.stress === 2) y = h * 0.22;
+      else if (s.stress === 1) y = h * 0.42;
+      else if (s.pitch === -1) y = h * 0.9;
+      else y = h * 0.65;
+      return { x: pad + i * (drawW / Math.max(1, allSyllables.length - 1)), y };
+    });
 
     // Calculate progress based on activeWordIndex
     const totalWords = data.length;
