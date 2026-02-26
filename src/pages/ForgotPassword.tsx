@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 import { Mail, ArrowLeft } from "lucide-react";
 
@@ -22,7 +23,7 @@ export default function ForgotPassword() {
       setSent(true);
       toast({ title: "Check your email", description: "A password reset link has been sent." });
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
