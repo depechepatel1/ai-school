@@ -107,9 +107,6 @@
     background-size: 200% auto;
     animation: text-flash 4s linear infinite;
   }
-  .animate-shimmer-diagonal {
-    animation: shimmer-diagonal 3s ease-in-out infinite;
-  }
   .border-glow-subtle {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
@@ -146,7 +143,3 @@
   100% { background-position: -200% center; }
 }
 
-@keyframes shimmer-diagonal {
-  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-}
