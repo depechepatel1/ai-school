@@ -142,3 +142,47 @@ export async function fetchProfile(userId: string) {
     .maybeSingle();
   return data;
 }
+
+// ── Curriculum ─────────────────────────────────────────────────
+
+export async function fetchCurriculumPage(
+  track: string,
+  offset = 0,
+  limit = 5,
+  bandLevel?: number,
+) {
+  let query = supabase
+    .from("curriculum_items")
+    .select("id, track, band_level, topic, sentence, sort_order")
+    .eq("track", track)
+    .order("sort_order", { ascending: true })
+    .range(offset, offset + limit - 1);
+
+  if (bandLevel) query = query.eq("band_level", bandLevel);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchNextSentence(track: string, afterSortOrder: number) {
+  const { data, error } = await supabase
+    .from("curriculum_items")
+    .select("id, track, band_level, topic, sentence, sort_order")
+    .eq("track", track)
+    .gt("sort_order", afterSortOrder)
+    .order("sort_order", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchCurriculumCount(track: string) {
+  const { count, error } = await supabase
+    .from("curriculum_items")
+    .select("id", { count: "exact", head: true })
+    .eq("track", track);
+  if (error) throw error;
+  return count ?? 0;
+}
