@@ -205,7 +205,7 @@ export default function Signup() {
             <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
           </div>
           <h1 className="text-2xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
-            Create Account
+            AI School
           </h1>
         </motion.div>
 

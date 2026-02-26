@@ -48,7 +48,7 @@ export default function Login() {
             <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
           </div>
           <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
-            Welcome Back
+            AI School
           </h1>
           <p className="text-sm text-gray-400 mt-2">Sign in to continue your practice</p>
         </motion.div>
