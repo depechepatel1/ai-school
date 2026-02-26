@@ -101,6 +101,39 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_items: {
+        Row: {
+          audio_url: string | null
+          band_level: number
+          created_at: string
+          id: string
+          sentence: string
+          sort_order: number
+          topic: string
+          track: string
+        }
+        Insert: {
+          audio_url?: string | null
+          band_level: number
+          created_at?: string
+          id?: string
+          sentence: string
+          sort_order?: number
+          topic?: string
+          track: string
+        }
+        Update: {
+          audio_url?: string | null
+          band_level?: number
+          created_at?: string
+          id?: string
+          sentence?: string
+          sort_order?: number
+          topic?: string
+          track?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
