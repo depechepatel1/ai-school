@@ -295,7 +295,7 @@ function LiveInputCanvas({
 
 function ProsodyVisualizer({ data, activeWordIndex }: { data: WordData[]; activeWordIndex: number }) {
   return (
-    <div className="relative min-h-[6rem] w-full max-w-3xl mx-auto flex flex-wrap items-center justify-center content-center gap-y-4 mb-2 px-8">
+    <div className="relative min-h-[6rem] w-full max-w-3xl mx-auto flex flex-wrap items-center justify-center content-center gap-y-4 mt-4 mb-2 px-8">
       {data.map((item, i) => {
         const isActive = i === activeWordIndex;
         const activeScale = isActive ? "scale-110" : "scale-100";
