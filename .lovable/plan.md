@@ -1,75 +1,44 @@
 
 
-## Unified PageShell Architecture
+## Current State
 
-### Overview
-Create a shared `PageShell` component that wraps all pages in the landing page's iPad-frame layout with video background and floating glass card. Signup becomes the default entry for unauthenticated users.
+- **Login, Signup, ForgotPassword**: Already have the "AI School" header with NeuralLogo branding.
+- **TeacherDashboard**: Has "Teacher" label with "Manage classes & students" subtitle, but no "AI School" branding.
+- **ParentDashboard**: Has "Parent Portal" label with "Monitor your child's progress" subtitle, but no "AI School" branding.
+- **StudentPractice**: Has no header label at all — jumps straight into the chat sidebar/content area.
 
-### Video URLs
-- **Video 1** (intro, student page only): `https://res.cloudinary.com/daujjfaqg/video/upload/Video_Generation_With_Specific_Script_vlav4y.mp4`
-- **Video 2** (loop, all pages): `https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T10-21-39_add_head_nodding_knplpb.mp4`
+There is only **one Login page** shared by all roles. The "3 types" the user refers to are the 3 **dashboard pages** after login (Student, Teacher, Parent).
 
-### Video logic
-- **Student page**: Video 1 plays once → on `onEnded`, swap to Video 2 looped. Video 2 preloads while Video 1 plays.
-- **All other pages**: Video 2 only, looped immediately.
+## Plan
 
-### Files to create
-- `src/components/PageShell.tsx` — Extracts the iPad frame, video background, audio toggle, compliance footer, dev panel, and floating glass card from `LandingPage.tsx`. Accepts `children` (rendered in glass card) and `playIntroVideo?: boolean` prop (only true on student page). Glass card uses `overflow-y-auto max-h-full` but content should be designed to avoid scrolling.
+### 1. Add consistent "AI School" + role label headers to all 3 dashboards
 
-### Files to modify
+Each dashboard will get a compact header strip at the top with:
+- NeuralLogo + "AI School" title (consistent branding)
+- A role-specific colored badge/pill below (e.g., "Student Portal", "Teacher Portal", "Parent Portal") with role-appropriate icon and color
+- Sign Out button aligned to the right
 
-**`src/pages/Index.tsx`** — Redirect unauthenticated users to `/signup` instead of rendering LandingPage.
+**StudentPractice.tsx**: Add a compact header bar above the chat area with NeuralLogo, "AI School" title, a blue "Student" badge with GraduationCap icon, and Sign Out on the right.
 
-**`src/pages/Signup.tsx`** — Strip outer wrapper. Render form content inside `<PageShell>`. Compact the layout: smaller logo, tighter spacing, smaller role selector to avoid scrolling. Keep all PRC consent logic.
+**TeacherDashboard.tsx**: Restructure existing header to add "AI School" title above "Teacher Portal" badge (emerald colored, BookOpen icon).
 
-**`src/pages/Login.tsx`** — Strip outer wrapper. Render form inside `<PageShell>`. Compact layout with NeuralLogo + form fields + links + ICP footer.
+**ParentDashboard.tsx**: Same treatment — add "AI School" title above "Parent Portal" badge (rose colored, Heart icon).
 
-**`src/pages/ForgotPassword.tsx`** — Strip outer wrapper. Render inside `<PageShell>`.
+### 2. Suggested Improvements
 
-**`src/pages/StudentPractice.tsx`** — Wrap in `<PageShell playIntroVideo>`. The chat UI becomes the glass card content (sidebar + messages area adapted to fit within the card).
+Here are concrete improvements to consider for the app:
 
-**`src/pages/TeacherDashboard.tsx`** — Wrap in `<PageShell>`. Dashboard content renders inside glass card.
+1. **Landing page has its own iPad frame** — it duplicates the entire PageShell layout (video, dev panel, compliance footer) instead of using PageShell. Refactoring it to use PageShell would eliminate ~100 lines of duplicate code and ensure consistent behavior.
 
-**`src/pages/ParentDashboard.tsx`** — Wrap in `<PageShell>`. Dashboard content renders inside glass card.
+2. **No email verification feedback on Login** — after signup, users are told to verify email, but if they try to log in without verifying, the error message is generic. A specific "Please verify your email first" message would improve UX.
 
-**`src/pages/LandingPage.tsx`** — No longer used as standalone. Can be deleted or kept for reference.
+3. **Student chat has no "AI School" context** — the AI chat currently has no system prompt visible in the code (it's in the edge function). Adding visible subject/topic selection (e.g., IELTS Speaking Part 1/2/3) would make the practice more structured.
 
-### PageShell layout
+4. **Parent "Link Account" button does nothing** — it's a static placeholder. Implementing a join-code input flow (similar to how teachers share codes) would connect the parent/student relationship.
 
-```text
-┌─────────────────────────────────────────────┐
-│  iPad Frame (1024×768, rounded, bordered)   │
-│  ┌───────────────────────┬─────────────────┐│
-│  │                       │  Glass Card      ││
-│  │   Video Background    │  (40% width)     ││
-│  │   (Video 2 looped,    │                  ││
-│  │    or V1→V2 on        │  {children}      ││
-│  │    student page)      │                  ││
-│  │                       │                  ││
-│  │   Audio Toggle (BL)   │                  ││
-│  ├───────────────────────┴─────────────────┤│
-│  │  Compliance Footer                       ││
-│  └──────────────────────────────────────────┘│
-│  Dev Panel (top-left)                        │
-└─────────────────────────────────────────────┘
-```
+5. **No loading state for initial data fetch** — TeacherDashboard and ParentDashboard show empty states immediately rather than a brief skeleton/spinner while data loads.
 
-### PageShell props
-```tsx
-interface PageShellProps {
-  children: React.ReactNode;
-  playIntroVideo?: boolean; // only for student page
-}
-```
+6. **Mobile responsiveness** — the entire app is locked to a 1024x768 iPad frame. On actual mobile devices, the frame is tiny. Consider adding responsive breakpoints or a mobile-native layout.
 
-### No-scroll strategy for glass card
-- Signup: reduce role selector to inline pills (not tall cards), use `text-xs` labels, `gap-1` spacing, compact consent section
-- Login: minimal — logo + 2 fields + button + links fits easily
-- ForgotPW: minimal — logo + 1 field + button
-- Dashboards: content scrolls within card if needed (these are functional pages)
-
-### Routing changes
-- `Index.tsx`: unauthenticated → redirect to `/signup`
-- No new routes needed
-- `LandingPage.tsx` removed from imports in `Index.tsx`
+7. **Dark mode only** — there's no theme toggle. The `next-themes` package is already installed but unused.
 
