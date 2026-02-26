@@ -1,49 +1,49 @@
 import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { LogOut, BookOpen, Users, BarChart3, Clock } from "lucide-react";
+import { LogOut, Users, BarChart3, Clock } from "lucide-react";
+import NeuralLogo from "@/components/NeuralLogo";
+import PageShell from "@/components/PageShell";
 
 export default function ParentDashboard() {
   const { signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary" />
-            </div>
-            <h1 className="text-xl font-bold gradient-text">Parent Dashboard</h1>
+    <PageShell>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <NeuralLogo />
+            <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">Parent</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="w-4 h-4 mr-2" /> Sign Out</Button>
+          <button onClick={signOut} className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-300 transition-colors">
+            <LogOut className="w-3 h-3" /> Sign Out
+          </button>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 text-center space-y-3">
-          <Users className="w-12 h-12 text-primary mx-auto" />
-          <h2 className="text-lg font-semibold">Link to Your Child</h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Enter your child's student code or email to link their account and track their progress. (Coming soon)
+        {/* Link child */}
+        <div className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
+          <Users className="w-8 h-8 text-blue-400 mx-auto" />
+          <h2 className="text-sm font-semibold text-gray-200">Link to Your Child</h2>
+          <p className="text-[10px] text-gray-500 max-w-[220px] mx-auto">
+            Enter your child's student code to link their account and track progress. (Coming soon)
           </p>
-        </motion.div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {[
-            { icon: <BarChart3 className="w-5 h-5" />, title: "Progress Overview", desc: "View your child's learning progress and scores (coming soon)" },
-            { icon: <Clock className="w-5 h-5" />, title: "Recent Activity", desc: "See your child's latest practice sessions (coming soon)" },
-          ].map((item, i) => (
-            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 + i * 0.1 }} className="glass-card p-6 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">{item.icon}</div>
-              <div>
-                <h3 className="font-semibold">{item.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
-              </div>
-            </motion.div>
-          ))}
         </div>
-      </main>
-    </div>
+
+        {/* Cards */}
+        {[
+          { icon: <BarChart3 className="w-4 h-4" />, title: "Progress Overview", desc: "View learning progress (coming soon)" },
+          { icon: <Clock className="w-4 h-4" />, title: "Recent Activity", desc: "Latest practice sessions (coming soon)" },
+        ].map((item, i) => (
+          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">{item.icon}</div>
+            <div>
+              <h3 className="text-xs font-semibold text-gray-300">{item.title}</h3>
+              <p className="text-[10px] text-gray-500">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </PageShell>
   );
 }
