@@ -211,6 +211,33 @@ export type Database = {
         }
         Relationships: []
       }
+      student_curriculum_progress: {
+        Row: {
+          id: string
+          last_score: number | null
+          last_sort_order: number
+          track: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_score?: number | null
+          last_sort_order?: number
+          track: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_score?: number | null
+          last_sort_order?: number
+          track?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
