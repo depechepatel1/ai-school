@@ -11,7 +11,7 @@ import { parseProsody, type WordData } from "@/lib/prosody";
 import { chat, type ChatMessage } from "@/services/ai";
 import { speak, stopSpeaking, type Accent, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
-import { fetchCurriculumPage, fetchNextSentence, fetchCurriculumProgress, saveCurriculumProgress } from "@/services/db";
+import { fetchCurriculumPage, fetchNextSentence, fetchCurriculumProgress, saveCurriculumProgress, fetchCurriculumCount } from "@/services/db";
 import { RealtimePitchTracker } from "@/lib/pitch-detector";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 
@@ -704,6 +704,8 @@ export default function SpeakingStudio() {
   const [curriculumOffset, setCurriculumOffset] = useState(0);
   const [curriculumLoading, setCurriculumLoading] = useState(false);
   const [currentTopic, setCurrentTopic] = useState("");
+  const [curriculumTotal, setCurriculumTotal] = useState(0);
+  const [globalSentenceIndex, setGlobalSentenceIndex] = useState(0);
 
   // Speaking mode state
   const [messages, setMessages] = useState<{ role: "teacher" | "student"; text: string }[]>([
@@ -1015,6 +1017,8 @@ export default function SpeakingStudio() {
         setCurrentItemIndex(startIdx);
         setRawText(items[startIdx].sentence);
         setCurrentTopic(items[startIdx].topic);
+        // Global index = offset + local index within page
+        setGlobalSentenceIndex(offset + startIdx);
       }
     } catch (err) {
       console.error("Failed to load curriculum:", err);
@@ -1028,16 +1032,17 @@ export default function SpeakingStudio() {
     if (practiceType !== "pronunciation" || !userId) return;
     (async () => {
       try {
+        // Fetch total count for progress bar
+        const total = await fetchCurriculumCount("pronunciation");
+        setCurriculumTotal(total);
+
         const progress = await fetchCurriculumProgress(userId, "pronunciation");
         if (progress && progress.last_sort_order > 0) {
-          // Fetch the page containing the next item after last_sort_order
           const nextItem = await fetchNextSentence("pronunciation", progress.last_sort_order);
           if (nextItem) {
-            // Calculate offset: round down to nearest page of 5
             const pageOffset = Math.floor((nextItem.sort_order - 1) / 5) * 5;
             await loadCurriculumPage(pageOffset, progress.last_sort_order);
           } else {
-            // Completed all items — restart from beginning or show completion
             await loadCurriculumPage(0);
           }
         } else {
@@ -1070,8 +1075,9 @@ export default function SpeakingStudio() {
       setCurrentItemIndex(nextIdx);
       setRawText(curriculumItems[nextIdx].sentence);
       setCurrentTopic(curriculumItems[nextIdx].topic);
+      setGlobalSentenceIndex(curriculumOffset + nextIdx);
     } else {
-      // Load next page
+      // Load next page — globalSentenceIndex updated inside loadCurriculumPage
       await loadCurriculumPage(curriculumOffset + 5);
     }
   }, [currentItemIndex, curriculumItems, curriculumOffset, loadCurriculumPage]);
@@ -1276,15 +1282,27 @@ export default function SpeakingStudio() {
             {/* Bottom area */}
             <div className="absolute bottom-0 left-0 right-0 pb-2 pt-24 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black via-black/85 to-transparent">
               {/* Topic & progress indicator */}
-              {practiceType === "pronunciation" && currentTopic && (
-                <div className="mb-2 flex items-center gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">
-                    {currentTopic}
-                  </span>
-                  {curriculumItems.length > 0 && (
-                    <span className="text-[10px] text-white/30 font-mono">
-                      {currentItemIndex + 1}/{curriculumItems.length}
-                    </span>
+              {practiceType === "pronunciation" && (
+                <div className="mb-3 flex flex-col items-center gap-1.5 w-full max-w-md mx-auto">
+                  <div className="flex items-center gap-3 w-full justify-center">
+                    {currentTopic && (
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">
+                        {currentTopic}
+                      </span>
+                    )}
+                    {curriculumTotal > 0 && (
+                      <span className="text-[10px] text-white/50 font-mono tabular-nums">
+                        {globalSentenceIndex + 1} / {curriculumTotal}
+                      </span>
+                    )}
+                  </div>
+                  {curriculumTotal > 0 && (
+                    <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${((globalSentenceIndex + 1) / curriculumTotal) * 100}%` }}
+                      />
+                    </div>
                   )}
                 </div>
               )}
