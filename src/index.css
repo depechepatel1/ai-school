@@ -96,4 +96,57 @@
     0%, 100% { box-shadow: 0 0 0 0 hsl(0 72% 51% / 0.6); }
     50% { box-shadow: 0 0 0 12px hsl(0 72% 51% / 0); }
   }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-move 3s ease infinite;
+  }
+  .animate-text-flash {
+    background-size: 200% auto;
+    animation: text-flash 4s linear infinite;
+  }
+  .animate-shimmer-diagonal {
+    animation: shimmer-diagonal 3s ease-in-out infinite;
+  }
+  .border-glow-subtle {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+  }
+  .text-outline {
+    text-shadow:
+      -1px -1px 0 rgba(0,0,0,0.5),
+      1px -1px 0 rgba(0,0,0,0.5),
+      -1px 1px 0 rgba(0,0,0,0.5),
+      1px 1px 0 rgba(0,0,0,0.5);
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradient-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes text-flash {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes shimmer-diagonal {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
