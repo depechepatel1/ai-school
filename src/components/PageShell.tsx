@@ -132,7 +132,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
             <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-[2.5rem] blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700" />
 
             {/* Glass Container */}
-            <div className="relative w-full max-h-[620px] px-6 py-6 rounded-[2.5rem] bg-black/60 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
+            <div className="relative w-full max-h-[680px] px-6 py-6 rounded-[2.5rem] bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
               {/* Subtle reflection */}
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
