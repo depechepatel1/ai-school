@@ -209,7 +209,7 @@ export default function Signup() {
         initial="hidden"
         animate="visible"
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
-        className="space-y-3"
+        className="flex-1 flex flex-col justify-between space-y-4"
       >
         {/* Header */}
         <motion.div variants={fadeUp} className="text-center">
@@ -247,7 +247,7 @@ export default function Signup() {
         </motion.div>
 
         {/* Form */}
-        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-2.5">
+        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-3">
           <input
             placeholder="Display Name"
             value={displayName}
