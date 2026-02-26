@@ -47,7 +47,7 @@ export default function ForgotPassword() {
             <NeuralLogo />
           </div>
           <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
-            Reset Password
+            AI School
           </h1>
           <p className="text-sm text-gray-400 mt-2">
             {sent ? "Check your inbox for the reset link" : "We'll send you a reset link"}
