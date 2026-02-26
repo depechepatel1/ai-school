@@ -19,8 +19,8 @@ const roles: { value: AppRole; label: string; icon: React.ReactNode }[] = [
 ];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
 };
 
 const LEGAL_VIDEO = "https://res.cloudinary.com/daujjfaqg/video/upload/Subtle_Background_Animation_Generation_brjkvo.mp4";
@@ -133,8 +133,6 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
       className="fixed inset-0 z-[100] flex items-center justify-center"
     >
       <div className="absolute inset-0 bg-black/80" />
-
-      {/* Glass card — full width with padding */}
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -142,27 +140,16 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
         transition={{ duration: 0.35, ease: "easeOut" }}
         className="relative z-10 w-full max-w-4xl mx-6 max-h-[85vh] rounded-3xl bg-black/60 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden"
       >
-        {/* Reflection */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-
-        {/* Close / Back button */}
         <div className="shrink-0 z-20 flex items-center justify-between px-6 py-5 pt-6 bg-black/40 backdrop-blur-md border-b border-white/5">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-          >
+          <button onClick={onClose} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" />
             返回注册
           </button>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
-          >
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
-
-        {/* Content */}
         <div className="px-8 py-6 overflow-y-auto flex-1 scrollbar-hide">
           {type === "privacy" ? <PrivacyContent /> : <TermsContent />}
         </div>
@@ -209,26 +196,21 @@ export default function Signup() {
         initial="hidden"
         animate="visible"
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
-        className="flex-1 flex flex-col justify-between space-y-4"
+        className="flex-1 flex flex-col"
       >
-        {/* Header */}
-        <motion.div variants={fadeUp} className="text-center">
-          <div className="flex justify-center items-center gap-2 mb-1">
+        {/* Compact Header */}
+        <motion.div variants={fadeUp} className="text-center mb-4">
+          <div className="flex justify-center items-center gap-2 mb-1.5">
             <NeuralLogo />
             <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
           </div>
-          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
-            AI School
+          <h1 className="text-2xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+            Create Account
           </h1>
-          <div className="flex justify-center mt-1.5 mb-2">
-            <div className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/15 to-purple-500/15 border border-blue-400/20 backdrop-blur-md">
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200/80">IELTS Edition</span>
-            </div>
-          </div>
         </motion.div>
 
         {/* Role Selector */}
-        <motion.div variants={fadeUp} className="flex gap-1.5 justify-center">
+        <motion.div variants={fadeUp} className="flex gap-1.5 justify-center mb-4">
           {roles.map((r) => (
             <button
               key={r.value}
@@ -236,8 +218,8 @@ export default function Signup() {
               onClick={() => setSelectedRole(r.value)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                 selectedRole === r.value
-                  ? "bg-blue-500/20 text-blue-200 border border-blue-400/30"
-                  : "bg-white/5 text-gray-400 border border-white/5 hover:border-white/15 hover:text-gray-300"
+                  ? "bg-blue-500/20 text-blue-200 border border-blue-400/30 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                  : "bg-white/[0.03] text-gray-500 border border-white/[0.06] hover:border-white/15 hover:text-gray-400"
               }`}
             >
               {r.icon}
@@ -246,38 +228,40 @@ export default function Signup() {
           ))}
         </motion.div>
 
-        {/* Form */}
-        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-3">
-          <input
-            placeholder="Display Name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-            className="w-full h-9 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full h-9 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
-          />
-          <input
-            type="password"
-            placeholder="Password (min 6 chars)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full h-9 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
-          />
+        {/* Form — fills remaining space */}
+        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-3">
+          <div className="space-y-2.5">
+            <input
+              placeholder="Display Name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            />
+            <input
+              type="password"
+              placeholder="Password (min 6 chars)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            />
+          </div>
 
           {/* PRC Consent */}
-          <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
+          <div className="space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
             <div className="flex items-start gap-2">
               <Checkbox id="agree" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} className="mt-0.5" />
-              <label htmlFor="agree" className="text-[11px] leading-snug text-gray-300 cursor-pointer">
+              <label htmlFor="agree" className="text-[11px] leading-snug text-gray-400 cursor-pointer">
                 我已阅读并同意{" "}
                 <button type="button" onClick={() => setLegalModal("terms")} className="text-blue-400 hover:underline">《用户协议》</button>
                 {" "}和{" "}
@@ -306,7 +290,7 @@ export default function Signup() {
                 >
                   <div className="flex items-start gap-2 pt-2 border-t border-white/5">
                     <Checkbox id="guardian-agree" checked={guardianAgreed} onCheckedChange={(v) => setGuardianAgreed(v === true)} className="mt-0.5" />
-                    <label htmlFor="guardian-agree" className="text-[11px] leading-snug text-gray-300 cursor-pointer">
+                    <label htmlFor="guardian-agree" className="text-[11px] leading-snug text-gray-400 cursor-pointer">
                       我已获得监护人同意，且监护人已阅读并同意上述协议
                     </label>
                   </div>
@@ -315,29 +299,30 @@ export default function Signup() {
             </AnimatePresence>
           </div>
 
+          {/* Spacer to push button + footer down */}
+          <div className="flex-1 min-h-2" />
+
           <button
             type="submit"
             disabled={isLoading || !canSubmit}
-            className="w-full h-10 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+            className="w-full h-11 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_25px_rgba(37,99,235,0.25)]"
           >
             <UserPlus className="w-4 h-4" />
             {isLoading ? "Creating..." : "Create Account"}
           </button>
+
+          {/* Sign-in link + ICP */}
+          <div className="text-center space-y-2 pt-1">
+            <p className="text-[11px] text-gray-500">
+              Already have an account?{" "}
+              <Link to="/login" className="text-blue-400 hover:underline">Sign in</Link>
+            </p>
+            <div className="pt-2 border-t border-white/[0.04] space-y-0.5">
+              <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+              <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
+            </div>
+          </div>
         </motion.form>
-
-        {/* Links */}
-        <motion.div variants={fadeUp} className="text-center">
-          <p className="text-[11px] text-gray-500">
-            Already have an account?{" "}
-            <Link to="/login" className="text-blue-400 hover:underline">Sign in</Link>
-          </p>
-        </motion.div>
-
-        {/* ICP Footer */}
-        <motion.div variants={fadeUp} className="pt-2 border-t border-white/5 text-center space-y-0.5">
-          <p className="text-[9px] text-gray-600">ICP备案号：京ICP备2026XXXXXXXX号</p>
-          <p className="text-[9px] text-gray-600">APP备案号：京ICP备2026XXXXXXXX号A</p>
-        </motion.div>
       </motion.div>
 
       {/* Legal Modal Overlay */}
