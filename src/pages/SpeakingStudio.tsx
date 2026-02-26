@@ -306,19 +306,19 @@ function ProsodyVisualizer({ data, activeWordIndex }: { data: WordData[]; active
 
 function XPWidget({ xp, level }: { xp: number; level: number }) {
   return (
-    <div className="flex gap-4 items-center bg-black/40 backdrop-blur-xl border border-white/10 rounded-full pl-2 pr-5 py-2 shadow-[0_0_30px_-5px_rgba(168,85,247,0.3)]">
-      <div className="relative w-10 h-10 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-2 border-yellow-500/30" />
-        <Star className="w-5 h-5 text-yellow-400 fill-current drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" />
+    <div className="flex gap-3 items-center bg-black/50 backdrop-blur-2xl border border-amber-500/20 rounded-2xl pl-3 pr-5 py-2.5 shadow-[0_4px_24px_-4px_rgba(250,204,21,0.15)] hover:border-amber-500/30 transition-colors">
+      <div className="relative w-9 h-9 flex items-center justify-center">
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20" />
+        <Star className="w-4 h-4 text-amber-400 fill-current drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
       </div>
-      <div className="flex flex-col w-32">
-        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-yellow-200 mb-1">
-          <span>Level {level}</span>
-          <span>{xp} XP</span>
+      <div className="flex flex-col w-28">
+        <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider text-amber-300/80 mb-1">
+          <span>Lvl {level}</span>
+          <span className="text-amber-200">{xp} XP</span>
         </div>
-        <div className="h-1.5 bg-black/50 rounded-full overflow-hidden border border-white/5">
+        <div className="h-1 bg-black/60 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000"
+            className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-1000"
             style={{ width: `${xp % 100}%` }}
           />
         </div>
@@ -331,9 +331,11 @@ function StreakWidget({ time }: { time: number }) {
   const mins = Math.floor(time / 60);
   const secs = time % 60;
   return (
-    <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 shadow-[0_0_30px_-5px_rgba(249,115,22,0.3)]">
-      <Flame className="w-6 h-6 text-orange-500 animate-flame-premium" />
-      <div className="text-xs font-bold text-orange-200">
+    <div className="flex items-center gap-2.5 bg-black/50 backdrop-blur-2xl border border-orange-500/20 rounded-2xl px-4 py-2.5 shadow-[0_4px_24px_-4px_rgba(249,115,22,0.15)] hover:border-orange-500/30 transition-colors">
+      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/10 border border-orange-500/20 flex items-center justify-center">
+        <Flame className="w-4 h-4 text-orange-400 animate-flame-premium" />
+      </div>
+      <div className="font-mono text-sm font-bold text-orange-200 tabular-nums tracking-wide">
         {mins}:{secs.toString().padStart(2, "0")}
       </div>
     </div>
@@ -1060,15 +1062,15 @@ export default function SpeakingStudio() {
         {/* Back button */}
         <button
           onClick={() => navigate("/student")}
-          className="absolute top-4 left-4 z-[300] flex items-center gap-2 px-3 py-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white/70 hover:text-white hover:bg-black/60 transition-all text-xs font-bold"
+          className="absolute top-4 left-4 z-[300] flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 backdrop-blur-2xl border border-white/10 text-white/60 hover:text-white hover:bg-black/70 hover:border-white/20 transition-all text-[11px] font-semibold tracking-wide group"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
           Back
         </button>
 
         {/* Top Bar */}
-        <div className="absolute top-8 left-0 right-0 px-8 z-50 flex justify-between items-start">
-          <div className="flex flex-col gap-3 ml-16">
+        <div className="absolute top-6 left-0 right-0 px-6 z-50 flex justify-between items-start">
+          <div className="flex flex-col gap-2.5 ml-16">
             <StreakWidget time={streakTime} />
             {mode === "speaking" && (
               <PersonaSelector persona={persona} setPersona={handlePersonaChange} setShowTestConfig={setShowTestConfig} />
@@ -1076,23 +1078,23 @@ export default function SpeakingStudio() {
             {mode === "shadowing" && (
               <>
                 {/* Accent Toggle */}
-                <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-full p-1.5 flex shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)] w-max">
+                <div className="relative bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-1 flex w-max shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                   <div
-                    className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-gradient-to-t from-white/10 to-white/5 rounded-full transition-all duration-500 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/10 ${accent === "UK" ? "left-1.5" : "left-[calc(50%+3px)]"}`}
+                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/[0.08] rounded-xl transition-all duration-400 ease-out border border-white/[0.06] ${accent === "UK" ? "left-1" : "left-[calc(50%+3px)]"}`}
                   />
                   {(["UK", "US"] as const).map((acc) => (
                     <button
                       key={acc}
                       onClick={() => setAccent(acc)}
-                      className={`relative z-10 px-6 py-2.5 rounded-full flex items-center gap-2.5 transition-all duration-300 ${accent === acc ? "text-white" : "text-white/40 grayscale"}`}
+                      className={`relative z-10 px-5 py-2 rounded-xl flex items-center gap-2 transition-all duration-300 ${accent === acc ? "text-white" : "text-white/35 grayscale hover:text-white/50"}`}
                     >
                       {acc === "UK" ? <UKFlag /> : <USFlag />}
-                      <span className="text-xs font-bold tracking-wide">{acc === "UK" ? "British" : "American"}</span>
+                      <span className="text-[11px] font-semibold tracking-wide">{acc === "UK" ? "British" : "American"}</span>
                     </button>
                   ))}
                 </div>
                 {/* Practice Type */}
-                <div className="grid grid-cols-2 p-1 gap-1 w-64 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full">
+                <div className="flex p-1 gap-1 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl w-max shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                   {(["pronunciation", "fluency"] as const).map((t) => (
                     <button
                       key={t}
@@ -1100,7 +1102,7 @@ export default function SpeakingStudio() {
                         setPracticeType(t);
                         handleGenerate(t);
                       }}
-                      className={`px-2 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${practiceType === t ? "bg-white/20 text-cyan-300 shadow-sm" : "text-white/40 hover:text-white"}`}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${practiceType === t ? "bg-white/[0.08] text-white border border-white/[0.06]" : "text-white/35 hover:text-white/60"}`}
                     >
                       {t}
                     </button>
@@ -1110,13 +1112,13 @@ export default function SpeakingStudio() {
             )}
           </div>
 
-          <div className="flex flex-col gap-3 items-end">
+          <div className="flex flex-col gap-2.5 items-end">
             <XPWidget xp={xp} level={level} />
             {testState.status === "idle" && (
-              <div className="flex gap-2 p-1 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
+              <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                 <button
                   onClick={() => setMode("shadowing")}
-                  className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${mode === "shadowing" ? "bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]" : "text-gray-400 hover:text-white"}`}
+                  className={`px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "shadowing" ? "bg-cyan-500/90 text-black shadow-[0_2px_12px_rgba(6,182,212,0.4)]" : "text-white/35 hover:text-white/60"}`}
                 >
                   Shadowing
                 </button>
@@ -1125,7 +1127,7 @@ export default function SpeakingStudio() {
                     setMode("speaking");
                     setShowTestConfig(true);
                   }}
-                  className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${mode === "speaking" ? "bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]" : "text-gray-400 hover:text-white"}`}
+                  className={`px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "speaking" ? "bg-purple-500/90 text-white shadow-[0_2px_12px_rgba(168,85,247,0.4)]" : "text-white/35 hover:text-white/60"}`}
                 >
                   Speaking
                 </button>
@@ -1176,32 +1178,52 @@ export default function SpeakingStudio() {
               </div>
             </div>
             {/* Right action bar */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-8 flex flex-col items-center gap-3 z-50 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full p-2 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
-              <button onClick={handlePlayModel} className="relative w-14 h-14 rounded-full flex flex-col items-center justify-center text-cyan-300 hover:bg-white/10 group" title="Hear Teacher Model">
-                <Headphones className="w-6 h-6 mb-1" />
+            <div className="absolute top-1/2 -translate-y-1/2 right-6 flex flex-col items-center gap-2 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-2.5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
+              {/* Listen */}
+              <button
+                onClick={handlePlayModel}
+                className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`}
+                title="Hear Teacher Model"
+              >
+                <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
+
+              {/* Divider */}
+              <div className="w-6 h-px bg-white/[0.06]" />
+
+              {/* Record */}
               <button
                 onClick={handleRecord}
-                className={`relative w-16 h-16 rounded-full flex items-center justify-center ${isRecording ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.5)]" : "bg-white/10 border border-white/20"}`}
+                className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`}
                 title={isRecording ? "Stop" : "Record"}
               >
                 {isRecording ? (
-                  <div className="w-6 h-6 bg-white rounded animate-pulse" />
+                  <div className="w-5 h-5 bg-white rounded-sm animate-pulse" />
                 ) : (
-                  <Mic className="w-8 h-8 text-white" />
+                  <Mic className="w-7 h-7 text-white/80" />
                 )}
               </button>
+
+              {/* Divider */}
+              <div className="w-6 h-px bg-white/[0.06]" />
+
+              {/* Replay */}
               {lastRecordingUrl && (
-                <button className="relative w-14 h-14 rounded-full flex items-center justify-center text-green-300 hover:bg-white/10" title="Replay">
-                  <Play className="w-6 h-6 ml-1" />
+                <button
+                  className="relative w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all duration-300 group"
+                  title="Replay"
+                >
+                  <Play className="w-5 h-5 ml-0.5 group-hover:scale-110 transition-transform" />
                 </button>
               )}
+
+              {/* Ghost Mode */}
               <button
                 onClick={() => setGhostMode(!ghostMode)}
-                className={`relative w-14 h-14 rounded-full flex items-center justify-center ${ghostMode ? "text-purple-300" : "text-white/50"} hover:bg-white/10`}
+                className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`}
                 title="Ghost Mode"
               >
-                <Ghost className="w-6 h-6" />
+                <Ghost className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
             </div>
           </>
