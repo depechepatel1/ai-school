@@ -109,7 +109,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
           />
 
-          <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />
+          {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />}
 
           {/* Audio Toggle */}
           <button
