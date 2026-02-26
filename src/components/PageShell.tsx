@@ -126,7 +126,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
         </div>
 
         {/* Content Layer - Right Sidebar (Glass Card) */}
-        <div className="absolute right-0 top-0 bottom-0 w-[40%] min-w-[340px] z-20 flex flex-col py-5 pr-5 pl-0">
+        <div className="absolute right-0 top-0 bottom-0 w-[40%] min-w-[340px] z-20 flex flex-col py-[30px] pr-5 pl-0">
           <div className="relative group flex-1 flex flex-col">
             {/* Glow */}
             <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-[2.5rem] blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700" />

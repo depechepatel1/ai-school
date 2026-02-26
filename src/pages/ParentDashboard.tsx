@@ -9,7 +9,7 @@ export default function ParentDashboard() {
 
   return (
     <PageShell>
-      <div className="space-y-4">
+      <div className="flex-1 flex flex-col justify-between space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

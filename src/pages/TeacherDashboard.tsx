@@ -53,7 +53,7 @@ export default function TeacherDashboard() {
 
   return (
     <PageShell>
-      <div className="space-y-4 max-h-[540px] overflow-y-auto scrollbar-hide">
+      <div className="flex-1 flex flex-col justify-between space-y-4 overflow-y-auto scrollbar-hide">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

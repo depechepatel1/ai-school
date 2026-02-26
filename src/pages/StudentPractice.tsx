@@ -112,7 +112,7 @@ export default function StudentPractice() {
 
   return (
     <PageShell playIntroVideo>
-      <div className="flex h-[540px] -mx-2">
+      <div className="flex flex-1 -mx-2">
         {/* Mini sidebar */}
         <div className="w-[140px] shrink-0 border-r border-white/5 flex flex-col">
           <div className="p-2">

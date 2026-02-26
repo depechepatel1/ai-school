@@ -39,7 +39,7 @@ export default function ForgotPassword() {
         initial="hidden"
         animate="visible"
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
-        className="space-y-5"
+        className="flex-1 flex flex-col justify-between"
       >
         {/* Header */}
         <motion.div variants={fadeUp} className="text-center">
