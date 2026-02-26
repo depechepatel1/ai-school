@@ -844,6 +844,10 @@ export default function SpeakingStudio() {
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const replayAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlayingReplay, setIsPlayingReplay] = useState(false);
 
   // Sync refs
   useEffect(() => {
@@ -1221,7 +1225,7 @@ export default function SpeakingStudio() {
     addXP(5);
   };
 
-  const handleRecord = () => {
+  const handleRecord = async () => {
     if (testState.status !== "idle") {
       stopTestManual();
       return;
@@ -1230,15 +1234,36 @@ export default function SpeakingStudio() {
       setIsRecording(false);
       stopSpeechRecognition();
       if (mode === "shadowing" && ghostMode) stopSpeaking();
-      addXP(20);
-      if (mode === "shadowing") {
-        setLastRecordingUrl("mock_url");
-        // Score is now set by handlePitchContour callback from LiveInputCanvas
+      // Stop MediaRecorder
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
       }
+      addXP(20);
     } else {
       setIsRecording(true);
       setScore(null);
       if (mode === "shadowing") setLastRecordingUrl(null);
+      // Start MediaRecorder for audio capture
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunksRef.current = [];
+        const recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.onstop = () => {
+          stream.getTracks().forEach((t) => t.stop());
+          if (audioChunksRef.current.length > 0) {
+            const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+            const url = URL.createObjectURL(blob);
+            setLastRecordingUrl(url);
+          }
+        };
+        recorder.start();
+        mediaRecorderRef.current = recorder;
+      } catch {
+        // Mic permission denied — continue without recording
+      }
       if (mode === "shadowing" && ghostMode) {
         ttsHandleRef.current = speak(rawText, accentLower, {
           rate: 0.8,
@@ -1253,6 +1278,21 @@ export default function SpeakingStudio() {
         startSpeechRecognition();
       }
     }
+  };
+
+  const handleReplay = () => {
+    if (!lastRecordingUrl) return;
+    if (isPlayingReplay && replayAudioRef.current) {
+      replayAudioRef.current.pause();
+      replayAudioRef.current = null;
+      setIsPlayingReplay(false);
+      return;
+    }
+    const audio = new Audio(lastRecordingUrl);
+    audio.onended = () => setIsPlayingReplay(false);
+    audio.play().catch(() => {});
+    replayAudioRef.current = audio;
+    setIsPlayingReplay(true);
   };
 
   const handlePersonaChange = (newPersona: Persona) => {
@@ -1432,66 +1472,67 @@ export default function SpeakingStudio() {
               </div>
             </div>
             {/* Right action bar */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-6 flex flex-col items-center gap-3 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-3 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
-              {/* Listen */}
+            <div className="absolute top-1/2 -translate-y-1/2 right-5 flex flex-col items-center gap-3 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-3.5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
+              {/* Listen to model */}
               <button
                 onClick={handlePlayModel}
-                className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`}
+                className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`}
                 title="Hear Teacher Model"
               >
-                <Play className="w-6 h-6 ml-0.5 group-hover:scale-110 transition-transform" />
+                <Headphones className="w-7 h-7 group-hover:scale-110 transition-transform" />
               </button>
 
               {/* Divider */}
-              <div className="w-7 h-px bg-white/[0.06]" />
+              <div className="w-8 h-px bg-white/[0.06]" />
 
               {/* Record */}
               <button
                 onClick={handleRecord}
-                className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`}
+                className={`relative w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`}
                 title={isRecording ? "Stop" : "Record"}
               >
                 {isRecording ? (
-                  <div className="w-6 h-6 bg-white rounded-sm animate-pulse" />
+                  <div className="w-7 h-7 bg-white rounded-sm animate-pulse" />
                 ) : (
-                  <Mic className="w-8 h-8 text-white/80" />
+                  <Mic className="w-9 h-9 text-white/80" />
                 )}
               </button>
 
               {/* Divider */}
-              <div className="w-7 h-px bg-white/[0.06]" />
+              <div className="w-8 h-px bg-white/[0.06]" />
 
-              {/* Replay */}
+              {/* Replay recording */}
               {lastRecordingUrl && (
                 <button
-                  className="relative w-14 h-14 rounded-2xl flex items-center justify-center text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all duration-300 group"
-                  title="Replay"
+                  onClick={handleReplay}
+                  className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`}
+                  title={isPlayingReplay ? "Stop Replay" : "Replay Your Recording"}
                 >
-                  <Play className="w-6 h-6 ml-0.5 group-hover:scale-110 transition-transform" />
+                  <Play className="w-7 h-7 ml-0.5 group-hover:scale-110 transition-transform" />
                 </button>
               )}
 
               {/* Ghost Mode */}
               <button
                 onClick={() => setGhostMode(!ghostMode)}
-                className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`}
+                className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`}
                 title="Ghost Mode"
               >
-                <Ghost className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                <Ghost className="w-7 h-7 group-hover:scale-110 transition-transform" />
               </button>
 
               {/* Divider */}
-              <div className="w-7 h-px bg-white/[0.06]" />
+              <div className="w-8 h-px bg-white/[0.06]" />
 
               {/* Next Sentence */}
               {practiceType === "pronunciation" && (
                 <button
                   onClick={handleNextSentence}
                   disabled={curriculumLoading}
-                  className="relative w-14 h-14 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30"
+                  className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30"
                   title="Next Sentence"
                 >
-                  <SkipForward className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                  <SkipForward className="w-7 h-7 group-hover:scale-110 transition-transform" />
                 </button>
               )}
             </div>
