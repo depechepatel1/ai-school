@@ -19,17 +19,20 @@ interface PageShellProps {
   children: React.ReactNode;
   playIntroVideo?: boolean;
   customVideoUrl?: string;
+  loopVideos?: string[];
   fullWidth?: boolean;
 }
 
-export default function PageShell({ children, playIntroVideo = false, customVideoUrl, fullWidth = false }: PageShellProps) {
-  const loopVideo = customVideoUrl || VIDEO_1;
-  const useIntro = playIntroVideo && !customVideoUrl;
+export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false }: PageShellProps) {
+  const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1];
+  const shouldLoop = videoList.length === 1;
+  const useIntro = playIntroVideo && !customVideoUrl && !loopVideos;
   const [isMuted, setIsMuted] = useState(true);
   const [introFinished, setIntroFinished] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const introRef = useRef<HTMLVideoElement>(null);
   const loopRef = useRef<HTMLVideoElement>(null);
 
@@ -98,13 +101,21 @@ export default function PageShell({ children, playIntroVideo = false, customVide
           {/* Loop video — always present, visible after intro */}
           <video
             ref={loopRef}
-            src={loopVideo}
+            src={videoList[currentVideoIndex]}
             autoPlay={!useIntro}
-            loop
+            loop={shouldLoop}
             playsInline
             muted={isMuted}
             preload="auto"
-            
+            onEnded={() => {
+              if (!shouldLoop) {
+                const nextIdx = (currentVideoIndex + 1) % videoList.length;
+                setCurrentVideoIndex(nextIdx);
+                setTimeout(() => {
+                  loopRef.current?.play().catch(() => {});
+                }, 50);
+              }
+            }}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${useIntro && !introFinished ? "opacity-0" : "opacity-100"}`}
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
           />

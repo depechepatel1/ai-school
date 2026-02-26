@@ -1199,6 +1199,10 @@ export default function SpeakingStudio() {
   return (
     <PageShell
       fullWidth
+      loopVideos={[
+        "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T17-16-49_add_a_slight_smiling_ndaiwy.mp4",
+        "https://res.cloudinary.com/daujjfaqg/video/upload/20_Second_Teacher_Loop_ucqth6.mp4",
+      ]}
     >
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         {/* Back button */}
