@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUserRole, insertUserRole } from "@/services/db";
 
 type AppRole = "student" | "teacher" | "parent";
 
@@ -24,13 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .maybeSingle();
-    setRole((data?.role as AppRole) ?? null);
+  const loadRole = async (userId: string) => {
+    const role = await fetchUserRole(userId);
+    setRole((role as AppRole) ?? null);
   };
 
   useEffect(() => {
@@ -38,8 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Use setTimeout to avoid Supabase auth deadlock
-        setTimeout(() => fetchRole(session.user.id), 0);
+        setTimeout(() => loadRole(session.user.id), 0);
       } else {
         setRole(null);
       }
@@ -50,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRole(session.user.id);
+        loadRole(session.user.id);
       }
       setLoading(false);
     });
@@ -69,10 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (error) throw error;
     if (data.user) {
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: data.user.id, role: selectedRole });
-      if (roleError) throw roleError;
+      await insertUserRole(data.user.id, selectedRole);
     }
   };
 

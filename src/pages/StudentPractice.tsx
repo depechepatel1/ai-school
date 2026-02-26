@@ -1,16 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
-import { Send, Mic, MicOff, Volume2, VolumeX, Plus, MessageSquare, LogOut, Menu, X } from "lucide-react";
+import { Send, Mic, MicOff, Volume2, VolumeX, Plus, LogOut } from "lucide-react";
 import { speakText, stopSpeaking } from "@/lib/tts";
 import { useSpeechRecognition } from "@/lib/stt";
 import PageShell from "@/components/PageShell";
+import {
+  fetchConversations,
+  createConversation as dbCreateConversation,
+  updateConversationTitle,
+  fetchMessages,
+  fetchMessageHistory,
+  insertMessage,
+  subscribeToMessages,
+} from "@/services/db";
+import { sendChatMessage } from "@/services/ai";
 
 interface Message {
   id: string;
@@ -42,50 +49,34 @@ export default function StudentPractice() {
 
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, title, created_at")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
-      if (data) setConversations(data);
-    };
-    load();
+    fetchConversations(user.id).then(setConversations).catch(() => {});
   }, [user]);
 
   useEffect(() => {
     if (!activeConversationId) { setMessages([]); return; }
-    const load = async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("id, role, content, created_at")
-        .eq("conversation_id", activeConversationId)
-        .order("created_at", { ascending: true });
-      if (data) setMessages(data as Message[]);
-    };
-    load();
+    fetchMessages(activeConversationId).then((data) => setMessages(data as Message[])).catch(() => {});
 
-    const channel = supabase
-      .channel(`messages-${activeConversationId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConversationId}` }, (payload) => {
-        const newMsg = payload.new as Message;
-        setMessages((prev) => prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]);
-      })
-      .subscribe();
+    const unsubscribe = subscribeToMessages(activeConversationId, (payload) => {
+      const newMsg = payload.new as Message;
+      setMessages((prev) => prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]);
+    });
 
-    return () => { supabase.removeChannel(channel); };
+    return unsubscribe;
   }, [activeConversationId]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const createConversation = async () => {
     if (!user) return;
-    const { data, error } = await supabase.from("conversations").insert({ user_id: user.id, title: "New Conversation" }).select().single();
-    if (error) { toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" }); return; }
-    setConversations((prev) => [data, ...prev]);
-    setActiveConversationId(data.id);
-    setMessages([]);
-    setSidebarOpen(false);
+    try {
+      const data = await dbCreateConversation(user.id);
+      setConversations((prev) => [data, ...prev]);
+      setActiveConversationId(data.id);
+      setMessages([]);
+      setSidebarOpen(false);
+    } catch (err: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+    }
   };
 
   const sendMessage = async () => {
@@ -97,15 +88,14 @@ export default function StudentPractice() {
     setMessages((prev) => [...prev, { id: tempId, role: "user", content: userMessage, created_at: new Date().toISOString() }]);
 
     try {
-      await supabase.from("messages").insert({ conversation_id: activeConversationId, role: "user", content: userMessage });
-      const { data: historyData } = await supabase.from("messages").select("role, content").eq("conversation_id", activeConversationId).order("created_at", { ascending: true });
-      const { data, error } = await supabase.functions.invoke("deepseek-chat", { body: { messages: historyData || [] } });
-      if (error) throw error;
-      const aiContent = data?.content || "Sorry, I couldn't process that. Please try again.";
-      await supabase.from("messages").insert({ conversation_id: activeConversationId, role: "assistant", content: aiContent });
+      await insertMessage(activeConversationId, "user", userMessage);
+      const historyData = await fetchMessageHistory(activeConversationId);
+      const response = await sendChatMessage(historyData as any);
+      const aiContent = response.content;
+      await insertMessage(activeConversationId, "assistant", aiContent);
       if (messages.length <= 1) {
         const title = userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : "");
-        await supabase.from("conversations").update({ title }).eq("id", activeConversationId);
+        await updateConversationTitle(activeConversationId, title);
         setConversations((prev) => prev.map((c) => c.id === activeConversationId ? { ...c, title } : c));
       }
       if (ttsEnabled) speakText(aiContent);

@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
+import { fetchClasses, createClass, getCurrentUserId } from "@/services/db";
 
 interface ClassInfo {
   id: string;
@@ -26,22 +24,24 @@ export default function TeacherDashboard() {
   useEffect(() => { loadClasses(); }, []);
 
   const loadClasses = async () => {
-    const { data } = await supabase.from("classes").select("*").order("created_at", { ascending: false });
-    if (data) setClasses(data);
+    try {
+      const data = await fetchClasses();
+      setClasses(data);
+    } catch {}
   };
 
-  const createClass = async () => {
+  const handleCreateClass = async () => {
     if (!newClassName.trim()) return;
     setIsCreating(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await supabase.from("classes").insert({ name: newClassName.trim(), created_by: user.id });
-    if (error) {
-      toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" });
-    } else {
+    try {
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+      await createClass(newClassName.trim(), userId);
       setNewClassName("");
       loadClasses();
       toast({ title: "Class created!" });
+    } catch (err: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
     }
     setIsCreating(false);
   };
@@ -74,7 +74,7 @@ export default function TeacherDashboard() {
             className="flex-1 h-8 px-3 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40"
           />
           <button
-            onClick={createClass}
+            onClick={handleCreateClass}
             disabled={isCreating || !newClassName.trim()}
             className="px-3 h-8 rounded-lg bg-blue-500/20 text-blue-300 text-[10px] font-semibold hover:bg-blue-500/30 disabled:opacity-40 transition-colors flex items-center gap-1"
           >
