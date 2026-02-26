@@ -143,3 +143,9 @@
   100% { background-position: -200% center; }
 }
 
+@keyframes ethericDrift {
+  0% { transform: translateY(0) scale(0); opacity: 0; }
+  15% { opacity: 0.9; transform: translateY(-30px) scale(1); }
+  100% { transform: translateY(-240px) scale(0); opacity: 0; }
+}
+
