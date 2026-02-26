@@ -212,9 +212,12 @@ export default function Signup() {
             <NeuralLogo />
             <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">{t("brand.subtitle")}</span>
           </div>
-          <h1 className="text-2xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
             {t("brand.title")}
           </h1>
+          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-blue-500/10 border border-blue-400/15 text-[10px] font-semibold tracking-widest uppercase text-blue-300/80">
+            {t("brand.edition")}
+          </span>
         </motion.div>
 
         {/* Role Selector */}
