@@ -87,7 +87,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
               muted={isMuted}
               onEnded={handleVideo1End}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${showVideo2 ? "opacity-0 pointer-events-none" : "opacity-100"}`}
-              style={{ objectPosition: "96% center" }}
+              style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
             />
           )}
 
@@ -101,7 +101,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
             muted={isMuted}
             preload="auto"
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${useIntro && !showVideo2 ? "opacity-0" : "opacity-100"}`}
-            style={{ objectPosition: "96% center" }}
+            style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
           />
 
           <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />
