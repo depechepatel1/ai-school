@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
-import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut, ChevronRight } from "lucide-react";
+import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut, ChevronRight, BookOpen } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { fetchClasses, createClass, getCurrentUserId } from "@/services/db";
@@ -69,8 +69,10 @@ export default function TeacherDashboard() {
           <div className="flex items-center gap-2.5">
             <NeuralLogo />
             <div>
-              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white leading-tight">Teacher</h1>
-              <p className="text-[10px] text-gray-500">Manage classes & students</p>
+              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">AI School</h1>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-[9px] font-semibold text-emerald-300">
+                <BookOpen className="w-3 h-3" /> Teacher Portal
+              </span>
             </div>
           </div>
           <button onClick={signOut} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition-all">

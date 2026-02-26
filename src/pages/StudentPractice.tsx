@@ -4,7 +4,8 @@ import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
-import { Send, Mic, MicOff, Volume2, VolumeX, Plus, LogOut } from "lucide-react";
+import { Send, Mic, MicOff, Volume2, VolumeX, Plus, LogOut, GraduationCap } from "lucide-react";
+import NeuralLogo from "@/components/NeuralLogo";
 import { speakText, stopSpeaking } from "@/lib/tts";
 import { useSpeechRecognition } from "@/lib/stt";
 import PageShell from "@/components/PageShell";
@@ -112,7 +113,20 @@ export default function StudentPractice() {
 
   return (
     <PageShell playIntroVideo>
-      <div className="flex flex-1 -mx-2">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <NeuralLogo />
+          <div>
+            <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">AI School</h1>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-400/20 text-[9px] font-semibold text-blue-300">
+              <GraduationCap className="w-3 h-3" /> Student Portal
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 -mx-2 min-h-0">
         {/* Mini sidebar */}
         <div className="w-[130px] shrink-0 border-r border-white/[0.06] flex flex-col">
           <div className="p-2.5">
