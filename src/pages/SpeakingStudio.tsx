@@ -86,7 +86,6 @@ function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying:
     const w = rect.width;
     const h = rect.height;
     const allSyllables = data.flatMap((d) => d.syllables);
-    const segW = w / Math.max(1, allSyllables.length - 1);
 
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
@@ -96,8 +95,11 @@ function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying:
       ctx.moveTo(0, h / 2);
       ctx.lineTo(w, h / 2);
       ctx.stroke();
+
+      const pad = 12;
+      const drawW = w - pad * 2;
       const points = allSyllables.map((s, i) => ({
-        x: i * segW,
+        x: pad + i * (drawW / Math.max(1, allSyllables.length - 1)),
         y: s.pitch === 2 ? h * 0.2 : s.pitch === -1 ? h * 0.8 : h * 0.7,
       }));
       ctx.beginPath();
@@ -117,6 +119,7 @@ function TargetContourCanvas({ data, isPlaying }: { data: WordData[]; isPlaying:
       ctx.shadowColor = "#22d3ee";
       ctx.shadowBlur = 10;
       ctx.stroke();
+      ctx.shadowBlur = 0;
     };
     draw();
   }, [data, isPlaying]);
