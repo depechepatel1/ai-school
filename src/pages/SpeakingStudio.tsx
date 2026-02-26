@@ -283,7 +283,7 @@ function LiveInputCanvas({
         const aCtx = new AudioContext();
         const analyser = aCtx.createAnalyser();
         analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0.3;
+        analyser.smoothingTimeConstant = 0.15;
         const src = aCtx.createMediaStreamSource(stream);
         src.connect(analyser);
         audioRef.current = { ctx: aCtx, analyser, src, req: null, stream };
@@ -308,7 +308,7 @@ function LiveInputCanvas({
         sum += v * v;
       }
       const rawAmp = Math.sqrt(sum / data.length);
-      const amp = Math.min(1, rawAmp * 30);
+      const amp = Math.min(1, rawAmp * 50);
 
       if (onAutoStopRef.current) {
         if (rawAmp > 0.02) {
@@ -335,7 +335,7 @@ function LiveInputCanvas({
       } else {
         y = h / 2 - amp * h * 0.45;
       }
-      if (history.current.length > 0) y = history.current[history.current.length - 1].y * 0.85 + y * 0.15;
+      if (history.current.length > 0) y = history.current[history.current.length - 1].y * 0.6 + y * 0.4;
       y = Math.max(10, Math.min(h - 10, y));
 
       const totalSyl = prosodyData.flatMap((d) => d.syllables).length;
