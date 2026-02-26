@@ -9,7 +9,7 @@ import {
 import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { chat, type ChatMessage } from "@/services/ai";
-import { speak, stopSpeaking, type Accent, type TTSHandle } from "@/lib/tts-provider";
+import { speak, stopSpeaking, preloadVoices, type Accent, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import { fetchCurriculumPage, fetchNextSentence, fetchCurriculumProgress, saveCurriculumProgress, fetchCurriculumCount } from "@/services/db";
 import { RealtimePitchTracker } from "@/lib/pitch-detector";
@@ -860,7 +860,12 @@ export default function SpeakingStudio() {
     setProsodyData(parseProsody(rawText));
   }, [rawText]);
 
-  // Timer
+  // Preload TTS voices on mount
+  useEffect(() => {
+    preloadVoices();
+  }, []);
+
+
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (testState.status === "running" && testState.timeLeft > 0) {
