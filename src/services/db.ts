@@ -186,3 +186,36 @@ export async function fetchCurriculumCount(track: string) {
   if (error) throw error;
   return count ?? 0;
 }
+
+// ── Curriculum Progress ───────────────────────────────────────
+
+export async function fetchCurriculumProgress(userId: string, track: string) {
+  const { data } = await supabase
+    .from("student_curriculum_progress")
+    .select("last_sort_order, last_score")
+    .eq("user_id", userId)
+    .eq("track", track)
+    .maybeSingle();
+  return data;
+}
+
+export async function saveCurriculumProgress(
+  userId: string,
+  track: string,
+  lastSortOrder: number,
+  lastScore?: number | null,
+) {
+  const { error } = await supabase
+    .from("student_curriculum_progress")
+    .upsert(
+      {
+        user_id: userId,
+        track,
+        last_sort_order: lastSortOrder,
+        last_score: lastScore ?? null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,track" },
+    );
+  if (error) throw error;
+}

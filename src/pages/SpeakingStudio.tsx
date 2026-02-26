@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 import {
   Mic, Play, Headphones, Ghost, MoveHorizontal, Award, Folder, Trash,
   Send, X, Clock, Star, Users, Book, Smile, ChevronRight, Minus, Maximize,
@@ -10,7 +11,7 @@ import { parseProsody, type WordData } from "@/lib/prosody";
 import { chat, type ChatMessage } from "@/services/ai";
 import { speak, stopSpeaking, type Accent, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
-import { fetchCurriculumPage, fetchNextSentence } from "@/services/db";
+import { fetchCurriculumPage, fetchNextSentence, fetchCurriculumProgress, saveCurriculumProgress } from "@/services/db";
 import { RealtimePitchTracker } from "@/lib/pitch-detector";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 
@@ -682,8 +683,8 @@ function USFlag() {
 
 export default function SpeakingStudio() {
   const navigate = useNavigate();
-
-  // Mode
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [mode, setMode] = useState<"shadowing" | "speaking">("shadowing");
   const [accent, setAccent] = useState<"UK" | "US">("UK");
   const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency">("pronunciation");
@@ -996,17 +997,24 @@ export default function SpeakingStudio() {
     startSpeechRecognition();
   };
 
-  // Curriculum loading
-  const loadCurriculumPage = useCallback(async (offset: number) => {
+  // Curriculum loading — supports resuming from a sort_order
+  const loadCurriculumPage = useCallback(async (offset: number, resumeSortOrder?: number) => {
     setCurriculumLoading(true);
     try {
       const items = await fetchCurriculumPage("pronunciation", offset, 5);
       if (items.length > 0) {
         setCurriculumItems(items);
-        setCurrentItemIndex(0);
         setCurriculumOffset(offset);
-        setRawText(items[0].sentence);
-        setCurrentTopic(items[0].topic);
+
+        // If resuming, find the item *after* the last completed sort_order
+        let startIdx = 0;
+        if (resumeSortOrder !== undefined) {
+          const idx = items.findIndex((i) => i.sort_order > resumeSortOrder);
+          if (idx !== -1) startIdx = idx;
+        }
+        setCurrentItemIndex(startIdx);
+        setRawText(items[startIdx].sentence);
+        setCurrentTopic(items[startIdx].topic);
       }
     } catch (err) {
       console.error("Failed to load curriculum:", err);
@@ -1015,12 +1023,31 @@ export default function SpeakingStudio() {
     }
   }, []);
 
-  // Load initial curriculum on mount
+  // Load curriculum with progress on mount
   useEffect(() => {
-    if (practiceType === "pronunciation") {
-      loadCurriculumPage(0);
-    }
-  }, []);
+    if (practiceType !== "pronunciation" || !userId) return;
+    (async () => {
+      try {
+        const progress = await fetchCurriculumProgress(userId, "pronunciation");
+        if (progress && progress.last_sort_order > 0) {
+          // Fetch the page containing the next item after last_sort_order
+          const nextItem = await fetchNextSentence("pronunciation", progress.last_sort_order);
+          if (nextItem) {
+            // Calculate offset: round down to nearest page of 5
+            const pageOffset = Math.floor((nextItem.sort_order - 1) / 5) * 5;
+            await loadCurriculumPage(pageOffset, progress.last_sort_order);
+          } else {
+            // Completed all items — restart from beginning or show completion
+            await loadCurriculumPage(0);
+          }
+        } else {
+          await loadCurriculumPage(0);
+        }
+      } catch {
+        await loadCurriculumPage(0);
+      }
+    })();
+  }, [userId, practiceType, loadCurriculumPage]);
 
   // Shadowing handlers
   const handleGenerate = (type: "pronunciation" | "fluency") => {
@@ -1049,13 +1076,19 @@ export default function SpeakingStudio() {
     }
   }, [currentItemIndex, curriculumItems, curriculumOffset, loadCurriculumPage]);
 
-  // Pitch contour callback
+  // Pitch contour callback — also saves progress
   const handlePitchContour = useCallback((contour: number[]) => {
     if (mode === "shadowing" && contour.length > 0) {
       const result = analyzeContour(contour, rawText);
       setScore(result.overallScore);
+
+      // Save progress for the current curriculum item
+      const currentItem = curriculumItems[currentItemIndex];
+      if (userId && currentItem && practiceType === "pronunciation") {
+        saveCurriculumProgress(userId, "pronunciation", currentItem.sort_order, result.overallScore).catch(console.error);
+      }
     }
-  }, [mode, rawText]);
+  }, [mode, rawText, userId, curriculumItems, currentItemIndex, practiceType]);
 
   const handlePlayModel = () => {
     if (isPlayingModel) {
