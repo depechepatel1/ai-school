@@ -29,12 +29,46 @@ serve(async (req) => {
 
     const { messages } = await req.json();
 
+    if (!Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: "Messages must be an array" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (messages.length === 0 || messages.length > 100) {
+      return new Response(
+        JSON.stringify({ error: "Messages count must be between 1 and 100" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const validRoles = new Set(["user", "assistant"]);
+
+    const validMessages = messages
+      .filter((m: any) =>
+        m &&
+        typeof m.role === "string" &&
+        validRoles.has(m.role) &&
+        typeof m.content === "string" &&
+        m.content.length > 0 &&
+        m.content.length <= 10000
+      )
+      .map((m: any) => ({
+        role: m.role,
+        content: m.content.substring(0, 10000),
+      }));
+
+    if (validMessages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "No valid messages provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const apiMessages = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...messages.map((m: { role: string; content: string }) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      ...validMessages,
     ];
 
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
@@ -63,7 +97,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("Edge function error:", error.message);
+    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
