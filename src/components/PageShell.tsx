@@ -18,11 +18,14 @@ const DEV_ACCOUNTS = [
 interface PageShellProps {
   children: React.ReactNode;
   playIntroVideo?: boolean;
+  customVideoUrl?: string;
 }
 
-export default function PageShell({ children, playIntroVideo = false }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, customVideoUrl }: PageShellProps) {
+  const loopVideo = customVideoUrl || VIDEO_2;
+  const useIntro = playIntroVideo && !customVideoUrl;
   const [isMuted, setIsMuted] = useState(true);
-  const [showVideo2, setShowVideo2] = useState(!playIntroVideo);
+  const [showVideo2, setShowVideo2] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
@@ -74,7 +77,7 @@ export default function PageShell({ children, playIntroVideo = false }: PageShel
         {/* Video Background */}
         <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900 rounded-[2.5rem]">
           {/* Video 1 — intro (student page only) */}
-          {playIntroVideo && (
+          {useIntro && (
             <video
               ref={video1Ref}
               src={VIDEO_1}
@@ -90,13 +93,13 @@ export default function PageShell({ children, playIntroVideo = false }: PageShel
           {/* Video 2 — looped (all pages) */}
           <video
             ref={video2Ref}
-            src={VIDEO_2}
-            autoPlay={!playIntroVideo}
+            src={loopVideo}
+            autoPlay={!useIntro}
             loop
             playsInline
             muted={isMuted}
             preload="auto"
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${playIntroVideo && !showVideo2 ? "opacity-0" : "opacity-100"}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${useIntro && !showVideo2 ? "opacity-0" : "opacity-100"}`}
             style={{ objectPosition: "96% center" }}
           />
 
