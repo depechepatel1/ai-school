@@ -14,6 +14,7 @@ import StudentPractice from "./pages/StudentPractice";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
 import NotFound from "./pages/NotFound";
+import DevNav from "@/components/DevNav";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/parent" element={<ProtectedRoute allowedRoles={["parent"]}><ParentDashboard /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <DevNav />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
