@@ -1,14 +1,25 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserCircle, ArrowRight, Check, Users, Mic, ShieldCheck, Volume2, VolumeX } from "lucide-react";
+import { UserCircle, ArrowRight, Check, Users, Mic, ShieldCheck, Volume2, VolumeX, Code, GraduationCap, BookOpen, Heart } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import OmniChatModal from "@/components/OmniChatModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
+
+const DEV_ACCOUNTS = [
+  { role: "student", email: "dev-student@test.com", password: "devtest123", icon: GraduationCap, label: "Student", color: "from-blue-500 to-cyan-500" },
+  { role: "teacher", email: "dev-teacher@test.com", password: "devtest123", icon: BookOpen, label: "Teacher", color: "from-emerald-500 to-green-500" },
+  { role: "parent", email: "dev-parent@test.com", password: "devtest123", icon: Heart, label: "Parent", color: "from-rose-500 to-pink-500" },
+];
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [agreed, setAgreed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [devOpen, setDevOpen] = useState(false);
+  const [devLoading, setDevLoading] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const videoSrc =
@@ -29,6 +40,24 @@ const LandingPage = () => {
 
   const handleVoiceDemo = () => {
     setChatOpen(true);
+  };
+
+  const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
+    setDevLoading(account.role);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: account.email,
+        password: account.password,
+      });
+      if (error) {
+        toast({ title: "Dev Login Failed", description: getSafeErrorMessage(error), variant: "destructive" });
+      }
+      // Auth state change will handle redirect via Index.tsx
+    } catch (err: any) {
+      toast({ title: "Dev Login Failed", description: getSafeErrorMessage(err), variant: "destructive" });
+    } finally {
+      setDevLoading(null);
+    }
   };
 
   return (
@@ -195,6 +224,41 @@ const LandingPage = () => {
 
         {/* Chat Modal */}
         <OmniChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+
+        {/* Dev Login Panel */}
+        <div className="absolute top-4 left-4 z-50">
+          <button
+            onClick={() => setDevOpen(!devOpen)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 text-yellow-300 text-[10px] font-bold uppercase tracking-wider hover:bg-yellow-500/30 transition-all"
+          >
+            <Code className="w-3 h-3" />
+            Dev
+          </button>
+          {devOpen && (
+            <div className="mt-2 p-3 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-2 min-w-[180px] shadow-2xl">
+              <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-2">Quick Login As</p>
+              {DEV_ACCOUNTS.map((account) => {
+                const Icon = account.icon;
+                return (
+                  <button
+                    key={account.role}
+                    onClick={() => handleDevLogin(account)}
+                    disabled={devLoading !== null}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-gradient-to-r ${account.color} text-white text-xs font-semibold hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {devLoading === account.role ? (
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Icon className="w-4 h-4" />
+                    )}
+                    {account.label}
+                  </button>
+                );
+              })}
+              <p className="text-[8px] text-gray-600 mt-1">Create accounts first via /signup</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
