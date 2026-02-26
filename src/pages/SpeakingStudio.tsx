@@ -1343,7 +1343,7 @@ export default function SpeakingStudio() {
                 className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`}
                 title="Hear Teacher Model"
               >
-                <Headphones className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                <Play className="w-6 h-6 ml-0.5 group-hover:scale-110 transition-transform" />
               </button>
 
               {/* Divider */}
