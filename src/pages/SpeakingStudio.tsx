@@ -1199,7 +1199,6 @@ export default function SpeakingStudio() {
   return (
     <PageShell
       fullWidth
-      customVideoUrl="https://res.cloudinary.com/daujjfaqg/video/upload/AI_Teacher_Video_2_jqlenl.mp4"
     >
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         {/* Back button */}
