@@ -155,7 +155,7 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
         {/* Close / Back button */}
-        <div className="shrink-0 z-20 flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-md border-b border-white/5">
+        <div className="shrink-0 z-20 flex items-center justify-between px-6 py-5 pt-6 bg-black/40 backdrop-blur-md border-b border-white/5">
           <button
             onClick={onClose}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
