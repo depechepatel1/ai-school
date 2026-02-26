@@ -39,22 +39,22 @@ export default function Login() {
         initial="hidden"
         animate="visible"
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
-        className="space-y-4"
+        className="flex-1 flex flex-col justify-between"
       >
         {/* Header */}
-        <motion.div variants={fadeUp} className="text-center">
+        <motion.div variants={fadeUp} className="text-center space-y-1">
           <div className="flex justify-center items-center gap-2 mb-1">
             <NeuralLogo />
             <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
           </div>
-          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight mb-1">
+          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
             AI School
           </h1>
-          <p className="text-xs text-gray-400">Sign in to continue your practice</p>
+          <p className="text-xs text-gray-400 pt-1">Sign in to continue your practice</p>
         </motion.div>
 
         {/* Form */}
-        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-3">
+        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
