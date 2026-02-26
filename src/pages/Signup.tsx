@@ -132,16 +132,7 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
       transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[100] flex items-center justify-center"
     >
-      {/* Video background */}
-      <video
-        src={LEGAL_VIDEO}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/80" />
 
       {/* Glass card — full width with padding */}
       <motion.div
