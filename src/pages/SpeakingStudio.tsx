@@ -295,7 +295,7 @@ function LiveInputCanvas({
 
 function ProsodyVisualizer({ data, activeWordIndex }: { data: WordData[]; activeWordIndex: number }) {
   return (
-    <div className="relative min-h-[6rem] w-full max-w-3xl mx-auto flex flex-wrap items-center justify-center content-center gap-y-4 mb-2 px-8 py-4 rounded-2xl bg-black/30 backdrop-blur-sm">
+    <div className="relative min-h-[6rem] w-full max-w-3xl mx-auto flex flex-wrap items-center justify-center content-center gap-y-4 mb-2 px-8">
       {data.map((item, i) => {
         const isActive = i === activeWordIndex;
         const activeScale = isActive ? "scale-110" : "scale-100";
@@ -1289,7 +1289,7 @@ export default function SpeakingStudio() {
         {mode === "shadowing" && (
           <>
             {/* Bottom area */}
-            <div className="absolute bottom-0 left-0 right-0 pb-2 pt-24 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 pb-2 pt-40 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
               {/* Topic & progress indicator */}
               {practiceType === "pronunciation" && currentTopic && (
                 <div className="mb-2 flex items-center gap-3 justify-center">
