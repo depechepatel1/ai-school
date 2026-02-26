@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 
 export default function ResetPassword() {
@@ -29,7 +30,7 @@ export default function ResetPassword() {
       toast({ title: "Password updated!", description: "You can now sign in with your new password." });
       navigate("/login");
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut, BookOpen } from "lucide-react";
 
@@ -37,7 +38,7 @@ export default function TeacherDashboard() {
     if (!user) return;
     const { error } = await supabase.from("classes").insert({ name: newClassName.trim(), created_by: user.id });
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" });
     } else {
       setNewClassName("");
       loadClasses();

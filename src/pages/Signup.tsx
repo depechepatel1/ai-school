@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 import { BookOpen, UserPlus, GraduationCap, Users, Heart } from "lucide-react";
 
@@ -33,7 +34,7 @@ export default function Signup() {
       toast({ title: "Account created!", description: "Please check your email to verify your account." });
       navigate("/login");
     } catch (err: any) {
-      toast({ title: "Signup failed", description: err.message, variant: "destructive" });
+      toast({ title: "Signup failed", description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

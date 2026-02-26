@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Send, Mic, MicOff, Volume2, VolumeX, Plus, MessageSquare, LogOut, Menu, X } from "lucide-react";
@@ -144,7 +145,7 @@ export default function StudentPractice() {
       // TTS
       if (ttsEnabled) speakText(aiContent);
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

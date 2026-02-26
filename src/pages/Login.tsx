@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
 import { BookOpen, LogIn } from "lucide-react";
 
@@ -22,7 +23,7 @@ export default function Login() {
       await signIn(email, password);
       navigate("/");
     } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
+      toast({ title: "Login failed", description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
