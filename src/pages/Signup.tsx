@@ -3,21 +3,27 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, UserPlus, GraduationCap, Users, Heart } from "lucide-react";
+import { UserPlus, GraduationCap, Users, Heart } from "lucide-react";
+import NeuralLogo from "@/components/NeuralLogo";
+import PageShell from "@/components/PageShell";
 
 type AppRole = "student" | "teacher" | "parent";
 
-const roles: { value: AppRole; label: string; icon: React.ReactNode; desc: string }[] = [
-  { value: "student", label: "Student", icon: <GraduationCap className="w-5 h-5" />, desc: "Practice speaking" },
-  { value: "teacher", label: "Teacher", icon: <Users className="w-5 h-5" />, desc: "Manage classes" },
-  { value: "parent", label: "Parent", icon: <Heart className="w-5 h-5" />, desc: "Track progress" },
+const roles: { value: AppRole; label: string; icon: React.ReactNode }[] = [
+  { value: "student", label: "Student", icon: <GraduationCap className="w-3.5 h-3.5" /> },
+  { value: "teacher", label: "Teacher", icon: <Users className="w-3.5 h-3.5" /> },
+  { value: "parent", label: "Parent", icon: <Heart className="w-3.5 h-3.5" /> },
 ];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+};
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -49,129 +55,151 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <PageShell>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        initial="hidden"
+        animate="visible"
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+        className="space-y-3"
       >
-        <div className="glass-card p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 orange-glow mb-2">
-              <BookOpen className="w-7 h-7 text-primary" />
+        {/* Header */}
+        <motion.div variants={fadeUp} className="text-center">
+          <div className="flex justify-center items-center gap-2 mb-1">
+            <NeuralLogo />
+            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
+          </div>
+          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+            AI School
+          </h1>
+          <div className="flex justify-center mt-1.5 mb-2">
+            <div className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/15 to-purple-500/15 border border-blue-400/20 backdrop-blur-md">
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200/80">IELTS Edition</span>
             </div>
-            <h1 className="text-2xl font-bold gradient-text">Create Account</h1>
-            <p className="text-muted-foreground text-sm">Join IELTS Speaking Studio</p>
+          </div>
+        </motion.div>
+
+        {/* Role Selector — inline pills */}
+        <motion.div variants={fadeUp} className="flex gap-1.5 justify-center">
+          {roles.map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              onClick={() => setSelectedRole(r.value)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+                selectedRole === r.value
+                  ? "bg-blue-500/20 text-blue-200 border border-blue-400/30"
+                  : "bg-white/5 text-gray-400 border border-white/5 hover:border-white/15 hover:text-gray-300"
+              }`}
+            >
+              {r.icon}
+              {r.label}
+            </button>
+          ))}
+        </motion.div>
+
+        {/* Form */}
+        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-2.5">
+          <input
+            placeholder="Display Name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            required
+            className="w-full h-9 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full h-9 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
+          />
+          <input
+            type="password"
+            placeholder="Password (min 6 chars)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            className="w-full h-9 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
+          />
+
+          {/* PRC Consent — compact */}
+          <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="agree"
+                checked={agreed}
+                onCheckedChange={(v) => setAgreed(v === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="agree" className="text-[11px] leading-snug text-gray-300 cursor-pointer">
+                我已阅读并同意{" "}
+                <Link to="/terms" className="text-blue-400 hover:underline" target="_blank">《用户协议》</Link>
+                {" "}和{" "}
+                <Link to="/privacy" className="text-blue-400 hover:underline" target="_blank">《隐私政策》</Link>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-gray-500">未成年人模式 / 不满14周岁</span>
+              <Switch
+                id="minor-mode"
+                checked={isMinor}
+                onCheckedChange={(v) => { setIsMinor(v); if (!v) setGuardianAgreed(false); }}
+                className="scale-75 origin-right"
+              />
+            </div>
+
+            <AnimatePresence>
+              {isMinor && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-start gap-2 pt-2 border-t border-white/5">
+                    <Checkbox
+                      id="guardian-agree"
+                      checked={guardianAgreed}
+                      onCheckedChange={(v) => setGuardianAgreed(v === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="guardian-agree" className="text-[11px] leading-snug text-gray-300 cursor-pointer">
+                      我已获得监护人同意，且监护人已阅读并同意上述协议
+                    </label>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>I am a...</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {roles.map((r) => (
-                  <button
-                    key={r.value}
-                    type="button"
-                    onClick={() => setSelectedRole(r.value)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm transition-all ${
-                      selectedRole === r.value
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-secondary/30 text-muted-foreground hover:border-muted-foreground/50"
-                    }`}
-                  >
-                    {r.icon}
-                    <span className="font-medium">{r.label}</span>
-                    <span className="text-[10px] opacity-70">{r.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <button
+            type="submit"
+            disabled={isLoading || !canSubmit}
+            className="w-full h-10 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+          >
+            <UserPlus className="w-4 h-4" />
+            {isLoading ? "Creating..." : "Create Account"}
+          </button>
+        </motion.form>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Display Name</Label>
-              <Input id="name" placeholder="Your name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Min 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-            </div>
-
-            {/* PRC Consent Section */}
-            <div className="space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="agree"
-                  checked={agreed}
-                  onCheckedChange={(v) => setAgreed(v === true)}
-                />
-                <label htmlFor="agree" className="text-sm leading-snug text-foreground/90 cursor-pointer">
-                  我已阅读并同意{" "}
-                  <Link to="/terms" className="text-primary hover:underline" target="_blank">《用户协议》</Link>
-                  {" "}和{" "}
-                  <Link to="/privacy" className="text-primary hover:underline" target="_blank">《隐私政策》</Link>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="minor-mode" className="text-sm text-muted-foreground cursor-pointer">
-                  未成年人模式 (Minor Mode) / 不满14周岁
-                </Label>
-                <Switch
-                  id="minor-mode"
-                  checked={isMinor}
-                  onCheckedChange={(v) => {
-                    setIsMinor(v);
-                    if (!v) setGuardianAgreed(false);
-                  }}
-                />
-              </div>
-
-              <AnimatePresence>
-                {isMinor && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex items-start gap-3 pt-2 border-t border-border">
-                      <Checkbox
-                        id="guardian-agree"
-                        checked={guardianAgreed}
-                        onCheckedChange={(v) => setGuardianAgreed(v === true)}
-                      />
-                      <label htmlFor="guardian-agree" className="text-sm leading-snug text-foreground/90 cursor-pointer">
-                        我已获得监护人同意，且监护人已阅读并同意上述协议
-                      </label>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <Button type="submit" className="w-full orange-glow" disabled={isLoading || !canSubmit}>
-              <UserPlus className="w-4 h-4 mr-2" />
-              {isLoading ? "Creating account..." : "Create Account"}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm text-muted-foreground">
+        {/* Links */}
+        <motion.div variants={fadeUp} className="text-center">
+          <p className="text-[11px] text-gray-500">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+            <Link to="/login" className="text-blue-400 hover:underline">Sign in</Link>
           </p>
+        </motion.div>
 
-          {/* ICP Filing Footer */}
-          <div className="pt-4 border-t border-border text-center space-y-1">
-            <p className="text-[11px] text-muted-foreground/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
-            <p className="text-[11px] text-muted-foreground/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
-          </div>
-        </div>
+        {/* ICP Footer */}
+        <motion.div variants={fadeUp} className="pt-2 border-t border-white/5 text-center space-y-0.5">
+          <p className="text-[9px] text-gray-600">ICP备案号：京ICP备2026XXXXXXXX号</p>
+          <p className="text-[9px] text-gray-600">APP备案号：京ICP备2026XXXXXXXX号A</p>
+        </motion.div>
       </motion.div>
-    </div>
+    </PageShell>
   );
 }

@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
-import { BookOpen, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import NeuralLogo from "@/components/NeuralLogo";
+import PageShell from "@/components/PageShell";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -30,67 +34,70 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <PageShell>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        initial="hidden"
+        animate="visible"
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
+        className="space-y-4"
       >
-        <div className="glass-card p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 orange-glow mb-2">
-              <BookOpen className="w-7 h-7 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold gradient-text">IELTS Speaking Studio</h1>
-            <p className="text-muted-foreground text-sm">Sign in to continue your practice</p>
+        {/* Header */}
+        <motion.div variants={fadeUp} className="text-center">
+          <div className="flex justify-center items-center gap-2 mb-1">
+            <NeuralLogo />
+            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">Next Gen Learning</span>
           </div>
+          <h1 className="text-3xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight mb-1">
+            AI School
+          </h1>
+          <p className="text-xs text-gray-400">Sign in to continue your practice</p>
+        </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full orange-glow" disabled={isLoading}>
-              <LogIn className="w-4 h-4 mr-2" />
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
+        {/* Form */}
+        <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40 transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+          >
+            <LogIn className="w-4 h-4" />
+            {isLoading ? "Signing in..." : "Sign In"}
+          </button>
+        </motion.form>
 
-          <div className="text-center space-y-2 text-sm">
-            <Link to="/forgot-password" className="text-primary hover:underline block">
-              Forgot password?
-            </Link>
-            <p className="text-muted-foreground">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">Sign up</Link>
-            </p>
-          </div>
+        {/* Links */}
+        <motion.div variants={fadeUp} className="text-center space-y-2">
+          <Link to="/forgot-password" className="text-xs text-blue-400 hover:underline block">
+            Forgot password?
+          </Link>
+          <p className="text-[11px] text-gray-500">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-blue-400 hover:underline">Sign up</Link>
+          </p>
+        </motion.div>
 
-          {/* ICP Filing Footer */}
-          <div className="pt-4 border-t border-border text-center space-y-1">
-            <p className="text-[11px] text-muted-foreground/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
-            <p className="text-[11px] text-muted-foreground/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
-          </div>
-        </div>
+        {/* ICP Footer */}
+        <motion.div variants={fadeUp} className="pt-3 border-t border-white/5 text-center space-y-0.5">
+          <p className="text-[9px] text-gray-600">ICP备案号：京ICP备2026XXXXXXXX号</p>
+          <p className="text-[9px] text-gray-600">APP备案号：京ICP备2026XXXXXXXX号A</p>
+        </motion.div>
       </motion.div>
-    </div>
+    </PageShell>
   );
 }

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
-import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut, BookOpen } from "lucide-react";
+import { Plus, Copy, Users, BarChart3, MessageSquare, LogOut } from "lucide-react";
+import NeuralLogo from "@/components/NeuralLogo";
+import PageShell from "@/components/PageShell";
 
 interface ClassInfo {
   id: string;
@@ -22,9 +23,7 @@ export default function TeacherDashboard() {
   const [newClassName, setNewClassName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    loadClasses();
-  }, []);
+  useEffect(() => { loadClasses(); }, []);
 
   const loadClasses = async () => {
     const { data } = await supabase.from("classes").select("*").order("created_at", { ascending: false });
@@ -49,78 +48,72 @@ export default function TeacherDashboard() {
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Copied!", description: `Join code ${code} copied to clipboard.` });
+    toast({ title: "Copied!", description: `Join code ${code} copied.` });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary" />
-            </div>
-            <h1 className="text-xl font-bold gradient-text">Teacher Dashboard</h1>
+    <PageShell>
+      <div className="space-y-4 max-h-[540px] overflow-y-auto scrollbar-hide">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <NeuralLogo />
+            <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">Teacher</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="w-4 h-4 mr-2" /> Sign Out</Button>
+          <button onClick={signOut} className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-300 transition-colors">
+            <LogOut className="w-3 h-3" /> Sign Out
+          </button>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Create class */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">
-          <h2 className="text-lg font-semibold mb-4">Create a New Class</h2>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Label htmlFor="className" className="sr-only">Class Name</Label>
-              <Input id="className" placeholder="e.g. IELTS Band 7 Group" value={newClassName} onChange={(e) => setNewClassName(e.target.value)} />
-            </div>
-            <Button onClick={createClass} disabled={isCreating || !newClassName.trim()}>
-              <Plus className="w-4 h-4 mr-2" /> Create
-            </Button>
-          </div>
-        </motion.div>
+        <div className="flex gap-2">
+          <input
+            placeholder="New class name..."
+            value={newClassName}
+            onChange={(e) => setNewClassName(e.target.value)}
+            className="flex-1 h-8 px-3 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-400/40"
+          />
+          <button
+            onClick={createClass}
+            disabled={isCreating || !newClassName.trim()}
+            className="px-3 h-8 rounded-lg bg-blue-500/20 text-blue-300 text-[10px] font-semibold hover:bg-blue-500/30 disabled:opacity-40 transition-colors flex items-center gap-1"
+          >
+            <Plus className="w-3 h-3" /> Create
+          </button>
+        </div>
 
-        {/* Classes grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {classes.map((c, i) => (
-            <motion.div
-              key={c.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="glass-card-hover p-5 space-y-4"
-            >
-              <h3 className="font-semibold text-foreground">{c.name}</h3>
+        {/* Classes */}
+        <div className="space-y-2">
+          {classes.map((c) => (
+            <div key={c.id} className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
+              <h3 className="text-sm font-semibold text-gray-200">{c.name}</h3>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-1.5 bg-secondary/50 rounded-md text-sm text-primary font-mono">{c.join_code}</code>
-                <Button variant="ghost" size="icon" onClick={() => copyCode(c.join_code)}>
-                  <Copy className="w-4 h-4" />
-                </Button>
+                <code className="flex-1 px-2 py-1 bg-white/5 rounded text-[10px] text-blue-300 font-mono">{c.join_code}</code>
+                <button onClick={() => copyCode(c.join_code)} className="text-gray-500 hover:text-gray-300 transition-colors">
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> 0 students</span>
-              </div>
-            </motion.div>
+              <span className="flex items-center gap-1 text-[10px] text-gray-500">
+                <Users className="w-3 h-3" /> 0 students
+              </span>
+            </div>
           ))}
         </div>
 
         {/* Placeholder sections */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {[
-            { icon: <BarChart3 className="w-5 h-5" />, title: "Student Analytics", desc: "Track student progress and performance (coming soon)" },
-            { icon: <MessageSquare className="w-5 h-5" />, title: "Conversation Review", desc: "Review and provide feedback on student conversations (coming soon)" },
-          ].map((item, i) => (
-            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + i * 0.1 }} className="glass-card p-6 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">{item.icon}</div>
-              <div>
-                <h3 className="font-semibold">{item.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </main>
-    </div>
+        {[
+          { icon: <BarChart3 className="w-4 h-4" />, title: "Student Analytics", desc: "Coming soon" },
+          { icon: <MessageSquare className="w-4 h-4" />, title: "Conversation Review", desc: "Coming soon" },
+        ].map((item, i) => (
+          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">{item.icon}</div>
+            <div>
+              <h3 className="text-xs font-semibold text-gray-300">{item.title}</h3>
+              <p className="text-[10px] text-gray-500">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </PageShell>
   );
 }
