@@ -48,8 +48,9 @@ export default function PageShell({ children, playIntroVideo = false, customVide
   const handleVideo1End = () => {
     setShowVideo2(true);
     if (video2Ref.current) {
+      video2Ref.current.currentTime = 0;
       video2Ref.current.muted = isMuted;
-      video2Ref.current.play();
+      video2Ref.current.play().catch(() => {});
     }
   };
 
