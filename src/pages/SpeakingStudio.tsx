@@ -1290,17 +1290,12 @@ export default function SpeakingStudio() {
           <>
             {/* Bottom area */}
             <div className="absolute bottom-0 left-0 right-0 pb-2 pt-16 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
-              {/* Topic & progress indicator */}
-              {practiceType === "pronunciation" && currentTopic && (
+              {/* Progress indicator */}
+              {practiceType === "pronunciation" && curriculumTotal > 0 && (
                 <div className="mb-2 flex items-center gap-3 justify-center">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">
-                    {currentTopic}
+                  <span className="text-[10px] text-white/50 font-mono tabular-nums">
+                    {globalSentenceIndex + 1} / {curriculumTotal}
                   </span>
-                  {curriculumTotal > 0 && (
-                    <span className="text-[10px] text-white/50 font-mono tabular-nums">
-                      {globalSentenceIndex + 1} / {curriculumTotal}
-                    </span>
-                  )}
                 </div>
               )}
               <div className="mb-1 w-full text-center relative z-10">
