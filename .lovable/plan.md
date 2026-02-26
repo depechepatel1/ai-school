@@ -1,134 +1,56 @@
 
 
-# IELTS Speaking Studio — Implementation Plan
+## Landing Page UI Quality Overhaul
 
-## Overview
-A full-stack AI-powered English language learning app with role-based access, AI chat tutoring via DeepSeek, Edge-optimized voice synthesis, and a visual avatar system. Dark premium design with orange accents matching the uploaded reference.
+### Files to modify
+- `src/pages/LandingPage.tsx`
+- `src/components/NeuralLogo.tsx`
+- `src/index.css`
 
----
+### Changes
 
-## Phase 1: Design System & Layout Foundation
+**1. Remove the floating blue mic button** (lines 216-223 in LandingPage.tsx)
+- Delete the entire "Floating Chat Button" block -- it duplicates the yellow Voice Demo button in the card and competes visually with it
+- The Voice Demo button in the card already opens the chat modal
 
-- Set up the dark premium theme: background `#050505`, orange accent colors, Outfit font family
-- Custom scrollbar styling, smooth animations (fade-in, slide-in)
-- Responsive layout optimized for iPad (Edge browser) and desktop
-- Reusable UI components: glass-morphism cards, gradient buttons, animated transitions
+**2. Refine the glass card container**
+- Remove the `animate-pulse` from the glow background (line 109) -- replace with a static, subtle glow that intensifies on hover
+- Remove the `animate-shimmer-diagonal` overlay (line 116) -- visual noise
+- Keep only the clean `from-white/5` reflection
 
----
+**3. Simplify typography**
+- Title: reduce from `text-6xl` to `text-5xl`, remove `animate-text-flash` (the constant shimmer is distracting), use a clean static gradient instead
+- Remove `text-outline` from tagline, badge, and compliance footer -- rely on backdrop contrast
+- Improve description text weight and spacing
 
-## Phase 2: Authentication & Role-Based Access Control (RBAC)
+**4. Clean up buttons**
+- Student Login: remove `animate-gradient-x` from background, use a solid gradient; remove the shine sweep overlay; keep the hover scale and glow
+- Parent Login: simplify hover states, remove the aggressive color shift to rose
+- Reduce Student Login height from 68px to 60px for better proportion
 
-### Database Setup (Supabase)
-- **Profiles table**: stores display name, avatar URL, linked to `auth.users`
-- **User roles table**: stores roles (`student`, `teacher`, `parent`) per user — separate from profiles for security
-- **Classes table**: teacher-created classes with unique join codes
-- **Class memberships table**: links students to classes
-- **Parent-student links table**: parents linked to specific students
-- Row-Level Security (RLS) policies on all tables
+**5. Polish Dev Panel**
+- Wrap the dropdown in framer-motion `AnimatePresence` + `motion.div` for smooth open/close
+- Make trigger button more discreet (lower opacity by default)
 
-### Auth Flow
-- Self-registration page where users sign up and select their role (student, teacher, or parent)
-- Login page with email/password
-- Password reset flow with dedicated reset page
-- Role-based routing after login:
-  - **Students** → Student Practice interface
-  - **Teachers** → Teacher Dashboard
-  - **Parents** → Parent Dashboard
-- Protected routes that redirect unauthorized users to login
+**6. Fix NeuralLogo SVG ID collisions**
+- Prefix gradient IDs with `neural-` (`neural-cyan-gradient`, `neural-vibrant-gradient`)
+- Slow spin animations: 4s→6s inner, 8s→12s outer
+- Reduce core glow intensity
 
----
+**7. Add staggered entrance animations**
+- Wrap card content sections in framer-motion `motion.div` with staggered `y:10→0, opacity:0→1` (80ms stagger delay per element)
 
-## Phase 3: Teacher Dashboard (Placeholder)
+**8. CSS cleanup** (`index.css`)
+- Remove `animate-shimmer-diagonal` keyframe and utility (no longer used)
+- Keep `animate-text-flash` but it won't be used on the landing page anymore
 
-- Clean layout with sidebar navigation
-- **Class Management**: Create classes with auto-generated join codes, view class rosters
-- Placeholder sections for: student analytics, conversation review, progress tracking
-- Ability to share class join codes with students
+### Technical details
 
----
+The framer-motion library is already installed. Entrance animations will use a simple pattern:
+```tsx
+const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
+const fadeUp = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
+```
 
-## Phase 4: Parent Dashboard (Placeholder)
-
-- Simple layout showing linked student(s)
-- Link to a student using a code or student email
-- Placeholder sections for: child's progress overview, recent activity, practice reports
-
----
-
-## Phase 5: Student Practice Interface — The Core Chat App
-
-### Chat UI
-- Full-screen dark interface with the looping background video behind a semi-transparent chat overlay
-- Message bubbles for student and AI tutor messages
-- Markdown rendering for AI responses
-- Chat history sidebar showing past conversations (loaded from Supabase)
-- Auto-scroll to latest message
-
-### AI Chat Engine (DeepSeek API)
-- Supabase Edge Function that proxies requests to `https://api.deepseek.com/v1/chat/completions`
-- Uses `DEEPSEEK_API_KEY` from Supabase secrets (not hardcoded)
-- System prompt: friendly, patient, encouraging English tutor keeping responses concise
-- Streaming responses for real-time feel
-- All conversations persisted to Supabase with timestamps
-
-### Chat Persistence
-- **Conversations table**: stores conversation metadata per student
-- **Messages table**: stores each message (role, content, timestamp) linked to conversations
-- Students can browse and continue past conversations
-
----
-
-## Phase 6: Voice System (Edge-Optimized)
-
-### Text-to-Speech (TTS)
-- Custom utility that filters `speechSynthesis.getVoices()` for Edge's high-quality voices
-- Priority: voices with "Natural" in the name, matching `en-GB` or `en-US`
-- Graceful fallback to default UK/US English voices if Edge Natural voices aren't available
-- AI responses automatically spoken aloud (with toggle to mute)
-
-### Speech-to-Text (STT)
-- Prominent **Push-to-Talk** button in the chat input area
-- Uses `webkitSpeechRecognition` / `SpeechRecognition` API
-- Visual feedback while recording (pulsing animation)
-- Transcribed text populates the chat input for student review before sending
-
----
-
-## Phase 7: Visual Avatar System
-
-### Active State (`USE_LIVE2D = false` — default)
-- HTML5 `<video>` element as the visual background
-- Set to `autoPlay`, `loop`, `muted`, `playsInline` for iPad compatibility
-- Placeholder video URL (you'll swap in your real 20-second loop later)
-- Positioned behind the chat overlay at lowest z-index
-
-### Dormant State (`USE_LIVE2D = true` — built but hidden)
-- `<Live2DAvatar />` component using `pixi.js` v7 and `pixi-live2d-display`
-- Cubism Core script loaded in `index.html` head
-- Loads a test Live2D model, centered head-and-shoulders
-- Audio-driven lip-sync logic ready: `AudioContext` → `AnalyserNode` → maps volume to `ParamMouthOpenY`
-- Idle breathing animations when no audio playing
-- Hidden behind feature flag, ready for your developer to activate with real model + Aliyun speech
-
----
-
-## Phase 8: Class Code Join Flow
-
-- When students sign up or from their settings, they can enter a class join code
-- Validates the code against the classes table
-- Adds the student to the class membership
-- Teachers see updated roster in their dashboard
-
----
-
-## Pages Summary
-
-| Page | Access | Description |
-|------|--------|-------------|
-| `/login` | Public | Login with email/password |
-| `/signup` | Public | Register and choose role |
-| `/reset-password` | Public | Password reset form |
-| `/student` | Students | Main practice chat interface |
-| `/teacher` | Teachers | Dashboard with class management |
-| `/parent` | Parents | Dashboard with child overview |
+The blue floating mic button (lines 216-223) is removed only from LandingPage -- it likely exists in other pages via a shared layout or component, so those remain untouched.
 
