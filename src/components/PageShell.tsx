@@ -26,14 +26,16 @@ export default function PageShell({ children, playIntroVideo = false, customVide
   const loopVideo = customVideoUrl || VIDEO_1;
   const useIntro = playIntroVideo && !customVideoUrl;
   const [isMuted, setIsMuted] = useState(true);
-  const [showVideo2, setShowVideo2] = useState(!useIntro);
+  const [introFinished, setIntroFinished] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const video1Ref = useRef<HTMLVideoElement>(null);
-  const video2Ref = useRef<HTMLVideoElement>(null);
+  const introRef = useRef<HTMLVideoElement>(null);
+  const loopRef = useRef<HTMLVideoElement>(null);
 
-  const activeVideoRef = showVideo2 ? video2Ref : video1Ref;
+  const activeVideoRef = introFinished ? loopRef : introRef;
+
+  
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -45,12 +47,12 @@ export default function PageShell({ children, playIntroVideo = false, customVide
     }
   };
 
-  const handleVideo1End = () => {
-    setShowVideo2(true);
-    if (video2Ref.current) {
-      video2Ref.current.currentTime = 0;
-      video2Ref.current.muted = isMuted;
-      video2Ref.current.play().catch(() => {});
+  const handleIntroEnd = () => {
+    setIntroFinished(true);
+    if (loopRef.current) {
+      loopRef.current.currentTime = 0;
+      loopRef.current.muted = isMuted;
+      loopRef.current.play().catch(() => {});
     }
   };
 
@@ -78,30 +80,32 @@ export default function PageShell({ children, playIntroVideo = false, customVide
 
         {/* Video Background */}
         <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900 rounded-[2.5rem]">
-          {/* Video 1 — intro (student page only) */}
+          {/* Intro video — plays once on student page */}
           {useIntro && (
             <video
-              ref={video1Ref}
+              ref={introRef}
               src={VIDEO_2}
               autoPlay
               playsInline
               muted={isMuted}
-              onEnded={handleVideo1End}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${showVideo2 ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+              onEnded={handleIntroEnd}
+              
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
               style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
             />
           )}
 
-          {/* Video 2 — looped (all pages) */}
+          {/* Loop video — always present, visible after intro */}
           <video
-            ref={video2Ref}
+            ref={loopRef}
             src={loopVideo}
             autoPlay={!useIntro}
             loop
             playsInline
             muted={isMuted}
             preload="auto"
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${useIntro && !showVideo2 ? "opacity-0" : "opacity-100"}`}
+            
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${useIntro && !introFinished ? "opacity-0" : "opacity-100"}`}
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
           />
 
