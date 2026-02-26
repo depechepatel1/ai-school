@@ -1,0 +1,18 @@
+/**
+ * Central Provider Configuration
+ * 
+ * Flip these flags to swap between browser-native APIs and cloud providers.
+ * All components consume providers through tts-provider.ts and stt-provider.ts,
+ * so changing a flag here switches the entire app with zero component changes.
+ */
+
+export const PROVIDERS = {
+  /** "browser" = Web Speech API (Edge Natural voices), "aliyun" = DashScope TTS */
+  tts: "browser" as "browser" | "aliyun",
+
+  /** "browser" = Web Speech Recognition API, "aliyun" = DashScope Paraformer */
+  stt: "browser" as "browser" | "aliyun",
+
+  /** "supabase" = current Lovable Cloud, "memfire" = MemFire Cloud (China) */
+  backend: "supabase" as "supabase" | "memfire",
+};

@@ -8,6 +8,8 @@ import {
 import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { chat, type ChatMessage } from "@/services/ai";
+import { speak, stopSpeaking, type Accent, type TTSHandle } from "@/lib/tts-provider";
+import { startListening, type STTHandle } from "@/lib/stt-provider";
 
 // ============================================================
 // CONSTANTS
@@ -683,9 +685,8 @@ export default function SpeakingStudio() {
   };
 
   // Refs
-  const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const ttsHandleRef = useRef<TTSHandle | null>(null);
+  const sttHandleRef = useRef<STTHandle | null>(null);
   const currentTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
   const isRecordingRef = useRef(false);
@@ -781,48 +782,30 @@ export default function SpeakingStudio() {
   }, [countdown]);
 
   // Speech recognition
+  const accentLower = accent.toLowerCase() as Accent;
+
   const startSpeechRecognition = () => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
-      recognitionRef.current = null;
+    if (sttHandleRef.current) {
+      sttHandleRef.current.stop();
+      sttHandleRef.current = null;
     }
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    recognition.onresult = (event: any) => {
-      let finalT = "";
-      let interimT = "";
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) finalT += event.results[i][0].transcript;
-        else interimT += event.results[i][0].transcript;
-      }
-      if (finalT) currentTranscriptRef.current += " " + finalT;
-      interimTranscriptRef.current = interimT;
-    };
-    recognition.onerror = (event: any) => {
-      if (event.error === "not-allowed") setIsRecording(false);
-    };
-    recognition.onend = () => {
-      if (isRecordingRef.current) {
-        setTimeout(() => {
-          try {
-            if (isRecordingRef.current) recognition.start();
-          } catch {}
-        }, 1000);
-      }
-    };
-    recognitionRef.current = recognition;
-    try { recognition.start(); } catch {}
+    sttHandleRef.current = startListening("en-US", {
+      onResult: (text) => {
+        currentTranscriptRef.current += " " + text;
+      },
+      onInterim: (text) => {
+        interimTranscriptRef.current = text;
+      },
+      onError: (err) => {
+        if (err === "not-allowed") setIsRecording(false);
+      },
+    });
   };
 
   const stopSpeechRecognition = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.onend = null;
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
+    if (sttHandleRef.current) {
+      sttHandleRef.current.stop();
+      sttHandleRef.current = null;
     }
   };
 
@@ -853,11 +836,8 @@ export default function SpeakingStudio() {
   };
 
   const speakTeacherText = (text: string) => {
-    if (!synthRef.current) return;
-    if (synthRef.current.speaking) synthRef.current.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1.0;
-    synthRef.current.speak(u);
+    ttsHandleRef.current?.stop();
+    ttsHandleRef.current = speak(text, accentLower, { rate: 1.0 });
   };
 
   // Transition helpers
@@ -930,7 +910,7 @@ export default function SpeakingStudio() {
   };
 
   const stopTestManual = () => {
-    if (synthRef.current?.speaking) synthRef.current.cancel();
+    stopSpeaking();
     setCountdown(null);
     nextTransition.current = null;
     if (isRecording) {
@@ -975,31 +955,28 @@ export default function SpeakingStudio() {
   };
 
   const handlePlayModel = () => {
-    if (!synthRef.current) return;
     if (isPlayingModel) {
-      synthRef.current.cancel();
+      ttsHandleRef.current?.stop();
       setIsPlayingModel(false);
       setActiveWordIndex(-1);
       return;
     }
-    const u = new SpeechSynthesisUtterance(rawText);
-    u.rate = 0.8;
-    u.pitch = 1.1;
-    u.onboundary = (e: SpeechSynthesisEvent) => {
-      if (e.name === "word") {
-        const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - e.charIndex) < 4);
+    ttsHandleRef.current = speak(rawText, accentLower, {
+      rate: 0.8,
+      pitch: 1.1,
+      onBoundary: (charIndex) => {
+        const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
         if (idx !== -1) setActiveWordIndex(idx);
-      }
-    };
-    u.onstart = () => {
-      setIsPlayingModel(true);
-      setActiveWordIndex(0);
-    };
-    u.onend = () => {
-      setIsPlayingModel(false);
-      setActiveWordIndex(-1);
-    };
-    synthRef.current.speak(u);
+      },
+      onStart: () => {
+        setIsPlayingModel(true);
+        setActiveWordIndex(0);
+      },
+      onEnd: () => {
+        setIsPlayingModel(false);
+        setActiveWordIndex(-1);
+      },
+    });
     addXP(5);
   };
 
@@ -1011,7 +988,7 @@ export default function SpeakingStudio() {
     if (isRecording) {
       setIsRecording(false);
       stopSpeechRecognition();
-      if (mode === "shadowing" && ghostMode && synthRef.current) synthRef.current.cancel();
+      if (mode === "shadowing" && ghostMode) stopSpeaking();
       addXP(20);
       if (mode === "shadowing") {
         setLastRecordingUrl("mock_url");
@@ -1021,19 +998,16 @@ export default function SpeakingStudio() {
       setIsRecording(true);
       setScore(null);
       if (mode === "shadowing") setLastRecordingUrl(null);
-      if (mode === "shadowing" && ghostMode && synthRef.current) {
-        const u = new SpeechSynthesisUtterance(rawText);
-        u.rate = 0.8;
-        u.pitch = 1.1;
-        u.onboundary = (e: SpeechSynthesisEvent) => {
-          if (e.name === "word") {
-            const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - e.charIndex) < 4);
+      if (mode === "shadowing" && ghostMode) {
+        ttsHandleRef.current = speak(rawText, accentLower, {
+          rate: 0.8,
+          pitch: 1.1,
+          onBoundary: (charIndex) => {
+            const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
             if (idx !== -1) setActiveWordIndex(idx);
-          }
-        };
-        u.onend = () => setActiveWordIndex(-1);
-        utteranceRef.current = u;
-        synthRef.current.speak(u);
+          },
+          onEnd: () => setActiveWordIndex(-1),
+        });
       } else {
         startSpeechRecognition();
       }
