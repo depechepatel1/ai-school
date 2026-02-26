@@ -15,4 +15,7 @@ export const PROVIDERS = {
 
   /** "supabase" = current Lovable Cloud, "memfire" = MemFire Cloud (China) */
   backend: "supabase" as "supabase" | "memfire",
+
+  /** "browser" = local pitch detection + DTW, "aliyun" = Aliyun Speech Analysis API */
+  speechAnalysis: "browser" as "browser" | "aliyun",
 };

@@ -3,24 +3,24 @@ import { useNavigate } from "react-router-dom";
 import {
   Mic, Play, Headphones, Ghost, MoveHorizontal, Award, Folder, Trash,
   Send, X, Clock, Star, Users, Book, Smile, ChevronRight, Minus, Maximize,
-  Flame, PenTool, Keyboard, Save, ArrowLeft, Check, Edit
+  Flame, PenTool, Keyboard, Save, ArrowLeft, Check, Edit, SkipForward
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { chat, type ChatMessage } from "@/services/ai";
 import { speak, stopSpeaking, type Accent, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
+import { fetchCurriculumPage, fetchNextSentence } from "@/services/db";
+import { RealtimePitchTracker } from "@/lib/pitch-detector";
+import { analyzeContour } from "@/lib/speech-analysis-provider";
 
 // ============================================================
 // CONSTANTS
 // ============================================================
 
-const PRONUNCIATION_SENTENCES = [
+const FALLBACK_SENTENCES = [
   "The quick brown fox jumps over the lazy dog",
   "She sells seashells by the seashore",
-  "Unique New York, you know you need unique New York",
-  "Red lorry, yellow lorry, red lorry, yellow lorry",
-  "How much wood would a woodchuck chuck if a woodchuck could chuck wood",
 ];
 
 const FLUENCY_SENTENCES = [
@@ -30,6 +30,15 @@ const FLUENCY_SENTENCES = [
   "Technology has revolutionized the way we communicate with each other.",
   "Learning a new language opens up doors to different cultures and perspectives.",
 ];
+
+interface CurriculumItem {
+  id: string;
+  track: string;
+  band_level: number;
+  topic: string;
+  sentence: string;
+  sort_order: number;
+}
 
 const PART2_TOPIC = {
   title: "Describe a memorable journey you have taken.",
@@ -118,10 +127,12 @@ function LiveInputCanvas({
   isRecording,
   prosodyData,
   onAutoStop,
+  onPitchContour,
 }: {
   isRecording: boolean;
   prosodyData: WordData[];
   onAutoStop?: () => void;
+  onPitchContour?: (contour: number[]) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<any>({});
@@ -129,14 +140,27 @@ function LiveInputCanvas({
   const startRef = useRef(0);
   const silenceStartRef = useRef<number | null>(null);
   const onAutoStopRef = useRef(onAutoStop);
+  const onPitchContourRef = useRef(onPitchContour);
+  const pitchTrackerRef = useRef<RealtimePitchTracker | null>(null);
 
   useEffect(() => {
     onAutoStopRef.current = onAutoStop;
   }, [onAutoStop]);
+  useEffect(() => {
+    onPitchContourRef.current = onPitchContour;
+  }, [onPitchContour]);
 
   useEffect(() => {
     if (!isRecording) {
       if (audioRef.current.req) cancelAnimationFrame(audioRef.current.req);
+      // Stop pitch tracker and emit contour
+      if (pitchTrackerRef.current) {
+        const contour = pitchTrackerRef.current.stop();
+        if (onPitchContourRef.current && contour.length > 0) {
+          onPitchContourRef.current(contour);
+        }
+        pitchTrackerRef.current = null;
+      }
       return;
     }
     const canvas = canvasRef.current;
@@ -158,11 +182,16 @@ function LiveInputCanvas({
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const aCtx = new AudioContext();
         const analyser = aCtx.createAnalyser();
-        analyser.fftSize = 512;
+        analyser.fftSize = 2048;
         analyser.smoothingTimeConstant = 0.3;
         const src = aCtx.createMediaStreamSource(stream);
         src.connect(analyser);
         audioRef.current = { ctx: aCtx, analyser, src, req: null, stream };
+
+        // Start pitch tracker
+        pitchTrackerRef.current = new RealtimePitchTracker(analyser, aCtx.sampleRate);
+        pitchTrackerRef.current.start();
+
         draw(ctx, w, h);
       } catch {
         // Simulate if no mic
@@ -194,7 +223,18 @@ function LiveInputCanvas({
         }
       }
 
-      let y = h / 2 - amp * h * 0.45;
+      // Use pitch data for Y position if available
+      const tracker = pitchTrackerRef.current;
+      const pitchContour = tracker?.getContour() ?? [];
+      const latestPitch = pitchContour.length > 0 ? pitchContour[pitchContour.length - 1] : null;
+
+      let y: number;
+      if (latestPitch !== null) {
+        // Map pitch (0-1 normalized) to canvas Y (inverted: high pitch = top)
+        y = h - latestPitch * h * 0.8 - h * 0.1;
+      } else {
+        y = h / 2 - amp * h * 0.45;
+      }
       if (history.current.length > 0) y = history.current[history.current.length - 1].y * 0.85 + y * 0.15;
       y = Math.max(10, Math.min(h - 10, y));
 
@@ -657,6 +697,13 @@ export default function SpeakingStudio() {
   const [ghostMode, setGhostMode] = useState(false);
   const [lastRecordingUrl, setLastRecordingUrl] = useState<string | null>(null);
 
+  // Curriculum state (DB-driven for pronunciation)
+  const [curriculumItems, setCurriculumItems] = useState<CurriculumItem[]>([]);
+  const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const [curriculumOffset, setCurriculumOffset] = useState(0);
+  const [curriculumLoading, setCurriculumLoading] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState("");
+
   // Speaking mode state
   const [messages, setMessages] = useState<{ role: "teacher" | "student"; text: string }[]>([
     { role: "teacher", text: "Hello. Could you start by telling me your full name, please?" },
@@ -949,12 +996,66 @@ export default function SpeakingStudio() {
     startSpeechRecognition();
   };
 
+  // Curriculum loading
+  const loadCurriculumPage = useCallback(async (offset: number) => {
+    setCurriculumLoading(true);
+    try {
+      const items = await fetchCurriculumPage("pronunciation", offset, 5);
+      if (items.length > 0) {
+        setCurriculumItems(items);
+        setCurrentItemIndex(0);
+        setCurriculumOffset(offset);
+        setRawText(items[0].sentence);
+        setCurrentTopic(items[0].topic);
+      }
+    } catch (err) {
+      console.error("Failed to load curriculum:", err);
+    } finally {
+      setCurriculumLoading(false);
+    }
+  }, []);
+
+  // Load initial curriculum on mount
+  useEffect(() => {
+    if (practiceType === "pronunciation") {
+      loadCurriculumPage(0);
+    }
+  }, []);
+
   // Shadowing handlers
   const handleGenerate = (type: "pronunciation" | "fluency") => {
-    const source = type === "pronunciation" ? PRONUNCIATION_SENTENCES : FLUENCY_SENTENCES;
-    setRawText(source[Math.floor(Math.random() * source.length)]);
+    if (type === "pronunciation") {
+      // Load next random page from DB
+      loadCurriculumPage(Math.floor(Math.random() * 100) * 5);
+    } else {
+      const source = FLUENCY_SENTENCES;
+      setRawText(source[Math.floor(Math.random() * source.length)]);
+      setCurrentTopic("");
+    }
     setLastRecordingUrl(null);
   };
+
+  const handleNextSentence = useCallback(async () => {
+    setScore(null);
+    setLastRecordingUrl(null);
+    const nextIdx = currentItemIndex + 1;
+    if (nextIdx < curriculumItems.length) {
+      setCurrentItemIndex(nextIdx);
+      setRawText(curriculumItems[nextIdx].sentence);
+      setCurrentTopic(curriculumItems[nextIdx].topic);
+    } else {
+      // Load next page
+      await loadCurriculumPage(curriculumOffset + 5);
+    }
+  }, [currentItemIndex, curriculumItems, curriculumOffset, loadCurriculumPage]);
+
+  // Pitch contour callback
+  const handlePitchContour = useCallback((contour: number[]) => {
+    if (mode === "shadowing" && contour.length > 0) {
+      const result = analyzeContour(contour, rawText);
+      setScore(result.overallScore);
+    }
+  }, [mode, rawText]);
 
   const handlePlayModel = () => {
     if (isPlayingModel) {
@@ -994,7 +1095,7 @@ export default function SpeakingStudio() {
       addXP(20);
       if (mode === "shadowing") {
         setLastRecordingUrl("mock_url");
-        setScore(Math.floor(Math.random() * 30) + 70);
+        // Score is now set by handlePitchContour callback from LiveInputCanvas
       }
     } else {
       setIsRecording(true);
@@ -1141,6 +1242,19 @@ export default function SpeakingStudio() {
           <>
             {/* Bottom area */}
             <div className="absolute bottom-0 left-0 right-0 pb-2 pt-24 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black via-black/85 to-transparent">
+              {/* Topic & progress indicator */}
+              {practiceType === "pronunciation" && currentTopic && (
+                <div className="mb-2 flex items-center gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">
+                    {currentTopic}
+                  </span>
+                  {curriculumItems.length > 0 && (
+                    <span className="text-[10px] text-white/30 font-mono">
+                      {currentItemIndex + 1}/{curriculumItems.length}
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="mb-1 w-full text-center relative z-10">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
@@ -1163,7 +1277,7 @@ export default function SpeakingStudio() {
                     Real-Time Input
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
-                    <LiveInputCanvas isRecording={isRecording} prosodyData={prosodyData} onAutoStop={handleRecord} />
+                    <LiveInputCanvas isRecording={isRecording} prosodyData={prosodyData} onAutoStop={handleRecord} onPitchContour={handlePitchContour} />
                   </div>
                   {score && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur-xl border border-green-500/30 rounded-full px-4 py-1.5 flex items-center gap-2 shadow-[0_0_30px_rgba(34,199,89,0.3)] animate-fade-in-up z-20">
@@ -1225,6 +1339,21 @@ export default function SpeakingStudio() {
               >
                 <Ghost className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
+
+              {/* Divider */}
+              <div className="w-6 h-px bg-white/[0.06]" />
+
+              {/* Next Sentence */}
+              {practiceType === "pronunciation" && (
+                <button
+                  onClick={handleNextSentence}
+                  disabled={curriculumLoading}
+                  className="relative w-12 h-12 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30"
+                  title="Next Sentence"
+                >
+                  <SkipForward className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              )}
             </div>
           </>
         )}
