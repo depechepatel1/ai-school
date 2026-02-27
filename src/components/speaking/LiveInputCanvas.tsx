@@ -15,6 +15,7 @@ export default function LiveInputCanvas({ isRecording, prosodyData, onAutoStop, 
   const history = useRef<any[]>([]);
   const startRef = useRef(0);
   const silenceStartRef = useRef<number | null>(null);
+  const hasSpokenRef = useRef(false);
   const onAutoStopRef = useRef(onAutoStop);
   const onPitchContourRef = useRef(onPitchContour);
   const pitchTrackerRef = useRef<RealtimePitchTracker | null>(null);
@@ -43,7 +44,8 @@ export default function LiveInputCanvas({ isRecording, prosodyData, onAutoStop, 
     const w = rect.width;
     const h = rect.height;
     history.current = [];
-    silenceStartRef.current = Date.now();
+    silenceStartRef.current = null;
+    hasSpokenRef.current = false;
     startRef.current = Date.now();
 
     const initMic = async () => {
@@ -72,8 +74,10 @@ export default function LiveInputCanvas({ isRecording, prosodyData, onAutoStop, 
       const amp = Math.min(1, rawAmp * 20);
 
       if (onAutoStopRef.current) {
-        if (rawAmp > 0.02) { silenceStartRef.current = Date.now(); }
-        else {
+        if (rawAmp > 0.02) {
+          hasSpokenRef.current = true;
+          silenceStartRef.current = null;
+        } else if (hasSpokenRef.current) {
           if (!silenceStartRef.current) silenceStartRef.current = Date.now();
           if (Date.now() - silenceStartRef.current > 2000) { onAutoStopRef.current(); silenceStartRef.current = null; return; }
         }
