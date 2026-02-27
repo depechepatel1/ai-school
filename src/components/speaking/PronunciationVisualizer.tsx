@@ -8,7 +8,8 @@
  * - Fix 4: ResizeObserver + cached dimensions/gradients (eliminates per-frame getBoundingClientRect)
  * - Fix 5: desynchronized canvas context for lower latency
  */
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
+import { MicOff } from "lucide-react";
 import type { WordData } from "@/lib/prosody";
 
 interface Props {
@@ -258,6 +259,7 @@ function LiveInputCanvas({
   dims: React.MutableRefObject<{ w: number; h: number }>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [micDenied, setMicDenied] = useState(false);
   const stateRef = useRef<LiveState>({
     ringBuf: new Float32Array(MAX_POINTS * RING_STRIDE),
     ringIdx: 0,
@@ -583,7 +585,7 @@ function LiveInputCanvas({
         };
       } catch (err) {
         console.warn("Microphone access failed:", err);
-        // No simulation fallback — canvas stays empty on mic failure
+        setMicDenied(true);
       }
     };
 
@@ -596,7 +598,17 @@ function LiveInputCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecording]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />;
+  return (
+    <>
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />
+      {micDenied && isRecording && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+          <MicOff className="w-8 h-8 text-muted-foreground/50" />
+          <span className="text-xs text-muted-foreground/60">Microphone access denied</span>
+        </div>
+      )}
+    </>
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════════
