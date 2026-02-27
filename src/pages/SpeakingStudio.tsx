@@ -8,11 +8,10 @@ import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadVoices, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
-import { RealtimePitchTracker } from "@/lib/pitch-detector";
 import { FLUENCY_SENTENCES } from "@/types/speaking";
 
 // ── Components ──
-import PitchCanvas from "@/components/speaking/PitchCanvas";
+import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import XPWidget from "@/components/speaking/XPWidget";
@@ -30,7 +29,6 @@ import { useXP } from "@/hooks/useXP";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
-import { useHeadphoneDetect } from "@/hooks/useHeadphoneDetect";
 import { PART2_TOPIC } from "@/types/speaking";
 
 export default function SpeakingStudio() {
@@ -51,10 +49,8 @@ export default function SpeakingStudio() {
   const [ghostMode, setGhostMode] = useState(false);
   
   const [isRecordingShadow, setIsRecordingShadow] = useState(false);
-  const [modelContour, setModelContour] = useState<number[]>([]);
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
-  const modelMicRef = useRef<{ ctx: AudioContext; stream: MediaStream; tracker: RealtimePitchTracker } | null>(null);
   const accentLower = accent.toLowerCase() as Accent;
 
   // ── Hooks ──
@@ -62,7 +58,6 @@ export default function SpeakingStudio() {
   const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
   const curriculum = useCurriculum(userId, practiceType);
   const test = useSpeakingTest({ accent: accentLower });
-  const { hasHeadphones } = useHeadphoneDetect();
 
   // Sync prosody
   useEffect(() => { setProsodyData(parseProsody(rawText)); }, [rawText]);
@@ -87,12 +82,10 @@ export default function SpeakingStudio() {
       setRawText(FLUENCY_SENTENCES[Math.floor(Math.random() * FLUENCY_SENTENCES.length)]);
     }
     clearRecording();
-    setModelContour([]);
   };
 
   const handleNextSentence = useCallback(async () => {
     clearRecording();
-    setModelContour([]);
     const sentence = await curriculum.handleNextSentence();
     if (sentence) setRawText(sentence);
   }, [curriculum, clearRecording]);
@@ -104,46 +97,17 @@ export default function SpeakingStudio() {
     }
   }, [mode, rawText, curriculum]);
 
-  const cleanupModelMic = () => {
-    if (modelMicRef.current) {
-      const contour = modelMicRef.current.tracker.stop();
-      if (contour.length > 0) setModelContour(contour);
-      modelMicRef.current.stream.getTracks().forEach((t) => t.stop());
-      modelMicRef.current.ctx.close().catch(() => {});
-      modelMicRef.current = null;
-    }
-  };
-
   const handlePlayModel = async () => {
     if (isPlayingModel) {
       test.ttsHandleRef.current?.stop();
       setIsPlayingModel(false);
       setActiveWordIndex(-1);
-      cleanupModelMic();
       return;
     }
 
-    // Fire TTS immediately — don't wait for mic setup
+    // Fire TTS immediately — target line is driven by activeWordIndex
     setIsPlayingModel(true);
     setActiveWordIndex(0);
-
-    // Start mic capture in background (non-blocking)
-    const micPromise = (async () => {
-      if (!hasHeadphones) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const aCtx = new AudioContext();
-          const analyser = aCtx.createAnalyser();
-          analyser.fftSize = 2048;
-          analyser.smoothingTimeConstant = 0.7;
-          const src = aCtx.createMediaStreamSource(stream);
-          src.connect(analyser);
-          const tracker = new RealtimePitchTracker(analyser, aCtx.sampleRate);
-          modelMicRef.current = { ctx: aCtx, stream, tracker };
-          tracker.start();
-        } catch { /* mic denied */ }
-      }
-    })();
 
     test.ttsHandleRef.current = speak(rawText, accentLower, {
       rate: 0.8, pitch: 1.1,
@@ -154,7 +118,6 @@ export default function SpeakingStudio() {
       onEnd: () => {
         setIsPlayingModel(false);
         setActiveWordIndex(-1);
-        cleanupModelMic();
       },
     });
     addXP(5);
@@ -186,7 +149,7 @@ export default function SpeakingStudio() {
   const startShadowRecording = async () => {
     setIsRecordingShadow(true);
     clearRecording();
-    // Fire TTS immediately (don't wait for mic) so speech starts without delay
+    // Fire TTS immediately if ghost mode
     if (ghostMode) {
       test.ttsHandleRef.current = speak(rawText, accentLower, {
         rate: 0.8, pitch: 1.1,
@@ -197,7 +160,6 @@ export default function SpeakingStudio() {
         onEnd: () => setActiveWordIndex(-1),
       });
     }
-    // Mic initializes concurrently — TTS already started above
     await startMediaRecorder();
   };
 
@@ -296,27 +258,12 @@ export default function SpeakingStudio() {
                     <span className="text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
                     <span className="text-[9px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
                   </div>
-                  <div className="absolute top-2 right-4 z-10 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/40 border border-white/[0.06]">
-                    {hasHeadphones ? (
-                      <>
-                        <Headphones className="w-3 h-3 text-amber-400/80" />
-                        <span className="text-[8px] font-bold uppercase tracking-widest text-amber-400/70">Auto Generate</span>
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="w-3 h-3 text-cyan-400/80" />
-                        <span className="text-[8px] font-bold uppercase tracking-widest text-cyan-400/70">Mic Capture</span>
-                      </>
-                    )}
-                  </div>
                   <div className="absolute inset-0 px-8 py-2">
-                    <PitchCanvas
+                    <PronunciationVisualizer
                       isRecording={isRecordingShadow}
                       isPlayingModel={isPlayingModel}
                       activeWordIndex={activeWordIndex}
                       prosodyData={prosodyData}
-                      modelContour={modelContour}
-                      useSyntheticFallback={hasHeadphones}
                       onAutoStop={stopShadowRecording}
                       onPitchContour={handlePitchContour}
                     />
