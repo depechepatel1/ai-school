@@ -616,6 +616,32 @@ function LiveInputCanvas({
         /* ╔══════════════════════════════════════════════════════════════╗
          * ║  🔒 END PROTECTED ZONE — NORMAL REPEATING MODE USER LINE   ║
          * ╚══════════════════════════════════════════════════════════════╝ */
+
+        // ── Rolling window peak normalization (OUTSIDE protected zone) ──
+        // Prevents late-session flattening in long/shadowing sessions by
+        // capping peakAmp to the rolling max of recent frames, so old
+        // loud spikes don't permanently inflate the normalizer.
+        const PEAK_WINDOW_SIZE = 84; // ~1.4s at 60fps
+        const peakWindow: number[] = [];
+        const _protectedRender = renderRef.current;
+
+        renderRef.current = () => {
+          // Pre-frame: cap peakAmp so old spikes can't persist
+          if (peakWindow.length >= PEAK_WINDOW_SIZE) {
+            let windowMax = 0;
+            for (let i = 0; i < peakWindow.length; i++) {
+              if (peakWindow[i] > windowMax) windowMax = peakWindow[i];
+            }
+            s.peakAmp = Math.min(s.peakAmp, windowMax);
+          }
+
+          _protectedRender?.();
+
+          // Post-frame: record current peakAmp into rolling window
+          peakWindow.push(s.peakAmp);
+          if (peakWindow.length > PEAK_WINDOW_SIZE) peakWindow.shift();
+        };
+
       } catch (err) {
         console.warn("Microphone access failed:", err);
         setMicDenied(true);
