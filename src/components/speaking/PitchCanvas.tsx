@@ -13,35 +13,51 @@ interface Props {
   onPitchContour?: (contour: number[]) => void;
 }
 
-/* ── helpers ── */
-
-/** Auto-scale an array of 0-1 values to use full canvas height */
-function autoScale(pts: { x: number; y: number }[]): { x: number; y: number }[] {
-  if (pts.length < 2) return pts;
-  let minY = Infinity, maxY = -Infinity;
-  for (const p of pts) { minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); }
-  const range = maxY - minY;
-  if (range < 1) return pts; // already flat, nothing to scale
-  // Scale so min→10% from bottom, max→10% from top
-  return pts.map(p => ({ x: p.x, y: p.y })); // pass through – we scale in mapY instead
+/* ── Shared history point type ── */
+interface HistoryPoint {
+  x: number;
+  y: number;
+  mismatch: boolean;
 }
 
-function drawSmooth(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[]) {
-  if (pts.length < 2) return;
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  if (pts.length === 2) {
-    ctx.lineTo(pts[1].x, pts[1].y);
-  } else {
-    for (let i = 1; i < pts.length - 1; i++) {
-      const cx = (pts[i].x + pts[i + 1].x) / 2;
-      const cy = (pts[i].y + pts[i + 1].y) / 2;
-      ctx.quadraticCurveTo(pts[i].x, pts[i].y, cx, cy);
-    }
-    const last = pts[pts.length - 1];
-    ctx.lineTo(last.x, last.y);
+/* ── Shared draw routine (cloned from original LiveInputVisualizer) ── */
+function drawHistory(
+  ctx: CanvasRenderingContext2D,
+  history: HistoryPoint[],
+  w: number,
+  h: number,
+  colorNormal: string,
+  colorMismatch: string,
+  glowColor: string,
+) {
+  if (history.length === 0) return;
+
+  // Lead-in from midline to first point
+  if (history[0].x > 0) {
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(history[0].x, history[0].y);
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
-  ctx.stroke();
+
+  // Segment-by-segment quadratic render (identical to original)
+  for (let i = 1; i < history.length; i++) {
+    const p0 = history[i - 1];
+    const p1 = history[i];
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.quadraticCurveTo(p0.x, p0.y, (p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.strokeStyle = p1.mismatch ? colorMismatch : colorNormal;
+    ctx.shadowColor = p1.mismatch ? colorMismatch : glowColor;
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
 }
 
 export default function PitchCanvas({
@@ -55,7 +71,6 @@ export default function PitchCanvas({
   onPitchContour,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number>(0);
 
   // ── Mic refs ──
   const micRef = useRef<{
@@ -63,16 +78,21 @@ export default function PitchCanvas({
     analyser: AnalyserNode;
     stream: MediaStream;
     tracker: RealtimePitchTracker;
+    req: number | null;
   } | null>(null);
 
-  // Persisted live contour — shared renderer for recording + post-stop
-  const liveContour = useRef<number[]>([]);
-  const silenceStart = useRef<number | null>(null);
-  const hasSpoken = useRef(false);
-  const showLive = useRef(false); // true once user has recorded at least once
+  // ── Shared history refs (cloned structure) ──
+  const liveHistory = useRef<HistoryPoint[]>([]);
+  const liveStartRef = useRef(0);
+  const targetHistory = useRef<HistoryPoint[]>([]);
+  const targetStartRef = useRef(0);
 
-  // Playhead animation
-  const progressRef = useRef(0);
+  // Silence detection
+  const silenceStartRef = useRef<number | null>(null);
+
+  // Flags
+  const showLive = useRef(false);
+  const showTarget = useRef(false);
 
   // Stable callback refs
   const onAutoStopRef = useRef(onAutoStop);
@@ -80,131 +100,84 @@ export default function PitchCanvas({
   useEffect(() => { onAutoStopRef.current = onAutoStop; }, [onAutoStop]);
   useEffect(() => { onPitchContourRef.current = onPitchContour; }, [onPitchContour]);
 
-  // ── Mic lifecycle ──
-  const startMic = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const aCtx = new AudioContext();
-      const analyser = aCtx.createAnalyser();
-      analyser.fftSize = 2048;
-      analyser.smoothingTimeConstant = 0.7;
-      aCtx.createMediaStreamSource(stream).connect(analyser);
-      const tracker = new RealtimePitchTracker(analyser, aCtx.sampleRate);
-      tracker.start();
-      micRef.current = { ctx: aCtx, analyser, stream, tracker };
-    } catch { /* mic denied */ }
+  // ── Helper: compute maxDur from prosody (same formula as original) ──
+  const getMaxDur = useCallback(() => {
+    const totalSyl = prosodyData.flatMap(d => d.syllables).length;
+    return Math.max(2400, totalSyl * 300);
+  }, [prosodyData]);
+
+  // ── Helper: get all syllables ──
+  const getAllSyllables = useCallback(() => {
+    return prosodyData.flatMap(d => d.syllables);
+  }, [prosodyData]);
+
+  // ── Build synthetic contour from prosody for target ──
+  const getSyntheticAmp = useCallback((syllables: ReturnType<typeof getAllSyllables>, index: number): number => {
+    const syl = syllables[index];
+    if (!syl) return 0.3;
+    if (syl.pitch === 2 && syl.stress === 2) return 0.95;
+    if (syl.pitch === 2 && syl.stress === 1) return 0.8;
+    if (syl.pitch === 2) return 0.7;
+    if (syl.stress === 2) return 0.78;
+    if (syl.stress === 1) return 0.55;
+    if (syl.pitch === -1) return 0.1;
+    return 0.35;
   }, []);
 
-  const stopMic = useCallback(() => {
-    if (!micRef.current) return;
-    const contour = micRef.current.tracker.stop();
-    liveContour.current = contour; // save raw contour for rebuilt rendering
-    if (onPitchContourRef.current && contour.length > 0) onPitchContourRef.current(contour);
-    micRef.current.stream.getTracks().forEach(t => t.stop());
-    micRef.current.ctx.close().catch(() => {});
-    micRef.current = null;
-  }, []);
-
-  // Start/stop mic when recording changes
+  // ── Target (cyan) animation — uses identical history-push algorithm ──
   useEffect(() => {
-    if (isRecording) {
-      liveContour.current = [];
-      silenceStart.current = null;
-      hasSpoken.current = false;
-      showLive.current = true;
-      startMic();
-    } else {
-      stopMic();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRecording]);
+    if (!isPlayingModel) return;
 
-  // Clear live history when a new model contour arrives (new sentence)
-  const prevModelLen = useRef(modelContour.length);
-  useEffect(() => {
-    if (modelContour.length !== prevModelLen.current) {
-      if (modelContour.length === 0) {
-        liveContour.current = [];
-        showLive.current = false;
-      }
-      prevModelLen.current = modelContour.length;
-    }
-  }, [modelContour]);
-
-  // ── Map pitch (0-1) to canvas Y, auto-scaled for the given data range ──
-  const mapYScaled = (val: number, h: number, dataMin: number, dataMax: number) => {
-    const margin = h * 0.1;
-    const drawH = h - margin * 2;
-    let range = dataMax - dataMin;
-    if (range < 0.01) {
-      // Expand around midpoint so we still see variation
-      const mid = (dataMin + dataMax) / 2;
-      const expand = 0.05; // minimum visible range
-      return h - margin - ((val - (mid - expand)) / (expand * 2)) * drawH;
-    }
-    const norm = (val - dataMin) / range;
-    return h - margin - norm * drawH; // 0→bottom, 1→top
-  };
-
-  // ── Shared contour renderer (used by BOTH target and live lines) ──
-  const buildContourPoints = useCallback(
-    (data: number[], w: number, h: number, pad: number) => {
-      if (data.length < 2) return [];
-      const drawW = w - pad * 2;
-      let mn = Infinity, mx = -Infinity;
-      for (const v of data) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
-      return data.map((v, i) => ({
-        x: pad + i * (drawW / Math.max(1, data.length - 1)),
-        y: mapYScaled(v, h, mn, mx),
-      }));
-    },
-    [],
-  );
-
-  // ── Build target points ──
-  const buildTargetPoints = useCallback(
-    (w: number, h: number, pad: number) => {
-      if (modelContour.length > 0) return buildContourPoints(modelContour, w, h, pad);
-
-      // Always fall back to synthetic prosody if no model contour
-      const allSyl = prosodyData.flatMap(d => d.syllables);
-      if (allSyl.length === 0) return [];
-      const syntheticContour = allSyl.map((s) => {
-        if (s.pitch === 2 && s.stress === 2) return 0.95;
-        if (s.pitch === 2 && s.stress === 1) return 0.8;
-        if (s.pitch === 2) return 0.7;
-        if (s.stress === 2) return 0.78;
-        if (s.stress === 1) return 0.55;
-        if (s.pitch === -1) return 0.1;
-        return 0.35;
-      });
-
-      return buildContourPoints(syntheticContour, w, h, pad);
-    },
-    [modelContour, prosodyData, buildContourPoints],
-  );
-  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    targetHistory.current = [];
+    targetStartRef.current = Date.now();
+    showTarget.current = true;
+
     const ctx = canvas.getContext("2d")!;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width;
+    const h = rect.height;
 
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
+    const allSyl = getAllSyllables();
+    const maxDur = getMaxDur();
+    let lastY = h / 2;
 
-    const PAD = 12;
+    const tick = () => {
+      const elapsed = Date.now() - targetStartRef.current;
+      const x = (elapsed / maxDur) * w;
 
-    const render = () => {
-      const w = canvas.getBoundingClientRect().width;
-      const h = canvas.getBoundingClientRect().height;
+      // Determine amplitude from model contour or synthetic prosody
+      let amp: number;
+      if (modelContour.length > 0) {
+        // Map elapsed time to model contour index
+        const idx = Math.floor((elapsed / maxDur) * modelContour.length);
+        const val = modelContour[Math.min(idx, modelContour.length - 1)] ?? 0.5;
+        amp = val; // already 0-1 normalized
+      } else {
+        // Synthetic from prosody
+        const estIdx = Math.floor((x / w) * allSyl.length);
+        amp = getSyntheticAmp(allSyl, estIdx);
+      }
+
+      // Convert amp to y (identical formula to user line)
+      let y = (h / 2) - (amp * h * 0.45);
+      // Smoothing (identical to original)
+      y = lastY * 0.85 + y * 0.15;
+      y = Math.max(10, Math.min(h - 10, y));
+      lastY = y;
+
+      // Mismatch detection (not applicable for target, always false)
+      targetHistory.current.push({ x, y, mismatch: false });
+
+      // ── Redraw everything ──
       ctx.clearRect(0, 0, w, h);
-
-      // Centre guide
+      // Midline
       ctx.strokeStyle = "rgba(255,255,255,0.05)";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -212,139 +185,204 @@ export default function PitchCanvas({
       ctx.lineTo(w, h / 2);
       ctx.stroke();
 
-      const drawW = w - PAD * 2;
-      const totalWords = prosodyData.length;
+      // Target (cyan)
+      drawHistory(ctx, targetHistory.current, w, h, "#22d3ee", "#f87171", "#22d3ee");
 
-      // ── TARGET (cyan) ──
-      const tPts = buildTargetPoints(w, h, PAD);
-      if (tPts.length > 1) {
-        const targetProg =
-          isPlayingModel && totalWords > 0
-            ? Math.min(1, (activeWordIndex + 1) / totalWords)
-            : isPlayingModel ? 0.02 : 0;
-
-        if (isPlayingModel) {
-          progressRef.current += (targetProg - progressRef.current) * 0.08;
-        } else {
-          progressRef.current *= 0.92;
-        }
-
-        // Dim trail (always)
-        ctx.save();
-        ctx.strokeStyle = "rgba(34,211,238,0.15)";
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        drawSmooth(ctx, tPts);
-        ctx.restore();
-
-        if (progressRef.current > 0.005) {
-          // Lit portion up to playhead
-          const litEndX = PAD + progressRef.current * drawW;
-          const clipped: { x: number; y: number }[] = [];
-          for (let i = 0; i < tPts.length; i++) {
-            if (tPts[i].x > litEndX && i > 0) {
-              const prev = tPts[i - 1];
-              const t = (litEndX - prev.x) / (tPts[i].x - prev.x);
-              clipped.push({ x: litEndX, y: prev.y + t * (tPts[i].y - prev.y) });
-              break;
-            }
-            clipped.push(tPts[i]);
-          }
-          const grad = ctx.createLinearGradient(0, 0, litEndX, 0);
-          grad.addColorStop(0, "#22d3ee");
-          grad.addColorStop(1, "#3b82f6");
-          ctx.save();
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 3;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.shadowColor = "#22d3ee";
-          ctx.shadowBlur = 12;
-          drawSmooth(ctx, clipped);
-          ctx.restore();
-
-          // Playhead dot
-          const dot = clipped[clipped.length - 1];
-          if (dot) {
-            ctx.beginPath();
-            ctx.arc(dot.x, dot.y, 5, 0, Math.PI * 2);
-            ctx.fillStyle = "#22d3ee";
-            ctx.shadowColor = "#22d3ee";
-            ctx.shadowBlur = 16;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          }
-        } else {
-          // Full lit line when idle
-          const grad = ctx.createLinearGradient(0, 0, w, 0);
-          grad.addColorStop(0, "#22d3ee");
-          grad.addColorStop(1, "#3b82f6");
-          ctx.save();
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 3;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.shadowColor = "#22d3ee";
-          ctx.shadowBlur = 10;
-          drawSmooth(ctx, tPts);
-          ctx.restore();
-        }
+      // Live (green) — persist from previous recording
+      if (showLive.current && liveHistory.current.length > 0) {
+        drawHistory(ctx, liveHistory.current, w, h, "#a3e635", "#f87171", "#a3e635");
       }
 
-      // ── LIVE (green) — keep contour updated while recording ──
-      if (isRecording && micRef.current) {
-        const analyser = micRef.current.analyser;
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteTimeDomainData(data);
-        let sum = 0;
-        for (let i = 0; i < data.length; i++) {
-          const v = (data[i] - 128) / 128;
-          sum += v * v;
-        }
-        const rawAmp = Math.sqrt(sum / data.length);
-
-        // Auto-stop silence
-        if (onAutoStopRef.current) {
-          if (rawAmp > 0.02) {
-            hasSpoken.current = true;
-            silenceStart.current = null;
-          } else if (hasSpoken.current) {
-            if (!silenceStart.current) silenceStart.current = Date.now();
-            if (Date.now() - silenceStart.current > 1000) {
-              onAutoStopRef.current();
-              silenceStart.current = null;
-            }
-          }
-        }
-
-        // Keep raw contour current; render path is identical to target path
-        liveContour.current = micRef.current.tracker.getContour();
+      if (x < w && isPlayingModel) {
+        requestAnimationFrame(tick);
       }
-
-      const livePts = buildContourPoints(liveContour.current, w, h, PAD);
-
-      if (showLive.current && livePts.length > 1) {
-        const grad = ctx.createLinearGradient(0, 0, w, 0);
-        grad.addColorStop(0, "#4ade80");
-        grad.addColorStop(1, "#22c55e");
-        ctx.save();
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.shadowColor = "#4ade80";
-        ctx.shadowBlur = 8;
-        drawSmooth(ctx, livePts);
-        ctx.restore();
-      }
-
-      rafRef.current = requestAnimationFrame(render);
     };
 
-    rafRef.current = requestAnimationFrame(render);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [isRecording, isPlayingModel, activeWordIndex, prosodyData, buildTargetPoints, buildContourPoints, modelContour]);
+    const rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [isPlayingModel, modelContour, prosodyData, getAllSyllables, getMaxDur, getSyntheticAmp]);
+
+  // ── Live (green) recording — original LiveInputVisualizer logic ──
+  useEffect(() => {
+    if (!isRecording) {
+      // Stop mic, save contour for scoring
+      if (micRef.current) {
+        const contour = micRef.current.tracker.stop();
+        if (onPitchContourRef.current && contour.length > 0) {
+          onPitchContourRef.current(contour);
+        }
+        micRef.current.stream.getTracks().forEach(t => t.stop());
+        micRef.current.ctx.close().catch(() => {});
+        if (micRef.current.req) cancelAnimationFrame(micRef.current.req);
+        micRef.current = null;
+      }
+      return;
+    }
+
+    // Starting recording
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    liveHistory.current = [];
+    silenceStartRef.current = Date.now();
+    showLive.current = true;
+    liveStartRef.current = Date.now();
+
+    const ctx = canvas.getContext("2d")!;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width;
+    const h = rect.height;
+
+    const allSyl = getAllSyllables();
+    const maxDur = getMaxDur();
+
+    const initMic = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const aCtx = new AudioContext();
+        const analyser = aCtx.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.3;
+        aCtx.createMediaStreamSource(stream).connect(analyser);
+        const tracker = new RealtimePitchTracker(analyser, aCtx.sampleRate);
+        tracker.start();
+        micRef.current = { ctx: aCtx, analyser, stream, tracker, req: null };
+        draw();
+      } catch {
+        /* mic denied — no visualisation */
+      }
+    };
+
+    const draw = () => {
+      if (!micRef.current?.analyser) return;
+      const analyser = micRef.current.analyser;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) {
+        const v = (data[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rawAmp = Math.sqrt(sum / data.length);
+      const amp = Math.min(1, rawAmp * 30);
+
+      // Auto-stop silence detection (original logic)
+      if (onAutoStopRef.current) {
+        if (rawAmp > 0.02) {
+          silenceStartRef.current = Date.now();
+        } else {
+          if (!silenceStartRef.current) silenceStartRef.current = Date.now();
+          if (Date.now() - silenceStartRef.current > 2000) {
+            onAutoStopRef.current();
+            silenceStartRef.current = null;
+            return;
+          }
+        }
+      }
+
+      // Y position from amplitude (identical formula)
+      let y = (h / 2) - (amp * h * 0.45);
+      if (liveHistory.current.length > 0) {
+        y = liveHistory.current[liveHistory.current.length - 1].y * 0.85 + y * 0.15;
+      }
+      y = Math.max(10, Math.min(h - 10, y));
+
+      // X from elapsed time (identical formula)
+      const x = ((Date.now() - liveStartRef.current) / maxDur) * w;
+
+      // Mismatch detection (identical to original)
+      const estIdx = Math.floor((x / w) * allSyl.length);
+      let mismatch = false;
+      if (allSyl[estIdx]) {
+        const high = allSyl[estIdx].pitch === 2;
+        if (high && amp < 0.2) mismatch = true;
+        if (!high && amp > 0.6) mismatch = true;
+      }
+
+      liveHistory.current.push({ x, y, mismatch });
+
+      // ── Redraw everything ──
+      ctx.clearRect(0, 0, w, h);
+      // Midline
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+
+      // Target (cyan) — persist from model playback
+      if (showTarget.current && targetHistory.current.length > 0) {
+        drawHistory(ctx, targetHistory.current, w, h, "#22d3ee", "#f87171", "#22d3ee");
+      }
+
+      // Live (green)
+      drawHistory(ctx, liveHistory.current, w, h, "#a3e635", "#f87171", "#a3e635");
+
+      if (x < w && isRecording) {
+        micRef.current!.req = requestAnimationFrame(draw);
+      }
+    };
+
+    setTimeout(() => initMic(), 20);
+
+    return () => {
+      if (micRef.current?.req) cancelAnimationFrame(micRef.current.req);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRecording]);
+
+  // ── Clear histories when model contour changes (new sentence) ──
+  const prevModelLen = useRef(modelContour.length);
+  useEffect(() => {
+    if (modelContour.length !== prevModelLen.current) {
+      if (modelContour.length === 0) {
+        liveHistory.current = [];
+        targetHistory.current = [];
+        showLive.current = false;
+        showTarget.current = false;
+      }
+      prevModelLen.current = modelContour.length;
+    }
+  }, [modelContour]);
+
+  // ── Static render when idle (show persisted histories) ──
+  useEffect(() => {
+    if (isRecording || isPlayingModel) return;
+    // Only render if we have something to show
+    if (!showLive.current && !showTarget.current) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width;
+    const h = rect.height;
+
+    ctx.clearRect(0, 0, w, h);
+    // Midline
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+
+    if (showTarget.current && targetHistory.current.length > 0) {
+      drawHistory(ctx, targetHistory.current, w, h, "#22d3ee", "#f87171", "#22d3ee");
+    }
+    if (showLive.current && liveHistory.current.length > 0) {
+      drawHistory(ctx, liveHistory.current, w, h, "#a3e635", "#f87171", "#a3e635");
+    }
+  }, [isRecording, isPlayingModel, activeWordIndex]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
