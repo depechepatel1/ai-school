@@ -134,7 +134,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                 setVideoIndexA(nextNext);
               }
             }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
               (useIntro && !introFinished) ? "opacity-0" : activePlayer === "A" ? "opacity-100" : "opacity-0"
             }`}
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
@@ -170,7 +170,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                   setVideoIndexB(nextNext);
                 }
               }}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
                 activePlayer === "B" ? "opacity-100" : "opacity-0"
               }`}
               style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
