@@ -93,12 +93,18 @@ function TargetContourCanvas({
 
       if (points.length === 0) return;
 
+      // During playback: progressive reveal; otherwise: full contour
+      const visibleCount = isPlaying
+        ? Math.max(1, Math.ceil(prog * points.length))
+        : points.length;
+      const visiblePoints = points.slice(0, visibleCount);
+
       // Draw contour path using cubic bezier
       ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        const prev = points[i - 1];
-        const curr = points[i];
+      ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y);
+      for (let i = 1; i < visiblePoints.length; i++) {
+        const prev = visiblePoints[i - 1];
+        const curr = visiblePoints[i];
         const cpx1 = prev.x + (curr.x - prev.x) * 0.4;
         const cpx2 = prev.x + (curr.x - prev.x) * 0.6;
         ctx.bezierCurveTo(cpx1, prev.y, cpx2, curr.y, curr.x, curr.y);
@@ -115,9 +121,9 @@ function TargetContourCanvas({
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Gradient fill beneath contour
-      ctx.lineTo(points[points.length - 1].x, h);
-      ctx.lineTo(points[0].x, h);
+      // Gradient fill beneath visible contour
+      ctx.lineTo(visiblePoints[visiblePoints.length - 1].x, h);
+      ctx.lineTo(visiblePoints[0].x, h);
       ctx.closePath();
       const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
       fillGrad.addColorStop(0, "rgba(34,211,238,0.18)");
@@ -125,20 +131,20 @@ function TargetContourCanvas({
       ctx.fillStyle = fillGrad;
       ctx.fill();
 
-      // Progress dot with pulse
-      if (isPlaying) {
-        const dotX = prog * w;
+      // Progress dot rides the contour at correct Y
+      if (isPlaying && visiblePoints.length > 0) {
+        const lastPt = visiblePoints[visiblePoints.length - 1];
         const baseRadius = 5 + Math.sin(Date.now() * 0.008) * 2;
 
         // Outer glow ring
         ctx.beginPath();
-        ctx.arc(dotX, h / 2, baseRadius + 4, 0, Math.PI * 2);
+        ctx.arc(lastPt.x, lastPt.y, baseRadius + 4, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255,255,255,0.12)";
         ctx.fill();
 
         // Inner dot
         ctx.beginPath();
-        ctx.arc(dotX, h / 2, baseRadius, 0, Math.PI * 2);
+        ctx.arc(lastPt.x, lastPt.y, baseRadius, 0, Math.PI * 2);
         ctx.fillStyle = "#fff";
         ctx.shadowColor = "#22d3ee";
         ctx.shadowBlur = 12;
@@ -354,7 +360,7 @@ function LiveInputCanvas({
             sum += v * v;
           }
           const rawAmp = Math.sqrt(sum / data.length);
-          const amp = Math.min(1, rawAmp * 80);
+          const amp = Math.min(1, rawAmp * 200);
           ampHistory.current.push(amp);
 
           // Auto-stop: 1s silence
@@ -371,11 +377,24 @@ function LiveInputCanvas({
             }
           }
 
-          let y = h / 2 - amp * h * 0.7;
-          if (history.current.length > 0) {
-            y = history.current[history.current.length - 1].y * 0.4 + y * 0.6;
+          // Spectral centroid for frequency-based wobble
+          const freqData = new Uint8Array(audioRef.current.analyser!.frequencyBinCount);
+          audioRef.current.analyser!.getByteFrequencyData(freqData);
+          let weightedSum = 0;
+          let magSum = 0;
+          for (let fi = 0; fi < freqData.length; fi++) {
+            weightedSum += fi * freqData[fi];
+            magSum += freqData[fi];
           }
-          y = Math.max(10, Math.min(h - 10, y));
+          const centroid = magSum > 0 ? (weightedSum / magSum) / freqData.length : 0;
+
+          let y = h / 2 - amp * h * 0.9;
+          // Add spectral wobble for natural undulation
+          y += Math.sin(Date.now() * 0.015) * centroid * h * 0.15;
+          if (history.current.length > 0) {
+            y = history.current[history.current.length - 1].y * 0.2 + y * 0.8;
+          }
+          y = Math.max(5, Math.min(h - 5, y));
 
           const x = ((Date.now() - startRef.current) / maxDur) * w;
 
@@ -412,9 +431,9 @@ function LiveInputCanvas({
           return;
         }
         const x = (elapsed / maxDur) * w;
-        let y = h / 2 - Math.sin(elapsed * 0.01) * Math.random() * h * 0.4;
+        let y = h / 2 - Math.sin(elapsed * 0.01) * Math.random() * h * 0.9;
         if (history.current.length > 0) {
-          y = history.current[history.current.length - 1].y * 0.9 + y * 0.1;
+          y = history.current[history.current.length - 1].y * 0.5 + y * 0.5;
         }
         history.current.push({ x, y, mismatch: Math.random() > 0.85 });
         drawLine(ctx);
