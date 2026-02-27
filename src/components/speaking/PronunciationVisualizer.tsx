@@ -232,7 +232,6 @@ interface LiveState {
   noiseFloor: number;
   peakAmp: number;
   smoothY: number;
-  phase: number;
   startTime: number;
   silenceStart: number | null;
   speechDetected: boolean; // Gate: require speech before silence countdown
@@ -270,7 +269,6 @@ function LiveInputCanvas({
     noiseFloor: 0.01,
     peakAmp: 0.001,
     smoothY: 0,
-    phase: 0,
     startTime: 0,
     silenceStart: null,
     speechDetected: false,
@@ -297,7 +295,6 @@ function LiveInputCanvas({
     s.noiseFloor = 0.01;
     s.peakAmp = 0.001;
     s.smoothY = 0;
-    s.phase = 0;
     s.speechDetected = false;
     s.calibrationSamples = [];
     s.calibrated = false;
@@ -343,7 +340,6 @@ function LiveInputCanvas({
     s.noiseFloor = 0.01;
     s.peakAmp = 0.001;
     s.smoothY = h / 2;
-    s.phase = 0;
     s.stopped = false;
     s.silenceStart = null;
     s.speechDetected = false;
@@ -562,15 +558,16 @@ function LiveInputCanvas({
             }
           }
 
-          // Y mapping
-          s.phase += 0.12 + s.smoothAmp * 0.24;
-          const direction = Math.sin(s.phase);
+          // Y mapping — spectral centroid drives vertical position (pitch proxy)
+          // Maps to same tier system as target: high centroid → top, low → bottom
           const drawableRange = ch - PAD * 2;
+          // Centroid 0.0→1.0 maps to bottom→top of drawable range
+          const centroidY = PAD + drawableRange * (1 - s.smoothCentroid);
+          // Amplitude gates displacement from midline — quiet speech hugs center
           const midY = ch / 2;
-          const centroidBias = (s.smoothCentroid - 0.5) * 0.375;
-          const displacement = s.smoothAmp * (drawableRange * 0.75) * (direction + centroidBias);
-          let targetY = midY - displacement;
-          targetY = s.smoothY * 0.58 + targetY * 0.42;
+          const ampGate = Math.min(1, s.smoothAmp * 2.5); // 0→1 as speech gets louder
+          let targetY = midY + (centroidY - midY) * ampGate;
+          targetY = s.smoothY * 0.65 + targetY * 0.35; // smooth transitions
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
