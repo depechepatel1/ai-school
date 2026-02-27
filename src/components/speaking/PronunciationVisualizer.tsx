@@ -360,7 +360,7 @@ function LiveInputCanvas({
 
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
-    const maxDur = Math.max(5000, totalSyl * 500);
+    const maxDur = Math.max(4000, totalSyl * 400); // 20% faster
 
     // Draw from ring buffer: continuous green base line + red overlay for mismatch
     const drawLine = (cw: number, ch: number) => {
