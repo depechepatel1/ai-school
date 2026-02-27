@@ -401,44 +401,6 @@ function LiveInputCanvas({
       ctx2d.shadowBlur = 16;
       ctx2d.stroke();
 
-      // Pass 2: red overlay on mismatch segments
-      ctx2d.beginPath();
-      let inRed = false;
-      for (let i = 0; i < total; i++) {
-        const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
-        const x = buf[idx];
-        const y = buf[idx + 1];
-        const mis = buf[idx + 2] >= 0.5;
-
-        if (mis) {
-          if (!inRed) {
-            // Start red segment — connect from previous point for continuity
-            if (i > 0) {
-              const prevIdx = ((startRead + i - 1) % MAX_POINTS) * RING_STRIDE;
-              ctx2d.moveTo(buf[prevIdx], buf[prevIdx + 1]);
-              ctx2d.lineTo(x, y);
-            } else {
-              ctx2d.moveTo(x, y);
-            }
-            inRed = true;
-          } else {
-            ctx2d.lineTo(x, y);
-          }
-        } else {
-          if (inRed) {
-            // End red segment — extend to this point for seamless transition
-            ctx2d.lineTo(x, y);
-            inRed = false;
-          }
-        }
-      }
-      ctx2d.strokeStyle = "#f87171";
-      ctx2d.shadowColor = "#f87171";
-      ctx2d.lineWidth = 4;
-      ctx2d.lineCap = "round";
-      ctx2d.lineJoin = "round";
-      ctx2d.shadowBlur = 24;
-      ctx2d.stroke();
       ctx2d.shadowBlur = 0;
 
       // Fill beneath — single pass, all points
