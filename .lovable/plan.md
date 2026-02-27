@@ -1,50 +1,64 @@
 
+Goal
+- Make the target (cyan) contour advance in sync with actual spoken words, then remain visible after playback.
+- Rebuild the live user line pipeline so it no longer appears flat and reliably traverses near top/bottom bounds.
 
-## Plan: Animate Cyan Line + Maximize User Line Vertical Motion
+Implementation steps
 
-### 1. Cyan target line — progressive reveal during playback
+1) Rewire target progression to speech events (not timer)
+- Update `src/pages/SpeakingStudio.tsx` to track a continuous model progress value (0→1) from TTS boundary events.
+- Replace fuzzy boundary matching (`Math.abs(startChar - charIndex) < 4`) with exact word-range matching (`startChar <= charIndex < endChar`) for stable active word updates.
+- Keep `activeWordIndex` for text highlighting, and pass a new `targetProgress` prop into `PronunciationVisualizer`.
 
-Currently the entire cyan contour is drawn statically. Change it so during `isPlaying`, only the portion up to the current progress is drawn:
+2) Refactor target canvas to be boundary-driven + persistent
+- Update `TargetContourCanvas` in `src/components/speaking/PronunciationVisualizer.tsx` to render contour visibility from `targetProgress` directly.
+- Remove internal `Date.now()` duration-based propagation loop.
+- Persist final rendered contour after TTS ends (freeze at full progress) and only reset when sentence/prosody data changes.
 
-- Clip the contour path to `0..prog*w` so the line "propagates" left-to-right as the computer reads
-- The progress dot rides the contour at the correct Y position (interpolated from points), not fixed at `h/2`
-- When not playing, draw the full contour as before
+3) Recode the user line renderer from scratch
+- Replace the current RMS-only path builder in `LiveInputCanvas` with a new pipeline:
+  - adaptive input normalization (noise floor + dynamic gain),
+  - dual signal features (energy + spectral movement),
+  - bidirectional vertical mapping spanning near full container height.
+- Ensure Y mapping uses full drawable range (small top/bottom padding only) and includes controlled oscillation so movement is visibly up/down, not only “up from center”.
+- Rebuild history buffering and drawing loop for stable, continuous trajectory with robust cleanup on stop/unmount.
 
-### 2. User's green line — dramatically more vertical undulation
+4) Persistence/comparison behavior
+- Keep user line visible after recording stops.
+- Keep full target contour visible after model playback completes.
+- Clear traces only when a new sentence loads or a new recording session starts (depending on mode trigger).
 
-The line is nearly flat because RMS values are tiny and the Y calculation centers around `h/2`. Fix by:
+5) Mode consistency
+- Ensure both “Play Model” and ghost-mode model speech update the same target progression state, so propagation behavior is identical in both flows.
 
-- **Increase amplitude multiplier** from `80` to `200` — captures even quiet speech as significant movement
-- **Expand vertical range** from `0.7` to `0.9` — line can reach within 5% of top/bottom borders
-- **Reduce padding** from `10px` to `5px` min/max clamp
-- **Reduce smoothing** from `0.4/0.6` to `0.2/0.8` — much more reactive to frame-by-frame changes
-- **Add frequency-based wobble**: layer a secondary oscillation from the audio's spectral centroid to add natural undulation even at steady volumes
-- **Simulation fallback**: increase sim amplitude range from `0.4` to `0.9` and reduce sim smoothing from `0.9/0.1` to `0.5/0.5`
+Technical details (implementation-level)
+- Files to update:
+  - `src/pages/SpeakingStudio.tsx`
+  - `src/components/speaking/PronunciationVisualizer.tsx`
+- New visualizer props:
+  - `targetProgress: number`
+  - (optional) `sentenceKey`/reset token to force deterministic canvas reset on sentence change.
+- Progress mapping:
+  - word progress from boundary char index -> syllable cumulative index -> contour reveal length.
+- Live recode safeguards:
+  - hard clamp Y to `[edgePadding, h - edgePadding]`
+  - avoid stale RAF/audio contexts
+  - stop mic tracks/context on all exit paths.
 
-### Technical details
+```text
+TTS boundary events
+   -> word index + targetProgress
+   -> Target canvas reveal amount
+   -> onEnd => freeze full contour
 
-**Cyan progressive reveal** — in `draw(prog)`:
+Mic stream
+   -> normalized features
+   -> full-range Y mapping
+   -> persistent user trace
 ```
-// Only stroke points up to prog * w
-const visibleCount = Math.ceil(prog * points.length);
-// Draw path for points[0..visibleCount-1] only
-// Place dot at the last visible point's actual Y, not h/2
-```
 
-**Green line amplitude**:
-```
-const amp = Math.min(1, rawAmp * 200);
-let y = h / 2 - amp * h * 0.9;
-// Add spectral wobble
-const freqData = new Uint8Array(analyser.frequencyBinCount);
-analyser.getByteFrequencyData(freqData);
-const centroid = computeSpectralCentroid(freqData);
-y += Math.sin(Date.now() * 0.015) * centroid * h * 0.15;
-// Less smoothing
-y = prev * 0.2 + y * 0.8;
-y = Math.max(5, Math.min(h - 5, y));
-```
-
-### Files changed
-- `src/components/speaking/PronunciationVisualizer.tsx`
-
+Acceptance checks
+- Cyan line starts unrevealed, advances with spoken words, and stays on-screen after speech ends.
+- User line shows strong vertical oscillation across most of canvas height during speech.
+- After user stops, both target and user traces remain visible for visual comparison.
+- On next sentence, visualizer resets cleanly and starts from beginning.
