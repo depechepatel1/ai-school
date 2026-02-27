@@ -356,7 +356,7 @@ function LiveInputCanvas({
     const totalSyl = allSyl.length;
     const maxDur = Math.max(5000, totalSyl * 500);
 
-    // Fix 2: Batched draw from ring buffer
+    // Draw from ring buffer: continuous green base line + red overlay for mismatch
     const drawLine = (cw: number, ch: number) => {
       ctx2d.clearRect(0, 0, cw, ch);
       const count = s.ringCount;
@@ -366,53 +366,66 @@ function LiveInputCanvas({
       const startRead = count >= MAX_POINTS ? s.ringIdx : 0;
       const total = Math.min(count, MAX_POINTS);
 
-      // Two-pass: green segments then red segments (batched paths)
-      for (const pass of [0, 1] as const) { // 0 = green, 1 = red
-        const color = pass === 1 ? "#f87171" : "#a3e635";
-        ctx2d.beginPath();
-        let moved = false;
-        let prevX = 0, prevY = 0;
+      // Pass 1: continuous green base line (all points)
+      ctx2d.beginPath();
+      for (let i = 0; i < total; i++) {
+        const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
+        const x = buf[idx];
+        const y = buf[idx + 1];
+        if (i === 0) ctx2d.moveTo(x, y);
+        else ctx2d.lineTo(x, y);
+      }
+      ctx2d.strokeStyle = "#a3e635";
+      ctx2d.shadowColor = "#a3e635";
+      ctx2d.lineWidth = 4;
+      ctx2d.lineCap = "round";
+      ctx2d.lineJoin = "round";
+      ctx2d.shadowBlur = 16;
+      ctx2d.stroke();
 
-        for (let i = 0; i < total; i++) {
-          const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
-          const x = buf[idx];
-          const y = buf[idx + 1];
-          const mis = buf[idx + 2]; // 0 or 1
+      // Pass 2: red overlay on mismatch segments
+      ctx2d.beginPath();
+      let inRed = false;
+      for (let i = 0; i < total; i++) {
+        const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
+        const x = buf[idx];
+        const y = buf[idx + 1];
+        const mis = buf[idx + 2] >= 0.5;
 
-          const isThisPass = pass === 1 ? mis >= 0.5 : mis < 0.5;
-
-          if (isThisPass) {
-            if (!moved) {
-              ctx2d.moveTo(x, y);
-              moved = true;
-            } else {
+        if (mis) {
+          if (!inRed) {
+            // Start red segment — connect from previous point for continuity
+            if (i > 0) {
+              const prevIdx = ((startRead + i - 1) % MAX_POINTS) * RING_STRIDE;
+              ctx2d.moveTo(buf[prevIdx], buf[prevIdx + 1]);
               ctx2d.lineTo(x, y);
+            } else {
+              ctx2d.moveTo(x, y);
             }
+            inRed = true;
           } else {
-            // Break the path so we don't connect across color boundaries
-            if (moved) {
-              moved = false;
-            }
+            ctx2d.lineTo(x, y);
           }
-          prevX = x;
-          prevY = y;
-        }
-
-        if (moved) {
-          ctx2d.strokeStyle = color;
-          ctx2d.shadowColor = color;
-          ctx2d.lineWidth = 4;
-          ctx2d.lineCap = "round";
-          ctx2d.lineJoin = "round";
-          ctx2d.shadowBlur = pass === 1 ? 24 : 16;
-          ctx2d.stroke();
+        } else {
+          if (inRed) {
+            // End red segment — extend to this point for seamless transition
+            ctx2d.lineTo(x, y);
+            inRed = false;
+          }
         }
       }
+      ctx2d.strokeStyle = "#f87171";
+      ctx2d.shadowColor = "#f87171";
+      ctx2d.lineWidth = 4;
+      ctx2d.lineCap = "round";
+      ctx2d.lineJoin = "round";
+      ctx2d.shadowBlur = 24;
+      ctx2d.stroke();
       ctx2d.shadowBlur = 0;
 
       // Fill beneath — single pass, all points
       ctx2d.beginPath();
-      let firstX = 0, lastX = 0, lastY = 0;
+      let firstX = 0, lastX = 0;
       for (let i = 0; i < total; i++) {
         const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
         const x = buf[idx];
@@ -420,13 +433,12 @@ function LiveInputCanvas({
         if (i === 0) { ctx2d.moveTo(x, y); firstX = x; }
         else ctx2d.lineTo(x, y);
         lastX = x;
-        lastY = y;
       }
       ctx2d.lineTo(lastX, ch);
       ctx2d.lineTo(firstX, ch);
       ctx2d.closePath();
 
-      // Cached fill gradient (Fix 4)
+      // Cached fill gradient
       let fg = cachedFillGradRef.current;
       if (!fg || fg.h !== ch) {
         const g = ctx2d.createLinearGradient(0, 0, 0, ch);
@@ -599,7 +611,7 @@ function LiveInputCanvas({
   }, [isRecording]);
 
   return (
-    <>
+    <div className="absolute inset-0 w-full h-full rounded-[inherit]">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />
       {micDenied && isRecording && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
@@ -607,7 +619,7 @@ function LiveInputCanvas({
           <span className="text-xs text-muted-foreground/60">Microphone access denied</span>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
