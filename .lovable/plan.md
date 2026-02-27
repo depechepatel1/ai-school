@@ -1,40 +1,30 @@
 
-Implementation plan (using your uploaded original user visualizer as source of truth):
 
-1) Extract and lock the original user-line logic from `user-uploads://Speaking_Studio-3.txt`:
-- `LiveInputVisualizer` draw pipeline at lines ~519–557 (history push, x-from-time, y smoothing, quadratic render).
-- Keep this as the canonical rendering algorithm for both lines.
+## Issues Identified
 
-2) Rewrite `src/components/speaking/PitchCanvas.tsx` so both cyan (computer) and green (user) lines use one shared history renderer:
-- Create shared point history type: `{ x, y, mismatch? }`.
-- Create one shared draw routine equivalent to the uploaded user visualizer loop (midline + quadratic segments + glow stroke).
-- Remove the separate target-only point builder path (`buildContourPoints`/`buildTargetPoints`) so there is no divergent math.
+### 1. Auto-stop not triggering
+The silence detection initializes `silenceStartRef = Date.now()` immediately on recording start, but there's no "has spoken" gate. Background mic noise (rawAmp > 0.02) constantly resets the timer, so silence is never detected. The fix: track whether the user has actually spoken (rawAmp above a speech threshold ~0.05), and only start the silence countdown after speech has been detected.
 
-3) Clone the user-line point-generation path for the computer line:
-- Add `targetHistoryRef` and generate target points with the same x progression formula used by the user line (`elapsed/maxDur * width`).
-- Feed target y from model contour (or prosody fallback), then apply the same smoothing/clamp steps as the user path before rendering.
-- Keep only styling differences (cyan palette vs green palette).
+### 2. Flickering artifact across top of canvas
+The "static render" effect (lines 354-385) runs when `isRecording`/`isPlayingModel` change and **resizes the canvas** (`canvas.width = ...`), which clears it. This conflicts with the active animation loop. Each resize flash causes a flicker. Fix: only resize the canvas if dimensions actually changed, and skip redundant resizes.
 
-4) Keep user-line generation exactly in the original style:
-- Preserve analyser-based level sampling + smoothing + history accumulation behavior from the uploaded code.
-- Keep silence auto-stop logic intact.
-- Keep live history persistent after recording stops for side-by-side comparison.
+### 3. Lines flat and stuck in top half
+Two causes:
+- **Amplitude multiplier too high** (`rawAmp * 50`): most speech saturates to amp ≈ 1.0, so the line stays near the top
+- **Heavy smoothing** (`0.85 * lastY + 0.15 * newY`): flattens all movement
+- **Y formula** `(h/2) - (amp * h * 0.45)`: with amp near 1.0, y ≈ 5% of canvas height (top)
 
-5) Preserve existing scoring/backend behavior while cloning visuals:
-- Continue collecting normalized pitch contour via `RealtimePitchTracker` for `onPitchContour` callback (analysis/progress logic).
-- Decouple scoring contour capture from on-canvas drawing math so visual clone does not break scoring.
+Fix: reduce multiplier to ~8, reduce smoothing to 0.6/0.4, and center the idle line at midline so speech deflects both up and down visually.
 
-6) Cleanup conflicting/legacy logic:
-- Remove playhead-specific cyan rendering path and any unused helpers that create different behavior between lines.
-- Ensure both histories reset only at appropriate lifecycle points (new sentence/new recording), not immediately on stop.
+## Changes — `src/components/speaking/PitchCanvas.tsx`
 
-7) Validate end-to-end in `/speaking`:
-- Play model: cyan line must render with the cloned user-line algorithm.
-- Record voice: green line must render with the same algorithm.
-- Stop recording: green line stays visible; both lines remain comparable on screen.
-- Confirm `onPitchContour` still fires and no regression in shadowing score updates.
+1. **Add `hasSpokenRef`**: boolean ref, starts false. Set true when rawAmp exceeds 0.05. Only check silence timeout when hasSpokenRef is true.
 
-Technical details (exact files/anchors):
-- Source reference to clone from: `user-uploads://Speaking_Studio-3.txt` lines ~490–581 (especially ~519–557).
-- Target file to change: `src/components/speaking/PitchCanvas.tsx`.
-- Integration points to preserve: `src/pages/SpeakingStudio.tsx` props `onPitchContour`, `onAutoStop`, `modelContour`, `prosodyData`.
+2. **Reduce amp multiplier**: `rawAmp * 50` → `rawAmp * 8` for both live draw and target synthetic fallback, so typical speech sits mid-canvas instead of pinned to top.
+
+3. **Reduce smoothing**: `0.85/0.15` → `0.6/0.4` for more responsive line movement.
+
+4. **Fix canvas resize flicker**: In the static render effect, check if canvas dimensions match before setting `canvas.width`/`canvas.height` — only resize when the container actually changed size.
+
+5. **Same changes to target line**: Match the reduced smoothing on the cyan line so both remain identical in behavior.
+
