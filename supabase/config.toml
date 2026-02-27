@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.import-curriculum]
 verify_jwt = false
+
+[functions.upload-videos]
+verify_jwt = false

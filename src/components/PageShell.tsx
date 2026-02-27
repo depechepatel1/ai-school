@@ -6,9 +6,23 @@ import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import OmniChatModal from "@/components/OmniChatModal";
 
-const TRIM_SECONDS = 1.0;
-const VIDEO_1 = "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T17-16-49_add_a_slight_smiling_ndaiwy.mp4";
-const VIDEO_2 = "https://res.cloudinary.com/daujjfaqg/video/upload/Video_Generation_of_Teacher_s_Welcome_jeioja.mp4";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/videos`;
+
+const TRIM_SECONDS = 0;
+const VIDEO_2 = `${STORAGE_BASE}/intro.mp4`;
+
+export const VIDEO_1_STACK = [
+  `${STORAGE_BASE}/loop-stack/1.mp4`,
+  `${STORAGE_BASE}/loop-stack/2.mp4`,
+  `${STORAGE_BASE}/loop-stack/3.mp4`,
+  `${STORAGE_BASE}/loop-stack/4.mp4`,
+  `${STORAGE_BASE}/loop-stack/5.mp4`,
+  `${STORAGE_BASE}/loop-stack/6.mp4`,
+  `${STORAGE_BASE}/loop-stack/7.mp4`,
+  `${STORAGE_BASE}/loop-stack/8.mp4`,
+  `${STORAGE_BASE}/loop-stack/9.mp4`,
+];
 
 const DEV_ACCOUNTS = [
   { role: "student", email: "dev-student@test.com", password: "devtest123", icon: GraduationCap, label: "Student", color: "from-blue-500 to-cyan-500" },
@@ -25,7 +39,7 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false }: PageShellProps) {
-  const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1];
+  const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
   const useIntro = playIntroVideo && !customVideoUrl && !loopVideos;
   const [isMuted, setIsMuted] = useState(true);
@@ -134,7 +148,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                 setVideoIndexA(nextNext);
               }
             }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
               (useIntro && !introFinished) ? "opacity-0" : activePlayer === "A" ? "opacity-100" : "opacity-0"
             }`}
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
@@ -170,7 +184,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                   setVideoIndexB(nextNext);
                 }
               }}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
                 activePlayer === "B" ? "opacity-100" : "opacity-0"
               }`}
               style={{ objectPosition: fullWidth ? "center center" : "96% center" }}

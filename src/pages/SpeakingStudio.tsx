@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import {
   Mic, Play, Headphones, Ghost, ChevronRight, ArrowLeft, SkipForward, Loader2,
 } from "lucide-react";
-import PageShell from "@/components/PageShell";
+import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadVoices, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
@@ -203,13 +203,7 @@ export default function SpeakingStudio() {
   return (
     <PageShell
       fullWidth
-      loopVideos={[
-        "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T17-16-49_add_a_slight_smiling_ndaiwy.mp4",
-        "https://res.cloudinary.com/daujjfaqg/video/upload/20_Second_Teacher_Loop_ucqth6.mp4",
-        "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T10-21-39_add_head_nodding_i7rp3g.mp4",
-        "https://res.cloudinary.com/daujjfaqg/video/upload/Cloudinary_Video_Player_Embed_v0.6.0_-_-_2026-02-26_16-08-58_rsq9sj.mp4",
-        "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T10-21-39_add_head_nodding_hrufnm.mp4",
-      ]}
+      loopVideos={VIDEO_1_STACK}
     >
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         {/* Back button */}
