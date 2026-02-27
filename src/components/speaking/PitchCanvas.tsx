@@ -67,6 +67,7 @@ export default function PitchCanvas({
 
   // Persisted live history – survives recording stop so line stays visible
   const liveHistory = useRef<{ x: number; y: number }[]>([]);
+  const liveContour = useRef<number[]>([]); // raw contour saved on stop
   const liveStart = useRef(0);
   const silenceStart = useRef<number | null>(null);
   const hasSpoken = useRef(false);
@@ -99,6 +100,7 @@ export default function PitchCanvas({
   const stopMic = useCallback(() => {
     if (!micRef.current) return;
     const contour = micRef.current.tracker.stop();
+    liveContour.current = contour; // save raw contour for rebuilt rendering
     if (onPitchContourRef.current && contour.length > 0) onPitchContourRef.current(contour);
     micRef.current.stream.getTracks().forEach(t => t.stop());
     micRef.current.ctx.close().catch(() => {});
@@ -109,6 +111,7 @@ export default function PitchCanvas({
   useEffect(() => {
     if (isRecording) {
       liveHistory.current = [];
+      liveContour.current = [];
       liveStart.current = Date.now();
       silenceStart.current = null;
       hasSpoken.current = false;
@@ -126,6 +129,7 @@ export default function PitchCanvas({
     if (modelContour.length !== prevModelLen.current) {
       if (modelContour.length === 0) {
         liveHistory.current = [];
+        liveContour.current = [];
         showLive.current = false;
       }
       prevModelLen.current = modelContour.length;
@@ -178,7 +182,21 @@ export default function PitchCanvas({
     [modelContour, prosodyData, useSyntheticFallback],
   );
 
-  // ── Render loop ──
+  // ── Build live points — identical logic to target, from raw contour ──
+  const buildLivePoints = useCallback(
+    (w: number, h: number, pad: number) => {
+      const data = liveContour.current;
+      if (data.length < 2) return [];
+      const drawW = w - pad * 2;
+      let mn = Infinity, mx = -Infinity;
+      for (const v of data) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
+      return data.map((v, i) => ({
+        x: pad + i * (drawW / Math.max(1, data.length - 1)),
+        y: mapYScaled(v, h, mn, mx),
+      }));
+    },
+    [], // reads from ref, no deps needed
+  );
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -288,7 +306,7 @@ export default function PitchCanvas({
         }
       }
 
-      // ── LIVE (green) — gather new points if recording, always draw if we have history ──
+      // ── LIVE (green) — gather new points if recording ──
       if (isRecording && micRef.current) {
         const analyser = micRef.current.analyser;
         const data = new Uint8Array(analyser.frequencyBinCount);
@@ -314,35 +332,30 @@ export default function PitchCanvas({
           }
         }
 
+        // Real-time feedback: time-based plotting (no smoothing)
         const pitchArr = micRef.current.tracker.getContour();
         const latestPitch = pitchArr.length > 0 ? pitchArr[pitchArr.length - 1] : null;
-
         const totalSyl = prosodyData.flatMap(d => d.syllables).length;
         const maxDur = Math.max(2400, totalSyl * 300);
         const x = ((Date.now() - liveStart.current) / maxDur) * w;
 
         if (latestPitch !== null) {
-          // Use same auto-scale range as target if available
           let mn = 0, mx = 1;
-          if (modelContour.length > 0) {
+          if (pitchArr.length > 1) {
             mn = Infinity; mx = -Infinity;
-            for (const v of modelContour) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
-            // Expand range slightly for live data that might exceed model range
-            const pad = (mx - mn) * 0.2;
-            mn -= pad; mx += pad;
+            for (const v of pitchArr) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
           }
-          let y = mapYScaled(latestPitch, h, mn, mx);
-          // Smooth with previous
-          if (liveHistory.current.length > 0) {
-            y = liveHistory.current[liveHistory.current.length - 1].y * 0.8 + y * 0.2;
-          }
-          y = Math.max(8, Math.min(h - 8, y));
+          const y = Math.max(8, Math.min(h - 8, mapYScaled(latestPitch, h, mn, mx)));
           liveHistory.current.push({ x, y });
         }
       }
 
-      // Draw live history (persists after recording stops)
-      if (showLive.current && liveHistory.current.length > 1) {
+      // Draw live line: use rebuilt points (post-recording) or real-time history (during recording)
+      const livePts = (!isRecording && liveContour.current.length > 1)
+        ? buildLivePoints(w, h, PAD)
+        : liveHistory.current;
+
+      if (showLive.current && livePts.length > 1) {
         const grad = ctx.createLinearGradient(0, 0, w, 0);
         grad.addColorStop(0, "#4ade80");
         grad.addColorStop(1, "#22c55e");
@@ -353,7 +366,7 @@ export default function PitchCanvas({
         ctx.lineJoin = "round";
         ctx.shadowColor = "#4ade80";
         ctx.shadowBlur = 8;
-        drawSmooth(ctx, liveHistory.current);
+        drawSmooth(ctx, livePts);
         ctx.restore();
       }
 
@@ -362,7 +375,7 @@ export default function PitchCanvas({
 
     rafRef.current = requestAnimationFrame(render);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [isRecording, isPlayingModel, activeWordIndex, prosodyData, buildTargetPoints, modelContour]);
+  }, [isRecording, isPlayingModel, activeWordIndex, prosodyData, buildTargetPoints, buildLivePoints, modelContour]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
