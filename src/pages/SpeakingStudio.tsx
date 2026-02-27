@@ -8,6 +8,7 @@ import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadVoices, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
+import { RealtimePitchTracker } from "@/lib/pitch-detector";
 import { FLUENCY_SENTENCES } from "@/types/speaking";
 
 // ── Components ──
@@ -30,6 +31,7 @@ import { useXP } from "@/hooks/useXP";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
+import { useHeadphoneDetect } from "@/hooks/useHeadphoneDetect";
 import { PART2_TOPIC } from "@/types/speaking";
 
 export default function SpeakingStudio() {
@@ -50,8 +52,10 @@ export default function SpeakingStudio() {
   const [ghostMode, setGhostMode] = useState(false);
   
   const [isRecordingShadow, setIsRecordingShadow] = useState(false);
+  const [modelContour, setModelContour] = useState<number[]>([]);
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const modelMicRef = useRef<{ ctx: AudioContext; stream: MediaStream; tracker: RealtimePitchTracker } | null>(null);
   const accentLower = accent.toLowerCase() as Accent;
 
   // ── Hooks ──
@@ -59,6 +63,7 @@ export default function SpeakingStudio() {
   const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
   const curriculum = useCurriculum(userId, practiceType);
   const test = useSpeakingTest({ accent: accentLower });
+  const { hasHeadphones } = useHeadphoneDetect();
 
   // Sync prosody
   useEffect(() => { setProsodyData(parseProsody(rawText)); }, [rawText]);
@@ -82,10 +87,12 @@ export default function SpeakingStudio() {
       setRawText(FLUENCY_SENTENCES[Math.floor(Math.random() * FLUENCY_SENTENCES.length)]);
     }
     clearRecording();
+    setModelContour([]);
   };
 
   const handleNextSentence = useCallback(async () => {
     clearRecording();
+    setModelContour([]);
     const sentence = await curriculum.handleNextSentence();
     if (sentence) setRawText(sentence);
   }, [curriculum, clearRecording]);
@@ -97,21 +104,58 @@ export default function SpeakingStudio() {
     }
   }, [mode, rawText, curriculum]);
 
-  const handlePlayModel = () => {
+  const cleanupModelMic = () => {
+    if (modelMicRef.current) {
+      const contour = modelMicRef.current.tracker.stop();
+      if (contour.length > 0) setModelContour(contour);
+      modelMicRef.current.stream.getTracks().forEach((t) => t.stop());
+      modelMicRef.current.ctx.close().catch(() => {});
+      modelMicRef.current = null;
+    }
+  };
+
+  const handlePlayModel = async () => {
     if (isPlayingModel) {
       test.ttsHandleRef.current?.stop();
       setIsPlayingModel(false);
       setActiveWordIndex(-1);
+      cleanupModelMic();
       return;
     }
+
+    // Start mic capture for model contour if no headphones
+    let micReady = false;
+    if (!hasHeadphones) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const aCtx = new AudioContext();
+        const analyser = aCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.7;
+        const src = aCtx.createMediaStreamSource(stream);
+        src.connect(analyser);
+        const tracker = new RealtimePitchTracker(analyser, aCtx.sampleRate);
+        modelMicRef.current = { ctx: aCtx, stream, tracker };
+        micReady = true;
+      } catch { /* mic denied */ }
+    }
+
     test.ttsHandleRef.current = speak(rawText, accentLower, {
       rate: 0.8, pitch: 1.1,
       onBoundary: (charIndex) => {
         const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
         if (idx !== -1) setActiveWordIndex(idx);
       },
-      onStart: () => { setIsPlayingModel(true); setActiveWordIndex(0); },
-      onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); },
+      onStart: () => {
+        setIsPlayingModel(true);
+        setActiveWordIndex(0);
+        if (micReady && modelMicRef.current) modelMicRef.current.tracker.start();
+      },
+      onEnd: () => {
+        setIsPlayingModel(false);
+        setActiveWordIndex(-1);
+        cleanupModelMic();
+      },
     });
     addXP(5);
   };
@@ -244,7 +288,7 @@ export default function SpeakingStudio() {
                     <span className="text-[9px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
-                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} />
+                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} contour={modelContour} />
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
                     <LiveInputCanvas isRecording={isRecordingShadow} prosodyData={prosodyData} onAutoStop={handleRecord} onPitchContour={handlePitchContour} />
