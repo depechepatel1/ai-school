@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
-  Mic, Play, Headphones, Ghost, Award, ChevronRight, ArrowLeft, SkipForward,
+  Mic, Play, Headphones, Ghost, ChevronRight, ArrowLeft, SkipForward,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
@@ -45,7 +45,7 @@ export default function SpeakingStudio() {
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [isPlayingModel, setIsPlayingModel] = useState(false);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
-  const [score, setScore] = useState<number | null>(null);
+  
   const [streakTime, setStreakTime] = useState(850);
   const [ghostMode, setGhostMode] = useState(false);
   const [debugContour, setDebugContour] = useState<number[]>([]);
@@ -85,7 +85,6 @@ export default function SpeakingStudio() {
   };
 
   const handleNextSentence = useCallback(async () => {
-    setScore(null);
     clearRecording();
     const sentence = await curriculum.handleNextSentence();
     if (sentence) setRawText(sentence);
@@ -95,7 +94,6 @@ export default function SpeakingStudio() {
     if (mode === "shadowing" && contour.length > 0) {
       setDebugContour(contour);
       const result = analyzeContour(contour, rawText);
-      setScore(result.overallScore);
       curriculum.saveProgress(result.overallScore);
     }
   }, [mode, rawText, curriculum]);
@@ -142,7 +140,7 @@ export default function SpeakingStudio() {
       addXP(20);
     } else {
       setIsRecordingShadow(true);
-      setScore(null);
+      clearRecording();
       clearRecording();
       await startMediaRecorder();
       if (ghostMode) {
@@ -252,13 +250,6 @@ export default function SpeakingStudio() {
                   <div className="absolute inset-0 px-8 py-2">
                     <LiveInputCanvas isRecording={isRecordingShadow} prosodyData={prosodyData} onAutoStop={handleRecord} onPitchContour={handlePitchContour} />
                   </div>
-                  {score && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur-xl border border-green-500/30 rounded-full px-4 py-1.5 flex items-center gap-2 shadow-[0_0_30px_rgba(34,199,89,0.3)] animate-fade-in-up z-20">
-                      <Award className="w-4 h-4 text-green-400" />
-                      <span className="text-[9px] text-green-200/50 uppercase tracking-widest font-bold">Match</span>
-                      <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-500">{score}%</span>
-                    </div>
-                  )}
                 </div>
               </div>
               <DebugContourOverlay userContour={debugContour} prosodyData={prosodyData} />
