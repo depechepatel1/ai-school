@@ -1,27 +1,40 @@
 
+Implementation plan (using your uploaded original user visualizer as source of truth):
 
-## Problem
+1) Extract and lock the original user-line logic from `user-uploads://Speaking_Studio-3.txt`:
+- `LiveInputVisualizer` draw pipeline at lines ~519–557 (history push, x-from-time, y smoothing, quadratic render).
+- Keep this as the canonical rendering algorithm for both lines.
 
-The target (cyan) and live (green) lines use fundamentally different rendering approaches:
+2) Rewrite `src/components/speaking/PitchCanvas.tsx` so both cyan (computer) and green (user) lines use one shared history renderer:
+- Create shared point history type: `{ x, y, mismatch? }`.
+- Create one shared draw routine equivalent to the uploaded user visualizer loop (midline + quadratic segments + glow stroke).
+- Remove the separate target-only point builder path (`buildContourPoints`/`buildTargetPoints`) so there is no divergent math.
 
-1. **Target line**: Evenly spaces all contour points across the full canvas width, auto-scaled to the contour's own min/max range
-2. **Live line**: Plots points based on real-time elapsed time (time-based x), applies heavy 0.8/0.2 smoothing between frames, and uses a different min/max range (model range expanded by 20%)
+3) Clone the user-line point-generation path for the computer line:
+- Add `targetHistoryRef` and generate target points with the same x progression formula used by the user line (`elapsed/maxDur * width`).
+- Feed target y from model contour (or prosody fallback), then apply the same smoothing/clamp steps as the user path before rendering.
+- Keep only styling differences (cyan palette vs green palette).
 
-This means even identical pitch data would render as completely different shapes.
+4) Keep user-line generation exactly in the original style:
+- Preserve analyser-based level sampling + smoothing + history accumulation behavior from the uploaded code.
+- Keep silence auto-stop logic intact.
+- Keep live history persistent after recording stops for side-by-side comparison.
 
-## Solution
+5) Preserve existing scoring/backend behavior while cloning visuals:
+- Continue collecting normalized pitch contour via `RealtimePitchTracker` for `onPitchContour` callback (analysis/progress logic).
+- Decouple scoring contour capture from on-canvas drawing math so visual clone does not break scoring.
 
-After recording stops, rebuild the live line from the raw captured contour using the **exact same logic** as the target line — evenly spaced across canvas width, same auto-scaling. During recording, continue plotting in real-time for visual feedback, but on stop, replace the incremental history with the properly-built version.
+6) Cleanup conflicting/legacy logic:
+- Remove playhead-specific cyan rendering path and any unused helpers that create different behavior between lines.
+- Ensure both histories reset only at appropriate lifecycle points (new sentence/new recording), not immediately on stop.
 
-## Changes
+7) Validate end-to-end in `/speaking`:
+- Play model: cyan line must render with the cloned user-line algorithm.
+- Record voice: green line must render with the same algorithm.
+- Stop recording: green line stays visible; both lines remain comparable on screen.
+- Confirm `onPitchContour` still fires and no regression in shadowing score updates.
 
-### `src/components/speaking/PitchCanvas.tsx` — rewrite live line rendering
-
-1. **Store raw contour ref**: Keep `liveContour` ref (the raw `number[]` from the tracker) alongside `liveHistory`
-2. **On recording stop**: Save the final contour from the tracker into `liveContour.current`
-3. **New `buildLivePoints` function**: Clone of `buildTargetPoints` but reads from `liveContour.current` — identical even spacing, identical `mapYScaled` with its own min/max range
-4. **During recording**: Keep current real-time plotting for immediate feedback
-5. **After recording stops**: Draw from `buildLivePoints` instead of `liveHistory`, so both lines use identical point distribution and scaling
-6. **Remove the 0.8/0.2 smoothing blend** from real-time plotting — it distorts the shape
-7. **Unify min/max range**: Both lines use their own data's min/max with identical margin calculation (no extra 20% expansion for live)
-
+Technical details (exact files/anchors):
+- Source reference to clone from: `user-uploads://Speaking_Studio-3.txt` lines ~490–581 (especially ~519–557).
+- Target file to change: `src/components/speaking/PitchCanvas.tsx`.
+- Integration points to preserve: `src/pages/SpeakingStudio.tsx` props `onPitchContour`, `onAutoStop`, `modelContour`, `prosodyData`.
