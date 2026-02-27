@@ -44,6 +44,8 @@ export default function SpeakingStudio() {
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [isPlayingModel, setIsPlayingModel] = useState(false);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
+  const [targetProgress, setTargetProgress] = useState(0);
+  const [sentenceKey, setSentenceKey] = useState(0);
   
   const [streakTime, setStreakTime] = useState(850);
   const [ghostMode, setGhostMode] = useState(false);
@@ -59,8 +61,13 @@ export default function SpeakingStudio() {
   const curriculum = useCurriculum(userId, practiceType);
   const test = useSpeakingTest({ accent: accentLower });
 
-  // Sync prosody
-  useEffect(() => { setProsodyData(parseProsody(rawText)); }, [rawText]);
+  // Sync prosody + reset visualizer on new sentence
+  useEffect(() => {
+    setProsodyData(parseProsody(rawText));
+    setTargetProgress(0);
+    setActiveWordIndex(-1);
+    setSentenceKey((k) => k + 1);
+  }, [rawText]);
   useEffect(() => { preloadVoices(); preloadAccent(accentLower); }, []);
   useEffect(() => { preloadAccent(accentLower); }, [accentLower]);
 
@@ -97,6 +104,18 @@ export default function SpeakingStudio() {
     }
   }, [mode, rawText, curriculum]);
 
+  // Compute target progress from activeWordIndex + prosodyData
+  const computeTargetProgress = useCallback((wordIdx: number) => {
+    if (prosodyData.length === 0) return 0;
+    const allSyl = prosodyData.flatMap((d) => d.syllables);
+    if (allSyl.length === 0) return 0;
+    let sylCount = 0;
+    for (let i = 0; i <= wordIdx && i < prosodyData.length; i++) {
+      sylCount += prosodyData[i].syllables.length;
+    }
+    return Math.min(1, sylCount / allSyl.length);
+  }, [prosodyData]);
+
   const handlePlayModel = async () => {
     if (isPlayingModel) {
       test.ttsHandleRef.current?.stop();
@@ -105,19 +124,23 @@ export default function SpeakingStudio() {
       return;
     }
 
-    // Fire TTS immediately — target line is driven by activeWordIndex
     setIsPlayingModel(true);
     setActiveWordIndex(0);
+    setTargetProgress(0);
 
     test.ttsHandleRef.current = speak(rawText, accentLower, {
       rate: 0.8, pitch: 1.1,
       onBoundary: (charIndex) => {
-        const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
-        if (idx !== -1) setActiveWordIndex(idx);
+        const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar);
+        if (idx !== -1) {
+          setActiveWordIndex(idx);
+          setTargetProgress(computeTargetProgress(idx));
+        }
       },
       onEnd: () => {
         setIsPlayingModel(false);
         setActiveWordIndex(-1);
+        setTargetProgress(1); // freeze full contour
       },
     });
     addXP(5);
@@ -151,13 +174,20 @@ export default function SpeakingStudio() {
     clearRecording();
     // Fire TTS immediately if ghost mode
     if (ghostMode) {
+      setTargetProgress(0);
       test.ttsHandleRef.current = speak(rawText, accentLower, {
         rate: 0.8, pitch: 1.1,
         onBoundary: (charIndex) => {
-          const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
-          if (idx !== -1) setActiveWordIndex(idx);
+          const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar);
+          if (idx !== -1) {
+            setActiveWordIndex(idx);
+            setTargetProgress(computeTargetProgress(idx));
+          }
         },
-        onEnd: () => setActiveWordIndex(-1),
+        onEnd: () => {
+          setActiveWordIndex(-1);
+          setTargetProgress(1);
+        },
       });
     }
     await startMediaRecorder();
@@ -264,6 +294,8 @@ export default function SpeakingStudio() {
                       isPlayingModel={isPlayingModel}
                       activeWordIndex={activeWordIndex}
                       prosodyData={prosodyData}
+                      targetProgress={targetProgress}
+                      sentenceKey={sentenceKey}
                       onAutoStop={stopShadowRecording}
                       onPitchContour={handlePitchContour}
                     />

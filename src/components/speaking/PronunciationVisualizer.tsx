@@ -1,5 +1,7 @@
 /**
- * PronunciationVisualizer — Enhanced dual-canvas architecture.
+ * PronunciationVisualizer — dual-canvas: target contour + live user line.
+ * Target advances via targetProgress prop (0→1) driven by TTS boundary events.
+ * User line uses adaptive normalization with dual-feature Y mapping.
  */
 import { useRef, useEffect } from "react";
 import type { WordData } from "@/lib/prosody";
@@ -9,6 +11,8 @@ interface Props {
   isPlayingModel: boolean;
   activeWordIndex: number;
   prosodyData: WordData[];
+  targetProgress: number;
+  sentenceKey: number;
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
 }
@@ -48,66 +52,70 @@ function drawGridLines(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.restore();
 }
 
+function setupCanvas(canvas: HTMLCanvasElement) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(dpr, dpr);
+  return { ctx, w: rect.width, h: rect.height };
+}
+
 /* ═══════════════════════════════════════════════════════════════
- * TargetContourVisualizer — static prosody line + progress dot
+ * TargetContourCanvas — boundary-driven progressive reveal
  * ═══════════════════════════════════════════════════════════════ */
 function TargetContourCanvas({
   data,
+  targetProgress,
   isPlaying,
 }: {
   data: WordData[];
+  targetProgress: number;
   isPlaying: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const prevProgressRef = useRef(0);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    const w = rect.width;
-    const h = rect.height;
+    const { ctx, w, h } = setupCanvas(canvas);
 
     const allSyllables = data.flatMap((d) => d.syllables);
-    const segW = w / Math.max(1, allSyllables.length - 1);
-
-    const draw = (prog = 0) => {
+    if (allSyllables.length === 0) {
       ctx.clearRect(0, 0, w, h);
-
-      // Vignette background
       drawVignette(ctx, w, h);
+      drawDashedMidline(ctx, w, h);
+      return;
+    }
+    const segW = w / Math.max(1, allSyllables.length - 1);
+    const points = allSyllables.map((s, i) => ({
+      x: i * segW,
+      y: s.pitch === 2 ? h * 0.2 : s.pitch === -1 ? h * 0.8 : h * 0.7,
+    }));
 
-      // Grid lines + dashed midline
+    const draw = (prog: number) => {
+      ctx.clearRect(0, 0, w, h);
+      drawVignette(ctx, w, h);
       drawGridLines(ctx, w, h);
       drawDashedMidline(ctx, w, h);
 
-      // Build points
-      const points = allSyllables.map((s, i) => ({
-        x: i * segW,
-        y: s.pitch === 2 ? h * 0.2 : s.pitch === -1 ? h * 0.8 : h * 0.7,
-      }));
-
-      if (points.length === 0) return;
-
-      // During playback: progressive reveal; otherwise: full contour
-      const visibleCount = isPlaying
-        ? Math.max(1, Math.ceil(prog * points.length))
-        : points.length;
+      const visibleCount = Math.max(1, Math.ceil(prog * points.length));
       const visiblePoints = points.slice(0, visibleCount);
 
-      // Draw contour path using cubic bezier
+      // Draw contour
       ctx.beginPath();
       ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y);
       for (let i = 1; i < visiblePoints.length; i++) {
         const prev = visiblePoints[i - 1];
         const curr = visiblePoints[i];
-        const cpx1 = prev.x + (curr.x - prev.x) * 0.4;
-        const cpx2 = prev.x + (curr.x - prev.x) * 0.6;
-        ctx.bezierCurveTo(cpx1, prev.y, cpx2, curr.y, curr.x, curr.y);
+        ctx.bezierCurveTo(
+          prev.x + (curr.x - prev.x) * 0.4, prev.y,
+          prev.x + (curr.x - prev.x) * 0.6, curr.y,
+          curr.x, curr.y,
+        );
       }
 
       const grad = ctx.createLinearGradient(0, 0, w, 0);
@@ -121,7 +129,7 @@ function TargetContourCanvas({
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Gradient fill beneath visible contour
+      // Fill beneath
       ctx.lineTo(visiblePoints[visiblePoints.length - 1].x, h);
       ctx.lineTo(visiblePoints[0].x, h);
       ctx.closePath();
@@ -131,18 +139,14 @@ function TargetContourCanvas({
       ctx.fillStyle = fillGrad;
       ctx.fill();
 
-      // Progress dot rides the contour at correct Y
-      if (isPlaying && visiblePoints.length > 0) {
+      // Progress dot while playing
+      if (isPlaying && prog < 1) {
         const lastPt = visiblePoints[visiblePoints.length - 1];
         const baseRadius = 5 + Math.sin(Date.now() * 0.008) * 2;
-
-        // Outer glow ring
         ctx.beginPath();
         ctx.arc(lastPt.x, lastPt.y, baseRadius + 4, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255,255,255,0.12)";
         ctx.fill();
-
-        // Inner dot
         ctx.beginPath();
         ctx.arc(lastPt.x, lastPt.y, baseRadius, 0, Math.PI * 2);
         ctx.fillStyle = "#fff";
@@ -153,27 +157,40 @@ function TargetContourCanvas({
       }
     };
 
-    let id: number;
-    if (isPlaying) {
-      const start = Date.now();
-      const totalDur = allSyllables.length * 300;
-      const loop = () => {
-        draw(Math.min((Date.now() - start) / totalDur, 1));
-        id = requestAnimationFrame(loop);
-      };
-      loop();
+    // Smooth interpolation toward targetProgress
+    const animate = () => {
+      const target = targetProgress;
+      const diff = target - prevProgressRef.current;
+      if (Math.abs(diff) > 0.001) {
+        prevProgressRef.current += diff * 0.15;
+      } else {
+        prevProgressRef.current = target;
+      }
+      draw(prevProgressRef.current);
+      if (isPlaying || Math.abs(targetProgress - prevProgressRef.current) > 0.001) {
+        rafRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    // If not playing and progress is set (persisted), just draw once
+    if (!isPlaying && targetProgress > 0) {
+      prevProgressRef.current = targetProgress;
+      draw(targetProgress);
+    } else if (isPlaying) {
+      animate();
     } else {
+      // Nothing playing, no progress — draw empty background
       draw(0);
     }
 
-    return () => cancelAnimationFrame(id);
-  }, [data, isPlaying]);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [data, targetProgress, isPlaying]);
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />;
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * LiveInputVisualizer — mic RMS amplitude line
+ * LiveInputCanvas — recoded user mic line with adaptive normalization
  * ═══════════════════════════════════════════════════════════════ */
 
 interface HistoryPt {
@@ -185,156 +202,175 @@ interface HistoryPt {
 function LiveInputCanvas({
   isRecording,
   prosodyData,
+  sentenceKey,
   onAutoStop,
   onPitchContour,
 }: {
   isRecording: boolean;
   prosodyData: WordData[];
+  sentenceKey: number;
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioRef = useRef<{
+  const stateRef = useRef<{
     ctx?: AudioContext;
     analyser?: AnalyserNode;
-    src?: MediaStreamAudioSourceNode;
     stream?: MediaStream;
     req?: number;
-  }>({});
-  const history = useRef<HistoryPt[]>([]);
-  const startRef = useRef(0);
-  const silenceStartRef = useRef<number | null>(null);
+    history: HistoryPt[];
+    ampHistory: number[];
+    noiseFloor: number;
+    peakAmp: number;
+    smoothY: number;
+    phase: number;
+    startTime: number;
+    silenceStart: number | null;
+    stopped: boolean;
+  }>({
+    history: [],
+    ampHistory: [],
+    noiseFloor: 0.01,
+    peakAmp: 0.05,
+    smoothY: 0,
+    phase: 0,
+    startTime: 0,
+    silenceStart: null,
+    stopped: false,
+  });
   const onAutoStopRef = useRef(onAutoStop);
   const onPitchContourRef = useRef(onPitchContour);
-  const ampHistory = useRef<number[]>([]);
 
   useEffect(() => { onAutoStopRef.current = onAutoStop; }, [onAutoStop]);
   useEffect(() => { onPitchContourRef.current = onPitchContour; }, [onPitchContour]);
 
+  // Reset history on new sentence
   useEffect(() => {
+    stateRef.current.history = [];
+    stateRef.current.ampHistory = [];
+    stateRef.current.noiseFloor = 0.01;
+    stateRef.current.peakAmp = 0.05;
+    stateRef.current.smoothY = 0;
+    stateRef.current.phase = 0;
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx2d = canvas.getContext("2d");
+      if (ctx2d) {
+        const dpr = window.devicePixelRatio || 1;
+        ctx2d.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      }
+    }
+  }, [sentenceKey]);
+
+  useEffect(() => {
+    const s = stateRef.current;
+
     if (!isRecording) {
-      if (audioRef.current.req) cancelAnimationFrame(audioRef.current.req);
-      if (onPitchContourRef.current && ampHistory.current.length > 0) {
-        onPitchContourRef.current([...ampHistory.current]);
+      s.stopped = true;
+      if (s.req) cancelAnimationFrame(s.req);
+      if (onPitchContourRef.current && s.ampHistory.length > 0) {
+        onPitchContourRef.current([...s.ampHistory]);
       }
-      if (audioRef.current.stream) {
-        audioRef.current.stream.getTracks().forEach((t) => t.stop());
-      }
-      if (audioRef.current.ctx) {
-        audioRef.current.ctx.close().catch(() => {});
-      }
-      audioRef.current = {};
+      if (s.stream) s.stream.getTracks().forEach((t) => t.stop());
+      if (s.ctx) s.ctx.close().catch(() => {});
+      s.ctx = undefined;
+      s.analyser = undefined;
+      s.stream = undefined;
+      s.req = undefined;
+      // Don't clear history — persist user line for comparison
       return;
     }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx2d = canvas.getContext("2d")!;
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx2d.scale(dpr, dpr);
-    const w = rect.width;
-    const h = rect.height;
+    const { ctx: ctx2d, w, h } = setupCanvas(canvas);
 
-    history.current = [];
-    ampHistory.current = [];
+    // Reset for new recording
+    s.history = [];
+    s.ampHistory = [];
+    s.noiseFloor = 0.01;
+    s.peakAmp = 0.05;
+    s.smoothY = h / 2;
+    s.phase = 0;
+    s.stopped = false;
+    s.silenceStart = Date.now();
     ctx2d.clearRect(0, 0, w, h);
-    silenceStartRef.current = Date.now();
 
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
-    const maxDur = Math.max(2400, totalSyl * 300);
-    const TRAIL_LENGTH = 60;
+    const maxDur = Math.max(3000, totalSyl * 350);
+    const PAD = 8; // edge padding
+    const TRAIL = 80;
 
-    const drawLine = (ctx: CanvasRenderingContext2D) => {
-      ctx.clearRect(0, 0, w, h);
+    const drawLine = () => {
+      ctx2d.clearRect(0, 0, w, h);
+      drawVignette(ctx2d, w, h);
+      drawDashedMidline(ctx2d, w, h);
 
-      // Vignette + dashed midline
-      drawVignette(ctx, w, h);
-      drawDashedMidline(ctx, w, h);
+      const pts = s.history;
+      if (pts.length < 2) return;
 
-      // Lead-in
-      if (history.current.length > 0 && history.current[0].x > 0) {
-        ctx.beginPath();
-        ctx.moveTo(0, h / 2);
-        ctx.lineTo(history.current[0].x, history.current[0].y);
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
+      const headIdx = pts.length - 1;
 
-      const headIdx = history.current.length - 1;
-
-      // Draw history with trailing fade
-      for (let i = 1; i < history.current.length; i++) {
-        const a = history.current[i - 1];
-        const b = history.current[i];
-
-        // Trailing fade
+      // Draw segments with trailing fade
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1];
+        const b = pts[i];
         const distFromHead = headIdx - i;
-        const opacity = Math.max(0.15, 1 - distFromHead / TRAIL_LENGTH);
-        ctx.globalAlpha = opacity;
-
-        const isMismatch = b.mismatch;
-        const color = isMismatch ? "#f87171" : "#a3e635";
-
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
+        const opacity = Math.max(0.15, 1 - distFromHead / TRAIL);
+        ctx2d.globalAlpha = opacity;
+        const color = b.mismatch ? "#f87171" : "#a3e635";
+        ctx2d.beginPath();
+        ctx2d.moveTo(a.x, a.y);
         const cpx1 = a.x + (b.x - a.x) * 0.4;
         const cpx2 = a.x + (b.x - a.x) * 0.6;
-        ctx.bezierCurveTo(cpx1, a.y, cpx2, b.y, b.x, b.y);
-        ctx.strokeStyle = color;
-        ctx.shadowColor = color;
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
-        ctx.shadowBlur = isMismatch ? 24 : 16;
-        ctx.stroke();
+        ctx2d.bezierCurveTo(cpx1, a.y, cpx2, b.y, b.x, b.y);
+        ctx2d.strokeStyle = color;
+        ctx2d.shadowColor = color;
+        ctx2d.lineWidth = 4;
+        ctx2d.lineCap = "round";
+        ctx2d.shadowBlur = b.mismatch ? 24 : 16;
+        ctx2d.stroke();
       }
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
+      ctx2d.globalAlpha = 1;
+      ctx2d.shadowBlur = 0;
 
-      // Gradient fill beneath live line
-      if (history.current.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(history.current[0].x, history.current[0].y);
-        for (let i = 1; i < history.current.length; i++) {
-          const a = history.current[i - 1];
-          const b = history.current[i];
-          const cpx1 = a.x + (b.x - a.x) * 0.4;
-          const cpx2 = a.x + (b.x - a.x) * 0.6;
-          ctx.bezierCurveTo(cpx1, a.y, cpx2, b.y, b.x, b.y);
-        }
-        ctx.lineTo(history.current[history.current.length - 1].x, h);
-        ctx.lineTo(history.current[0].x, h);
-        ctx.closePath();
-        const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
-        fillGrad.addColorStop(0, "rgba(163,230,53,0.15)");
-        fillGrad.addColorStop(1, "rgba(163,230,53,0)");
-        ctx.fillStyle = fillGrad;
-        ctx.fill();
+      // Fill beneath
+      ctx2d.beginPath();
+      ctx2d.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1];
+        const b = pts[i];
+        ctx2d.bezierCurveTo(
+          a.x + (b.x - a.x) * 0.4, a.y,
+          a.x + (b.x - a.x) * 0.6, b.y,
+          b.x, b.y,
+        );
       }
+      ctx2d.lineTo(pts[pts.length - 1].x, h);
+      ctx2d.lineTo(pts[0].x, h);
+      ctx2d.closePath();
+      const fillGrad = ctx2d.createLinearGradient(0, 0, 0, h);
+      fillGrad.addColorStop(0, "rgba(163,230,53,0.15)");
+      fillGrad.addColorStop(1, "rgba(163,230,53,0)");
+      ctx2d.fillStyle = fillGrad;
+      ctx2d.fill();
 
-      // Pulsing head dot
-      if (history.current.length > 0) {
-        const head = history.current[headIdx];
-        const radius = 5 + Math.sin(Date.now() * 0.008) * 2;
-        const headColor = head.mismatch ? "#f87171" : "#a3e635";
-
-        ctx.beginPath();
-        ctx.arc(head.x, head.y, radius + 3, 0, Math.PI * 2);
-        ctx.fillStyle = head.mismatch ? "rgba(248,113,113,0.15)" : "rgba(163,230,53,0.15)";
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(head.x, head.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = headColor;
-        ctx.shadowColor = headColor;
-        ctx.shadowBlur = 14;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
+      // Head dot
+      const head = pts[headIdx];
+      const radius = 5 + Math.sin(Date.now() * 0.008) * 2;
+      const headColor = head.mismatch ? "#f87171" : "#a3e635";
+      ctx2d.beginPath();
+      ctx2d.arc(head.x, head.y, radius + 3, 0, Math.PI * 2);
+      ctx2d.fillStyle = head.mismatch ? "rgba(248,113,113,0.15)" : "rgba(163,230,53,0.15)";
+      ctx2d.fill();
+      ctx2d.beginPath();
+      ctx2d.arc(head.x, head.y, radius, 0, Math.PI * 2);
+      ctx2d.fillStyle = headColor;
+      ctx2d.shadowColor = headColor;
+      ctx2d.shadowBlur = 14;
+      ctx2d.fill();
+      ctx2d.shadowBlur = 0;
     };
 
     const initMic = async () => {
@@ -342,113 +378,137 @@ function LiveInputCanvas({
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const aCtx = new AudioContext();
         const analyser = aCtx.createAnalyser();
-        analyser.fftSize = 512;
-        analyser.smoothingTimeConstant = 0.3;
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.4;
         const src = aCtx.createMediaStreamSource(stream);
         src.connect(analyser);
-        audioRef.current = { ctx: aCtx, analyser, src, stream, req: undefined };
+        s.ctx = aCtx;
+        s.analyser = analyser;
+        s.stream = stream;
+        s.startTime = Date.now();
 
-        const draw = () => {
-          if (!audioRef.current.analyser) return;
+        const timeBuf = new Uint8Array(analyser.frequencyBinCount);
+        const freqBuf = new Uint8Array(analyser.frequencyBinCount);
 
-          const data = new Uint8Array(audioRef.current.analyser.frequencyBinCount);
-          audioRef.current.analyser.getByteTimeDomainData(data);
+        const loop = () => {
+          if (s.stopped || !s.analyser) return;
 
+          s.analyser.getByteTimeDomainData(timeBuf);
+          s.analyser.getByteFrequencyData(freqBuf);
+
+          // RMS energy
           let sum = 0;
-          for (let i = 0; i < data.length; i++) {
-            const v = (data[i] - 128) / 128;
+          for (let i = 0; i < timeBuf.length; i++) {
+            const v = (timeBuf[i] - 128) / 128;
             sum += v * v;
           }
-          const rawAmp = Math.sqrt(sum / data.length);
-          const amp = Math.min(1, rawAmp * 200);
-          ampHistory.current.push(amp);
+          const rms = Math.sqrt(sum / timeBuf.length);
+
+          // Adaptive noise floor (slow rise, fast drop)
+          if (rms < s.noiseFloor * 1.5) {
+            s.noiseFloor = s.noiseFloor * 0.995 + rms * 0.005;
+          }
+          // Adaptive peak (fast rise, slow decay)
+          if (rms > s.peakAmp) {
+            s.peakAmp = s.peakAmp * 0.7 + rms * 0.3;
+          } else {
+            s.peakAmp = s.peakAmp * 0.999 + rms * 0.001;
+          }
+          s.peakAmp = Math.max(s.peakAmp, s.noiseFloor * 3, 0.02);
+
+          // Normalize amplitude to 0-1 range
+          const normAmp = Math.min(1, Math.max(0, (rms - s.noiseFloor) / (s.peakAmp - s.noiseFloor)));
+
+          // Spectral centroid for frequency feature
+          let weightedSum = 0, magSum = 0;
+          for (let fi = 0; fi < freqBuf.length; fi++) {
+            weightedSum += fi * freqBuf[fi];
+            magSum += freqBuf[fi];
+          }
+          const centroid = magSum > 0 ? (weightedSum / magSum) / freqBuf.length : 0.5;
+
+          s.ampHistory.push(normAmp);
 
           // Auto-stop: 1s silence
           if (onAutoStopRef.current) {
-            if (rawAmp > 0.02) {
-              silenceStartRef.current = Date.now();
+            if (rms > s.noiseFloor * 2.5) {
+              s.silenceStart = Date.now();
             } else {
-              if (!silenceStartRef.current) silenceStartRef.current = Date.now();
-              if (Date.now() - silenceStartRef.current > 1000) {
+              if (!s.silenceStart) s.silenceStart = Date.now();
+              if (Date.now() - s.silenceStart > 1000) {
                 onAutoStopRef.current();
-                silenceStartRef.current = null;
                 return;
               }
             }
           }
 
-          // Spectral centroid for frequency-based wobble
-          const freqData = new Uint8Array(audioRef.current.analyser!.frequencyBinCount);
-          audioRef.current.analyser!.getByteFrequencyData(freqData);
-          let weightedSum = 0;
-          let magSum = 0;
-          for (let fi = 0; fi < freqData.length; fi++) {
-            weightedSum += fi * freqData[fi];
-            magSum += freqData[fi];
-          }
-          const centroid = magSum > 0 ? (weightedSum / magSum) / freqData.length : 0;
+          // Bidirectional Y mapping using energy + spectral centroid
+          // Phase advances faster when amplitude is higher for natural oscillation
+          s.phase += 0.08 + normAmp * 0.15;
+          const direction = Math.sin(s.phase); // -1 to 1
+          const drawableRange = h - PAD * 2;
+          const midY = h / 2;
 
-          let y = h / 2 - amp * h * 0.9;
-          // Add spectral wobble for natural undulation
-          y += Math.sin(Date.now() * 0.015) * centroid * h * 0.15;
-          if (history.current.length > 0) {
-            y = history.current[history.current.length - 1].y * 0.2 + y * 0.8;
-          }
-          y = Math.max(5, Math.min(h - 5, y));
+          // Map: amplitude controls displacement magnitude, direction controls sign
+          // centroid biases toward top (high freq) or bottom (low freq)
+          const centroidBias = (centroid - 0.5) * 0.3; // -0.15 to 0.15
+          const displacement = normAmp * (drawableRange * 0.48) * (direction + centroidBias);
+          let targetY = midY - displacement;
 
-          const x = ((Date.now() - startRef.current) / maxDur) * w;
+          // Smooth with previous
+          targetY = s.smoothY * 0.3 + targetY * 0.7;
+          targetY = Math.max(PAD, Math.min(h - PAD, targetY));
+          s.smoothY = targetY;
 
+          const elapsed = Date.now() - s.startTime;
+          const x = (elapsed / maxDur) * w;
+
+          // Mismatch detection
           const estIdx = Math.floor((x / w) * totalSyl);
           let mismatch = false;
           if (allSyl[estIdx]) {
             const high = allSyl[estIdx].pitch === 2;
-            if (high && amp < 0.2) mismatch = true;
-            if (!high && amp > 0.6) mismatch = true;
+            if (high && normAmp < 0.2) mismatch = true;
+            if (!high && normAmp > 0.8) mismatch = true;
           }
 
-          history.current.push({ x, y, mismatch });
-          drawLine(ctx2d);
-
-          audioRef.current.req = requestAnimationFrame(draw);
+          s.history.push({ x, y: targetY, mismatch });
+          drawLine();
+          s.req = requestAnimationFrame(loop);
         };
 
-        draw();
+        loop();
       } catch {
-        simulate(ctx2d, w, h, maxDur);
+        // Simulation fallback
+        s.startTime = Date.now();
+        const simLoop = () => {
+          if (s.stopped) return;
+          const elapsed = Date.now() - s.startTime;
+          if (onAutoStopRef.current && elapsed > 5000) {
+            onAutoStopRef.current();
+            return;
+          }
+          const x = (elapsed / maxDur) * w;
+          s.phase += 0.1;
+          const amp = 0.3 + Math.sin(elapsed * 0.003) * 0.3;
+          const direction = Math.sin(s.phase);
+          let y = h / 2 - amp * (h - PAD * 2) * 0.45 * direction;
+          y = s.smoothY * 0.4 + y * 0.6;
+          y = Math.max(PAD, Math.min(h - PAD, y));
+          s.smoothY = y;
+          s.history.push({ x, y, mismatch: Math.random() > 0.85 });
+          drawLine();
+          s.req = requestAnimationFrame(simLoop);
+        };
+        simLoop();
       }
     };
 
-    const simulate = (
-      ctx: CanvasRenderingContext2D,
-      w: number,
-      h: number,
-      maxDur: number,
-    ) => {
-      const simLoop = () => {
-        const elapsed = Date.now() - startRef.current;
-        if (onAutoStopRef.current && elapsed > 5000) {
-          onAutoStopRef.current();
-          return;
-        }
-        const x = (elapsed / maxDur) * w;
-        let y = h / 2 - Math.sin(elapsed * 0.01) * Math.random() * h * 0.9;
-        if (history.current.length > 0) {
-          y = history.current[history.current.length - 1].y * 0.5 + y * 0.5;
-        }
-        history.current.push({ x, y, mismatch: Math.random() > 0.85 });
-        drawLine(ctx);
-        audioRef.current.req = requestAnimationFrame(simLoop);
-      };
-      simLoop();
-    };
-
-    setTimeout(() => {
-      startRef.current = Date.now();
-      initMic();
-    }, 20);
+    setTimeout(() => initMic(), 20);
 
     return () => {
-      if (audioRef.current.req) cancelAnimationFrame(audioRef.current.req);
+      s.stopped = true;
+      if (s.req) cancelAnimationFrame(s.req);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecording]);
@@ -464,18 +524,21 @@ export default function PronunciationVisualizer({
   isPlayingModel,
   activeWordIndex: _activeWordIndex,
   prosodyData,
+  targetProgress,
+  sentenceKey,
   onAutoStop,
   onPitchContour,
 }: Props) {
   return (
     <div className="relative w-full h-full overflow-hidden rounded-[inherit]">
       <div className="absolute inset-0">
-        <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} />
+        <TargetContourCanvas data={prosodyData} targetProgress={targetProgress} isPlaying={isPlayingModel} />
       </div>
       <div className="absolute inset-0">
         <LiveInputCanvas
           isRecording={isRecording}
           prosodyData={prosodyData}
+          sentenceKey={sentenceKey}
           onAutoStop={onAutoStop}
           onPitchContour={onPitchContour}
         />
