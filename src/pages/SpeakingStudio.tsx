@@ -13,7 +13,7 @@ import { FLUENCY_SENTENCES } from "@/types/speaking";
 // ── Components ──
 import TargetContourCanvas from "@/components/speaking/TargetContourCanvas";
 import LiveInputCanvas from "@/components/speaking/LiveInputCanvas";
-import DebugContourOverlay from "@/components/speaking/DebugContourOverlay";
+
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import XPWidget from "@/components/speaking/XPWidget";
 import StreakWidget from "@/components/speaking/StreakWidget";
@@ -48,7 +48,7 @@ export default function SpeakingStudio() {
   
   const [streakTime, setStreakTime] = useState(850);
   const [ghostMode, setGhostMode] = useState(false);
-  const [debugContour, setDebugContour] = useState<number[]>([]);
+  
   const [isRecordingShadow, setIsRecordingShadow] = useState(false);
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,6 @@ export default function SpeakingStudio() {
 
   const handlePitchContour = useCallback((contour: number[]) => {
     if (mode === "shadowing" && contour.length > 0) {
-      setDebugContour(contour);
       const result = analyzeContour(contour, rawText);
       curriculum.saveProgress(result.overallScore);
     }
@@ -228,7 +227,7 @@ export default function SpeakingStudio() {
         {/* ==================== SHADOWING MODE ==================== */}
         {mode === "shadowing" && (
           <>
-            <div className="absolute bottom-0 left-0 right-0 pb-2 pt-16 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 pb-6 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
               <div className="mb-1 w-full text-center relative z-10">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
@@ -239,20 +238,19 @@ export default function SpeakingStudio() {
                       style={{ width: `${((curriculum.globalSentenceIndex + 1) / curriculum.curriculumTotal) * 100}%` }} />
                   </div>
                 )}
-                <div onClick={handlePlayModel} className="relative h-16 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
-                  <div className="absolute top-2 left-4 text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] z-10 opacity-70">Target Contour</div>
+                <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
+                  <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
+                    <span className="text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
+                    <span className="text-[9px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
+                  </div>
                   <div className="absolute inset-0 px-8 py-2">
                     <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} />
                   </div>
-                </div>
-                <div className="relative h-16 rounded-2xl overflow-hidden bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)]">
-                  <div className="absolute top-2 left-4 text-[9px] font-black uppercase text-green-300 tracking-[0.2em] z-10 opacity-70">Real-Time Input</div>
                   <div className="absolute inset-0 px-8 py-2">
                     <LiveInputCanvas isRecording={isRecordingShadow} prosodyData={prosodyData} onAutoStop={handleRecord} onPitchContour={handlePitchContour} />
                   </div>
                 </div>
               </div>
-              <DebugContourOverlay userContour={debugContour} prosodyData={prosodyData} />
             </div>
 
             {/* Right action bar */}
