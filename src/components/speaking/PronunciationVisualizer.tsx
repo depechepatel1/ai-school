@@ -456,7 +456,7 @@ function LiveInputCanvas({
           let targetY = midY - displacement;
 
           // Heavier smoothing for fluid, prosody-like curves
-          targetY = s.smoothY * 0.55 + targetY * 0.45;
+          targetY = s.smoothY * 0.66 + targetY * 0.34;
           targetY = Math.max(PAD, Math.min(h - PAD, targetY));
           s.smoothY = targetY;
 
