@@ -1,52 +1,49 @@
 
-Implementation plan (forensic fix in `src/components/speaking/PronunciationVisualizer.tsx`):
 
-1) Remove user-line opacity decay (keep full line visible)
-- Eliminate trailing fade logic in `drawLine()`:
-  - remove `TRAIL` usage
-  - remove per-segment `opacity` calculation
-  - stop setting `ctx2d.globalAlpha` per segment
-- Keep stroke fully opaque across the entire history so old segments remain as visible as new segments for direct comparison to the target contour.
+## Performance Optimization Plan — PronunciationVisualizer.tsx
 
-2) Harden late-session amplitude normalization (fix flattening after ~75%)
-- Add a short rolling RMS window in live state (recent frames only).
-- Compute dynamic low/high bounds from that rolling window each frame (instead of relying only on long-memory EMA peak behavior).
-- Normalize against rolling bounds, keep a speech-active floor, and clamp safely to avoid denominator collapse.
-- This prevents early loud syllables from suppressing later quieter syllables.
+Incorporating the Gemini suggestions where they genuinely improve on the current approach, while preserving the app's existing visual design (green/red mismatch colors, bezier-style curves, gradient fills, glow effects).
 
-3) Further smooth oscillations without damping them flat
-- Add smoothing at the input-feature level:
-  - smoothed amplitude envelope
-  - smoothed spectral centroid
-- Use those smoothed features in displacement math.
-- Keep Y-smoothing moderate (not heavy), so curves look more fluid while preserving depth.
+### Fix 1: Peak Envelope Follower (replace array sort)
+Replace the `rmsWindow[]` array + per-frame `.sort()` (line 440-447) with an O(1) peak envelope tracker:
+- **Fast attack**: if `rms > peakAmp`, snap instantly to new peak
+- **Smooth decay**: otherwise `peakAmp *= 0.95`
+- Normalize as `normAmp = rms / peakAmp`
+- Delete `rmsWindow` from state, remove `RMS_WINDOW_SIZE` constant
+- Keeps the amplitude floor logic for quiet speech visibility
 
-4) Prevent timeline compression side-effects that visually look like flattening
-- Increase `maxDur` mapping so line progression across X better matches real speaking pace.
-- Clamp progress/index lookups safely near the end of the sentence to avoid unstable final-quarter behavior.
+### Fix 2: Ring buffer + batched path (replace unbounded history)
+Replace `history: HistoryPt[]` with a pre-allocated ring buffer:
+- `Float32Array(MAX_POINTS * 3)` storing `[x, y, mismatch]` triples, `MAX_POINTS = 600`
+- Ring index wraps at `MAX_POINTS`, zero memory growth
+- In `drawLine()`, batch into a single `ctx.beginPath()` path using `lineTo` + `lineJoin = 'round'` instead of per-segment `bezierCurveTo` with individual `beginPath/stroke` calls (current code creates ~600 separate path objects per frame)
+- Keep the mismatch color split: draw two passes (green segments, red segments) using the ring buffer
+- Cache the fill gradient; recreate only on resize
 
-5) Validation pass
-- Record a full sentence with normal + quieter ending.
-- Confirm:
-  - no fade in earlier user segments (full opacity preserved)
-  - oscillations remain active through final quarter
-  - motion looks smoother (no jagged spikes, no over-damped flatline).
+### Fix 3: Single master RAF loop
+Lift the animation loop into the parent `PronunciationVisualizer` component:
+- One `requestAnimationFrame` loop drives both canvases on the same V-Sync tick
+- Pass render callbacks via refs from each child canvas
+- Eliminates dual-loop micro-stutters and ensures target + user lines are perfectly synchronized
 
-Technical details (constants/logic to apply):
-- Remove:
-  - `const TRAIL = ...`
-  - `const opacity = Math.max(0.15, 1 - distFromHead / TRAIL)`
-  - `ctx2d.globalAlpha = opacity`
-- Add state fields:
-  - `rmsWindow: number[]`
-  - `smoothAmp: number`
-  - `smoothCentroid: number`
-- Add small percentile helper for rolling window bounds.
-- Suggested tuning targets:
-  - rolling window: ~72–96 frames
-  - speech floor after normalization: ~0.12–0.16
-  - feature smoothing:
-    - amp: ~0.70/0.30
-    - centroid: ~0.80/0.20
-  - Y smoothing: ~0.58/0.42
-  - `maxDur`: raise from current baseline to better fit slower utterances (e.g. `Math.max(5000, totalSyl * 500)`).
+### Fix 4: ResizeObserver + cached dimensions
+Replace per-frame `getBoundingClientRect()` calls in both canvases:
+- Single `ResizeObserver` on the parent container, stores `w`/`h` in a ref
+- `setupCanvas` only runs when dimensions actually change
+- DPR scaling already handled correctly (lines 56-68)
+- Cache gradient objects, recreate only on resize
+
+### Fix 5: `desynchronized` canvas context
+Add `{ desynchronized: true }` to `getContext('2d')` calls for lower-latency rendering on supported devices (iPads, Chrome).
+
+### What we preserve (not changing)
+- The mismatch red/green color system
+- Glow/shadow effects on the line and head dot
+- The gradient fill beneath the user line
+- The target contour canvas bezier curves (only ~20-40 points, not a bottleneck)
+- `ampHistory` array for `onPitchContour` callback (needed for scoring)
+- Auto-stop silence detection logic
+
+### Files changed
+- `src/components/speaking/PronunciationVisualizer.tsx` — single file, full rewrite of internals
+
