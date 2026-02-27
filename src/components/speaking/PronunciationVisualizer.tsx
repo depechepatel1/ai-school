@@ -260,13 +260,13 @@ function LiveInputCanvas({
           const amp = Math.min(1, rawAmp * 30);
           ampHistory.current.push(amp);
 
-          // Auto-stop: 2s silence
+          // Auto-stop: 1s silence
           if (onAutoStopRef.current) {
             if (rawAmp > 0.02) {
               silenceStartRef.current = Date.now();
             } else {
               if (!silenceStartRef.current) silenceStartRef.current = Date.now();
-              if (Date.now() - silenceStartRef.current > 2000) {
+              if (Date.now() - silenceStartRef.current > 1000) {
                 onAutoStopRef.current();
                 silenceStartRef.current = null;
                 return;
