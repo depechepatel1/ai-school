@@ -268,7 +268,7 @@ export default function PitchCanvas({
         sum += v * v;
       }
       const rawAmp = Math.sqrt(sum / data.length);
-      const amp = Math.min(1, rawAmp * 30);
+      const amp = Math.min(1, rawAmp * 50);
 
       // Auto-stop silence detection (original logic)
       if (onAutoStopRef.current) {
@@ -276,7 +276,7 @@ export default function PitchCanvas({
           silenceStartRef.current = Date.now();
         } else {
           if (!silenceStartRef.current) silenceStartRef.current = Date.now();
-          if (Date.now() - silenceStartRef.current > 2000) {
+          if (Date.now() - silenceStartRef.current > 1000) {
             onAutoStopRef.current();
             silenceStartRef.current = null;
             return;
