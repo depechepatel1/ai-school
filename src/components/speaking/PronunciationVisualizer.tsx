@@ -130,11 +130,19 @@ function TargetContourCanvas({
 
     const computePoints = (w: number, h: number) => {
       if (allSyllables.length === 0) return [];
-      const segW = w / Math.max(1, allSyllables.length - 1);
-      return allSyllables.map((s, i) => ({
-        x: i * segW,
-        y: s.pitch === 2 ? (s.stress === 2 ? h * 0.15 : h * 0.35) : s.pitch === -1 ? h * 0.80 : h * 0.60,
-      }));
+      const raw: { y: number }[] = [];
+      data.forEach((word, wIdx) => {
+        word.syllables.forEach((s) => {
+          raw.push({
+            y: s.pitch === 2 ? (s.stress === 2 ? h * 0.15 : h * 0.35) : s.pitch === -1 ? h * 0.80 : h * 0.60,
+          });
+        });
+        if (wIdx < data.length - 1) {
+          raw.push({ y: h * 0.65 }); // inter-word dip
+        }
+      });
+      const segW = w / Math.max(1, raw.length - 1);
+      return raw.map((p, i) => ({ x: i * segW, y: p.y }));
     };
 
     // Register render callback for master loop
