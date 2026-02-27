@@ -27,6 +27,9 @@ export function useCurriculum(userId: string | null, practiceType: "pronunciatio
         setGlobalSentenceIndex(offset + startIdx);
         setCurrentTopic(items[startIdx].topic);
         return items[startIdx].sentence;
+      } else if (offset > 0) {
+        // End of curriculum reached — wrap around to beginning
+        return await loadCurriculumPage(0);
       }
     } catch (err) {
       console.error("Failed to load curriculum:", err);
@@ -50,6 +53,7 @@ export function useCurriculum(userId: string | null, practiceType: "pronunciatio
             const pageOffset = Math.floor((nextItem.sort_order - 1) / 5) * 5;
             await loadCurriculumPage(pageOffset, progress.last_sort_order);
           } else {
+            // Completed entire curriculum — restart from beginning
             await loadCurriculumPage(0);
           }
         } else {
