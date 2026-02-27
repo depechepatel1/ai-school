@@ -291,7 +291,7 @@ export default function SpeakingStudio() {
                     {hasHeadphones ? (
                       <>
                         <Headphones className="w-3 h-3 text-amber-400/80" />
-                        <span className="text-[8px] font-bold uppercase tracking-widest text-amber-400/70">Prosody</span>
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-amber-400/70">Auto Generate</span>
                       </>
                     ) : (
                       <>
