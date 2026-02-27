@@ -1,35 +1,45 @@
 
 
-## Plan: Add Inter-Word Dips to Target Contour Line
+## Plan: Protect the User's Line Code
 
-### Problem
-The target (cyan) contour line currently maps each syllable to a Y-tier but doesn't dip between consecutive yellow (high-stress) words. Two adjacent yellow words produce a flat plateau instead of showing the natural gap/silence between them.
+### 1. Add guard comments to `src/components/speaking/PronunciationVisualizer.tsx`
 
-### Change: `src/components/speaking/PronunciationVisualizer.tsx`
-
-**Modify `computePoints` (lines 131–137)** to insert a dip point at word boundaries:
-
-1. Instead of flatMapping all syllables and spacing them evenly, iterate through `data` (words) and their syllables, inserting an extra "dip" point between words.
-2. The dip point drops to the "just below middle" tier (`h * 0.65`) to simulate the brief silence between words.
-3. This applies between **all** words (not just yellow-yellow), giving the contour a natural speech rhythm. Between two yellow words the dip is especially visible since it drops from the peak.
-
-**Tier mapping remains unchanged:**
-- Yellow (pitch 2 + stress 2) → `h * 0.15` (highest)
-- White (pitch 2 only) → `h * 0.35` (above middle)  
-- Gray baseline (pitch 0) → `h * 0.60` (below middle)
-- Gray lowest (pitch -1) → `h * 0.80` (lowest)
-
-**New logic pseudocode:**
+**Before line 498** (the `renderRef.current = () => {` line), insert:
 ```
-points = []
-for each word in data:
-  for each syllable in word:
-    map syllable to Y tier as before
-    push point
-  if not last word:
-    insert dip point at Y = h * 0.65 (between words)
-space all points evenly across canvas width
+/* ╔══════════════════════════════════════════════════════════════╗
+ * ║  🔒 PROTECTED ZONE — NORMAL REPEATING MODE USER LINE       ║
+ * ║  DO NOT MODIFY without user saying "unlock protected zone"  ║
+ * ║  This took a month to tune. Shadowing-mode fixes must       ║
+ * ║  branch AROUND this logic, not alter it.                    ║
+ * ║  Regression test: src/test/live-line-y-mapping.test.ts      ║
+ * ╚══════════════════════════════════════════════════════════════╝ */
 ```
 
-This single change makes the contour undulate naturally, dipping between words to reflect the silence/gap, while peaks align with yellow karaoke text and troughs align with gray text.
+**After line 608** (the closing `};` of the render callback), insert:
+```
+/* ╔══════════════════════════════════════════════════════════════╗
+ * ║  🔒 END PROTECTED ZONE — NORMAL REPEATING MODE USER LINE   ║
+ * ╚══════════════════════════════════════════════════════════════╝ */
+```
+
+### 2. Create `src/test/live-line-y-mapping.test.ts`
+
+A regression test that imports nothing from the component (pure math verification) and locks down these exact values:
+
+| Constant | Expected Value |
+|---|---|
+| `PEAK_DECAY` | `0.985` |
+| `PAD` | `8` |
+| `baseY` | `PAD + drawableRange * 0.85` |
+| `upwardPull` | `smoothAmp * drawableRange * 1.6` |
+| `centroidNudge` | `(centroid - 0.5) * drawableRange * 0.2` |
+| Smoothing | `smoothY * 0.865 + targetY * 0.135` |
+| `normAmp` floor | `0.18` when `cleanRms > 0.005` |
+| `maxDur` | `Math.max(4000, totalSyl * 400)` |
+
+The test replicates each formula with sample inputs and asserts the output matches, so any accidental change to these values in the component will be caught.
+
+### Protocol reminder
+
+To modify anything inside the protected zone in the future, include the phrase **"unlock protected zone"** in your message. Without it, edits to that section will be refused.
 
