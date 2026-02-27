@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import PageShell from "@/components/PageShell";
+import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 
 import LeftPillar from "@/components/student/LeftPillar";
 import RightPillar from "@/components/student/RightPillar";
@@ -26,7 +26,7 @@ export default function StudentPractice() {
   };
 
   return (
-    <PageShell playIntroVideo fullWidth>
+    <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK}>
       <div className="relative w-full h-full text-white animate-fade-in-up font-outfit">
         <HomeworkModal isOpen={showHomeworkModal} onClose={() => setShowHomeworkModal(false)} />
         <ScheduleModal isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} />
