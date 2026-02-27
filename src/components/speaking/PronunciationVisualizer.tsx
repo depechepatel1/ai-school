@@ -567,13 +567,13 @@ function LiveInputCanvas({
           const centroidY = PAD + drawableRange * (1 - s.smoothCentroid);
           // Amplitude gates displacement from midline — quiet speech hugs center
           const midY = ch / 2;
-          const ampGate = Math.min(1, s.smoothAmp * 2.5); // 0→1 as speech gets louder
-          let targetY = midY + (centroidY - midY) * ampGate;
+          const ampGate = Math.min(1, s.smoothAmp * 5.0); // doubled from 2.5 → 5.0 for 2× undulation
+          let targetY = midY + (centroidY - midY) * ampGate * 2; // 2× displacement
           targetY = s.smoothY * 0.65 + targetY * 0.35; // smooth transitions
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
-          const x = Math.min(cw, (elapsed / maxDur) * cw);
+          const x = Math.min(cw, (elapsed / maxDur) * cw * 1.2); // 20% faster progression
 
           // Mismatch detection
           const estIdx = Math.min(totalSyl - 1, Math.floor((x / cw) * totalSyl));
