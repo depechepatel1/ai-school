@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
-import { speak, stopSpeaking, preloadVoices, type Accent } from "@/lib/tts-provider";
+import { speak, stopSpeaking, preloadVoices, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 import { RealtimePitchTracker } from "@/lib/pitch-detector";
 import { FLUENCY_SENTENCES } from "@/types/speaking";
@@ -66,7 +66,8 @@ export default function SpeakingStudio() {
 
   // Sync prosody
   useEffect(() => { setProsodyData(parseProsody(rawText)); }, [rawText]);
-  useEffect(() => { preloadVoices(); }, []);
+  useEffect(() => { preloadVoices(); preloadAccent(accentLower); }, []);
+  useEffect(() => { preloadAccent(accentLower); }, [accentLower]);
 
   // Sync curriculum sentence
   useEffect(() => {
@@ -185,7 +186,7 @@ export default function SpeakingStudio() {
   const startShadowRecording = async () => {
     setIsRecordingShadow(true);
     clearRecording();
-    await startMediaRecorder();
+    // Fire TTS immediately (don't wait for mic) so speech starts without delay
     if (ghostMode) {
       test.ttsHandleRef.current = speak(rawText, accentLower, {
         rate: 0.8, pitch: 1.1,
@@ -196,6 +197,8 @@ export default function SpeakingStudio() {
         onEnd: () => setActiveWordIndex(-1),
       });
     }
+    // Mic initializes concurrently — TTS already started above
+    await startMediaRecorder();
   };
 
   const stopShadowRecording = useCallback(() => {
