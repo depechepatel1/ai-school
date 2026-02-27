@@ -1,14 +1,9 @@
 /**
- * PronunciationVisualizer — Original dual-canvas architecture.
- *
- * TargetContourVisualizer (cyan): static prosody contour drawn once from syllable data.
- * LiveInputVisualizer (green): mic RMS amplitude with smoothing, mismatch detection,
- *   auto-stop after 2s silence, and simulated fallback if mic denied.
+ * PronunciationVisualizer — Enhanced dual-canvas architecture.
  */
 import { useRef, useEffect } from "react";
 import type { WordData } from "@/lib/prosody";
 
-/* ── Props ── */
 interface Props {
   isRecording: boolean;
   isPlayingModel: boolean;
@@ -16,6 +11,41 @@ interface Props {
   prosodyData: WordData[];
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
+}
+
+/* ── Shared helpers ── */
+function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const grad = ctx.createRadialGradient(w / 2, h / 2, w * 0.15, w / 2, h / 2, w * 0.7);
+  grad.addColorStop(0, "rgba(0,0,0,0)");
+  grad.addColorStop(1, "rgba(0,0,0,0.25)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawDashedMidline(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  ctx.save();
+  ctx.setLineDash([8, 12]);
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, h / 2);
+  ctx.lineTo(w, h / 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawGridLines(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  ctx.save();
+  ctx.setLineDash([4, 16]);
+  ctx.strokeStyle = "rgba(255,255,255,0.03)";
+  ctx.lineWidth = 1;
+  for (const frac of [0.25, 0.75]) {
+    ctx.beginPath();
+    ctx.moveTo(0, h * frac);
+    ctx.lineTo(w, h * frac);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -48,13 +78,12 @@ function TargetContourCanvas({
     const draw = (prog = 0) => {
       ctx.clearRect(0, 0, w, h);
 
-      // Midline
-      ctx.strokeStyle = "rgba(255,255,255,0.05)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, h / 2);
-      ctx.lineTo(w, h / 2);
-      ctx.stroke();
+      // Vignette background
+      drawVignette(ctx, w, h);
+
+      // Grid lines + dashed midline
+      drawGridLines(ctx, w, h);
+      drawDashedMidline(ctx, w, h);
 
       // Build points
       const points = allSyllables.map((s, i) => ({
@@ -64,35 +93,57 @@ function TargetContourCanvas({
 
       if (points.length === 0) return;
 
-      // Draw contour
+      // Draw contour path using cubic bezier
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
       for (let i = 1; i < points.length; i++) {
         const prev = points[i - 1];
         const curr = points[i];
-        const mx = (prev.x + curr.x) / 2;
-        const my = (prev.y + curr.y) / 2;
-        ctx.quadraticCurveTo(prev.x, prev.y, mx, my);
+        const cpx1 = prev.x + (curr.x - prev.x) * 0.4;
+        const cpx2 = prev.x + (curr.x - prev.x) * 0.6;
+        ctx.bezierCurveTo(cpx1, prev.y, cpx2, curr.y, curr.x, curr.y);
       }
-      ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
 
       const grad = ctx.createLinearGradient(0, 0, w, 0);
       grad.addColorStop(0, "#22d3ee");
       grad.addColorStop(1, "#3b82f6");
       ctx.strokeStyle = grad;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.shadowColor = "#22d3ee";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 18;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Progress dot
+      // Gradient fill beneath contour
+      ctx.lineTo(points[points.length - 1].x, h);
+      ctx.lineTo(points[0].x, h);
+      ctx.closePath();
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+      fillGrad.addColorStop(0, "rgba(34,211,238,0.18)");
+      fillGrad.addColorStop(1, "rgba(34,211,238,0)");
+      ctx.fillStyle = fillGrad;
+      ctx.fill();
+
+      // Progress dot with pulse
       if (isPlaying) {
+        const dotX = prog * w;
+        const baseRadius = 5 + Math.sin(Date.now() * 0.008) * 2;
+
+        // Outer glow ring
         ctx.beginPath();
-        ctx.arc(prog * w, h / 2, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#fff";
+        ctx.arc(dotX, h / 2, baseRadius + 4, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
         ctx.fill();
+
+        // Inner dot
+        ctx.beginPath();
+        ctx.arc(dotX, h / 2, baseRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "#fff";
+        ctx.shadowColor = "#22d3ee";
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
       }
     };
 
@@ -157,11 +208,9 @@ function LiveInputCanvas({
   useEffect(() => {
     if (!isRecording) {
       if (audioRef.current.req) cancelAnimationFrame(audioRef.current.req);
-      // Emit contour on stop
       if (onPitchContourRef.current && ampHistory.current.length > 0) {
         onPitchContourRef.current([...ampHistory.current]);
       }
-      // Clean up mic
       if (audioRef.current.stream) {
         audioRef.current.stream.getTracks().forEach((t) => t.stop());
       }
@@ -172,7 +221,6 @@ function LiveInputCanvas({
       return;
     }
 
-    // Starting new recording
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx2d = canvas.getContext("2d")!;
@@ -192,17 +240,14 @@ function LiveInputCanvas({
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
     const maxDur = Math.max(2400, totalSyl * 300);
+    const TRAIL_LENGTH = 60;
 
     const drawLine = (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, w, h);
 
-      // Midline
-      ctx.strokeStyle = "rgba(255,255,255,0.1)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, h / 2);
-      ctx.lineTo(w, h / 2);
-      ctx.stroke();
+      // Vignette + dashed midline
+      drawVignette(ctx, w, h);
+      drawDashedMidline(ctx, w, h);
 
       // Lead-in
       if (history.current.length > 0 && history.current[0].x > 0) {
@@ -214,24 +259,76 @@ function LiveInputCanvas({
         ctx.stroke();
       }
 
-      // Draw history
+      const headIdx = history.current.length - 1;
+
+      // Draw history with trailing fade
       for (let i = 1; i < history.current.length; i++) {
         const a = history.current[i - 1];
         const b = history.current[i];
+
+        // Trailing fade
+        const distFromHead = headIdx - i;
+        const opacity = Math.max(0.15, 1 - distFromHead / TRAIL_LENGTH);
+        ctx.globalAlpha = opacity;
+
+        const isMismatch = b.mismatch;
+        const color = isMismatch ? "#f87171" : "#a3e635";
+
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
-        const mx = (a.x + b.x) / 2;
-        const my = (a.y + b.y) / 2;
-        ctx.quadraticCurveTo(a.x, a.y, mx, my);
-        ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = b.mismatch ? "#f87171" : "#a3e635";
-        ctx.shadowColor = b.mismatch ? "#f87171" : "#a3e635";
-        ctx.lineWidth = 3;
+        const cpx1 = a.x + (b.x - a.x) * 0.4;
+        const cpx2 = a.x + (b.x - a.x) * 0.6;
+        ctx.bezierCurveTo(cpx1, a.y, cpx2, b.y, b.x, b.y);
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.lineWidth = 4;
         ctx.lineCap = "round";
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = isMismatch ? 24 : 16;
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
+
+      // Gradient fill beneath live line
+      if (history.current.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(history.current[0].x, history.current[0].y);
+        for (let i = 1; i < history.current.length; i++) {
+          const a = history.current[i - 1];
+          const b = history.current[i];
+          const cpx1 = a.x + (b.x - a.x) * 0.4;
+          const cpx2 = a.x + (b.x - a.x) * 0.6;
+          ctx.bezierCurveTo(cpx1, a.y, cpx2, b.y, b.x, b.y);
+        }
+        ctx.lineTo(history.current[history.current.length - 1].x, h);
+        ctx.lineTo(history.current[0].x, h);
+        ctx.closePath();
+        const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+        fillGrad.addColorStop(0, "rgba(163,230,53,0.15)");
+        fillGrad.addColorStop(1, "rgba(163,230,53,0)");
+        ctx.fillStyle = fillGrad;
+        ctx.fill();
+      }
+
+      // Pulsing head dot
+      if (history.current.length > 0) {
+        const head = history.current[headIdx];
+        const radius = 5 + Math.sin(Date.now() * 0.008) * 2;
+        const headColor = head.mismatch ? "#f87171" : "#a3e635";
+
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, radius + 3, 0, Math.PI * 2);
+        ctx.fillStyle = head.mismatch ? "rgba(248,113,113,0.15)" : "rgba(163,230,53,0.15)";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = headColor;
+        ctx.shadowColor = headColor;
+        ctx.shadowBlur = 14;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
     };
 
     const initMic = async () => {
@@ -274,17 +371,14 @@ function LiveInputCanvas({
             }
           }
 
-          // Y position from amplitude
           let y = h / 2 - amp * h * 0.7;
           if (history.current.length > 0) {
             y = history.current[history.current.length - 1].y * 0.4 + y * 0.6;
           }
           y = Math.max(10, Math.min(h - 10, y));
 
-          // X position
           const x = ((Date.now() - startRef.current) / maxDur) * w;
 
-          // Mismatch detection
           const estIdx = Math.floor((x / w) * totalSyl);
           let mismatch = false;
           if (allSyl[estIdx]) {
@@ -301,7 +395,6 @@ function LiveInputCanvas({
 
         draw();
       } catch {
-        // Mic denied — run simulation fallback
         simulate(ctx2d, w, h, maxDur);
       }
     };
