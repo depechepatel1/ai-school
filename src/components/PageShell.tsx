@@ -6,6 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import OmniChatModal from "@/components/OmniChatModal";
 
+const TRIM_SECONDS = 0.3;
 const VIDEO_1 = "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T17-16-49_add_a_slight_smiling_ndaiwy.mp4";
 const VIDEO_2 = "https://res.cloudinary.com/daujjfaqg/video/upload/Video_Generation_of_Teacher_s_Welcome_jeioja.mp4";
 
@@ -111,6 +112,20 @@ export default function PageShell({ children, playIntroVideo = false, customVide
             playsInline
             muted={isMuted}
             preload="auto"
+            onLoadedData={() => {
+              if (loopRefA.current && loopRefA.current.currentTime < TRIM_SECONDS) {
+                loopRefA.current.currentTime = TRIM_SECONDS;
+              }
+            }}
+            onTimeUpdate={() => {
+              const v = loopRefA.current;
+              if (!shouldLoop && activePlayer === "A" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
+                setActivePlayer("B");
+                loopRefB.current?.play().catch(() => {});
+                const nextNext = (videoIndexB + 1) % videoList.length;
+                setVideoIndexA(nextNext);
+              }
+            }}
             onEnded={() => {
               if (!shouldLoop && activePlayer === "A") {
                 setActivePlayer("B");
@@ -133,6 +148,20 @@ export default function PageShell({ children, playIntroVideo = false, customVide
               playsInline
               muted={isMuted}
               preload="auto"
+              onLoadedData={() => {
+                if (loopRefB.current && loopRefB.current.currentTime < TRIM_SECONDS) {
+                  loopRefB.current.currentTime = TRIM_SECONDS;
+                }
+              }}
+              onTimeUpdate={() => {
+                const v = loopRefB.current;
+                if (activePlayer === "B" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
+                  setActivePlayer("A");
+                  loopRefA.current?.play().catch(() => {});
+                  const nextNext = (videoIndexA + 1) % videoList.length;
+                  setVideoIndexB(nextNext);
+                }
+              }}
               onEnded={() => {
                 if (activePlayer === "B") {
                   setActivePlayer("A");
