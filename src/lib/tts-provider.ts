@@ -139,12 +139,26 @@ export function stopSpeaking(): void {
 export function preloadVoices(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   ensureVoices();
-  // Speak a silent utterance to prime the engine
-  const warmup = new SpeechSynthesisUtterance("");
-  warmup.volume = 0;
+  // Speak a non-empty silent utterance to prime the neural engine
+  // (empty strings are often skipped entirely by the speech engine)
+  const warmup = new SpeechSynthesisUtterance(".");
+  warmup.volume = 0.01; // near-silent but not zero (some engines skip volume=0)
   warmup.rate = 10;
   const voice = cachedVoices["uk"] || cachedVoices["us"];
   if (voice) warmup.voice = voice;
+  speechSynthesis.speak(warmup);
+}
+
+/** Preload a specific accent voice so it's warm when needed */
+export function preloadAccent(accent: Accent): void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  ensureVoices();
+  const voice = cachedVoices[accent] || findVoice(accent);
+  if (!voice) return;
+  const warmup = new SpeechSynthesisUtterance(".");
+  warmup.voice = voice;
+  warmup.volume = 0.01;
+  warmup.rate = 10;
   speechSynthesis.speak(warmup);
 }
 
