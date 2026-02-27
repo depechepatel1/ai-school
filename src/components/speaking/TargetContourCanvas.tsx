@@ -6,9 +6,10 @@ interface Props {
   isPlaying: boolean;
   activeWordIndex: number;
   contour?: number[];
+  useSyntheticFallback?: boolean;
 }
 
-export default function TargetContourCanvas({ data, isPlaying, activeWordIndex, contour }: Props) {
+export default function TargetContourCanvas({ data, isPlaying, activeWordIndex, contour, useSyntheticFallback = true }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const progressRef = useRef(0);
@@ -28,6 +29,18 @@ export default function TargetContourCanvas({ data, isPlaying, activeWordIndex, 
     const drawW = w - pad * 2;
 
     const useRealContour = contour && contour.length > 0;
+
+    // If no real contour and synthetic fallback is disabled, just draw empty
+    if (!useRealContour && !useSyntheticFallback) {
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+      return;
+    }
 
     // Build points from real contour data
     const getRealPoints = () =>

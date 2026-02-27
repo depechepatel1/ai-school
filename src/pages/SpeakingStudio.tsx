@@ -301,7 +301,7 @@ export default function SpeakingStudio() {
                     )}
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
-                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} contour={modelContour} />
+                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} contour={modelContour} useSyntheticFallback={hasHeadphones} />
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
                     <LiveInputCanvas isRecording={isRecordingShadow} prosodyData={prosodyData} onAutoStop={handleRecord} onPitchContour={handlePitchContour} />
