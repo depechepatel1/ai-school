@@ -444,19 +444,19 @@ function LiveInputCanvas({
 
           // Bidirectional Y mapping using energy + spectral centroid
           // Phase advances faster when amplitude is higher for natural oscillation
-          s.phase += 0.08 + normAmp * 0.15;
+          s.phase += 0.10 + normAmp * 0.19;
           const direction = Math.sin(s.phase); // -1 to 1
           const drawableRange = h - PAD * 2;
           const midY = h / 2;
 
           // Map: amplitude controls displacement magnitude, direction controls sign
           // centroid biases toward top (high freq) or bottom (low freq)
-          const centroidBias = (centroid - 0.5) * 0.3; // -0.15 to 0.15
-          const displacement = normAmp * (drawableRange * 0.48) * (direction + centroidBias);
+          const centroidBias = (centroid - 0.5) * 0.375; // 25% wider bias
+          const displacement = normAmp * (drawableRange * 0.60) * (direction + centroidBias);
           let targetY = midY - displacement;
 
-          // Smooth with previous
-          targetY = s.smoothY * 0.3 + targetY * 0.7;
+          // Heavier smoothing for fluid, prosody-like curves
+          targetY = s.smoothY * 0.55 + targetY * 0.45;
           targetY = Math.max(PAD, Math.min(h - PAD, targetY));
           s.smoothY = targetY;
 
