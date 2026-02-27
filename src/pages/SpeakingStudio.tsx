@@ -214,8 +214,7 @@ export default function SpeakingStudio() {
         {/* Top Bar */}
         <div className="absolute top-6 left-0 right-0 px-6 z-50 flex justify-between items-start">
           <div className="flex flex-col gap-2.5 ml-16">
-            {/* StreakWidget hidden — will reconnect with gamification module */}
-            {/* <StreakWidget time={streakTime} /> */}
+            <StreakWidget time={streakTime} />
             {mode === "speaking" && (
               <PersonaSelector persona={test.persona} setPersona={test.handlePersonaChange} setShowTestConfig={test.setShowTestConfig} />
             )}
@@ -248,8 +247,7 @@ export default function SpeakingStudio() {
           </div>
 
           <div className="flex flex-col gap-2.5 items-end">
-            {/* XPWidget hidden — will reconnect with gamification module */}
-            {/* <XPWidget xp={xp} level={level} /> */}
+            <XPWidget xp={xp} level={level} />
             {test.testState.status === "idle" && (
               <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                 <button onClick={() => setMode("shadowing")}
