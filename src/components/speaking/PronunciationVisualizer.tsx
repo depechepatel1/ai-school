@@ -167,8 +167,20 @@ function TargetContourCanvas({
       const points = computePoints(w, h);
       if (points.length === 0) return;
 
-      const visibleCount = Math.max(1, Math.ceil(animProgressRef.current * points.length));
-      const visiblePoints = points.slice(0, visibleCount);
+      const fractionalIndex = animProgressRef.current * (points.length - 1);
+      const floorIdx = Math.max(0, Math.floor(fractionalIndex));
+      const frac = fractionalIndex - floorIdx;
+      const visiblePoints = points.slice(0, floorIdx + 1);
+
+      // Interpolate a fractional tip point between the current and next segment
+      if (frac > 0 && floorIdx + 1 < points.length) {
+        const from = points[floorIdx];
+        const to = points[floorIdx + 1];
+        visiblePoints.push({
+          x: from.x + (to.x - from.x) * frac,
+          y: from.y + (to.y - from.y) * frac,
+        });
+      }
 
       // Draw contour (bezier is fine here — only ~20-40 points)
       ctx.beginPath();
