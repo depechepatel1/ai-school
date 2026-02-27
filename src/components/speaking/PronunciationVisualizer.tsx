@@ -93,7 +93,7 @@ function TargetContourCanvas({
     const segW = w / Math.max(1, allSyllables.length - 1);
     const points = allSyllables.map((s, i) => ({
       x: i * segW,
-      y: s.pitch === 2 ? h * 0.2 : s.pitch === -1 ? h * 0.8 : h * 0.7,
+      y: s.pitch === 2 ? (s.stress === 2 ? h * 0.15 : h * 0.35) : s.pitch === -1 ? h * 0.80 : h * 0.60,
     }));
 
     const draw = (prog: number) => {
