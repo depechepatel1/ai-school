@@ -563,15 +563,16 @@ function LiveInputCanvas({
             }
           }
 
-          // Y mapping — amplitude drives vertical position
-          // Loud/stressed → UP (low Y), quiet → midline
+          // Y mapping — line flows top→bottom, stress pulls it back UP
+          // Quiet/no speech → line drifts downward; loud/stressed → line rises
           const drawableRange = ch - PAD * 2;
-          const midY = ch / 2;
-          // Amplitude directly controls upward displacement from midline
-          const upwardPull = s.smoothAmp * drawableRange * 1.2;
-          // Centroid adds subtle tonal shading (high pitch nudges slightly higher)
-          const centroidNudge = (s.smoothCentroid - 0.5) * drawableRange * 0.15;
-          let targetY = midY - upwardPull - centroidNudge;
+          // Base position drifts toward bottom over time (gravity)
+          const baseY = PAD + drawableRange * 0.85; // resting near bottom
+          // Amplitude pulls upward from base — more stress = higher
+          const upwardPull = s.smoothAmp * drawableRange * 1.6;
+          // Centroid adds subtle tonal shading
+          const centroidNudge = (s.smoothCentroid - 0.5) * drawableRange * 0.2;
+          let targetY = baseY - upwardPull - centroidNudge;
           targetY = s.smoothY * 0.55 + targetY * 0.45;
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
