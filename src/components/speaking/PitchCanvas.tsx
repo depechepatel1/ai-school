@@ -264,6 +264,9 @@ export default function PitchCanvas({
     const draw = () => {
       if (!micRef.current?.analyser) return;
       const analyser = micRef.current.analyser;
+      const tracker = micRef.current.tracker;
+
+      // Read raw RMS for silence detection only
       const data = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteTimeDomainData(data);
       let sum = 0;
@@ -272,7 +275,6 @@ export default function PitchCanvas({
         sum += v * v;
       }
       const rawAmp = Math.sqrt(sum / data.length);
-      const amp = Math.min(1, rawAmp * 8);
 
       // Auto-stop silence detection with speech gate (one-shot)
       if (onAutoStopRef.current && !autoStopTriggeredRef.current) {
@@ -289,7 +291,10 @@ export default function PitchCanvas({
         }
       }
 
-      // Y position from amplitude — full canvas height
+      // Use pitch (F0) from tracker — same signal type as target line
+      const amp = tracker.currentValue;
+
+      // Y position from pitch — full canvas height (same formula as target)
       let y = h * 0.9 - (amp * h * 0.8);
       if (liveHistory.current.length > 0) {
         y = liveHistory.current[liveHistory.current.length - 1].y * 0.6 + y * 0.4;
@@ -299,7 +304,7 @@ export default function PitchCanvas({
       // X from elapsed time — clamp for drawing
       const x = Math.min(((Date.now() - liveStartRef.current) / maxDur) * w, w);
 
-      // Mismatch detection (identical to original)
+      // Mismatch detection using pitch
       const estIdx = Math.floor((x / w) * allSyl.length);
       let mismatch = false;
       if (allSyl[estIdx]) {

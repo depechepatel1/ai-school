@@ -77,6 +77,7 @@ export class RealtimePitchTracker {
   private sampleRate: number;
   private rafId: number | null = null;
   private active = false;
+  private _currentValue = 0;
 
   constructor(analyser: AnalyserNode, sampleRate: number) {
     this.analyser = analyser;
@@ -86,6 +87,7 @@ export class RealtimePitchTracker {
 
   start() {
     this.contour = [];
+    this._currentValue = 0;
     this.active = true;
     this.tick();
   }
@@ -100,12 +102,20 @@ export class RealtimePitchTracker {
     return [...this.contour];
   }
 
+  /** Get the latest normalized pitch value (0-1). Returns 0 during silence/unvoiced. */
+  get currentValue(): number {
+    return this._currentValue;
+  }
+
   private tick = () => {
     if (!this.active) return;
     this.analyser.getFloatTimeDomainData(this.buffer);
     const hz = detectPitch(this.buffer as any, this.sampleRate);
     if (hz !== null) {
-      this.contour.push(normalizeFrequency(hz));
+      this._currentValue = normalizeFrequency(hz);
+      this.contour.push(this._currentValue);
+    } else {
+      this._currentValue = 0;
     }
     this.rafId = requestAnimationFrame(this.tick);
   };
