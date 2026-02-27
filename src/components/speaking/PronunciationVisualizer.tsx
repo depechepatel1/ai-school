@@ -563,17 +563,16 @@ function LiveInputCanvas({
             }
           }
 
-          // Y mapping — spectral centroid drives vertical position (pitch proxy)
-          // Maps to same tier system as target: high centroid → top, low → bottom
+          // Y mapping — amplitude drives vertical position
+          // Loud/stressed → UP (low Y), quiet → midline
           const drawableRange = ch - PAD * 2;
-          // Centroid 0.0→1.0 maps to bottom→top of drawable range
-          const centroidY = PAD + drawableRange * (1 - s.smoothCentroid);
-          // Amplitude gates displacement from midline — quiet speech hugs center
           const midY = ch / 2;
-          const ampGate = Math.min(1, s.smoothAmp * 3.0);
-          // Stressed speech → move UP (lower Y). Amplitude drives upward displacement from midline.
-          let targetY = midY - (midY - centroidY) * ampGate * 2.5 - s.smoothAmp * drawableRange * 0.4;
-          targetY = s.smoothY * 0.55 + targetY * 0.45; // faster Y tracking
+          // Amplitude directly controls upward displacement from midline
+          const upwardPull = s.smoothAmp * drawableRange * 1.2;
+          // Centroid adds subtle tonal shading (high pitch nudges slightly higher)
+          const centroidNudge = (s.smoothCentroid - 0.5) * drawableRange * 0.15;
+          let targetY = midY - upwardPull - centroidNudge;
+          targetY = s.smoothY * 0.55 + targetY * 0.45;
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
