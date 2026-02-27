@@ -229,11 +229,14 @@ interface LiveState {
   smoothAmp: number;
   smoothCentroid: number;
   noiseFloor: number;
-  peakAmp: number; // Fix 1: peak envelope
+  peakAmp: number;
   smoothY: number;
   phase: number;
   startTime: number;
   silenceStart: number | null;
+  speechDetected: boolean; // Gate: require speech before silence countdown
+  calibrationSamples: number[]; // Noise floor calibration
+  calibrated: boolean;
   stopped: boolean;
 }
 
@@ -268,6 +271,9 @@ function LiveInputCanvas({
     phase: 0,
     startTime: 0,
     silenceStart: null,
+    speechDetected: false,
+    calibrationSamples: [],
+    calibrated: false,
     stopped: false,
   });
   const onAutoStopRef = useRef(onAutoStop);
@@ -290,6 +296,9 @@ function LiveInputCanvas({
     s.peakAmp = 0.001;
     s.smoothY = 0;
     s.phase = 0;
+    s.speechDetected = false;
+    s.calibrationSamples = [];
+    s.calibrated = false;
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx2d = canvas.getContext("2d", { desynchronized: true });
@@ -334,7 +343,10 @@ function LiveInputCanvas({
     s.smoothY = h / 2;
     s.phase = 0;
     s.stopped = false;
-    s.silenceStart = Date.now();
+    s.silenceStart = null;
+    s.speechDetected = false;
+    s.calibrationSamples = [];
+    s.calibrated = false;
     ctx2d.clearRect(0, 0, w, h);
     cachedFillGradRef.current = null;
 
@@ -480,19 +492,31 @@ function LiveInputCanvas({
           }
           const rms = Math.sqrt(sum / timeBuf.length);
 
-          // Adaptive noise floor
-          if (rms < s.noiseFloor * 1.5) {
-            s.noiseFloor = s.noiseFloor * 0.995 + rms * 0.005;
+          // Noise floor calibration: first 500ms collects samples
+          const elapsed = Date.now() - s.startTime;
+          if (!s.calibrated) {
+            s.calibrationSamples.push(rms);
+            if (elapsed >= 500 && s.calibrationSamples.length > 0) {
+              // Use median of calibration samples as noise floor
+              const sorted = [...s.calibrationSamples].sort((a, b) => a - b);
+              s.noiseFloor = Math.max(0.005, sorted[Math.floor(sorted.length / 2)]);
+              s.calibrated = true;
+              s.calibrationSamples = []; // free memory
+            }
+          } else {
+            // Slow bidirectional adaptation after calibration
+            if (rms < s.noiseFloor * 1.5) {
+              s.noiseFloor = s.noiseFloor * 0.998 + rms * 0.002;
+            }
           }
 
-          // Fix 1: Peak envelope follower — O(1), no arrays
+          // Peak envelope follower — O(1)
           if (rms > s.peakAmp) {
-            s.peakAmp = rms; // fast attack
+            s.peakAmp = rms;
           } else {
-            s.peakAmp = Math.max(0.001, s.peakAmp * PEAK_DECAY); // smooth decay
+            s.peakAmp = Math.max(0.001, s.peakAmp * PEAK_DECAY);
           }
           let normAmp = Math.min(1, rms / s.peakAmp);
-          // Floor: quiet speech still visible
           if (rms > s.noiseFloor * 1.5 && normAmp < 0.14) normAmp = 0.14;
 
           // Spectral centroid
@@ -508,11 +532,14 @@ function LiveInputCanvas({
           s.smoothCentroid = s.smoothCentroid * 0.80 + rawCentroid * 0.20;
           s.ampHistory.push(s.smoothAmp);
 
-          // Auto-stop: 1s silence
-          if (onAutoStopRef.current) {
-            if (rms > s.noiseFloor * 2.5) {
-              s.silenceStart = Date.now();
-            } else {
+          // Auto-stop: 1s silence AFTER speech detected
+          const speechThreshold = s.noiseFloor * 3.5;
+          if (onAutoStopRef.current && s.calibrated) {
+            if (rms > speechThreshold) {
+              s.speechDetected = true;
+              s.silenceStart = null; // reset silence timer on speech
+            } else if (s.speechDetected) {
+              // Only start silence countdown after speech was detected
               if (!s.silenceStart) s.silenceStart = Date.now();
               if (Date.now() - s.silenceStart > 1000) {
                 onAutoStopRef.current();
@@ -533,8 +560,7 @@ function LiveInputCanvas({
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
-          const elapsed = Date.now() - s.startTime;
-          const x = (elapsed / maxDur) * cw;
+          const x = Math.min(cw, (elapsed / maxDur) * cw);
 
           // Mismatch detection
           const estIdx = Math.min(totalSyl - 1, Math.floor((x / cw) * totalSyl));
@@ -555,38 +581,9 @@ function LiveInputCanvas({
 
           drawLine(cw, ch);
         };
-      } catch {
-        // Simulation fallback
-        s.startTime = Date.now();
-        renderRef.current = () => {
-          if (s.stopped) return;
-          const { w: cw, h: ch } = dims.current;
-          if (cw === 0 || ch === 0) return;
-          applyCanvasDpr(canvas, cw, ch);
-
-          const elapsed = Date.now() - s.startTime;
-          if (onAutoStopRef.current && elapsed > 5000) {
-            onAutoStopRef.current();
-            return;
-          }
-          const x = (elapsed / maxDur) * cw;
-          s.phase += 0.1;
-          const amp = 0.3 + Math.sin(elapsed * 0.003) * 0.3;
-          const direction = Math.sin(s.phase);
-          let y = ch / 2 - amp * (ch - PAD * 2) * 0.45 * direction;
-          y = s.smoothY * 0.4 + y * 0.6;
-          y = Math.max(PAD, Math.min(ch - PAD, y));
-          s.smoothY = y;
-
-          const wi = s.ringIdx * RING_STRIDE;
-          s.ringBuf[wi] = x;
-          s.ringBuf[wi + 1] = y;
-          s.ringBuf[wi + 2] = Math.random() > 0.85 ? 1 : 0;
-          s.ringIdx = (s.ringIdx + 1) % MAX_POINTS;
-          s.ringCount++;
-
-          drawLine(cw, ch);
-        };
+      } catch (err) {
+        console.warn("Microphone access failed:", err);
+        // No simulation fallback — canvas stays empty on mic failure
       }
     };
 
