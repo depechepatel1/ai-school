@@ -1,45 +1,48 @@
 
 
-## Plan: Protect the User's Line Code
+## Fix: Smooth Target Line Propagation
 
-### 1. Add guard comments to `src/components/speaking/PronunciationVisualizer.tsx`
+**File: `src/components/speaking/PronunciationVisualizer.tsx`**  
+**Location: `TargetContourCanvas` render callback (lines 149–217)** — this is NOT inside the protected zone.
 
-**Before line 498** (the `renderRef.current = () => {` line), insert:
+### Root Cause
+
+The target (cyan) line propagates word-by-word because:
+1. `targetProgress` jumps discretely at each TTS `onBoundary` event
+2. Even though `animProgressRef` eases toward the target (`diff * 0.15`), the visible extent is computed as `Math.ceil(animProgressRef.current * points.length)`, which snaps to whole syllable/dip points
+3. Result: the line tip jumps forward by one full segment at a time instead of gliding
+
+### Fix
+
+Replace the integer-quantized slicing with fractional interpolation of the final point:
+
+```typescript
+// Current (jerky):
+const visibleCount = Math.max(1, Math.ceil(animProgressRef.current * points.length));
+const visiblePoints = points.slice(0, visibleCount);
+
+// Fixed (smooth):
+const fractionalIndex = animProgressRef.current * (points.length - 1);
+const floorIdx = Math.floor(fractionalIndex);
+const frac = fractionalIndex - floorIdx;
+const visiblePoints = points.slice(0, floorIdx + 1);
+
+// Interpolate a fractional tip point between the current and next segment
+if (frac > 0 && floorIdx + 1 < points.length) {
+  const from = points[floorIdx];
+  const to = points[floorIdx + 1];
+  visiblePoints.push({
+    x: from.x + (to.x - from.x) * frac,
+    y: from.y + (to.y - from.y) * frac,
+  });
+}
 ```
-/* ╔══════════════════════════════════════════════════════════════╗
- * ║  🔒 PROTECTED ZONE — NORMAL REPEATING MODE USER LINE       ║
- * ║  DO NOT MODIFY without user saying "unlock protected zone"  ║
- * ║  This took a month to tune. Shadowing-mode fixes must       ║
- * ║  branch AROUND this logic, not alter it.                    ║
- * ║  Regression test: src/test/live-line-y-mapping.test.ts      ║
- * ╚══════════════════════════════════════════════════════════════╝ */
-```
 
-**After line 608** (the closing `};` of the render callback), insert:
-```
-/* ╔══════════════════════════════════════════════════════════════╗
- * ║  🔒 END PROTECTED ZONE — NORMAL REPEATING MODE USER LINE   ║
- * ╚══════════════════════════════════════════════════════════════╝ */
-```
+This makes the line tip glide smoothly along the bezier path between syllable anchor points, eliminating the segment-by-segment jumping. The easing (`diff * 0.15`) already provides smooth acceleration — it just wasn't visible because the draw was quantized.
 
-### 2. Create `src/test/live-line-y-mapping.test.ts`
-
-A regression test that imports nothing from the component (pure math verification) and locks down these exact values:
-
-| Constant | Expected Value |
-|---|---|
-| `PEAK_DECAY` | `0.985` |
-| `PAD` | `8` |
-| `baseY` | `PAD + drawableRange * 0.85` |
-| `upwardPull` | `smoothAmp * drawableRange * 1.6` |
-| `centroidNudge` | `(centroid - 0.5) * drawableRange * 0.2` |
-| Smoothing | `smoothY * 0.865 + targetY * 0.135` |
-| `normAmp` floor | `0.18` when `cleanRms > 0.005` |
-| `maxDur` | `Math.max(4000, totalSyl * 400)` |
-
-The test replicates each formula with sample inputs and asserts the output matches, so any accidental change to these values in the component will be caught.
-
-### Protocol reminder
-
-To modify anything inside the protected zone in the future, include the phrase **"unlock protected zone"** in your message. Without it, edits to that section will be refused.
+### What stays unchanged
+- The protected zone (live user green line) is not touched
+- The point computation (`computePoints`) stays identical
+- The bezier drawing, gradients, glow, fill, and progress dot all remain the same
+- The `targetProgress` source (TTS boundary events) stays the same
 
