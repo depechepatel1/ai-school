@@ -570,8 +570,9 @@ function LiveInputCanvas({
           const centroidY = PAD + drawableRange * (1 - s.smoothCentroid);
           // Amplitude gates displacement from midline — quiet speech hugs center
           const midY = ch / 2;
-          const ampGate = Math.min(1, s.smoothAmp * 3.0); // strong gating
-          let targetY = midY + (centroidY - midY) * ampGate * 2.5; // large displacement
+          const ampGate = Math.min(1, s.smoothAmp * 3.0);
+          // Stressed speech → move UP (lower Y). Amplitude drives upward displacement from midline.
+          let targetY = midY - (midY - centroidY) * ampGate * 2.5 - s.smoothAmp * drawableRange * 0.4;
           targetY = s.smoothY * 0.55 + targetY * 0.45; // faster Y tracking
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
