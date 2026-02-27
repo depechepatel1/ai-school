@@ -123,33 +123,33 @@ export default function SpeakingStudio() {
       return;
     }
 
-    // Start mic capture for model contour if no headphones
-    let micReady = false;
-    if (!hasHeadphones) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const aCtx = new AudioContext();
-        const analyser = aCtx.createAnalyser();
-        analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0.7;
-        const src = aCtx.createMediaStreamSource(stream);
-        src.connect(analyser);
-        const tracker = new RealtimePitchTracker(analyser, aCtx.sampleRate);
-        modelMicRef.current = { ctx: aCtx, stream, tracker };
-        micReady = true;
-      } catch { /* mic denied */ }
-    }
+    // Fire TTS immediately — don't wait for mic setup
+    setIsPlayingModel(true);
+    setActiveWordIndex(0);
+
+    // Start mic capture in background (non-blocking)
+    const micPromise = (async () => {
+      if (!hasHeadphones) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const aCtx = new AudioContext();
+          const analyser = aCtx.createAnalyser();
+          analyser.fftSize = 2048;
+          analyser.smoothingTimeConstant = 0.7;
+          const src = aCtx.createMediaStreamSource(stream);
+          src.connect(analyser);
+          const tracker = new RealtimePitchTracker(analyser, aCtx.sampleRate);
+          modelMicRef.current = { ctx: aCtx, stream, tracker };
+          tracker.start();
+        } catch { /* mic denied */ }
+      }
+    })();
 
     test.ttsHandleRef.current = speak(rawText, accentLower, {
       rate: 0.8, pitch: 1.1,
       onBoundary: (charIndex) => {
         const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
         if (idx !== -1) setActiveWordIndex(idx);
-      },
-      onStart: () => {
-        setIsPlayingModel(true);
-        setActiveWordIndex(0);
-        if (micReady && modelMicRef.current) modelMicRef.current.tracker.start();
       },
       onEnd: () => {
         setIsPlayingModel(false);
