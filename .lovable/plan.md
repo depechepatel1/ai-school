@@ -1,43 +1,34 @@
 
 
 ## Problem
-The target contour (cyan) uses synthetic prosody-derived points while the live contour (green) uses real pitch detection from the mic. These produce visually incomparable lines. The fix: when speakers are active (no headphones), capture the TTS audio through the mic using the same pitch detection, producing a real target contour. Fall back to synthetic prosody when headphones are detected.
+
+Two issues:
+1. **Flashing artifact**: Two separate canvases (`TargetContourCanvas` and `LiveInputCanvas`) are stacked on top of each other, each calling `ctx.clearRect()` independently every frame. Since they're transparent overlays, the live canvas clears what the target canvas just drew, causing visible flicker.
+2. **Rendering mismatch**: The two canvases use different drawing approaches — LiveInputCanvas draws incrementally in real-time with smoothing, while TargetContourCanvas draws all points at once with playhead animation. Even though the Y-mapping formula is the same, the visual result looks different.
+
+## Solution
+
+Replace both `TargetContourCanvas` and `LiveInputCanvas` with a single unified `PitchCanvas` component that draws both lines on one canvas in one render loop. This eliminates the competing `clearRect` calls (fixing the flash) and guarantees identical coordinate mapping for both contours.
 
 ## Changes
 
-### 1. New hook: `src/hooks/useHeadphoneDetect.ts`
-- Uses `navigator.mediaDevices.enumerateDevices()` to check for headphone/audiooutput devices
-- Listens to `devicechange` events to update in real-time
-- Returns `hasHeadphones: boolean`
-- Detection heuristic: if >1 audio output device exists, headphones are likely connected
+### 1. Create `src/components/speaking/PitchCanvas.tsx`
+Single canvas component that handles everything:
+- **Props**: `isRecording`, `isPlayingModel`, `activeWordIndex`, `prosodyData`, `modelContour`, `useSyntheticFallback`, `onAutoStop`, `onPitchContour`
+- **Single render loop**: One `requestAnimationFrame` loop that draws both target (cyan) and live (green) lines on the same canvas, same coordinate space
+- **Target line**: Drawn from `modelContour` (real mic-captured data) or synthetic prosody fallback, with playhead animation during TTS playback
+- **Live line**: Drawn from real-time mic pitch detection during recording, using identical `y = h - pitch * h * 0.8 - h * 0.1` mapping
+- **Mic management**: Handles mic init/cleanup for live recording internally (same as current LiveInputCanvas)
+- **Auto-stop**: Silence detection for auto-stop callback
+- **Pitch contour output**: Emits final contour on recording stop
 
-### 2. New state in `SpeakingStudio.tsx`
-- Add `modelContour: number[]` state — stores mic-captured pitch contour from TTS playback
-- Add `useHeadphoneDetect()` hook
-- When `handlePlayModel` fires **and no headphones detected**:
-  - Open mic via `getUserMedia({ audio: true })`
-  - Create `RealtimePitchTracker` on that stream
-  - Start tracking when TTS `onStart` fires
-  - Stop tracking when TTS `onEnd` fires, store result in `modelContour`
-- When headphones detected: skip mic capture, `modelContour` stays empty
+### 2. Update `src/pages/SpeakingStudio.tsx`
+- Remove imports of `TargetContourCanvas` and `LiveInputCanvas`
+- Import new `PitchCanvas`
+- Replace the two stacked `<div className="absolute inset-0">` wrappers with a single `<PitchCanvas>` element
+- Pass all relevant props to the unified component
 
-### 3. Modify `TargetContourCanvas` props and rendering
-- Add optional prop `contour?: number[]`
-- When `contour` has data: render it as a real pitch line (same style as LiveInputCanvas — map normalized 0-1 values to y positions), ignoring the synthetic prosody points
-- When `contour` is empty/undefined: use current synthetic prosody rendering (fallback for headphones mode)
-- The contour line still animates with playhead progress during TTS playback
-
-### 4. Clear `modelContour` on sentence change
-- Reset `modelContour` to `[]` in `handleNextSentence` and `handleGenerate`
-
-### Flow summary
-```text
-TTS plays + no headphones → mic captures speaker audio → RealtimePitchTracker → modelContour[]
-                          → TargetContourCanvas renders real pitch line (cyan)
-                          → Student records → LiveInputCanvas renders real pitch line (green)
-                          → Both use identical pitch detection = visually comparable
-
-TTS plays + headphones → mic can't hear speaker → modelContour stays empty
-                       → TargetContourCanvas falls back to synthetic prosody points
-```
+### 3. Delete old files
+- `src/components/speaking/TargetContourCanvas.tsx` — no longer needed
+- `src/components/speaking/LiveInputCanvas.tsx` — no longer needed
 
