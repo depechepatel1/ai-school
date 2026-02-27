@@ -263,11 +263,20 @@ export default function SpeakingStudio() {
                 {isRecordingShadow ? <div className="w-7 h-7 bg-white rounded-sm animate-pulse" /> : <Mic className="w-9 h-9 text-white/80" />}
               </button>
               <div className="w-8 h-px bg-white/[0.06]" />
-              {lastRecordingUrl && (
-                <button onClick={handleReplay} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`} title={isPlayingReplay ? "Stop Replay" : "Replay Your Recording"}>
-                  <Play className="w-7 h-7 ml-0.5 group-hover:scale-110 transition-transform" />
-                </button>
-              )}
+              <button
+                onClick={lastRecordingUrl ? handleReplay : undefined}
+                disabled={!lastRecordingUrl}
+                className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${
+                  !lastRecordingUrl
+                    ? "text-white/20 opacity-30 cursor-not-allowed"
+                    : isPlayingReplay
+                      ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
+                      : "text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"
+                }`}
+                title={!lastRecordingUrl ? "No recording yet" : isPlayingReplay ? "Stop Replay" : "Replay Your Recording"}
+              >
+                <Play className="w-7 h-7 ml-0.5 group-hover:scale-110 transition-transform" />
+              </button>
               <button onClick={() => setGhostMode(!ghostMode)} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`} title="Ghost Mode">
                 <Ghost className="w-7 h-7 group-hover:scale-110 transition-transform" />
               </button>
