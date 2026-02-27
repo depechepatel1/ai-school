@@ -1,23 +1,31 @@
 
 
-## Root Cause
+## Forensic Analysis
 
-The adaptive peak tracker in `LiveInputCanvas` (lines 411-417) ratchets upward aggressively but barely decays:
+Three compounding issues cause the second-half flattening:
 
-```
-rise:  peakAmp = peakAmp * 0.7 + rms * 0.3   (fast)
-decay: peakAmp = peakAmp * 0.999 + rms * 0.001 (nearly frozen)
-```
+1. **Peak decay still too slow** — `peakAmp` blend at `0.98/0.02` (line 434) means after a loud first half, peak takes ~50 frames to halve. Quieter second-half speech produces near-zero `normAmp`.
 
-After the user's first loud syllable, `peakAmp` locks high. All subsequent frames produce `normAmp ≈ 0`, flattening the line.
+2. **Over-dampened smoothing** — The `0.66/0.34` EMA (line 480) aggressively flattens Y movement. Combined with shrinking `normAmp`, the line converges to midline.
 
-## Fix
+3. **Insufficient displacement range** — `drawableRange * 0.60` (line 476) caps vertical swing at 60% of canvas height, leaving headroom unused.
 
-**File: `src/components/speaking/PronunciationVisualizer.tsx`** — Two changes in the amplitude normalization section (lines 407-420):
+## Fix — Single file: `PronunciationVisualizer.tsx`
 
-1. **Faster peak decay** — change decay blend from `0.999/0.001` to `0.98/0.02` so `peakAmp` tracks the user's current dynamic range rather than locking to a historical maximum.
+**1. Aggressive peak decay** (line 434): `0.98/0.02` → `0.95/0.05`  
+Peak halves in ~14 frames instead of ~35, tracking current speech volume.
 
-2. **Minimum normAmp floor** — add a small floor (e.g. `0.08`) when voice is detected (rms above noise floor), so even quiet speech produces visible oscillation instead of going flat.
+**2. Higher amplitude floor** (line 441): `0.08` → `0.12`  
+Quiet speech stays visible throughout.
 
-Single file, two adjacent line edits.
+**3. Faster phase advance** (line 468): `0.10 + normAmp * 0.19` → `0.12 + normAmp * 0.24`  
+25% more oscillation cycles, matching the target contour's rhythm.
+
+**4. Wider displacement** (line 476): `drawableRange * 0.60` → `drawableRange * 0.75`  
+25% increase in vertical swing range.
+
+**5. Lighter smoothing** (line 480): `0.66/0.34` → `0.55/0.45`  
+Smoother deep oscillations without flattening — mirrors the target contour's bezier interpolation feel.
+
+All five changes are constant tweaks in the `LiveInputCanvas` animation loop. No structural changes.
 
