@@ -12,8 +12,7 @@ import { RealtimePitchTracker } from "@/lib/pitch-detector";
 import { FLUENCY_SENTENCES } from "@/types/speaking";
 
 // ── Components ──
-import TargetContourCanvas from "@/components/speaking/TargetContourCanvas";
-import LiveInputCanvas from "@/components/speaking/LiveInputCanvas";
+import PitchCanvas from "@/components/speaking/PitchCanvas";
 
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import XPWidget from "@/components/speaking/XPWidget";
@@ -301,10 +300,16 @@ export default function SpeakingStudio() {
                     )}
                   </div>
                   <div className="absolute inset-0 px-8 py-2">
-                    <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} contour={modelContour} useSyntheticFallback={hasHeadphones} />
-                  </div>
-                  <div className="absolute inset-0 px-8 py-2">
-                    <LiveInputCanvas isRecording={isRecordingShadow} prosodyData={prosodyData} onAutoStop={handleRecord} onPitchContour={handlePitchContour} />
+                    <PitchCanvas
+                      isRecording={isRecordingShadow}
+                      isPlayingModel={isPlayingModel}
+                      activeWordIndex={activeWordIndex}
+                      prosodyData={prosodyData}
+                      modelContour={modelContour}
+                      useSyntheticFallback={hasHeadphones}
+                      onAutoStop={handleRecord}
+                      onPitchContour={handlePitchContour}
+                    />
                   </div>
                 </div>
               </div>
