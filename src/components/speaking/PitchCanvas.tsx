@@ -140,8 +140,13 @@ export default function PitchCanvas({
   const mapYScaled = (val: number, h: number, dataMin: number, dataMax: number) => {
     const margin = h * 0.1;
     const drawH = h - margin * 2;
-    const range = dataMax - dataMin;
-    if (range < 0.01) return h / 2; // degenerate
+    let range = dataMax - dataMin;
+    if (range < 0.01) {
+      // Expand around midpoint so we still see variation
+      const mid = (dataMin + dataMax) / 2;
+      const expand = 0.05; // minimum visible range
+      return h - margin - ((val - (mid - expand)) / (expand * 2)) * drawH;
+    }
     const norm = (val - dataMin) / range;
     return h - margin - norm * drawH; // 0→bottom, 1→top
   };
@@ -160,8 +165,7 @@ export default function PitchCanvas({
         }));
       }
 
-      if (!useSyntheticFallback) return [];
-
+      // Always fall back to synthetic prosody if no model contour
       const allSyl = prosodyData.flatMap(d => d.syllables);
       if (allSyl.length === 0) return [];
       return allSyl.map((s, i) => {
