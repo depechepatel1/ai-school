@@ -27,7 +27,7 @@ interface Props {
 /* ── Constants ── */
 const MAX_POINTS = 600; // ring buffer capacity
 const RING_STRIDE = 3;  // [x, y, mismatch] per point
-const PEAK_DECAY = 0.95;
+const PEAK_DECAY = 0.985; // slower decay → normAmp stays higher relative to peak
 const PAD = 8;
 
 /* ── Shared helpers ── */
@@ -522,14 +522,17 @@ function LiveInputCanvas({
             }
           }
 
-          // Peak envelope follower — O(1)
+          // Peak envelope follower — O(1), with ceiling to prevent runaway
           if (rms > s.peakAmp) {
             s.peakAmp = rms;
           } else {
             s.peakAmp = Math.max(0.001, s.peakAmp * PEAK_DECAY);
           }
-          let normAmp = Math.min(1, rms / s.peakAmp);
-          if (rms > s.noiseFloor * 1.5 && normAmp < 0.14) normAmp = 0.14;
+          // Subtract noise floor before normalising so quiet room → 0
+          const cleanRms = Math.max(0, rms - s.noiseFloor);
+          const cleanPeak = Math.max(0.001, s.peakAmp - s.noiseFloor);
+          let normAmp = Math.min(1, cleanRms / cleanPeak);
+          if (cleanRms > 0.005 && normAmp < 0.18) normAmp = 0.18;
 
           // Spectral centroid
           let weightedSum = 0, magSum = 0;
@@ -540,8 +543,8 @@ function LiveInputCanvas({
           const rawCentroid = magSum > 0 ? (weightedSum / magSum) / freqBuf.length : 0.5;
 
           // Smooth input features
-          s.smoothAmp = s.smoothAmp * 0.70 + normAmp * 0.30;
-          s.smoothCentroid = s.smoothCentroid * 0.80 + rawCentroid * 0.20;
+          s.smoothAmp = s.smoothAmp * 0.50 + normAmp * 0.50; // faster response
+          s.smoothCentroid = s.smoothCentroid * 0.65 + rawCentroid * 0.35; // faster centroid tracking
           s.ampHistory.push(s.smoothAmp);
 
           // Auto-stop: 1s silence AFTER speech detected
@@ -567,9 +570,9 @@ function LiveInputCanvas({
           const centroidY = PAD + drawableRange * (1 - s.smoothCentroid);
           // Amplitude gates displacement from midline — quiet speech hugs center
           const midY = ch / 2;
-          const ampGate = Math.min(1, s.smoothAmp * 5.0); // doubled from 2.5 → 5.0 for 2× undulation
-          let targetY = midY + (centroidY - midY) * ampGate * 2; // 2× displacement
-          targetY = s.smoothY * 0.65 + targetY * 0.35; // smooth transitions
+          const ampGate = Math.min(1, s.smoothAmp * 3.0); // strong gating
+          let targetY = midY + (centroidY - midY) * ampGate * 2.5; // large displacement
+          targetY = s.smoothY * 0.55 + targetY * 0.45; // faster Y tracking
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
