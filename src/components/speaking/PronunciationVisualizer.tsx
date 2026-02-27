@@ -10,6 +10,7 @@
  */
 import { useRef, useEffect, useCallback, useState } from "react";
 import { MicOff } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import type { WordData } from "@/lib/prosody";
 
 interface Props {
@@ -257,6 +258,7 @@ function LiveInputCanvas({
   renderRef: React.MutableRefObject<(() => void) | null>;
   dims: React.MutableRefObject<{ w: number; h: number }>;
 }) {
+  const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [micDenied, setMicDenied] = useState(false);
   const stateRef = useRef<LiveState>({
@@ -614,9 +616,15 @@ function LiveInputCanvas({
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
           <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30">
             <MicOff className="w-7 h-7 text-destructive/60" />
-            <span className="text-sm font-medium text-foreground/80">Microphone blocked</span>
+            <span className="text-sm font-medium text-foreground/80">{t("mic.blocked")}</span>
             <p className="text-xs text-muted-foreground text-center max-w-[220px] leading-relaxed">
-              Click the <span className="inline-flex items-center gap-0.5 font-medium text-foreground/70">🔒 lock icon</span> in your browser's address bar, then allow microphone access.
+              {t("mic.hint").split("{icon}").map((part, i, arr) =>
+                i < arr.length - 1 ? (
+                  <span key={i}>{part}<span className="inline-flex items-center gap-0.5 font-medium text-foreground/70">🔒</span></span>
+                ) : (
+                  <span key={i}>{part}</span>
+                )
+              )}
             </p>
             <button
               type="button"
@@ -628,7 +636,7 @@ function LiveInputCanvas({
               }}
               className="mt-1 text-xs font-medium text-primary hover:text-primary/80 underline underline-offset-2 transition-colors cursor-pointer"
             >
-              Try again
+              {t("mic.tryAgain")}
             </button>
           </div>
         </div>

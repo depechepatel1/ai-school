@@ -93,6 +93,11 @@ const translations: Record<string, Record<Lang, string>> = {
   "parent.recentDesc": { en: "See latest practice sessions and time spent", zh: "查看最近的练习和用时" },
   "parent.comingSoon": { en: "Coming Soon", zh: "即将推出" },
 
+  // Mic denied
+  "mic.blocked": { en: "Microphone blocked", zh: "麦克风被阻止" },
+  "mic.hint": { en: "Click the {icon} lock icon in your browser's address bar, then allow microphone access.", zh: "点击浏览器地址栏中的 {icon} 锁图标，然后允许麦克风访问。" },
+  "mic.tryAgain": { en: "Try again", zh: "重试" },
+
   // Common
   "common.signOut": { en: "Sign Out", zh: "退出登录" },
   "common.error": { en: "Error", zh: "错误" },
