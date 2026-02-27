@@ -573,7 +573,7 @@ function LiveInputCanvas({
           // Centroid adds subtle tonal shading
           const centroidNudge = (s.smoothCentroid - 0.5) * drawableRange * 0.2;
           let targetY = baseY - upwardPull - centroidNudge;
-          targetY = s.smoothY * 0.55 + targetY * 0.45;
+          targetY = s.smoothY * 0.685 + targetY * 0.315; // 30% slower downward drift
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
