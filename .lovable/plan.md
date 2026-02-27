@@ -1,25 +1,56 @@
 
 
-## Diagnosis
+## Plan: Reinstall Original Visualizer Logic
 
-The `preloadVoices()` function already runs on mount, but it speaks an **empty string** (`""`), which on many browsers (especially Edge with Natural voices) doesn't actually initialize the neural voice engine. The real delay happens on the **first non-empty utterance** when the engine cold-starts the neural model.
+### What the original code does differently
 
-Additionally, `startShadowRecording` calls `await startMediaRecorder()` **before** calling `speak()`, and `getUserMedia` permission prompts / stream setup adds latency before TTS even begins.
+The uploaded file contains two separate canvas components stacked in the same container:
 
-## Plan — `src/lib/tts-provider.ts` + `src/pages/SpeakingStudio.tsx`
+1. **TargetContourVisualizer** — Draws a static prosody contour line (cyan) from syllable data. No mic, no timing sync needed. It maps `pitch === 2` to top, `pitch === -1` to bottom, neutral to middle. Optionally animates a progress dot when `isPlaying` is true.
 
-### 1. Improve warm-up utterance (tts-provider.ts)
-- Change the silent warmup from empty string `""` to a single space `" "` or a short word like `"."` — empty strings are often skipped entirely by the speech engine.
-- Add a second warm-up that specifically primes the **accent voice** the user has selected, not just whichever voice is cached first.
+2. **LiveInputVisualizer** — Uses mic RMS amplitude (volume), NOT pitch detection. Maps `rawAmp * 30` to a 0-1 scale, smooths heavily (0.85/0.15 blend), draws a green line with mismatch detection against prosody expectations. Has auto-stop after 2s silence. Has a simulated fallback if mic access denied.
 
-### 2. Add accent-specific preload (tts-provider.ts)  
-- New export: `preloadAccent(accent: Accent)` that speaks a silent utterance with the specific accent voice. Call this when the accent selector changes and on mount with the default accent.
+### Key differences from current implementation
+- Original uses **two separate canvases** layered on top of each other, not one canvas with two line histories
+- Original live line uses **volume (RMS)** not pitch (F0) — simpler, more responsive, fewer false negatives
+- Original target line is **fully static** (drawn once from prosody data), not animated word-by-word from TTS `onBoundary` events
+- Original auto-stop is 2 seconds, current is 1 second
+- Original has a **simulate fallback** when mic is denied
+- No dependency on `pitchy` library
 
-### 3. Reorder shadowing start (SpeakingStudio.tsx)
-- In `startShadowRecording`, call `speak()` **first** (fire-and-forget), then `await startMediaRecorder()` in parallel. The TTS engine starts immediately while the mic initializes concurrently.
-- Use `Promise.all` or fire TTS before awaiting mic so both initialize simultaneously.
+### Implementation steps
 
-### 4. Call accent-specific preload on mount and accent change (SpeakingStudio.tsx)
-- Replace `preloadVoices()` with `preloadAccent(accentLower)` in the mount effect.
-- Add a second effect that calls `preloadAccent(accentLower)` whenever accent changes.
+1. **Rewrite `PronunciationVisualizer.tsx`** to contain two internal canvases matching the original logic:
+   - `TargetContourVisualizer`: static prosody line drawn once from `prosodyData`, with animated progress dot when `isPlayingModel`
+   - `LiveInputVisualizer`: mic RMS-based amplitude line with smoothing, mismatch detection, auto-stop (2s), and simulation fallback
+   - Both rendered as overlapping `<canvas>` elements inside a single wrapper div
+
+2. **Update props** to match what `SpeakingStudio.tsx` already passes (no changes needed to SpeakingStudio — the props interface stays the same: `isRecording`, `isPlayingModel`, `activeWordIndex`, `prosodyData`, `onAutoStop`, `onPitchContour`)
+
+3. **Remove `pitchy` dependency** — the original doesn't use pitch detection at all, just volume amplitude
+
+### Technical details
+
+Target line Y-mapping (from original):
+```
+pitch === 2  → h * 0.2  (high)
+pitch === -1 → h * 0.8  (low)
+else         → h * 0.7  (neutral)
+```
+
+Live line amplitude mapping (from original):
+```
+rawAmp = sqrt(sum of squared samples / length)
+amp = min(1, rawAmp * 30)
+y = (h/2) - (amp * h * 0.45)
+smoothed: y = prev * 0.85 + new * 0.15
+```
+
+Mismatch detection (from original):
+```
+if high pitch syllable && amp < 0.2 → mismatch
+if not high pitch && amp > 0.6 → mismatch
+```
+
+Auto-stop: 2 seconds of silence (rawAmp < 0.02), no `hasSpoken` gate in original.
 
