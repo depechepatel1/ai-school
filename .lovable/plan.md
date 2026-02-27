@@ -1,39 +1,25 @@
 
-Implementation steps:
-1) Update `src/pages/SpeakingStudio.tsx` to split shadowing controls into explicit callbacks:
-- `startShadowRecording()`
-- `stopShadowRecording()`
-- `toggleShadowRecording()`
-- Keep record button using `toggleShadowRecording`.
-- Pass `onAutoStop={stopShadowRecording}` to `PitchCanvas` (not `handleRecord`) so auto-stop can only stop, never toggle/start.
 
-2) Update `src/components/speaking/PitchCanvas.tsx` silence detection loop so it runs for the full recording lifecycle:
-- Remove RAF stop condition tied to `x < w` in live draw loop.
-- Keep RAF running while `isRecording` is true.
-- Clamp visual `x` to canvas width for rendering (`drawX = Math.min(x, w)`), but continue silence checks every frame.
+## Diagnosis
 
-3) Harden auto-stop state handling in `PitchCanvas`:
-- Add `autoStopTriggeredRef` and reset it at recording start.
-- Gate auto-stop to fire once per recording session.
-- Keep `hasSpokenRef` gate.
-- Track silence only after speech detected; trigger `onAutoStop` after 1000ms silence.
+The `preloadVoices()` function already runs on mount, but it speaks an **empty string** (`""`), which on many browsers (especially Edge with Natural voices) doesn't actually initialize the neural voice engine. The real delay happens on the **first non-empty utterance** when the engine cold-starts the neural model.
 
-4) Keep visualization behavior unchanged except for loop longevity:
-- Preserve existing contour capture (`RealtimePitchTracker`) and `onPitchContour`.
-- Preserve current smoothing/scaling values already agreed.
-- Do not alter target/live draw styles in this step.
+Additionally, `startShadowRecording` calls `await startMediaRecorder()` **before** calling `speak()`, and `getUserMedia` permission prompts / stream setup adds latency before TTS even begins.
 
-5) Verify end-to-end on `/speaking`:
-- Start recording, speak, then stop speaking for >1s.
-- Confirm record button turns off automatically.
-- Confirm auto-stop still works if speaking lasts longer than canvas duration.
-- Confirm no regressions in replay/save/score flow.
+## Plan — `src/lib/tts-provider.ts` + `src/pages/SpeakingStudio.tsx`
 
-Technical details:
-- Files:
-  - `src/pages/SpeakingStudio.tsx`
-  - `src/components/speaking/PitchCanvas.tsx`
-- Key logic changes:
-  - Replace toggle-style auto-stop callback with dedicated stop callback.
-  - Live RAF condition: `if (isRecording) requestAnimationFrame(draw)` (not gated by timeline width).
-  - One-shot auto-stop guard to prevent repeated stop calls before React state settles.
+### 1. Improve warm-up utterance (tts-provider.ts)
+- Change the silent warmup from empty string `""` to a single space `" "` or a short word like `"."` — empty strings are often skipped entirely by the speech engine.
+- Add a second warm-up that specifically primes the **accent voice** the user has selected, not just whichever voice is cached first.
+
+### 2. Add accent-specific preload (tts-provider.ts)  
+- New export: `preloadAccent(accent: Accent)` that speaks a silent utterance with the specific accent voice. Call this when the accent selector changes and on mount with the default accent.
+
+### 3. Reorder shadowing start (SpeakingStudio.tsx)
+- In `startShadowRecording`, call `speak()` **first** (fire-and-forget), then `await startMediaRecorder()` in parallel. The TTS engine starts immediately while the mic initializes concurrently.
+- Use `Promise.all` or fire TTS before awaiting mic so both initialize simultaneously.
+
+### 4. Call accent-specific preload on mount and accent change (SpeakingStudio.tsx)
+- Replace `preloadVoices()` with `preloadAccent(accentLower)` in the mount effect.
+- Add a second effect that calls `preloadAccent(accentLower)` whenever accent changes.
+
