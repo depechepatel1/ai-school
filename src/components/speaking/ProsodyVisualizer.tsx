@@ -7,7 +7,7 @@ interface Props {
 
 export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   return (
-    <div className="relative min-h-[8rem] w-full max-w-3xl mx-auto flex flex-wrap items-start justify-center content-start gap-y-4 mt-4 mb-2 px-8">
+    <div className="relative min-h-[6rem] w-full max-w-3xl mx-auto flex flex-wrap items-center justify-center content-center gap-y-4 mt-4 mb-2 px-8">
       {data.map((item, i) => {
         const isActive = i === activeWordIndex;
         const activeScale = isActive ? "scale-110" : "scale-100";
@@ -24,17 +24,13 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
                 weight = "font-medium",
                 shadow = "";
               if (syl.pitch === 2 && syl.stress === 2) {
-                yOffset = 0; fontSize = "text-4xl"; weight = "font-bold";
+                yOffset = -20; fontSize = "text-4xl"; weight = "font-bold";
                 color = isActive ? "text-cyan-200" : "text-yellow-400";
                 shadow = isActive ? "drop-shadow-[0_0_20px_rgba(34,211,238,0.9)]" : "drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]";
               } else if (syl.pitch === 2) {
-                yOffset = 25; fontSize = "text-2xl"; weight = "font-semibold";
+                yOffset = -8; fontSize = "text-2xl"; weight = "font-semibold";
                 color = isActive ? "text-cyan-300" : "text-white";
-              } else if (syl.pitch === -1) {
-                yOffset = 70;
-                color = isActive ? "text-cyan-500" : "text-gray-400";
               } else {
-                yOffset = 50;
                 color = isActive ? "text-cyan-500" : "text-gray-400";
               }
               return (

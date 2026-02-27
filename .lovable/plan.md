@@ -1,24 +1,43 @@
 
 
-## Plan: Align Prosody Text Vertical Position with Contour Peaks/Troughs
+## Root Cause Analysis
 
-### Problem
-Currently, the ProsodyVisualizer uses fixed `translateY` offsets (-20px for stressed, -8px for medium, 0 for unstressed). These don't match the 4-tier Y-mapping in the target contour (15%, 35%, 60%, 80%). Yellow words should sit at the top (peaks) and gray words at the bottom (troughs).
+### Bug 1: Glitchy random wavy line
+The simulation fallback (lines 559-589) is triggering. When `getUserMedia` throws (permission denied, or any mic error), the `catch` block installs a fake render callback that:
+- Generates a synthetic sine wave with `Math.sin(elapsed * 0.003)`
+- Randomly assigns mismatch with `Math.random() > 0.85` — causing random red/green color flicker
+- Has no real audio data, producing an artificial "glitchy" pattern
 
-### Changes
+Additionally, even when mic succeeds, ring buffer x-coordinates are unbounded (`elapsed / maxDur * cw`). Once elapsed exceeds `maxDur`, x goes beyond canvas width, and the `lineTo` path draws off-screen then wraps back through the ring buffer creating visual discontinuities.
 
-**File: `src/components/speaking/ProsodyVisualizer.tsx`**
+### Bug 2: Auto-stop silence detection never fires
+The silence detection logic (lines 511-522) has a fatal flaw:
+- `noiseFloor` initializes to `0.01` (line 289)
+- Threshold for "speech detected" is `noiseFloor * 2.5 = 0.025`
+- Noise floor only adapts upward when `rms < noiseFloor * 1.5 = 0.015` (line 484)
+- In any environment with ambient noise > 0.015 RMS (very common), the noise floor **never adapts**, so even ambient noise registers as "speech", resetting `silenceStart` every frame
+- Result: silence is never detected, auto-stop never fires
 
-1. Increase the container height to allow more vertical range (e.g. `min-h-[8rem]` or more) and use `items-start` instead of `items-center` so words can freely move vertically.
+Also: `silenceStart` is initialized to `Date.now()` at line 337, but line 513 resets it to `Date.now()` whenever speech is "detected" (which is always, due to the threshold bug). The logic should require actual speech before starting the silence countdown.
 
-2. Remap the `translateY` values to mirror the contour's 4-tier system within the container:
-   - **Pitch 2 + Stress 2** (yellow words → peaks): `translateY(0px)` — top of container
-   - **Pitch 2 only** (white words → secondary peaks): `translateY(~25px)`
-   - **Pitch 0 / baseline** (neutral): `translateY(~50px)`
-   - **Pitch -1** (gray words → troughs): `translateY(~70px)`
+## Fix Plan — `src/components/speaking/PronunciationVisualizer.tsx`
 
-3. Apply these per-syllable, so within a multi-syllable word the stressed syllable rises to the peak while trailing syllables descend to troughs — matching the contour line's shape exactly.
+### Fix 1: Remove simulation fallback / replace with idle state
+Delete the catch block's fake render callback (lines 559-589). Instead, show nothing on mic failure — just log the error. The simulation produces the "glitchy random wavy line" artifact.
 
-### Result
-The prosody text will undulate vertically in sync with the contour line below it: yellow stressed syllables at the top, gray unstressed syllables at the bottom, creating a visual connection between the karaoke text and the waveform.
+### Fix 2: Clamp x-coordinates to canvas width
+In the render callback (line 537), clamp: `const x = Math.min(cw, (elapsed / maxDur) * cw)`. This prevents off-screen drawing artifacts when recordings exceed `maxDur`.
+
+### Fix 3: Fix noise floor adaptation — bidirectional tracking
+Replace the one-directional noise floor adaptation (line 484-486) with a calibration phase:
+- First ~500ms of recording: collect RMS samples to establish ambient noise baseline
+- After calibration: set noise floor to the median of calibration samples
+- Speech threshold = `noiseFloor * 3.0` (more headroom)
+- This ensures silence detection works regardless of ambient noise level
+
+### Fix 4: Require speech-before-silence gating
+Add a `speechDetected: boolean` flag to `LiveState`. Auto-stop only activates after at least one frame of speech has been detected. This prevents premature auto-stop during the calibration period and ensures the timer only counts post-speech silence.
+
+### Fix 5: Increase silence threshold multiplier
+Change the speech detection threshold from `noiseFloor * 2.5` to `noiseFloor * 3.5` to better distinguish speech from ambient noise after proper calibration.
 
