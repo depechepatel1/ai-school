@@ -240,6 +240,9 @@ function LiveInputCanvas({
     req?: number;
     history: HistoryPt[];
     ampHistory: number[];
+    rmsWindow: number[];
+    smoothAmp: number;
+    smoothCentroid: number;
     noiseFloor: number;
     peakAmp: number;
     smoothY: number;
@@ -250,6 +253,9 @@ function LiveInputCanvas({
   }>({
     history: [],
     ampHistory: [],
+    rmsWindow: [],
+    smoothAmp: 0,
+    smoothCentroid: 0.5,
     noiseFloor: 0.01,
     peakAmp: 0.05,
     smoothY: 0,
@@ -268,6 +274,9 @@ function LiveInputCanvas({
   useEffect(() => {
     stateRef.current.history = [];
     stateRef.current.ampHistory = [];
+    stateRef.current.rmsWindow = [];
+    stateRef.current.smoothAmp = 0;
+    stateRef.current.smoothCentroid = 0.5;
     stateRef.current.noiseFloor = 0.01;
     stateRef.current.peakAmp = 0.05;
     stateRef.current.smoothY = 0;
@@ -308,6 +317,9 @@ function LiveInputCanvas({
     // Reset for new recording
     s.history = [];
     s.ampHistory = [];
+    s.rmsWindow = [];
+    s.smoothAmp = 0;
+    s.smoothCentroid = 0.5;
     s.noiseFloor = 0.01;
     s.peakAmp = 0.05;
     s.smoothY = h / 2;
@@ -318,9 +330,9 @@ function LiveInputCanvas({
 
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
-    const maxDur = Math.max(3000, totalSyl * 350);
+    const maxDur = Math.max(5000, totalSyl * 500);
     const PAD = 8; // edge padding
-    const TRAIL = 80;
+    const RMS_WINDOW_SIZE = 84;
 
     const drawLine = () => {
       ctx2d.clearRect(0, 0, w, h);
@@ -331,13 +343,10 @@ function LiveInputCanvas({
 
       const headIdx = pts.length - 1;
 
-      // Draw segments with trailing fade
+      // Draw segments — fully opaque, no trailing fade
       for (let i = 1; i < pts.length; i++) {
         const a = pts[i - 1];
         const b = pts[i];
-        const distFromHead = headIdx - i;
-        const opacity = Math.max(0.15, 1 - distFromHead / TRAIL);
-        ctx2d.globalAlpha = opacity;
         const color = b.mismatch ? "#f87171" : "#a3e635";
         ctx2d.beginPath();
         ctx2d.moveTo(a.x, a.y);
@@ -351,7 +360,6 @@ function LiveInputCanvas({
         ctx2d.shadowBlur = b.mismatch ? 24 : 16;
         ctx2d.stroke();
       }
-      ctx2d.globalAlpha = 1;
       ctx2d.shadowBlur = 0;
 
       // Fill beneath
@@ -427,18 +435,21 @@ function LiveInputCanvas({
           if (rms < s.noiseFloor * 1.5) {
             s.noiseFloor = s.noiseFloor * 0.995 + rms * 0.005;
           }
-          // Adaptive peak (fast rise, slow decay)
-          if (rms > s.peakAmp) {
-            s.peakAmp = s.peakAmp * 0.7 + rms * 0.3;
-          } else {
-            s.peakAmp = s.peakAmp * 0.95 + rms * 0.05;
-          }
-          s.peakAmp = Math.max(s.peakAmp, s.noiseFloor * 3, 0.02);
 
-          // Normalize amplitude to 0-1 range
-          let normAmp = Math.min(1, Math.max(0, (rms - s.noiseFloor) / (s.peakAmp - s.noiseFloor)));
+          // Rolling RMS window for local normalization
+          s.rmsWindow.push(rms);
+          if (s.rmsWindow.length > RMS_WINDOW_SIZE) s.rmsWindow.shift();
+
+          // Compute rolling bounds (10th / 90th percentile approximation)
+          const sorted = [...s.rmsWindow].sort((a, b) => a - b);
+          const lo = sorted[Math.floor(sorted.length * 0.1)] ?? s.noiseFloor;
+          const hi = sorted[Math.floor(sorted.length * 0.9)] ?? 0.05;
+          const rollingRange = Math.max(hi - lo, 0.015);
+
+          // Normalize against rolling window bounds
+          let normAmp = Math.min(1, Math.max(0, (rms - lo) / rollingRange));
           // Floor: ensure quiet speech still produces visible oscillation
-          if (rms > s.noiseFloor * 1.5 && normAmp < 0.12) normAmp = 0.12;
+          if (rms > s.noiseFloor * 1.5 && normAmp < 0.14) normAmp = 0.14;
 
           // Spectral centroid for frequency feature
           let weightedSum = 0, magSum = 0;
@@ -446,9 +457,13 @@ function LiveInputCanvas({
             weightedSum += fi * freqBuf[fi];
             magSum += freqBuf[fi];
           }
-          const centroid = magSum > 0 ? (weightedSum / magSum) / freqBuf.length : 0.5;
+          const rawCentroid = magSum > 0 ? (weightedSum / magSum) / freqBuf.length : 0.5;
 
-          s.ampHistory.push(normAmp);
+          // Smooth input features for fluid curves
+          s.smoothAmp = s.smoothAmp * 0.70 + normAmp * 0.30;
+          s.smoothCentroid = s.smoothCentroid * 0.80 + rawCentroid * 0.20;
+
+          s.ampHistory.push(s.smoothAmp);
 
           // Auto-stop: 1s silence
           if (onAutoStopRef.current) {
@@ -463,21 +478,18 @@ function LiveInputCanvas({
             }
           }
 
-          // Bidirectional Y mapping using energy + spectral centroid
-          // Phase advances faster when amplitude is higher for natural oscillation
-          s.phase += 0.12 + normAmp * 0.24;
+          // Bidirectional Y mapping using smoothed energy + spectral centroid
+          s.phase += 0.12 + s.smoothAmp * 0.24;
           const direction = Math.sin(s.phase); // -1 to 1
           const drawableRange = h - PAD * 2;
           const midY = h / 2;
 
-          // Map: amplitude controls displacement magnitude, direction controls sign
-          // centroid biases toward top (high freq) or bottom (low freq)
-          const centroidBias = (centroid - 0.5) * 0.375; // 25% wider bias
-          const displacement = normAmp * (drawableRange * 0.75) * (direction + centroidBias);
+          const centroidBias = (s.smoothCentroid - 0.5) * 0.375;
+          const displacement = s.smoothAmp * (drawableRange * 0.75) * (direction + centroidBias);
           let targetY = midY - displacement;
 
-          // Heavier smoothing for fluid, prosody-like curves
-          targetY = s.smoothY * 0.55 + targetY * 0.45;
+          // Moderate Y smoothing — fluid without flattening
+          targetY = s.smoothY * 0.58 + targetY * 0.42;
           targetY = Math.max(PAD, Math.min(h - PAD, targetY));
           s.smoothY = targetY;
 
@@ -485,7 +497,7 @@ function LiveInputCanvas({
           const x = (elapsed / maxDur) * w;
 
           // Mismatch detection
-          const estIdx = Math.floor((x / w) * totalSyl);
+          const estIdx = Math.min(totalSyl - 1, Math.floor((x / w) * totalSyl));
           let mismatch = false;
           if (allSyl[estIdx]) {
             const high = allSyl[estIdx].pitch === 2;
