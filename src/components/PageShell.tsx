@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import OmniChatModal from "@/components/OmniChatModal";
 
-const TRIM_SECONDS = 0.3;
+const TRIM_SECONDS = 1.0;
 const VIDEO_1 = "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-26T17-16-49_add_a_slight_smiling_ndaiwy.mp4";
 const VIDEO_2 = "https://res.cloudinary.com/daujjfaqg/video/upload/Video_Generation_of_Teacher_s_Welcome_jeioja.mp4";
 
@@ -134,7 +134,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                 setVideoIndexA(nextNext);
               }
             }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
               (useIntro && !introFinished) ? "opacity-0" : activePlayer === "A" ? "opacity-100" : "opacity-0"
             }`}
             style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
@@ -170,7 +170,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                   setVideoIndexB(nextNext);
                 }
               }}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
                 activePlayer === "B" ? "opacity-100" : "opacity-0"
               }`}
               style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
