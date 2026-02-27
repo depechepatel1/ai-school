@@ -1,62 +1,99 @@
 
 
-## Problem Analysis
+## Refactoring Roadmap: SpeakingStudio Monolith Deconstruction
 
-The scoring system has several fundamental issues causing a native speaker to get only ~50%:
+### Current State Assessment
 
-1. **Target contour uses arbitrary pitch levels (0.2, 0.5, 0.8)** from prosody heuristics, while the **user contour uses actual Hz frequencies normalized to 0-1 (80-600Hz range)**. These are completely different scales — they'll never match well via DTW.
+The primary monolith is **`src/pages/SpeakingStudio.tsx` (1,783 lines)**. It contains:
+- 8 inline UI components (canvas visualizers, widgets, modals, config panels)
+- Complex IELTS test state machine logic
+- Curriculum loading/progression logic
+- Audio recording/playback management
+- AI chat orchestration
+- All wired together with 30+ `useState` calls
 
-2. **The prosody parser is a crude heuristic** — it guesses stress from suffix patterns (e.g. "-tion", "-ic") and assigns discrete pitch levels (0, -1, 2). Real English prosody is far more complex and speaker-dependent.
+Other pages (`StudentPractice`, `TeacherDashboard`, `ParentDashboard`) are already well-structured and reasonably sized. The student components under `/components/student/` are properly decomposed. The `/services/db.ts` and `/services/ai.ts` layers are solid.
 
-3. **DTW is comparing apples to oranges**: the target contour has ~2 points per syllable (very short), while the user contour has potentially hundreds of pitch samples from real-time tracking. The length mismatch alone degrades DTW scoring.
+---
 
-4. **The scoring formula is too harsh**: `(1 - avgDist * 2) * 100` means any average distance above 0.5 results in 0%. Since the two contours are on fundamentally different scales, even good speech gets penalized.
+### Phase 1: Types Extraction
 
-## Proposed Approach
+Create **`src/types/speaking.ts`** — extract all interfaces and type aliases from SpeakingStudio:
+- `CurriculumItem`, `Persona`, `TestPart`, `TestStatus`, `TestState`
+- `PART2_TOPIC` type and constant
+- `SYSTEM_PROMPT`, `FALLBACK_SENTENCES`, `FLUENCY_SENTENCES` constants
 
-Rather than trying to fix the broken pitch-to-pitch comparison, **switch to a relative contour shape comparison**:
+---
 
-### 1. Normalize both contours to the same relative scale
-- Convert both contours to **relative pitch movement** (delta between consecutive points) instead of absolute values
-- Z-score normalize both contours (subtract mean, divide by std dev) so they're scale-independent
-- Resample both to the same number of points before comparing
+### Phase 2: Extract Inline Components to `/components/speaking/`
 
-### 2. Use a more forgiving scoring formula
-- Reduce the DTW penalty multiplier so native speakers consistently score 80-95%
-- Add a correlation-based component (Pearson correlation of contour shapes) which is naturally scale-independent
-- Blend DTW + correlation for the final score
+Create individual files for each inline component currently embedded in `SpeakingStudio.tsx`:
 
-### 3. Improve the target contour generation
-- Add more points per syllable with smooth interpolation between stress levels
-- Use a gentler pitch range (0.3-0.7 instead of 0.2-0.8) since we're comparing shapes, not absolute values
+| New File | Source Component | Lines |
+|---|---|---|
+| `components/speaking/TargetContourCanvas.tsx` | `TargetContourCanvas` | ~155 lines |
+| `components/speaking/LiveInputCanvas.tsx` | `LiveInputCanvas` | ~160 lines |
+| `components/speaking/DebugContourOverlay.tsx` | `DebugContourOverlay` | ~95 lines |
+| `components/speaking/ProsodyVisualizer.tsx` | `ProsodyVisualizer` | ~50 lines |
+| `components/speaking/XPWidget.tsx` | `XPWidget` | ~20 lines |
+| `components/speaking/StreakWidget.tsx` | `StreakWidget` | ~15 lines |
+| `components/speaking/CountdownOverlay.tsx` | `CountdownOverlay` | ~10 lines |
+| `components/speaking/PersonaSelector.tsx` | `PersonaSelector` | ~50 lines |
+| `components/speaking/ExaminerConfig.tsx` | `ExaminerConfig` | ~55 lines |
+| `components/speaking/CueCard.tsx` | `CueCard` | ~15 lines |
+| `components/speaking/FreehandNotePad.tsx` | `FreehandNotePad` | ~50 lines |
+| `components/speaking/SaveSessionModal.tsx` | `SaveSessionModal` | ~35 lines |
+| `components/speaking/FlagIcons.tsx` | `UKFlag`, `USFlag` | ~20 lines |
 
-### 4. Add tolerance for timing differences
-- The current DTW already handles timing, but resample both contours to a fixed length (e.g., 50 points) before comparison to reduce noise from different recording durations
+---
 
-## Files to Modify
+### Phase 3: Extract Custom Hooks to `/hooks/`
 
-- **`src/lib/contour-match.ts`** — Add resampling, z-score normalization, correlation scoring, blend with DTW, fix scoring formula
-- **`src/lib/speech-analysis-provider.ts`** — Use improved matching in `analyzeContour()`
+Move business logic out of the main component into dedicated hooks:
 
-## Technical Details
+| New File | Responsibility |
+|---|---|
+| `hooks/useSpeakingTest.ts` | Full IELTS test state machine: `testState`, `advanceTest`, `stopTestManual`, `finishTest`, `initiateCountdown`, `runTestSetup`, countdown logic, timer effects |
+| `hooks/useCurriculum.ts` | Curriculum loading, pagination, progress save/resume: `loadCurriculumPage`, `handleNextSentence`, progress persistence |
+| `hooks/useAudioCapture.ts` | MediaRecorder management, replay audio state, mic permissions |
+| `hooks/useXP.ts` | XP/level state and `addXP` function (already simple, but isolates gamification) |
 
-### contour-match.ts changes:
-```text
-+ resampleContour(contour, targetLen) → number[]    // linear interpolation to fixed length
-+ zNormalize(contour) → number[]                     // (x - mean) / stddev
-+ pearsonCorrelation(a, b) → number                  // -1 to 1 correlation
-+ Updated matchContours:
-    1. Resample both to 50 points
-    2. Z-normalize both
-    3. DTW score (with gentler formula: 1 - avgDist * 0.8)
-    4. Pearson correlation score
-    5. Blend: 0.4 * dtwScore + 0.6 * correlationScore
-    6. Apply floor: native speakers should get 75-95%
-```
+---
 
-### Scoring formula change:
-```text
-Before: score = (1 - avgDist * 2) * 100     → harsh, 50% average distance = 0%
-After:  score = (1 - avgDist * 0.8) * 100   → gentler, blended with correlation
-```
+### Phase 4: Verify Data Layer Completeness
+
+The existing `services/db.ts` already centralizes all database calls. Verify and ensure:
+- No direct `supabase` imports exist outside `services/db.ts` and `services/ai.ts` (besides `lib/auth.tsx`)
+- Teacher and Parent dashboards use the same `services/db.ts` functions
+- No data-fetching logic lives inside page components (currently `TeacherDashboard` correctly uses `fetchClasses` from `db.ts`)
+
+---
+
+### Phase 5: Final SpeakingStudio Page
+
+After extraction, `SpeakingStudio.tsx` becomes a ~300-line orchestrator that:
+- Imports all components from `components/speaking/`
+- Uses hooks for test logic, curriculum, and audio
+- Contains only layout JSX and minimal glue code
+
+---
+
+### Dependency Safety Plan
+
+Before each file split:
+1. All props interfaces defined in `types/speaking.ts` first
+2. Components receive data via props only (no internal `supabase` calls)
+3. Hooks return typed objects matching the interfaces
+4. No circular imports — hooks import from `types/` and `services/`, components import from `types/` only
+
+### Files NOT Modified
+
+- `services/db.ts` — already clean, universal data layer
+- `services/ai.ts` — already clean
+- `lib/contour-match.ts` — already extracted
+- `lib/prosody.ts` — already extracted
+- `lib/speech-analysis-provider.ts` — already extracted
+- `lib/provider-config.ts` — already clean
+- All `/components/student/` files — already decomposed
+- All `/components/ui/` files — shadcn, untouched
 
