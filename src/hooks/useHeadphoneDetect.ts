@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const HEADPHONE_KEYWORDS = ["headphone", "earphone", "airpod", "headset", "earbud"];
+
 export function useHeadphoneDetect() {
   const [hasHeadphones, setHasHeadphones] = useState(false);
 
@@ -8,7 +10,14 @@ export function useHeadphoneDetect() {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audioOutputs = devices.filter((d) => d.kind === "audiooutput");
-        setHasHeadphones(audioOutputs.length > 1);
+        
+        // Check if any output device label contains headphone-related keywords
+        const headphoneDetected = audioOutputs.some((d) => {
+          const label = d.label.toLowerCase();
+          return HEADPHONE_KEYWORDS.some((kw) => label.includes(kw));
+        });
+        
+        setHasHeadphones(headphoneDetected);
       } catch {
         setHasHeadphones(false);
       }
