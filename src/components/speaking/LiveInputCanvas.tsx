@@ -79,7 +79,7 @@ export default function LiveInputCanvas({ isRecording, prosodyData, onAutoStop, 
           silenceStartRef.current = null;
         } else if (hasSpokenRef.current) {
           if (!silenceStartRef.current) silenceStartRef.current = Date.now();
-          if (Date.now() - silenceStartRef.current > 2000) { onAutoStopRef.current(); silenceStartRef.current = null; return; }
+          if (Date.now() - silenceStartRef.current > 1000) { onAutoStopRef.current(); silenceStartRef.current = null; return; }
         }
       }
 
