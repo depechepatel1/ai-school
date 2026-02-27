@@ -65,10 +65,8 @@ export default function PitchCanvas({
     tracker: RealtimePitchTracker;
   } | null>(null);
 
-  // Persisted live history – survives recording stop so line stays visible
-  const liveHistory = useRef<{ x: number; y: number }[]>([]);
-  const liveContour = useRef<number[]>([]); // raw contour saved on stop
-  const liveStart = useRef(0);
+  // Persisted live contour — shared renderer for recording + post-stop
+  const liveContour = useRef<number[]>([]);
   const silenceStart = useRef<number | null>(null);
   const hasSpoken = useRef(false);
   const showLive = useRef(false); // true once user has recorded at least once
@@ -110,9 +108,7 @@ export default function PitchCanvas({
   // Start/stop mic when recording changes
   useEffect(() => {
     if (isRecording) {
-      liveHistory.current = [];
       liveContour.current = [];
-      liveStart.current = Date.now();
       silenceStart.current = null;
       hasSpoken.current = false;
       showLive.current = true;
@@ -128,7 +124,6 @@ export default function PitchCanvas({
   useEffect(() => {
     if (modelContour.length !== prevModelLen.current) {
       if (modelContour.length === 0) {
-        liveHistory.current = [];
         liveContour.current = [];
         showLive.current = false;
       }
@@ -151,45 +146,9 @@ export default function PitchCanvas({
     return h - margin - norm * drawH; // 0→bottom, 1→top
   };
 
-  // ── Build target points ──
-  const buildTargetPoints = useCallback(
-    (w: number, h: number, pad: number) => {
-      const drawW = w - pad * 2;
-
-      if (modelContour.length > 0) {
-        let mn = Infinity, mx = -Infinity;
-        for (const v of modelContour) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
-        return modelContour.map((v, i) => ({
-          x: pad + i * (drawW / Math.max(1, modelContour.length - 1)),
-          y: mapYScaled(v, h, mn, mx),
-        }));
-      }
-
-      // Always fall back to synthetic prosody if no model contour
-      const allSyl = prosodyData.flatMap(d => d.syllables);
-      if (allSyl.length === 0) return [];
-      return allSyl.map((s, i) => {
-        let level: number;
-        if (s.pitch === 2 && s.stress === 2) level = 0.95;
-        else if (s.pitch === 2 && s.stress === 1) level = 0.8;
-        else if (s.pitch === 2) level = 0.7;
-        else if (s.stress === 2) level = 0.78;
-        else if (s.stress === 1) level = 0.55;
-        else if (s.pitch === -1) level = 0.1;
-        else level = 0.35;
-        return {
-          x: pad + i * (drawW / Math.max(1, allSyl.length - 1)),
-          y: mapYScaled(level, h, 0, 1),
-        };
-      });
-    },
-    [modelContour, prosodyData, useSyntheticFallback],
-  );
-
-  // ── Build live points — identical logic to target, from raw contour ──
-  const buildLivePoints = useCallback(
-    (w: number, h: number, pad: number) => {
-      const data = liveContour.current;
+  // ── Shared contour renderer (used by BOTH target and live lines) ──
+  const buildContourPoints = useCallback(
+    (data: number[], w: number, h: number, pad: number) => {
       if (data.length < 2) return [];
       const drawW = w - pad * 2;
       let mn = Infinity, mx = -Infinity;
@@ -199,7 +158,30 @@ export default function PitchCanvas({
         y: mapYScaled(v, h, mn, mx),
       }));
     },
-    [], // reads from ref, no deps needed
+    [],
+  );
+
+  // ── Build target points ──
+  const buildTargetPoints = useCallback(
+    (w: number, h: number, pad: number) => {
+      if (modelContour.length > 0) return buildContourPoints(modelContour, w, h, pad);
+
+      // Always fall back to synthetic prosody if no model contour
+      const allSyl = prosodyData.flatMap(d => d.syllables);
+      if (allSyl.length === 0) return [];
+      const syntheticContour = allSyl.map((s) => {
+        if (s.pitch === 2 && s.stress === 2) return 0.95;
+        if (s.pitch === 2 && s.stress === 1) return 0.8;
+        if (s.pitch === 2) return 0.7;
+        if (s.stress === 2) return 0.78;
+        if (s.stress === 1) return 0.55;
+        if (s.pitch === -1) return 0.1;
+        return 0.35;
+      });
+
+      return buildContourPoints(syntheticContour, w, h, pad);
+    },
+    [modelContour, prosodyData, buildContourPoints],
   );
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -310,7 +292,7 @@ export default function PitchCanvas({
         }
       }
 
-      // ── LIVE (green) — gather new points if recording ──
+      // ── LIVE (green) — keep contour updated while recording ──
       if (isRecording && micRef.current) {
         const analyser = micRef.current.analyser;
         const data = new Uint8Array(analyser.frequencyBinCount);
@@ -336,28 +318,11 @@ export default function PitchCanvas({
           }
         }
 
-        // Real-time feedback: time-based plotting (no smoothing)
-        const pitchArr = micRef.current.tracker.getContour();
-        const latestPitch = pitchArr.length > 0 ? pitchArr[pitchArr.length - 1] : null;
-        const totalSyl = prosodyData.flatMap(d => d.syllables).length;
-        const maxDur = Math.max(2400, totalSyl * 300);
-        const x = ((Date.now() - liveStart.current) / maxDur) * w;
-
-        if (latestPitch !== null) {
-          let mn = 0, mx = 1;
-          if (pitchArr.length > 1) {
-            mn = Infinity; mx = -Infinity;
-            for (const v of pitchArr) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
-          }
-          const y = Math.max(8, Math.min(h - 8, mapYScaled(latestPitch, h, mn, mx)));
-          liveHistory.current.push({ x, y });
-        }
+        // Keep raw contour current; render path is identical to target path
+        liveContour.current = micRef.current.tracker.getContour();
       }
 
-      // Draw live line: use rebuilt points (post-recording) or real-time history (during recording)
-      const livePts = (!isRecording && liveContour.current.length > 1)
-        ? buildLivePoints(w, h, PAD)
-        : liveHistory.current;
+      const livePts = buildContourPoints(liveContour.current, w, h, PAD);
 
       if (showLive.current && livePts.length > 1) {
         const grad = ctx.createLinearGradient(0, 0, w, 0);
@@ -379,7 +344,7 @@ export default function PitchCanvas({
 
     rafRef.current = requestAnimationFrame(render);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [isRecording, isPlayingModel, activeWordIndex, prosodyData, buildTargetPoints, buildLivePoints, modelContour]);
+  }, [isRecording, isPlayingModel, activeWordIndex, prosodyData, buildTargetPoints, buildContourPoints, modelContour]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
