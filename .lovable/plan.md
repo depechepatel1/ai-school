@@ -2,38 +2,26 @@
 
 ## Problem
 
-The current implementation uses a **single `<video>` element** whose `src` attribute changes on each `onEnded` event. When `setCurrentVideoIndex` triggers a re-render with a new `src`, the browser tears down the old video, loads the new one, and there's a visible flash (black frame) during the transition.
+Each video clip has a repeated/frozen frame in the first and last ~250ms. Even with the dual-video crossfade, this creates a visible stutter because the crossfade blends between two identical frames (the tail of clip A and the head of clip B).
 
-## Solution: Dual-Video Crossfade
+## Solution: Trim Heads and Tails in Code
 
-Use **two stacked `<video>` elements** (A and B) that alternate. When video A ends, video B (already preloaded with the next source) fades in while A fades out. Then B becomes the "active" player and A preloads the following video.
-
-## Implementation
+Since every clip shares this property, we can programmatically skip the dead frames:
 
 ### File: `src/components/PageShell.tsx`
 
-1. **Add a second video ref** (`loopRefB`) and a state to track which player is active (`activePlayer: "A" | "B"`)
-2. **Preload the next video** into the inactive player as soon as the active one starts playing
-3. **On `onEnded`** of the active player:
-   - Swap `activePlayer` state (A→B or B→A)
-   - Start playback on the now-active player (already preloaded)
-   - Load the *next-next* video into the now-inactive player
-4. **CSS crossfade**: Both videos are `absolute inset-0`, the active one gets `opacity-100` and the inactive gets `opacity-0`, with `transition-opacity duration-700` for a smooth blend
-5. Keep the existing intro video logic unchanged — it only affects the initial intro-to-loop transition
+1. **Seek past the head on load**: Add an `onLoadedData` handler to both Player A and Player B that sets `currentTime = 0.3` (slightly past the frozen frame) before playback begins. This ensures the first visible frame is always "live" content.
 
-### Key state changes:
+2. **End early before the tail**: Instead of waiting for the native `onEnded` event, use a `timeupdate` listener that checks if `currentTime >= duration - 0.3`. When this threshold is hit, immediately trigger the crossfade swap and start the other player. This cuts away before the frozen tail frame is ever shown.
+
+3. **Crossfade timing**: The 700ms opacity transition already covers the ~300ms we're trimming, so the blend will mask any remaining edge artifacts completely.
+
+### Implementation detail
+
 ```text
-activePlayer: "A" | "B"        // which video element is currently visible
-videoIndexA: number             // src index for player A
-videoIndexB: number             // src index for player B
+onLoadedData → seek to 0.3s
+onTimeUpdate → if (currentTime >= duration - 0.3) → trigger swap
 ```
 
-### Transition flow:
-```text
-A playing (idx 0) → A ends → B starts (idx 1, preloaded) → fade A out, B in
-B playing (idx 1) → B ends → A starts (idx 2, preloaded) → fade B out, A in
-...
-```
-
-No other files need changes.
+No changes to any other files. The trim values (0.3s) can be defined as a constant `TRIM_SECONDS` at the top of the file for easy tuning.
 
