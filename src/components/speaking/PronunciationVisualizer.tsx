@@ -169,7 +169,7 @@ function TargetContourCanvas({
     return () => cancelAnimationFrame(id);
   }, [data, isPlaying]);
 
-  return <canvas ref={canvasRef} className="w-full h-full" />;
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -453,7 +453,7 @@ function LiveInputCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecording]);
 
-  return <canvas ref={canvasRef} className="w-full h-full" />;
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -468,7 +468,7 @@ export default function PronunciationVisualizer({
   onPitchContour,
 }: Props) {
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-hidden rounded-[inherit]">
       <div className="absolute inset-0">
         <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} />
       </div>
