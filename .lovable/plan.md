@@ -2,33 +2,26 @@
 
 ## Problem
 
-Two issues:
-1. **Flashing artifact**: Two separate canvases (`TargetContourCanvas` and `LiveInputCanvas`) are stacked on top of each other, each calling `ctx.clearRect()` independently every frame. Since they're transparent overlays, the live canvas clears what the target canvas just drew, causing visible flicker.
-2. **Rendering mismatch**: The two canvases use different drawing approaches — LiveInputCanvas draws incrementally in real-time with smoothing, while TargetContourCanvas draws all points at once with playhead animation. Even though the Y-mapping formula is the same, the visual result looks different.
+The target (cyan) and live (green) lines use fundamentally different rendering approaches:
+
+1. **Target line**: Evenly spaces all contour points across the full canvas width, auto-scaled to the contour's own min/max range
+2. **Live line**: Plots points based on real-time elapsed time (time-based x), applies heavy 0.8/0.2 smoothing between frames, and uses a different min/max range (model range expanded by 20%)
+
+This means even identical pitch data would render as completely different shapes.
 
 ## Solution
 
-Replace both `TargetContourCanvas` and `LiveInputCanvas` with a single unified `PitchCanvas` component that draws both lines on one canvas in one render loop. This eliminates the competing `clearRect` calls (fixing the flash) and guarantees identical coordinate mapping for both contours.
+After recording stops, rebuild the live line from the raw captured contour using the **exact same logic** as the target line — evenly spaced across canvas width, same auto-scaling. During recording, continue plotting in real-time for visual feedback, but on stop, replace the incremental history with the properly-built version.
 
 ## Changes
 
-### 1. Create `src/components/speaking/PitchCanvas.tsx`
-Single canvas component that handles everything:
-- **Props**: `isRecording`, `isPlayingModel`, `activeWordIndex`, `prosodyData`, `modelContour`, `useSyntheticFallback`, `onAutoStop`, `onPitchContour`
-- **Single render loop**: One `requestAnimationFrame` loop that draws both target (cyan) and live (green) lines on the same canvas, same coordinate space
-- **Target line**: Drawn from `modelContour` (real mic-captured data) or synthetic prosody fallback, with playhead animation during TTS playback
-- **Live line**: Drawn from real-time mic pitch detection during recording, using identical `y = h - pitch * h * 0.8 - h * 0.1` mapping
-- **Mic management**: Handles mic init/cleanup for live recording internally (same as current LiveInputCanvas)
-- **Auto-stop**: Silence detection for auto-stop callback
-- **Pitch contour output**: Emits final contour on recording stop
+### `src/components/speaking/PitchCanvas.tsx` — rewrite live line rendering
 
-### 2. Update `src/pages/SpeakingStudio.tsx`
-- Remove imports of `TargetContourCanvas` and `LiveInputCanvas`
-- Import new `PitchCanvas`
-- Replace the two stacked `<div className="absolute inset-0">` wrappers with a single `<PitchCanvas>` element
-- Pass all relevant props to the unified component
-
-### 3. Delete old files
-- `src/components/speaking/TargetContourCanvas.tsx` — no longer needed
-- `src/components/speaking/LiveInputCanvas.tsx` — no longer needed
+1. **Store raw contour ref**: Keep `liveContour` ref (the raw `number[]` from the tracker) alongside `liveHistory`
+2. **On recording stop**: Save the final contour from the tracker into `liveContour.current`
+3. **New `buildLivePoints` function**: Clone of `buildTargetPoints` but reads from `liveContour.current` — identical even spacing, identical `mapYScaled` with its own min/max range
+4. **During recording**: Keep current real-time plotting for immediate feedback
+5. **After recording stops**: Draw from `buildLivePoints` instead of `liveHistory`, so both lines use identical point distribution and scaling
+6. **Remove the 0.8/0.2 smoothing blend** from real-time plotting — it distorts the shape
+7. **Unify min/max range**: Both lines use their own data's min/max with identical margin calculation (no extra 20% expansion for live)
 
