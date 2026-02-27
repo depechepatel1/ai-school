@@ -257,7 +257,7 @@ function LiveInputCanvas({
             sum += v * v;
           }
           const rawAmp = Math.sqrt(sum / data.length);
-          const amp = Math.min(1, rawAmp * 30);
+          const amp = Math.min(1, rawAmp * 50);
           ampHistory.current.push(amp);
 
           // Auto-stop: 1s silence
@@ -275,9 +275,9 @@ function LiveInputCanvas({
           }
 
           // Y position from amplitude
-          let y = h / 2 - amp * h * 0.45;
+          let y = h / 2 - amp * h * 0.55;
           if (history.current.length > 0) {
-            y = history.current[history.current.length - 1].y * 0.85 + y * 0.15;
+            y = history.current[history.current.length - 1].y * 0.6 + y * 0.4;
           }
           y = Math.max(10, Math.min(h - 10, y));
 
