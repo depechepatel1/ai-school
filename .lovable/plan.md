@@ -1,31 +1,52 @@
 
+Implementation plan (forensic fix in `src/components/speaking/PronunciationVisualizer.tsx`):
 
-## Forensic Analysis
+1) Remove user-line opacity decay (keep full line visible)
+- Eliminate trailing fade logic in `drawLine()`:
+  - remove `TRAIL` usage
+  - remove per-segment `opacity` calculation
+  - stop setting `ctx2d.globalAlpha` per segment
+- Keep stroke fully opaque across the entire history so old segments remain as visible as new segments for direct comparison to the target contour.
 
-Three compounding issues cause the second-half flattening:
+2) Harden late-session amplitude normalization (fix flattening after ~75%)
+- Add a short rolling RMS window in live state (recent frames only).
+- Compute dynamic low/high bounds from that rolling window each frame (instead of relying only on long-memory EMA peak behavior).
+- Normalize against rolling bounds, keep a speech-active floor, and clamp safely to avoid denominator collapse.
+- This prevents early loud syllables from suppressing later quieter syllables.
 
-1. **Peak decay still too slow** — `peakAmp` blend at `0.98/0.02` (line 434) means after a loud first half, peak takes ~50 frames to halve. Quieter second-half speech produces near-zero `normAmp`.
+3) Further smooth oscillations without damping them flat
+- Add smoothing at the input-feature level:
+  - smoothed amplitude envelope
+  - smoothed spectral centroid
+- Use those smoothed features in displacement math.
+- Keep Y-smoothing moderate (not heavy), so curves look more fluid while preserving depth.
 
-2. **Over-dampened smoothing** — The `0.66/0.34` EMA (line 480) aggressively flattens Y movement. Combined with shrinking `normAmp`, the line converges to midline.
+4) Prevent timeline compression side-effects that visually look like flattening
+- Increase `maxDur` mapping so line progression across X better matches real speaking pace.
+- Clamp progress/index lookups safely near the end of the sentence to avoid unstable final-quarter behavior.
 
-3. **Insufficient displacement range** — `drawableRange * 0.60` (line 476) caps vertical swing at 60% of canvas height, leaving headroom unused.
+5) Validation pass
+- Record a full sentence with normal + quieter ending.
+- Confirm:
+  - no fade in earlier user segments (full opacity preserved)
+  - oscillations remain active through final quarter
+  - motion looks smoother (no jagged spikes, no over-damped flatline).
 
-## Fix — Single file: `PronunciationVisualizer.tsx`
-
-**1. Aggressive peak decay** (line 434): `0.98/0.02` → `0.95/0.05`  
-Peak halves in ~14 frames instead of ~35, tracking current speech volume.
-
-**2. Higher amplitude floor** (line 441): `0.08` → `0.12`  
-Quiet speech stays visible throughout.
-
-**3. Faster phase advance** (line 468): `0.10 + normAmp * 0.19` → `0.12 + normAmp * 0.24`  
-25% more oscillation cycles, matching the target contour's rhythm.
-
-**4. Wider displacement** (line 476): `drawableRange * 0.60` → `drawableRange * 0.75`  
-25% increase in vertical swing range.
-
-**5. Lighter smoothing** (line 480): `0.66/0.34` → `0.55/0.45`  
-Smoother deep oscillations without flattening — mirrors the target contour's bezier interpolation feel.
-
-All five changes are constant tweaks in the `LiveInputCanvas` animation loop. No structural changes.
-
+Technical details (constants/logic to apply):
+- Remove:
+  - `const TRAIL = ...`
+  - `const opacity = Math.max(0.15, 1 - distFromHead / TRAIL)`
+  - `ctx2d.globalAlpha = opacity`
+- Add state fields:
+  - `rmsWindow: number[]`
+  - `smoothAmp: number`
+  - `smoothCentroid: number`
+- Add small percentile helper for rolling window bounds.
+- Suggested tuning targets:
+  - rolling window: ~72–96 frames
+  - speech floor after normalization: ~0.12–0.16
+  - feature smoothing:
+    - amp: ~0.70/0.30
+    - centroid: ~0.80/0.20
+  - Y smoothing: ~0.58/0.42
+  - `maxDur`: raise from current baseline to better fit slower utterances (e.g. `Math.max(5000, totalSyl * 500)`).
