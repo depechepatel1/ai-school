@@ -1,7 +1,12 @@
 /**
  * PronunciationVisualizer — dual-canvas: target contour + live user line.
- * Target advances via targetProgress prop (0→1) driven by TTS boundary events.
- * User line uses adaptive normalization with dual-feature Y mapping.
+ * 
+ * Performance optimizations:
+ * - Fix 1: O(1) peak envelope follower (replaces per-frame array sort)
+ * - Fix 2: Float32Array ring buffer + batched lineTo paths (replaces unbounded history + per-segment bezierCurveTo)
+ * - Fix 3: Single master RAF loop in parent (eliminates dual-loop micro-stutters)
+ * - Fix 4: ResizeObserver + cached dimensions/gradients (eliminates per-frame getBoundingClientRect)
+ * - Fix 5: desynchronized canvas context for lower latency
  */
 import { useRef, useEffect, useCallback } from "react";
 import type { WordData } from "@/lib/prosody";
@@ -16,6 +21,12 @@ interface Props {
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
 }
+
+/* ── Constants ── */
+const MAX_POINTS = 600; // ring buffer capacity
+const RING_STRIDE = 3;  // [x, y, mismatch] per point
+const PEAK_DECAY = 0.95;
+const PAD = 8;
 
 /* ── Shared helpers ── */
 function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
@@ -52,57 +63,68 @@ function drawGridLines(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.restore();
 }
 
-function setupCanvas(canvas: HTMLCanvasElement): { ctx: CanvasRenderingContext2D; w: number; h: number; resized: boolean } {
+/** Apply DPR scaling to a canvas. Returns true if resized. */
+function applyCanvasDpr(canvas: HTMLCanvasElement, w: number, h: number): boolean {
   const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  const targetW = Math.round(rect.width * dpr);
-  const targetH = Math.round(rect.height * dpr);
+  const targetW = Math.round(w * dpr);
+  const targetH = Math.round(h * dpr);
   const resized = canvas.width !== targetW || canvas.height !== targetH;
   if (resized) {
     canvas.width = targetW;
     canvas.height = targetH;
+    const ctx = canvas.getContext("2d", { desynchronized: true });
+    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  const ctx = canvas.getContext("2d")!;
-  if (resized) {
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  return { ctx, w: rect.width, h: rect.height, resized };
+  return resized;
 }
 
 /* ═══════════════════════════════════════════════════════════════
  * TargetContourCanvas — boundary-driven progressive reveal
+ * Render callback is invoked by the parent's master RAF loop.
  * ═══════════════════════════════════════════════════════════════ */
 function TargetContourCanvas({
   data,
   targetProgress,
   isPlaying,
+  renderRef,
+  dims,
 }: {
   data: WordData[];
   targetProgress: number;
   isPlaying: boolean;
+  renderRef: React.MutableRefObject<(() => void) | null>;
+  dims: React.MutableRefObject<{ w: number; h: number }>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animProgressRef = useRef(0);
-  const rafRef = useRef<number>(0);
   const targetProgressRef = useRef(targetProgress);
   const isPlayingRef = useRef(isPlaying);
+  const cachedGradRef = useRef<{ stroke: CanvasGradient; fill: CanvasGradient; w: number; h: number } | null>(null);
 
-  // Keep refs in sync without triggering re-renders / effect re-runs
   useEffect(() => { targetProgressRef.current = targetProgress; }, [targetProgress]);
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+  // Recompute cached gradients when dimensions change
+  const ensureGradients = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number) => {
+    const c = cachedGradRef.current;
+    if (c && c.w === w && c.h === h) return c;
+    const stroke = ctx.createLinearGradient(0, 0, w, 0);
+    stroke.addColorStop(0, "#22d3ee");
+    stroke.addColorStop(1, "#3b82f6");
+    const fill = ctx.createLinearGradient(0, 0, 0, h);
+    fill.addColorStop(0, "rgba(34,211,238,0.18)");
+    fill.addColorStop(1, "rgba(34,211,238,0)");
+    const entry = { stroke, fill, w, h };
+    cachedGradRef.current = entry;
+    return entry;
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    setupCanvas(canvas); // initial sizing
-    const ctx = canvas.getContext("2d")!;
-
+    const ctx = canvas.getContext("2d", { desynchronized: true })!;
     const allSyllables = data.flatMap((d) => d.syllables);
-
-    const getGeometry = () => {
-      const rect = canvas.getBoundingClientRect();
-      return { w: rect.width, h: rect.height };
-    };
+    animProgressRef.current = 0;
 
     const computePoints = (w: number, h: number) => {
       if (allSyllables.length === 0) return [];
@@ -113,7 +135,20 @@ function TargetContourCanvas({
       }));
     };
 
-    const draw = (prog: number, w: number, h: number) => {
+    // Register render callback for master loop
+    renderRef.current = () => {
+      const { w, h } = dims.current;
+      if (w === 0 || h === 0) return;
+      applyCanvasDpr(canvas, w, h);
+
+      const target = targetProgressRef.current;
+      const diff = target - animProgressRef.current;
+      if (Math.abs(diff) > 0.001) {
+        animProgressRef.current += diff * 0.15;
+      } else {
+        animProgressRef.current = target;
+      }
+
       ctx.clearRect(0, 0, w, h);
       drawVignette(ctx, w, h);
       drawGridLines(ctx, w, h);
@@ -122,10 +157,10 @@ function TargetContourCanvas({
       const points = computePoints(w, h);
       if (points.length === 0) return;
 
-      const visibleCount = Math.max(1, Math.ceil(prog * points.length));
+      const visibleCount = Math.max(1, Math.ceil(animProgressRef.current * points.length));
       const visiblePoints = points.slice(0, visibleCount);
 
-      // Draw contour
+      // Draw contour (bezier is fine here — only ~20-40 points)
       ctx.beginPath();
       ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y);
       for (let i = 1; i < visiblePoints.length; i++) {
@@ -138,10 +173,8 @@ function TargetContourCanvas({
         );
       }
 
-      const grad = ctx.createLinearGradient(0, 0, w, 0);
-      grad.addColorStop(0, "#22d3ee");
-      grad.addColorStop(1, "#3b82f6");
-      ctx.strokeStyle = grad;
+      const grads = ensureGradients(ctx, w, h);
+      ctx.strokeStyle = grads.stroke;
       ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.shadowColor = "#22d3ee";
@@ -153,14 +186,11 @@ function TargetContourCanvas({
       ctx.lineTo(visiblePoints[visiblePoints.length - 1].x, h);
       ctx.lineTo(visiblePoints[0].x, h);
       ctx.closePath();
-      const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
-      fillGrad.addColorStop(0, "rgba(34,211,238,0.18)");
-      fillGrad.addColorStop(1, "rgba(34,211,238,0)");
-      ctx.fillStyle = fillGrad;
+      ctx.fillStyle = grads.fill;
       ctx.fill();
 
       // Progress dot while playing
-      if (isPlayingRef.current && prog < 1) {
+      if (isPlayingRef.current && animProgressRef.current < 1) {
         const lastPt = visiblePoints[visiblePoints.length - 1];
         const baseRadius = 5 + Math.sin(Date.now() * 0.008) * 2;
         ctx.beginPath();
@@ -177,46 +207,34 @@ function TargetContourCanvas({
       }
     };
 
-    // Reset animated progress on new data
-    animProgressRef.current = 0;
-
-    // Persistent animation loop — reads refs, never re-created on prop change
-    let running = true;
-    const loop = () => {
-      if (!running) return;
-      setupCanvas(canvas); // handles resize without flash when unchanged
-      const { w, h } = getGeometry();
-
-      const target = targetProgressRef.current;
-      const diff = target - animProgressRef.current;
-      if (Math.abs(diff) > 0.001) {
-        animProgressRef.current += diff * 0.15;
-      } else {
-        animProgressRef.current = target;
-      }
-
-      draw(animProgressRef.current, w, h);
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    loop();
-
-    return () => {
-      running = false;
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, [data]); // Only re-create on data change, NOT on progress/playing changes
+    return () => { renderRef.current = null; };
+  }, [data, renderRef, dims, ensureGradients]);
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />;
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * LiveInputCanvas — recoded user mic line with adaptive normalization
+ * LiveInputCanvas — ring buffer + peak envelope + batched paths
  * ═══════════════════════════════════════════════════════════════ */
 
-interface HistoryPt {
-  x: number;
-  y: number;
-  mismatch: boolean;
+interface LiveState {
+  ctx?: AudioContext;
+  analyser?: AnalyserNode;
+  stream?: MediaStream;
+  // Ring buffer: [x, y, mismatch(0|1)] triples
+  ringBuf: Float32Array;
+  ringIdx: number;
+  ringCount: number;
+  ampHistory: number[];
+  smoothAmp: number;
+  smoothCentroid: number;
+  noiseFloor: number;
+  peakAmp: number; // Fix 1: peak envelope
+  smoothY: number;
+  phase: number;
+  startTime: number;
+  silenceStart: number | null;
+  stopped: boolean;
 }
 
 function LiveInputCanvas({
@@ -225,39 +243,27 @@ function LiveInputCanvas({
   sentenceKey,
   onAutoStop,
   onPitchContour,
+  renderRef,
+  dims,
 }: {
   isRecording: boolean;
   prosodyData: WordData[];
   sentenceKey: number;
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
+  renderRef: React.MutableRefObject<(() => void) | null>;
+  dims: React.MutableRefObject<{ w: number; h: number }>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stateRef = useRef<{
-    ctx?: AudioContext;
-    analyser?: AnalyserNode;
-    stream?: MediaStream;
-    req?: number;
-    history: HistoryPt[];
-    ampHistory: number[];
-    rmsWindow: number[];
-    smoothAmp: number;
-    smoothCentroid: number;
-    noiseFloor: number;
-    peakAmp: number;
-    smoothY: number;
-    phase: number;
-    startTime: number;
-    silenceStart: number | null;
-    stopped: boolean;
-  }>({
-    history: [],
+  const stateRef = useRef<LiveState>({
+    ringBuf: new Float32Array(MAX_POINTS * RING_STRIDE),
+    ringIdx: 0,
+    ringCount: 0,
     ampHistory: [],
-    rmsWindow: [],
     smoothAmp: 0,
     smoothCentroid: 0.5,
     noiseFloor: 0.01,
-    peakAmp: 0.05,
+    peakAmp: 0.001,
     smoothY: 0,
     phase: 0,
     startTime: 0,
@@ -266,37 +272,39 @@ function LiveInputCanvas({
   });
   const onAutoStopRef = useRef(onAutoStop);
   const onPitchContourRef = useRef(onPitchContour);
+  const cachedFillGradRef = useRef<{ grad: CanvasGradient; h: number } | null>(null);
 
   useEffect(() => { onAutoStopRef.current = onAutoStop; }, [onAutoStop]);
   useEffect(() => { onPitchContourRef.current = onPitchContour; }, [onPitchContour]);
 
-  // Reset history on new sentence
+  // Reset on new sentence
   useEffect(() => {
-    stateRef.current.history = [];
-    stateRef.current.ampHistory = [];
-    stateRef.current.rmsWindow = [];
-    stateRef.current.smoothAmp = 0;
-    stateRef.current.smoothCentroid = 0.5;
-    stateRef.current.noiseFloor = 0.01;
-    stateRef.current.peakAmp = 0.05;
-    stateRef.current.smoothY = 0;
-    stateRef.current.phase = 0;
+    const s = stateRef.current;
+    s.ringBuf.fill(0);
+    s.ringIdx = 0;
+    s.ringCount = 0;
+    s.ampHistory = [];
+    s.smoothAmp = 0;
+    s.smoothCentroid = 0.5;
+    s.noiseFloor = 0.01;
+    s.peakAmp = 0.001;
+    s.smoothY = 0;
+    s.phase = 0;
     const canvas = canvasRef.current;
     if (canvas) {
-      const ctx2d = canvas.getContext("2d");
+      const ctx2d = canvas.getContext("2d", { desynchronized: true });
       if (ctx2d) {
-        const dpr = window.devicePixelRatio || 1;
-        ctx2d.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+        const { w, h } = dims.current;
+        ctx2d.clearRect(0, 0, w, h);
       }
     }
-  }, [sentenceKey]);
+  }, [sentenceKey, dims]);
 
   useEffect(() => {
     const s = stateRef.current;
 
     if (!isRecording) {
       s.stopped = true;
-      if (s.req) cancelAnimationFrame(s.req);
       if (onPitchContourRef.current && s.ampHistory.length > 0) {
         onPitchContourRef.current([...s.ampHistory]);
       }
@@ -305,94 +313,131 @@ function LiveInputCanvas({
       s.ctx = undefined;
       s.analyser = undefined;
       s.stream = undefined;
-      s.req = undefined;
-      // Don't clear history — persist user line for comparison
       return;
     }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const { ctx: ctx2d, w, h } = setupCanvas(canvas);
+    const { w, h } = dims.current;
+    applyCanvasDpr(canvas, w, h);
+    const ctx2d = canvas.getContext("2d", { desynchronized: true })!;
 
     // Reset for new recording
-    s.history = [];
+    s.ringBuf.fill(0);
+    s.ringIdx = 0;
+    s.ringCount = 0;
     s.ampHistory = [];
-    s.rmsWindow = [];
     s.smoothAmp = 0;
     s.smoothCentroid = 0.5;
     s.noiseFloor = 0.01;
-    s.peakAmp = 0.05;
+    s.peakAmp = 0.001;
     s.smoothY = h / 2;
     s.phase = 0;
     s.stopped = false;
     s.silenceStart = Date.now();
     ctx2d.clearRect(0, 0, w, h);
+    cachedFillGradRef.current = null;
 
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
     const maxDur = Math.max(5000, totalSyl * 500);
-    const PAD = 8; // edge padding
-    const RMS_WINDOW_SIZE = 84;
 
-    const drawLine = () => {
-      ctx2d.clearRect(0, 0, w, h);
-      // Background decorations are drawn only by TargetContourCanvas (bottom layer)
+    // Fix 2: Batched draw from ring buffer
+    const drawLine = (cw: number, ch: number) => {
+      ctx2d.clearRect(0, 0, cw, ch);
+      const count = s.ringCount;
+      if (count < 2) return;
 
-      const pts = s.history;
-      if (pts.length < 2) return;
+      const buf = s.ringBuf;
+      const startRead = count >= MAX_POINTS ? s.ringIdx : 0;
+      const total = Math.min(count, MAX_POINTS);
 
-      const headIdx = pts.length - 1;
-
-      // Draw segments — fully opaque, no trailing fade
-      for (let i = 1; i < pts.length; i++) {
-        const a = pts[i - 1];
-        const b = pts[i];
-        const color = b.mismatch ? "#f87171" : "#a3e635";
+      // Two-pass: green segments then red segments (batched paths)
+      for (const pass of [0, 1] as const) { // 0 = green, 1 = red
+        const color = pass === 1 ? "#f87171" : "#a3e635";
         ctx2d.beginPath();
-        ctx2d.moveTo(a.x, a.y);
-        const cpx1 = a.x + (b.x - a.x) * 0.4;
-        const cpx2 = a.x + (b.x - a.x) * 0.6;
-        ctx2d.bezierCurveTo(cpx1, a.y, cpx2, b.y, b.x, b.y);
-        ctx2d.strokeStyle = color;
-        ctx2d.shadowColor = color;
-        ctx2d.lineWidth = 4;
-        ctx2d.lineCap = "round";
-        ctx2d.shadowBlur = b.mismatch ? 24 : 16;
-        ctx2d.stroke();
+        let moved = false;
+        let prevX = 0, prevY = 0;
+
+        for (let i = 0; i < total; i++) {
+          const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
+          const x = buf[idx];
+          const y = buf[idx + 1];
+          const mis = buf[idx + 2]; // 0 or 1
+
+          const isThisPass = pass === 1 ? mis >= 0.5 : mis < 0.5;
+
+          if (isThisPass) {
+            if (!moved) {
+              ctx2d.moveTo(x, y);
+              moved = true;
+            } else {
+              ctx2d.lineTo(x, y);
+            }
+          } else {
+            // Break the path so we don't connect across color boundaries
+            if (moved) {
+              moved = false;
+            }
+          }
+          prevX = x;
+          prevY = y;
+        }
+
+        if (moved) {
+          ctx2d.strokeStyle = color;
+          ctx2d.shadowColor = color;
+          ctx2d.lineWidth = 4;
+          ctx2d.lineCap = "round";
+          ctx2d.lineJoin = "round";
+          ctx2d.shadowBlur = pass === 1 ? 24 : 16;
+          ctx2d.stroke();
+        }
       }
       ctx2d.shadowBlur = 0;
 
-      // Fill beneath
+      // Fill beneath — single pass, all points
       ctx2d.beginPath();
-      ctx2d.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) {
-        const a = pts[i - 1];
-        const b = pts[i];
-        ctx2d.bezierCurveTo(
-          a.x + (b.x - a.x) * 0.4, a.y,
-          a.x + (b.x - a.x) * 0.6, b.y,
-          b.x, b.y,
-        );
+      let firstX = 0, lastX = 0, lastY = 0;
+      for (let i = 0; i < total; i++) {
+        const idx = ((startRead + i) % MAX_POINTS) * RING_STRIDE;
+        const x = buf[idx];
+        const y = buf[idx + 1];
+        if (i === 0) { ctx2d.moveTo(x, y); firstX = x; }
+        else ctx2d.lineTo(x, y);
+        lastX = x;
+        lastY = y;
       }
-      ctx2d.lineTo(pts[pts.length - 1].x, h);
-      ctx2d.lineTo(pts[0].x, h);
+      ctx2d.lineTo(lastX, ch);
+      ctx2d.lineTo(firstX, ch);
       ctx2d.closePath();
-      const fillGrad = ctx2d.createLinearGradient(0, 0, 0, h);
-      fillGrad.addColorStop(0, "rgba(163,230,53,0.15)");
-      fillGrad.addColorStop(1, "rgba(163,230,53,0)");
-      ctx2d.fillStyle = fillGrad;
+
+      // Cached fill gradient (Fix 4)
+      let fg = cachedFillGradRef.current;
+      if (!fg || fg.h !== ch) {
+        const g = ctx2d.createLinearGradient(0, 0, 0, ch);
+        g.addColorStop(0, "rgba(163,230,53,0.15)");
+        g.addColorStop(1, "rgba(163,230,53,0)");
+        fg = { grad: g, h: ch };
+        cachedFillGradRef.current = fg;
+      }
+      ctx2d.fillStyle = fg.grad;
       ctx2d.fill();
 
-      // Head dot
-      const head = pts[headIdx];
+      // Head dot — newest point
+      const headRingIdx = ((s.ringIdx - 1 + MAX_POINTS) % MAX_POINTS) * RING_STRIDE;
+      const headX = buf[headRingIdx];
+      const headY = buf[headRingIdx + 1];
+      const headMis = buf[headRingIdx + 2] >= 0.5;
       const radius = 5 + Math.sin(Date.now() * 0.008) * 2;
-      const headColor = head.mismatch ? "#f87171" : "#a3e635";
+      const headColor = headMis ? "#f87171" : "#a3e635";
+
       ctx2d.beginPath();
-      ctx2d.arc(head.x, head.y, radius + 3, 0, Math.PI * 2);
-      ctx2d.fillStyle = head.mismatch ? "rgba(248,113,113,0.15)" : "rgba(163,230,53,0.15)";
+      ctx2d.arc(headX, headY, radius + 3, 0, Math.PI * 2);
+      ctx2d.fillStyle = headMis ? "rgba(248,113,113,0.15)" : "rgba(163,230,53,0.15)";
       ctx2d.fill();
       ctx2d.beginPath();
-      ctx2d.arc(head.x, head.y, radius, 0, Math.PI * 2);
+      ctx2d.arc(headX, headY, radius, 0, Math.PI * 2);
       ctx2d.fillStyle = headColor;
       ctx2d.shadowColor = headColor;
       ctx2d.shadowBlur = 14;
@@ -417,8 +462,12 @@ function LiveInputCanvas({
         const timeBuf = new Uint8Array(analyser.frequencyBinCount);
         const freqBuf = new Uint8Array(analyser.frequencyBinCount);
 
-        const loop = () => {
+        // Register render callback for master RAF loop
+        renderRef.current = () => {
           if (s.stopped || !s.analyser) return;
+          const { w: cw, h: ch } = dims.current;
+          if (cw === 0 || ch === 0) return;
+          applyCanvasDpr(canvas, cw, ch);
 
           s.analyser.getByteTimeDomainData(timeBuf);
           s.analyser.getByteFrequencyData(freqBuf);
@@ -431,27 +480,22 @@ function LiveInputCanvas({
           }
           const rms = Math.sqrt(sum / timeBuf.length);
 
-          // Adaptive noise floor (slow rise, fast drop)
+          // Adaptive noise floor
           if (rms < s.noiseFloor * 1.5) {
             s.noiseFloor = s.noiseFloor * 0.995 + rms * 0.005;
           }
 
-          // Rolling RMS window for local normalization
-          s.rmsWindow.push(rms);
-          if (s.rmsWindow.length > RMS_WINDOW_SIZE) s.rmsWindow.shift();
-
-          // Compute rolling bounds (10th / 90th percentile approximation)
-          const sorted = [...s.rmsWindow].sort((a, b) => a - b);
-          const lo = sorted[Math.floor(sorted.length * 0.1)] ?? s.noiseFloor;
-          const hi = sorted[Math.floor(sorted.length * 0.9)] ?? 0.05;
-          const rollingRange = Math.max(hi - lo, 0.015);
-
-          // Normalize against rolling window bounds
-          let normAmp = Math.min(1, Math.max(0, (rms - lo) / rollingRange));
-          // Floor: ensure quiet speech still produces visible oscillation
+          // Fix 1: Peak envelope follower — O(1), no arrays
+          if (rms > s.peakAmp) {
+            s.peakAmp = rms; // fast attack
+          } else {
+            s.peakAmp = Math.max(0.001, s.peakAmp * PEAK_DECAY); // smooth decay
+          }
+          let normAmp = Math.min(1, rms / s.peakAmp);
+          // Floor: quiet speech still visible
           if (rms > s.noiseFloor * 1.5 && normAmp < 0.14) normAmp = 0.14;
 
-          // Spectral centroid for frequency feature
+          // Spectral centroid
           let weightedSum = 0, magSum = 0;
           for (let fi = 0; fi < freqBuf.length; fi++) {
             weightedSum += fi * freqBuf[fi];
@@ -459,10 +503,9 @@ function LiveInputCanvas({
           }
           const rawCentroid = magSum > 0 ? (weightedSum / magSum) / freqBuf.length : 0.5;
 
-          // Smooth input features for fluid curves
+          // Smooth input features
           s.smoothAmp = s.smoothAmp * 0.70 + normAmp * 0.30;
           s.smoothCentroid = s.smoothCentroid * 0.80 + rawCentroid * 0.20;
-
           s.ampHistory.push(s.smoothAmp);
 
           // Auto-stop: 1s silence
@@ -478,26 +521,23 @@ function LiveInputCanvas({
             }
           }
 
-          // Bidirectional Y mapping using smoothed energy + spectral centroid
+          // Y mapping
           s.phase += 0.12 + s.smoothAmp * 0.24;
-          const direction = Math.sin(s.phase); // -1 to 1
-          const drawableRange = h - PAD * 2;
-          const midY = h / 2;
-
+          const direction = Math.sin(s.phase);
+          const drawableRange = ch - PAD * 2;
+          const midY = ch / 2;
           const centroidBias = (s.smoothCentroid - 0.5) * 0.375;
           const displacement = s.smoothAmp * (drawableRange * 0.75) * (direction + centroidBias);
           let targetY = midY - displacement;
-
-          // Moderate Y smoothing — fluid without flattening
           targetY = s.smoothY * 0.58 + targetY * 0.42;
-          targetY = Math.max(PAD, Math.min(h - PAD, targetY));
+          targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
           const elapsed = Date.now() - s.startTime;
-          const x = (elapsed / maxDur) * w;
+          const x = (elapsed / maxDur) * cw;
 
           // Mismatch detection
-          const estIdx = Math.min(totalSyl - 1, Math.floor((x / w) * totalSyl));
+          const estIdx = Math.min(totalSyl - 1, Math.floor((x / cw) * totalSyl));
           let mismatch = false;
           if (allSyl[estIdx]) {
             const high = allSyl[estIdx].pitch === 2;
@@ -505,35 +545,48 @@ function LiveInputCanvas({
             if (!high && normAmp > 0.8) mismatch = true;
           }
 
-          s.history.push({ x, y: targetY, mismatch });
-          drawLine();
-          s.req = requestAnimationFrame(loop);
-        };
+          // Fix 2: Write to ring buffer
+          const wi = s.ringIdx * RING_STRIDE;
+          s.ringBuf[wi] = x;
+          s.ringBuf[wi + 1] = targetY;
+          s.ringBuf[wi + 2] = mismatch ? 1 : 0;
+          s.ringIdx = (s.ringIdx + 1) % MAX_POINTS;
+          s.ringCount++;
 
-        loop();
+          drawLine(cw, ch);
+        };
       } catch {
         // Simulation fallback
         s.startTime = Date.now();
-        const simLoop = () => {
+        renderRef.current = () => {
           if (s.stopped) return;
+          const { w: cw, h: ch } = dims.current;
+          if (cw === 0 || ch === 0) return;
+          applyCanvasDpr(canvas, cw, ch);
+
           const elapsed = Date.now() - s.startTime;
           if (onAutoStopRef.current && elapsed > 5000) {
             onAutoStopRef.current();
             return;
           }
-          const x = (elapsed / maxDur) * w;
+          const x = (elapsed / maxDur) * cw;
           s.phase += 0.1;
           const amp = 0.3 + Math.sin(elapsed * 0.003) * 0.3;
           const direction = Math.sin(s.phase);
-          let y = h / 2 - amp * (h - PAD * 2) * 0.45 * direction;
+          let y = ch / 2 - amp * (ch - PAD * 2) * 0.45 * direction;
           y = s.smoothY * 0.4 + y * 0.6;
-          y = Math.max(PAD, Math.min(h - PAD, y));
+          y = Math.max(PAD, Math.min(ch - PAD, y));
           s.smoothY = y;
-          s.history.push({ x, y, mismatch: Math.random() > 0.85 });
-          drawLine();
-          s.req = requestAnimationFrame(simLoop);
+
+          const wi = s.ringIdx * RING_STRIDE;
+          s.ringBuf[wi] = x;
+          s.ringBuf[wi + 1] = y;
+          s.ringBuf[wi + 2] = Math.random() > 0.85 ? 1 : 0;
+          s.ringIdx = (s.ringIdx + 1) % MAX_POINTS;
+          s.ringCount++;
+
+          drawLine(cw, ch);
         };
-        simLoop();
       }
     };
 
@@ -541,7 +594,7 @@ function LiveInputCanvas({
 
     return () => {
       s.stopped = true;
-      if (s.req) cancelAnimationFrame(s.req);
+      renderRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecording]);
@@ -550,7 +603,7 @@ function LiveInputCanvas({
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * Main wrapper — two canvases stacked
+ * Main wrapper — Fix 3: single master RAF loop + Fix 4: ResizeObserver
  * ═══════════════════════════════════════════════════════════════ */
 export default function PronunciationVisualizer({
   isRecording,
@@ -562,10 +615,55 @@ export default function PronunciationVisualizer({
   onAutoStop,
   onPitchContour,
 }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dimsRef = useRef({ w: 0, h: 0 });
+  const targetRenderRef = useRef<(() => void) | null>(null);
+  const liveRenderRef = useRef<(() => void) | null>(null);
+  const rafRef = useRef<number>(0);
+
+  // Fix 4: ResizeObserver — cache dimensions, no per-frame getBoundingClientRect
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      dimsRef.current = { w: width, h: height };
+    });
+    ro.observe(el);
+    // Initial measurement
+    const rect = el.getBoundingClientRect();
+    dimsRef.current = { w: rect.width, h: rect.height };
+    return () => ro.disconnect();
+  }, []);
+
+  // Fix 3: Single master RAF loop driving both canvases
+  useEffect(() => {
+    let running = true;
+    const masterLoop = () => {
+      if (!running) return;
+      targetRenderRef.current?.();
+      liveRenderRef.current?.();
+      rafRef.current = requestAnimationFrame(masterLoop);
+    };
+    rafRef.current = requestAnimationFrame(masterLoop);
+    return () => {
+      running = false;
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-[inherit]">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden rounded-[inherit]">
       <div className="absolute inset-0">
-        <TargetContourCanvas data={prosodyData} targetProgress={targetProgress} isPlaying={isPlayingModel} />
+        <TargetContourCanvas
+          data={prosodyData}
+          targetProgress={targetProgress}
+          isPlaying={isPlayingModel}
+          renderRef={targetRenderRef}
+          dims={dimsRef}
+        />
       </div>
       <div className="absolute inset-0">
         <LiveInputCanvas
@@ -574,6 +672,8 @@ export default function PronunciationVisualizer({
           sentenceKey={sentenceKey}
           onAutoStop={onAutoStop}
           onPitchContour={onPitchContour}
+          renderRef={liveRenderRef}
+          dims={dimsRef}
         />
       </div>
     </div>
