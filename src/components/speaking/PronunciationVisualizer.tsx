@@ -614,9 +614,26 @@ function LiveInputCanvas({
     <div className="absolute inset-0 w-full h-full rounded-[inherit]">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />
       {micDenied && isRecording && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
-          <MicOff className="w-8 h-8 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground/60">Microphone access denied</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30">
+            <MicOff className="w-7 h-7 text-destructive/60" />
+            <span className="text-sm font-medium text-foreground/80">Microphone blocked</span>
+            <p className="text-xs text-muted-foreground text-center max-w-[220px] leading-relaxed">
+              Click the <span className="inline-flex items-center gap-0.5 font-medium text-foreground/70">🔒 lock icon</span> in your browser's address bar, then allow microphone access.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setMicDenied(false);
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                  .then((stream) => { stream.getTracks().forEach(t => t.stop()); window.location.reload(); })
+                  .catch(() => setMicDenied(true));
+              }}
+              className="mt-1 text-xs font-medium text-primary hover:text-primary/80 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
         </div>
       )}
     </div>
