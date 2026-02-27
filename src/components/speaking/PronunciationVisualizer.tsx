@@ -412,12 +412,14 @@ function LiveInputCanvas({
           if (rms > s.peakAmp) {
             s.peakAmp = s.peakAmp * 0.7 + rms * 0.3;
           } else {
-            s.peakAmp = s.peakAmp * 0.999 + rms * 0.001;
+            s.peakAmp = s.peakAmp * 0.98 + rms * 0.02;
           }
           s.peakAmp = Math.max(s.peakAmp, s.noiseFloor * 3, 0.02);
 
           // Normalize amplitude to 0-1 range
-          const normAmp = Math.min(1, Math.max(0, (rms - s.noiseFloor) / (s.peakAmp - s.noiseFloor)));
+          let normAmp = Math.min(1, Math.max(0, (rms - s.noiseFloor) / (s.peakAmp - s.noiseFloor)));
+          // Floor: ensure quiet speech still produces visible oscillation
+          if (rms > s.noiseFloor * 1.5 && normAmp < 0.08) normAmp = 0.08;
 
           // Spectral centroid for frequency feature
           let weightedSum = 0, magSum = 0;
