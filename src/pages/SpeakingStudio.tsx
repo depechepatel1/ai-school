@@ -41,7 +41,7 @@ export default function SpeakingStudio() {
   const [mode, setMode] = useState<"shadowing" | "speaking">("shadowing");
   const [accent, setAccent] = useState<"UK" | "US">("UK");
   const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency">("pronunciation");
-  const [rawText, setRawText] = useState("The quick brown fox jumps over the lazy dog");
+  const [rawText, setRawText] = useState("");
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [isPlayingModel, setIsPlayingModel] = useState(false);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
