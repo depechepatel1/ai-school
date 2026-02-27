@@ -287,6 +287,19 @@ export default function SpeakingStudio() {
                     <span className="text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
                     <span className="text-[9px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
                   </div>
+                  <div className="absolute top-2 right-4 z-10 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/40 border border-white/[0.06]">
+                    {hasHeadphones ? (
+                      <>
+                        <Headphones className="w-3 h-3 text-amber-400/80" />
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-amber-400/70">Prosody</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-3 h-3 text-cyan-400/80" />
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-cyan-400/70">Mic Capture</span>
+                      </>
+                    )}
+                  </div>
                   <div className="absolute inset-0 px-8 py-2">
                     <TargetContourCanvas data={prosodyData} isPlaying={isPlayingModel} activeWordIndex={activeWordIndex} contour={modelContour} />
                   </div>
