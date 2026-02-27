@@ -1,56 +1,55 @@
 
 
-## Plan: Reinstall Original Visualizer Logic
+## Plan: Improve Visualizer Graphics
 
-### What the original code does differently
+Upgrade the visual quality of both the target (cyan) and live (green) canvas lines with richer rendering effects.
 
-The uploaded file contains two separate canvas components stacked in the same container:
+### Changes to `PronunciationVisualizer.tsx`
 
-1. **TargetContourVisualizer** — Draws a static prosody contour line (cyan) from syllable data. No mic, no timing sync needed. It maps `pitch === 2` to top, `pitch === -1` to bottom, neutral to middle. Optionally animates a progress dot when `isPlaying` is true.
+**Target contour line (cyan):**
+- Increase line width from 3 to 4px
+- Add gradient fill beneath the contour line (cyan to transparent) for a "filled area" effect
+- Increase glow blur from 10 to 18px
+- Add subtle animated pulse on the progress dot (radius oscillation + outer glow ring)
+- Draw faint grid lines (horizontal at 25%, 50%, 75%) for depth
 
-2. **LiveInputVisualizer** — Uses mic RMS amplitude (volume), NOT pitch detection. Maps `rawAmp * 30` to a 0-1 scale, smooths heavily (0.85/0.15 blend), draws a green line with mismatch detection against prosody expectations. Has auto-stop after 2s silence. Has a simulated fallback if mic access denied.
+**Live input line (green):**
+- Increase line width from 3 to 4px
+- Increase glow blur from 8 to 16px
+- Add a trailing fade effect: older segments become progressively more transparent
+- Draw a pulsing dot at the current head of the line
+- Add a subtle gradient fill beneath the live line (green to transparent)
+- Mismatch segments: increase red glow intensity and add a brief "flash" effect
 
-### Key differences from current implementation
-- Original uses **two separate canvases** layered on top of each other, not one canvas with two line histories
-- Original live line uses **volume (RMS)** not pitch (F0) — simpler, more responsive, fewer false negatives
-- Original target line is **fully static** (drawn once from prosody data), not animated word-by-word from TTS `onBoundary` events
-- Original auto-stop is 2 seconds, current is 1 second
-- Original has a **simulate fallback** when mic is denied
-- No dependency on `pitchy` library
-
-### Implementation steps
-
-1. **Rewrite `PronunciationVisualizer.tsx`** to contain two internal canvases matching the original logic:
-   - `TargetContourVisualizer`: static prosody line drawn once from `prosodyData`, with animated progress dot when `isPlayingModel`
-   - `LiveInputVisualizer`: mic RMS-based amplitude line with smoothing, mismatch detection, auto-stop (2s), and simulation fallback
-   - Both rendered as overlapping `<canvas>` elements inside a single wrapper div
-
-2. **Update props** to match what `SpeakingStudio.tsx` already passes (no changes needed to SpeakingStudio — the props interface stays the same: `isRecording`, `isPlayingModel`, `activeWordIndex`, `prosodyData`, `onAutoStop`, `onPitchContour`)
-
-3. **Remove `pitchy` dependency** — the original doesn't use pitch detection at all, just volume amplitude
+**Shared improvements:**
+- Replace flat midline with a subtle dashed line
+- Add a very faint radial gradient background vignette on each canvas for depth
+- Smoother bezier curves using cubic bezier instead of quadratic for both lines
 
 ### Technical details
 
-Target line Y-mapping (from original):
+Trailing fade on live line:
 ```
-pitch === 2  → h * 0.2  (high)
-pitch === -1 → h * 0.8  (low)
-else         → h * 0.7  (neutral)
-```
-
-Live line amplitude mapping (from original):
-```
-rawAmp = sqrt(sum of squared samples / length)
-amp = min(1, rawAmp * 30)
-y = (h/2) - (amp * h * 0.45)
-smoothed: y = prev * 0.85 + new * 0.15
+opacity = Math.max(0.15, 1 - (headIndex - i) / trailLength)
+ctx.globalAlpha = opacity
 ```
 
-Mismatch detection (from original):
+Under-line gradient fill:
 ```
-if high pitch syllable && amp < 0.2 → mismatch
-if not high pitch && amp > 0.6 → mismatch
+ctx.lineTo(lastX, h)
+ctx.lineTo(firstX, h)
+ctx.closePath()
+fillStyle = linear gradient from lineColor at 0.3 alpha to transparent
 ```
 
-Auto-stop: 2 seconds of silence (rawAmp < 0.02), no `hasSpoken` gate in original.
+Head dot pulse:
+```
+radius = 5 + Math.sin(Date.now() * 0.008) * 2
+```
+
+Dashed midline:
+```
+ctx.setLineDash([8, 12])
+ctx.strokeStyle = "rgba(255,255,255,0.06)"
+```
 
