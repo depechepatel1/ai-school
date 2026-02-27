@@ -89,6 +89,7 @@ export default function PitchCanvas({
 
   // Silence detection
   const silenceStartRef = useRef<number | null>(null);
+  const hasSpokenRef = useRef(false);
 
   // Flags
   const showLive = useRef(false);
@@ -165,10 +166,10 @@ export default function PitchCanvas({
         amp = getSyntheticAmp(allSyl, estIdx);
       }
 
-      // Convert amp to y (identical formula to user line)
+      // Convert amp to y
       let y = (h / 2) - (amp * h * 0.45);
-      // Smoothing (identical to original)
-      y = lastY * 0.85 + y * 0.15;
+      // Smoothing
+      y = lastY * 0.6 + y * 0.4;
       y = Math.max(10, Math.min(h - 10, y));
       lastY = y;
 
@@ -224,7 +225,8 @@ export default function PitchCanvas({
     if (!canvas) return;
 
     liveHistory.current = [];
-    silenceStartRef.current = Date.now();
+    silenceStartRef.current = null;
+    hasSpokenRef.current = false;
     showLive.current = true;
     liveStartRef.current = Date.now();
 
@@ -268,13 +270,14 @@ export default function PitchCanvas({
         sum += v * v;
       }
       const rawAmp = Math.sqrt(sum / data.length);
-      const amp = Math.min(1, rawAmp * 50);
+      const amp = Math.min(1, rawAmp * 8);
 
-      // Auto-stop silence detection (original logic)
+      // Auto-stop silence detection with speech gate
       if (onAutoStopRef.current) {
-        if (rawAmp > 0.02) {
-          silenceStartRef.current = Date.now();
-        } else {
+        if (rawAmp > 0.05) {
+          hasSpokenRef.current = true;
+          silenceStartRef.current = null;
+        } else if (hasSpokenRef.current) {
           if (!silenceStartRef.current) silenceStartRef.current = Date.now();
           if (Date.now() - silenceStartRef.current > 1000) {
             onAutoStopRef.current();
@@ -284,10 +287,10 @@ export default function PitchCanvas({
         }
       }
 
-      // Y position from amplitude (identical formula)
+      // Y position from amplitude
       let y = (h / 2) - (amp * h * 0.45);
       if (liveHistory.current.length > 0) {
-        y = liveHistory.current[liveHistory.current.length - 1].y * 0.85 + y * 0.15;
+        y = liveHistory.current[liveHistory.current.length - 1].y * 0.6 + y * 0.4;
       }
       y = Math.max(10, Math.min(h - 10, y));
 
@@ -361,8 +364,12 @@ export default function PitchCanvas({
     const ctx = canvas.getContext("2d")!;
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    const targetW = Math.round(rect.width * dpr);
+    const targetH = Math.round(rect.height * dpr);
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const w = rect.width;
     const h = rect.height;
