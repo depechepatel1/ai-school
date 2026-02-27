@@ -3,7 +3,7 @@
  * Target advances via targetProgress prop (0→1) driven by TTS boundary events.
  * User line uses adaptive normalization with dual-feature Y mapping.
  */
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import type { WordData } from "@/lib/prosody";
 
 interface Props {
@@ -52,14 +52,21 @@ function drawGridLines(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.restore();
 }
 
-function setupCanvas(canvas: HTMLCanvasElement) {
+function setupCanvas(canvas: HTMLCanvasElement): { ctx: CanvasRenderingContext2D; w: number; h: number; resized: boolean } {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
+  const targetW = Math.round(rect.width * dpr);
+  const targetH = Math.round(rect.height * dpr);
+  const resized = canvas.width !== targetW || canvas.height !== targetH;
+  if (resized) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+  }
   const ctx = canvas.getContext("2d")!;
-  ctx.scale(dpr, dpr);
-  return { ctx, w: rect.width, h: rect.height };
+  if (resized) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  return { ctx, w: rect.width, h: rect.height, resized };
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -75,32 +82,45 @@ function TargetContourCanvas({
   isPlaying: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const prevProgressRef = useRef(0);
+  const animProgressRef = useRef(0);
   const rafRef = useRef<number>(0);
+  const targetProgressRef = useRef(targetProgress);
+  const isPlayingRef = useRef(isPlaying);
+
+  // Keep refs in sync without triggering re-renders / effect re-runs
+  useEffect(() => { targetProgressRef.current = targetProgress; }, [targetProgress]);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const { ctx, w, h } = setupCanvas(canvas);
+    setupCanvas(canvas); // initial sizing
+    const ctx = canvas.getContext("2d")!;
 
     const allSyllables = data.flatMap((d) => d.syllables);
-    if (allSyllables.length === 0) {
-      ctx.clearRect(0, 0, w, h);
-      drawVignette(ctx, w, h);
-      drawDashedMidline(ctx, w, h);
-      return;
-    }
-    const segW = w / Math.max(1, allSyllables.length - 1);
-    const points = allSyllables.map((s, i) => ({
-      x: i * segW,
-      y: s.pitch === 2 ? (s.stress === 2 ? h * 0.15 : h * 0.35) : s.pitch === -1 ? h * 0.80 : h * 0.60,
-    }));
 
-    const draw = (prog: number) => {
+    const getGeometry = () => {
+      const rect = canvas.getBoundingClientRect();
+      return { w: rect.width, h: rect.height };
+    };
+
+    const computePoints = (w: number, h: number) => {
+      if (allSyllables.length === 0) return [];
+      const segW = w / Math.max(1, allSyllables.length - 1);
+      return allSyllables.map((s, i) => ({
+        x: i * segW,
+        y: s.pitch === 2 ? (s.stress === 2 ? h * 0.15 : h * 0.35) : s.pitch === -1 ? h * 0.80 : h * 0.60,
+      }));
+    };
+
+    const draw = (prog: number, w: number, h: number) => {
       ctx.clearRect(0, 0, w, h);
       drawVignette(ctx, w, h);
       drawGridLines(ctx, w, h);
       drawDashedMidline(ctx, w, h);
+
+      const points = computePoints(w, h);
+      if (points.length === 0) return;
 
       const visibleCount = Math.max(1, Math.ceil(prog * points.length));
       const visiblePoints = points.slice(0, visibleCount);
@@ -140,7 +160,7 @@ function TargetContourCanvas({
       ctx.fill();
 
       // Progress dot while playing
-      if (isPlaying && prog < 1) {
+      if (isPlayingRef.current && prog < 1) {
         const lastPt = visiblePoints[visiblePoints.length - 1];
         const baseRadius = 5 + Math.sin(Date.now() * 0.008) * 2;
         ctx.beginPath();
@@ -157,34 +177,34 @@ function TargetContourCanvas({
       }
     };
 
-    // Smooth interpolation toward targetProgress
-    const animate = () => {
-      const target = targetProgress;
-      const diff = target - prevProgressRef.current;
+    // Reset animated progress on new data
+    animProgressRef.current = 0;
+
+    // Persistent animation loop — reads refs, never re-created on prop change
+    let running = true;
+    const loop = () => {
+      if (!running) return;
+      setupCanvas(canvas); // handles resize without flash when unchanged
+      const { w, h } = getGeometry();
+
+      const target = targetProgressRef.current;
+      const diff = target - animProgressRef.current;
       if (Math.abs(diff) > 0.001) {
-        prevProgressRef.current += diff * 0.15;
+        animProgressRef.current += diff * 0.15;
       } else {
-        prevProgressRef.current = target;
+        animProgressRef.current = target;
       }
-      draw(prevProgressRef.current);
-      if (isPlaying || Math.abs(targetProgress - prevProgressRef.current) > 0.001) {
-        rafRef.current = requestAnimationFrame(animate);
-      }
+
+      draw(animProgressRef.current, w, h);
+      rafRef.current = requestAnimationFrame(loop);
     };
+    loop();
 
-    // If not playing and progress is set (persisted), just draw once
-    if (!isPlaying && targetProgress > 0) {
-      prevProgressRef.current = targetProgress;
-      draw(targetProgress);
-    } else if (isPlaying) {
-      animate();
-    } else {
-      // Nothing playing, no progress — draw empty background
-      draw(0);
-    }
-
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [data, targetProgress, isPlaying]);
+    return () => {
+      running = false;
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [data]); // Only re-create on data change, NOT on progress/playing changes
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full rounded-[inherit]" />;
 }
@@ -304,8 +324,7 @@ function LiveInputCanvas({
 
     const drawLine = () => {
       ctx2d.clearRect(0, 0, w, h);
-      drawVignette(ctx2d, w, h);
-      drawDashedMidline(ctx2d, w, h);
+      // Background decorations are drawn only by TargetContourCanvas (bottom layer)
 
       const pts = s.history;
       if (pts.length < 2) return;
