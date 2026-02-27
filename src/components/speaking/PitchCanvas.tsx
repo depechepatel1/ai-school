@@ -90,6 +90,7 @@ export default function PitchCanvas({
   // Silence detection
   const silenceStartRef = useRef<number | null>(null);
   const hasSpokenRef = useRef(false);
+  const autoStopTriggeredRef = useRef(false);
 
   // Flags
   const showLive = useRef(false);
@@ -166,8 +167,8 @@ export default function PitchCanvas({
         amp = getSyntheticAmp(allSyl, estIdx);
       }
 
-      // Convert amp to y
-      let y = (h / 2) - (amp * h * 0.45);
+      // Convert amp to y — full canvas height
+      let y = h * 0.9 - (amp * h * 0.8);
       // Smoothing
       y = lastY * 0.6 + y * 0.4;
       y = Math.max(10, Math.min(h - 10, y));
@@ -227,6 +228,7 @@ export default function PitchCanvas({
     liveHistory.current = [];
     silenceStartRef.current = null;
     hasSpokenRef.current = false;
+    autoStopTriggeredRef.current = false;
     showLive.current = true;
     liveStartRef.current = Date.now();
 
@@ -272,30 +274,30 @@ export default function PitchCanvas({
       const rawAmp = Math.sqrt(sum / data.length);
       const amp = Math.min(1, rawAmp * 8);
 
-      // Auto-stop silence detection with speech gate
-      if (onAutoStopRef.current) {
+      // Auto-stop silence detection with speech gate (one-shot)
+      if (onAutoStopRef.current && !autoStopTriggeredRef.current) {
         if (rawAmp > 0.05) {
           hasSpokenRef.current = true;
           silenceStartRef.current = null;
         } else if (hasSpokenRef.current) {
           if (!silenceStartRef.current) silenceStartRef.current = Date.now();
           if (Date.now() - silenceStartRef.current > 1000) {
+            autoStopTriggeredRef.current = true;
             onAutoStopRef.current();
-            silenceStartRef.current = null;
             return;
           }
         }
       }
 
-      // Y position from amplitude
-      let y = (h / 2) - (amp * h * 0.45);
+      // Y position from amplitude — full canvas height
+      let y = h * 0.9 - (amp * h * 0.8);
       if (liveHistory.current.length > 0) {
         y = liveHistory.current[liveHistory.current.length - 1].y * 0.6 + y * 0.4;
       }
       y = Math.max(10, Math.min(h - 10, y));
 
-      // X from elapsed time (identical formula)
-      const x = ((Date.now() - liveStartRef.current) / maxDur) * w;
+      // X from elapsed time — clamp for drawing
+      const x = Math.min(((Date.now() - liveStartRef.current) / maxDur) * w, w);
 
       // Mismatch detection (identical to original)
       const estIdx = Math.floor((x / w) * allSyl.length);
@@ -326,7 +328,8 @@ export default function PitchCanvas({
       // Live (green)
       drawHistory(ctx, liveHistory.current, w, h, "#a3e635", "#f87171", "#a3e635");
 
-      if (x < w && isRecording) {
+      // Keep RAF running for silence detection even past canvas width
+      if (isRecording) {
         micRef.current!.req = requestAnimationFrame(draw);
       }
     };

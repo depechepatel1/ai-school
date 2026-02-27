@@ -176,27 +176,34 @@ export default function SpeakingStudio() {
     }
     // Shadowing mode
     if (isRecordingShadow) {
-      setIsRecordingShadow(false);
-      if (ghostMode) stopSpeaking();
-      stopMediaRecorder();
-      addXP(20);
+      stopShadowRecording();
     } else {
-      setIsRecordingShadow(true);
-      clearRecording();
-      clearRecording();
-      await startMediaRecorder();
-      if (ghostMode) {
-        test.ttsHandleRef.current = speak(rawText, accentLower, {
-          rate: 0.8, pitch: 1.1,
-          onBoundary: (charIndex) => {
-            const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
-            if (idx !== -1) setActiveWordIndex(idx);
-          },
-          onEnd: () => setActiveWordIndex(-1),
-        });
-      }
+      startShadowRecording();
     }
   };
+
+  const startShadowRecording = async () => {
+    setIsRecordingShadow(true);
+    clearRecording();
+    await startMediaRecorder();
+    if (ghostMode) {
+      test.ttsHandleRef.current = speak(rawText, accentLower, {
+        rate: 0.8, pitch: 1.1,
+        onBoundary: (charIndex) => {
+          const idx = prosodyData.findIndex((w) => Math.abs(w.startChar - charIndex) < 4);
+          if (idx !== -1) setActiveWordIndex(idx);
+        },
+        onEnd: () => setActiveWordIndex(-1),
+      });
+    }
+  };
+
+  const stopShadowRecording = useCallback(() => {
+    setIsRecordingShadow(false);
+    if (ghostMode) stopSpeaking();
+    stopMediaRecorder();
+    addXP(20);
+  }, [ghostMode, stopMediaRecorder, addXP]);
 
   return (
     <PageShell
@@ -307,7 +314,7 @@ export default function SpeakingStudio() {
                       prosodyData={prosodyData}
                       modelContour={modelContour}
                       useSyntheticFallback={hasHeadphones}
-                      onAutoStop={handleRecord}
+                      onAutoStop={stopShadowRecording}
                       onPitchContour={handlePitchContour}
                     />
                   </div>
