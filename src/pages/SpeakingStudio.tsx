@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
-  Mic, Play, Headphones, Ghost, ChevronRight, ArrowLeft, SkipForward,
+  Mic, Play, Headphones, Ghost, ChevronRight, ArrowLeft, SkipForward, Loader2,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
@@ -306,8 +306,8 @@ export default function SpeakingStudio() {
 
             {/* Right action bar */}
             <div className="absolute top-1/2 -translate-y-1/2 right-5 flex flex-col items-center gap-3 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-3.5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
-              <button onClick={handlePlayModel} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
-                <Headphones className="w-7 h-7 group-hover:scale-110 transition-transform" />
+              <button onClick={handlePlayModel} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
+                {isPlayingModel ? <Loader2 className="w-7 h-7 animate-spin" /> : <Headphones className="w-7 h-7 group-hover:scale-110 transition-transform" />}
               </button>
               <div className="w-8 h-px bg-white/[0.06]" />
               <button onClick={handleRecord} className={`relative w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecordingShadow ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecordingShadow ? "Stop" : "Record"}>

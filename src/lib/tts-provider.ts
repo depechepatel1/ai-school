@@ -72,7 +72,10 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
     return { stop: () => {}, finished: Promise.resolve() };
   }
 
-  speechSynthesis.cancel();
+  // Only cancel if something is actively playing — avoids cold-restart delay
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+  }
 
   if (!voicesReady) ensureVoices();
   const voice = cachedVoices[accent] || findVoice(accent);
