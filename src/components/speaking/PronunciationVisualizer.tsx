@@ -431,14 +431,14 @@ function LiveInputCanvas({
           if (rms > s.peakAmp) {
             s.peakAmp = s.peakAmp * 0.7 + rms * 0.3;
           } else {
-            s.peakAmp = s.peakAmp * 0.98 + rms * 0.02;
+            s.peakAmp = s.peakAmp * 0.95 + rms * 0.05;
           }
           s.peakAmp = Math.max(s.peakAmp, s.noiseFloor * 3, 0.02);
 
           // Normalize amplitude to 0-1 range
           let normAmp = Math.min(1, Math.max(0, (rms - s.noiseFloor) / (s.peakAmp - s.noiseFloor)));
           // Floor: ensure quiet speech still produces visible oscillation
-          if (rms > s.noiseFloor * 1.5 && normAmp < 0.08) normAmp = 0.08;
+          if (rms > s.noiseFloor * 1.5 && normAmp < 0.12) normAmp = 0.12;
 
           // Spectral centroid for frequency feature
           let weightedSum = 0, magSum = 0;
@@ -465,7 +465,7 @@ function LiveInputCanvas({
 
           // Bidirectional Y mapping using energy + spectral centroid
           // Phase advances faster when amplitude is higher for natural oscillation
-          s.phase += 0.10 + normAmp * 0.19;
+          s.phase += 0.12 + normAmp * 0.24;
           const direction = Math.sin(s.phase); // -1 to 1
           const drawableRange = h - PAD * 2;
           const midY = h / 2;
@@ -473,11 +473,11 @@ function LiveInputCanvas({
           // Map: amplitude controls displacement magnitude, direction controls sign
           // centroid biases toward top (high freq) or bottom (low freq)
           const centroidBias = (centroid - 0.5) * 0.375; // 25% wider bias
-          const displacement = normAmp * (drawableRange * 0.60) * (direction + centroidBias);
+          const displacement = normAmp * (drawableRange * 0.75) * (direction + centroidBias);
           let targetY = midY - displacement;
 
           // Heavier smoothing for fluid, prosody-like curves
-          targetY = s.smoothY * 0.66 + targetY * 0.34;
+          targetY = s.smoothY * 0.55 + targetY * 0.45;
           targetY = Math.max(PAD, Math.min(h - PAD, targetY));
           s.smoothY = targetY;
 
