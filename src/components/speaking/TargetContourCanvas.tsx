@@ -5,9 +5,10 @@ interface Props {
   data: WordData[];
   isPlaying: boolean;
   activeWordIndex: number;
+  contour?: number[];
 }
 
-export default function TargetContourCanvas({ data, isPlaying, activeWordIndex }: Props) {
+export default function TargetContourCanvas({ data, isPlaying, activeWordIndex, contour }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const progressRef = useRef(0);
@@ -23,11 +24,21 @@ export default function TargetContourCanvas({ data, isPlaying, activeWordIndex }
     ctx.scale(dpr, dpr);
     const w = rect.width;
     const h = rect.height;
-    const allSyllables = data.flatMap((d) => d.syllables);
     const pad = 12;
     const drawW = w - pad * 2;
 
-    const getPoints = () =>
+    const useRealContour = contour && contour.length > 0;
+
+    // Build points from real contour data
+    const getRealPoints = () =>
+      contour!.map((val, i) => ({
+        x: pad + i * (drawW / Math.max(1, contour!.length - 1)),
+        y: h - val * h * 0.8 - h * 0.1,
+      }));
+
+    // Build points from synthetic prosody data
+    const allSyllables = data.flatMap((d) => d.syllables);
+    const getSyntheticPoints = () =>
       allSyllables.map((s, i) => {
         let y: number;
         if (s.pitch === 2 && s.stress === 2) y = h * 0.08;
@@ -63,7 +74,7 @@ export default function TargetContourCanvas({ data, isPlaying, activeWordIndex }
       ctx.lineTo(w, h / 2);
       ctx.stroke();
 
-      const points = getPoints();
+      const points = useRealContour ? getRealPoints() : getSyntheticPoints();
       if (points.length === 0) return;
 
       // Dim trail
@@ -151,7 +162,7 @@ export default function TargetContourCanvas({ data, isPlaying, activeWordIndex }
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
     };
-  }, [data, isPlaying, activeWordIndex]);
+  }, [data, isPlaying, activeWordIndex, contour]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
