@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   fetchCurriculumJSON,
   getWeekShadowingChunks,
-  type CurriculumChunk,
+  type CurriculumChunkWithQuestion,
   type CurriculumData,
 } from "@/services/curriculum-storage";
 
@@ -14,7 +14,7 @@ export function useShadowingCurriculum(
   courseType: "ielts" | "igcse" | null,
   weekNumber: number
 ) {
-  const [chunks, setChunks] = useState<CurriculumChunk[]>([]);
+  const [chunks, setChunks] = useState<CurriculumChunkWithQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [curriculumData, setCurriculumData] = useState<CurriculumData | null>(null);
@@ -60,5 +60,6 @@ export function useShadowingCurriculum(
     nextChunk,
     resetToFirst,
     curriculumData,
+    currentQuestionText: currentChunk?.question_text ?? null,
   };
 }

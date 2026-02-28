@@ -330,6 +330,11 @@ export default function SpeakingStudio() {
         {mode === "shadowing" &&
         <>
             <div className="absolute bottom-0 left-0 right-0 pb-6 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+              {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
+                <p className="text-[11px] italic text-white/40 max-w-md mx-auto mb-1 text-center truncate">
+                  Q: {shadowCurriculum.currentQuestionText}
+                </p>
+              )}
               <div className="mb-1 w-full text-center relative z-10">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
