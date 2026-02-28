@@ -219,3 +219,43 @@ export async function saveCurriculumProgress(
     );
   if (error) throw error;
 }
+
+// ── Course & Week Helpers ─────────────────────────────────────
+
+export async function fetchStudentCourseType(userId: string): Promise<string | null> {
+  // Join class_memberships → classes to get course_type
+  const { data, error } = await supabase
+    .from("class_memberships")
+    .select("class_id, classes(course_type)")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  // classes is a joined object
+  const classes = data?.classes as any;
+  return classes?.course_type ?? null;
+}
+
+export async function fetchSelectedWeek(userId: string): Promise<number | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("selected_week")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data as any)?.selected_week ?? null;
+}
+
+export async function updateSelectedWeek(userId: string, week: number) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ selected_week: week } as any)
+    .eq("id", userId);
+  if (error) throw error;
+}
+
+export async function createClassWithCourse(name: string, createdBy: string, courseType: "ielts" | "igcse") {
+  const { error } = await supabase
+    .from("classes")
+    .insert({ name, created_by: createdBy, course_type: courseType } as any);
+  if (error) throw error;
+}

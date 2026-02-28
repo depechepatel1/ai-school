@@ -8,13 +8,14 @@ import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
-import { fetchClasses, createClass, getCurrentUserId } from "@/services/db";
+import { fetchClasses, createClassWithCourse, getCurrentUserId } from "@/services/db";
 
 interface ClassInfo {
   id: string;
   name: string;
   join_code: string;
   created_at: string;
+  course_type: string;
 }
 
 const fadeUp = {
@@ -27,6 +28,7 @@ export default function TeacherDashboard() {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [newClassName, setNewClassName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [newCourseType, setNewCourseType] = useState<"ielts" | "igcse">("ielts");
   const { t } = useLanguage();
 
   useEffect(() => { loadClasses(); }, []);
@@ -44,7 +46,7 @@ export default function TeacherDashboard() {
     try {
       const userId = await getCurrentUserId();
       if (!userId) return;
-      await createClass(newClassName.trim(), userId);
+      await createClassWithCourse(newClassName.trim(), userId, newCourseType);
       setNewClassName("");
       loadClasses();
       toast({ title: t("teacher.classCreated") });
@@ -87,21 +89,38 @@ export default function TeacherDashboard() {
         </motion.div>
 
         {/* Create class */}
-        <motion.div variants={fadeUp} className="flex gap-2 mb-4">
-          <input
-            placeholder={t("teacher.newClassPlaceholder")}
-            value={newClassName}
-            onChange={(e) => setNewClassName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleCreateClass()}
-            className="flex-1 h-9 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-          />
-          <button
-            onClick={handleCreateClass}
-            disabled={isCreating || !newClassName.trim()}
-            className="px-3 h-9 rounded-xl bg-blue-500/15 border border-blue-400/20 text-blue-300 text-[10px] font-semibold hover:bg-blue-500/25 disabled:opacity-40 transition-all flex items-center gap-1.5"
-          >
-            <Plus className="w-3 h-3" /> {t("teacher.create")}
-          </button>
+        <motion.div variants={fadeUp} className="flex flex-col gap-2 mb-4">
+          <div className="flex gap-2">
+            <input
+              placeholder={t("teacher.newClassPlaceholder")}
+              value={newClassName}
+              onChange={(e) => setNewClassName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateClass()}
+              className="flex-1 h-9 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            />
+            <button
+              onClick={handleCreateClass}
+              disabled={isCreating || !newClassName.trim()}
+              className="px-3 h-9 rounded-xl bg-blue-500/15 border border-blue-400/20 text-blue-300 text-[10px] font-semibold hover:bg-blue-500/25 disabled:opacity-40 transition-all flex items-center gap-1.5"
+            >
+              <Plus className="w-3 h-3" /> {t("teacher.create")}
+            </button>
+          </div>
+          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            {(["ielts", "igcse"] as const).map((ct) => (
+              <button
+                key={ct}
+                onClick={() => setNewCourseType(ct)}
+                className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  newCourseType === ct
+                    ? "bg-blue-500/15 border border-blue-400/20 text-blue-300"
+                    : "text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                {ct}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
         {/* Classes list */}
@@ -121,7 +140,12 @@ export default function TeacherDashboard() {
               className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all space-y-2"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-200">{c.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-gray-200">{c.name}</h3>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                    c.course_type === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"
+                  }`}>{c.course_type}</span>
+                </div>
                 <span className="flex items-center gap-1 text-[10px] text-gray-500">
                   <Users className="w-3 h-3" /> 0
                 </span>
