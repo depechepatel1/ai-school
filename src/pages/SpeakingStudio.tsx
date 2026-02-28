@@ -257,50 +257,33 @@ export default function SpeakingStudio() {
 
         {/* Top Bar */}
         <div className="absolute top-16 left-0 right-0 px-3 z-50 flex justify-between items-start">
-          <div className="gap-2 ml-2 flex flex-col max-w-[200px]">
-            <StreakWidget
-              displaySeconds={practiceTimer.displaySeconds}
-              isCountdown={practiceTimer.isCountdown}
-              isComplete={practiceTimer.isComplete}
-              isRunning={practiceTimer.isRunning}
-              isOvertime={practiceTimer.isOvertime}
-              onPause={practiceTimer.pause}
-              onResume={practiceTimer.resume} />
+          <div className="gap-2.5 ml-2 flex flex-col animate-fade-in">
+            <div style={{ animationDelay: '0s' }} className="animate-fade-in">
+              <StreakWidget
+                displaySeconds={practiceTimer.displaySeconds}
+                isCountdown={practiceTimer.isCountdown}
+                isComplete={practiceTimer.isComplete}
+                isRunning={practiceTimer.isRunning}
+                isOvertime={practiceTimer.isOvertime}
+                onPause={practiceTimer.pause}
+                onResume={practiceTimer.resume} />
+            </div>
 
             {mode === "speaking" &&
             <PersonaSelector persona={test.persona} setPersona={test.handlePersonaChange} setShowTestConfig={test.setShowTestConfig} />
             }
             {mode === "shadowing" &&
             <>
-                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1">
-                  <button onClick={() => setAccent("UK")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] text-white" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
-                    <UKFlag /><span className="text-[10px] font-semibold tracking-wide">UK</span>
-                  </button>
-                  <button onClick={() => setAccent("US")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${accent === "US" ? "bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] text-white" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
-                    <USFlag /><span className="text-[10px] font-semibold tracking-wide">US</span>
-                  </button>
-                </div>
                 {curriculum.currentTopic && practiceType === "pronunciation" &&
-              <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-3.5 py-2.5">
-                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Topic</span>
+              <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl px-3.5 py-2.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] hover:border-white/[0.12] transition-colors animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">Topic</span>
                     <div className="text-[13px] font-semibold text-white/90 mt-1 leading-tight">{curriculum.currentTopic}</div>
                   </div>
               }
-                {practiceType === "fluency" && shadowCurriculum.totalChunks > 0 &&
-              <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-3.5 py-2.5">
-                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">
-                      Chunk {shadowCurriculum.currentIndex + 1} / {shadowCurriculum.totalChunks}
-                    </span>
-                    <div className="text-[10px] text-white/40 mt-1">Week {courseWeek.shadowingWeek}</div>
-                  </div>
-              }
-                {courseWeek.courseType &&
-              <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
-              }
-                <div className="flex gap-0.5 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1">
+                <div className="flex gap-0.5 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-1 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-fade-in" style={{ animationDelay: '0.2s' }}>
                   {(["pronunciation", "fluency"] as const).map((t) =>
                 <button key={t} onClick={() => {setPracticeType(t);handleGenerate(t);}}
-                className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${practiceType === t ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" : "text-white/30 hover:text-white/60 hover:bg-white/[0.04]"}`}>
+                className={`px-3.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${practiceType === t ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" : "text-white/30 hover:text-white/60 hover:bg-white/[0.04]"}`}>
                       {t}
                     </button>
                 )}
@@ -309,7 +292,7 @@ export default function SpeakingStudio() {
             }
           </div>
 
-          <div className="flex flex-col gap-2.5 items-end">
+          <div className="flex flex-col gap-2.5 items-end mt-1 mr-1">
             <XPWidget xp={xp} level={level} />
             {test.testState.status === "idle" &&
             <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
@@ -329,13 +312,25 @@ export default function SpeakingStudio() {
         {/* ==================== SHADOWING MODE ==================== */}
         {mode === "shadowing" &&
         <>
-            <div className="absolute bottom-0 left-0 right-0 pb-6 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+              {practiceType === "fluency" && (
+                <div className="flex items-center gap-3 mb-2">
+                  {shadowCurriculum.totalChunks > 0 && (
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">
+                      Chunk {shadowCurriculum.currentIndex + 1}/{shadowCurriculum.totalChunks}
+                    </span>
+                  )}
+                  {courseWeek.courseType && (
+                    <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
+                  )}
+                </div>
+              )}
               {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
-                <p className="text-[11px] italic text-white/40 max-w-md mx-auto mb-1 text-center truncate">
+                <p className="text-[11px] italic text-white/40 max-w-lg mx-auto mb-1 text-center line-clamp-2 leading-relaxed">
                   Q: {shadowCurriculum.currentQuestionText}
                 </p>
               )}
-              <div className="mb-1 w-full text-center relative z-10">
+              <div key={sentenceKey} className="mb-1 w-full text-center relative z-10 animate-fade-in">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
               <div className="w-full max-w-3xl flex flex-col gap-2 mb-2">
@@ -366,8 +361,18 @@ export default function SpeakingStudio() {
               </div>
             </div>
 
-            {/* Right action bar */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-5 flex flex-col items-center gap-3 z-50 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-3.5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
+            {/* Right action bar — lower-right to avoid face */}
+            <div className="absolute bottom-32 right-5 flex flex-col items-center gap-3 z-50 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-3.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-slide-in-right">
+              {/* Accent toggle */}
+              <div className="flex items-center gap-1 bg-black/30 rounded-xl p-0.5">
+                <button onClick={() => setAccent("UK")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
+                  <UKFlag /><span className="text-[9px] font-semibold">UK</span>
+                </button>
+                <button onClick={() => setAccent("US")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "US" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
+                  <USFlag /><span className="text-[9px] font-semibold">US</span>
+                </button>
+              </div>
+              <div className="w-8 h-px bg-white/[0.06]" />
               <button onClick={handlePlayModel} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
                 {isPlayingModel ? <Loader2 className="w-7 h-7 animate-spin" /> : <Headphones className="w-7 h-7 group-hover:scale-110 transition-transform" />}
               </button>
@@ -395,7 +400,7 @@ export default function SpeakingStudio() {
               </button>
               <div className="w-8 h-px bg-white/[0.06]" />
               {(practiceType === "pronunciation" || practiceType === "fluency") &&
-            <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
+            <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-90 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
                   <SkipForward className="w-7 h-7 group-hover:scale-110 transition-transform" />
                 </button>
             }
