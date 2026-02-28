@@ -259,8 +259,8 @@ export default function SpeakingStudio() {
         </button>
 
         {/* Top Bar */}
-        <div className="absolute top-6 left-0 right-0 px-6 z-50 flex justify-between items-start">
-          <div className="gap-2.5 ml-16 flex flex-col">
+        <div className="absolute top-10 left-0 right-0 px-6 z-50 flex justify-between items-start">
+          <div className="gap-2 ml-6 flex flex-col">
             <StreakWidget
               displaySeconds={practiceTimer.displaySeconds}
               isCountdown={practiceTimer.isCountdown}
@@ -275,35 +275,35 @@ export default function SpeakingStudio() {
             }
             {mode === "shadowing" &&
             <>
-                <div className="flex items-center gap-2 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-1.5">
-                  <button onClick={() => setAccent("UK")} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${accent === "UK" ? "bg-white/[0.08] border border-white/[0.06]" : "hover:bg-white/5"}`}>
-                    <UKFlag /><span className="text-[10px] font-bold tracking-wider text-white/70">UK</span>
+                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1">
+                  <button onClick={() => setAccent("UK")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] text-white" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
+                    <UKFlag /><span className="text-[10px] font-semibold tracking-wide">UK</span>
                   </button>
-                  <button onClick={() => setAccent("US")} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${accent === "US" ? "bg-white/[0.08] border border-white/[0.06]" : "hover:bg-white/5"}`}>
-                    <USFlag /><span className="text-[10px] font-bold tracking-wider text-white/70">US</span>
+                  <button onClick={() => setAccent("US")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${accent === "US" ? "bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] text-white" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"}`}>
+                    <USFlag /><span className="text-[10px] font-semibold tracking-wide">US</span>
                   </button>
                 </div>
                 {curriculum.currentTopic && practiceType === "pronunciation" &&
-              <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">Topic</span>
-                    <div className="text-sm font-semibold text-white/90 mt-0.5">{curriculum.currentTopic}</div>
+              <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-3.5 py-2.5">
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Topic</span>
+                    <div className="text-[13px] font-semibold text-white/90 mt-1 leading-tight">{curriculum.currentTopic}</div>
                   </div>
               }
                 {practiceType === "curriculum" && shadowCurriculum.totalChunks > 0 &&
-              <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+              <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-3.5 py-2.5">
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">
                       Chunk {shadowCurriculum.currentIndex + 1} / {shadowCurriculum.totalChunks}
                     </span>
-                    <div className="text-[10px] text-white/50 mt-0.5">Week {courseWeek.shadowingWeek}</div>
+                    <div className="text-[10px] text-white/40 mt-1">Week {courseWeek.shadowingWeek}</div>
                   </div>
               }
                 {courseWeek.courseType &&
               <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
               }
-                <div className="flex gap-1 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-1">
+                <div className="flex gap-0.5 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1">
                   {(["pronunciation", "curriculum", "fluency"] as const).map((t) =>
                 <button key={t} onClick={() => {setPracticeType(t);handleGenerate(t);}}
-                className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${practiceType === t ? "bg-white/[0.08] text-white border border-white/[0.06]" : "text-white/35 hover:text-white/60"}`}>
+                className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${practiceType === t ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" : "text-white/30 hover:text-white/60 hover:bg-white/[0.04]"}`}>
                       {t === "curriculum" ? "Shadowing" : t}
                     </button>
                 )}
