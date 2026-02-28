@@ -11,6 +11,10 @@ export interface CurriculumChunk {
   text: string;
 }
 
+export interface CurriculumChunkWithQuestion extends CurriculumChunk {
+  question_text: string;
+}
+
 export interface CurriculumQuestion {
   question_id: string;
   question_text: string;
@@ -78,7 +82,7 @@ export function getWeekShadowingChunks(
   data: CurriculumData,
   weekNumber: number,
   courseType: "ielts" | "igcse"
-): CurriculumChunk[] {
+): CurriculumChunkWithQuestion[] {
   const week = data.find((w) => w.week_number === weekNumber);
   if (!week) return [];
 
@@ -87,11 +91,13 @@ export function getWeekShadowingChunks(
       ? ["part_2", "part_3"]
       : ["transcoded", "model_answer"];
 
-  const chunks: CurriculumChunk[] = [];
+  const chunks: CurriculumChunkWithQuestion[] = [];
   for (const section of week.sections) {
     if (sectionIds.includes(section.section_id)) {
       for (const q of section.questions) {
-        chunks.push(...q.chunks);
+        for (const chunk of q.chunks) {
+          chunks.push({ ...chunk, question_text: q.question_text });
+        }
       }
     }
   }
