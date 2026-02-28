@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
@@ -31,6 +31,7 @@ import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
+import { usePracticeTimer, type ActivityType } from "@/hooks/usePracticeTimer";
 import { PART2_TOPIC } from "@/types/speaking";
 import WeekSelector from "@/components/speaking/WeekSelector";
 import { getSpeakingQuestions } from "@/services/curriculum-storage";
@@ -51,7 +52,6 @@ export default function SpeakingStudio() {
   const [targetProgress, setTargetProgress] = useState(0);
   const [sentenceKey, setSentenceKey] = useState(0);
   
-  const [streakTime, setStreakTime] = useState(850);
   const [ghostMode, setGhostMode] = useState(false);
   
   const [isRecordingShadow, setIsRecordingShadow] = useState(false);
@@ -69,6 +69,24 @@ export default function SpeakingStudio() {
   const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
   const [speakingQuestions, setSpeakingQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  // Derive activity type for timer
+  const timerActivityType: ActivityType = mode === "speaking"
+    ? "speaking"
+    : practiceType === "curriculum"
+      ? "shadowing"
+      : "pronunciation";
+
+  // Audio active = recording or playing model
+  const isAudioActive = isRecordingShadow || isPlayingModel || test.isRecording;
+
+  const practiceTimer = usePracticeTimer({
+    userId,
+    courseType: courseWeek.courseType,
+    activityType: timerActivityType,
+    weekNumber: courseWeek.selectedWeek,
+    isAudioActive,
+  });
 
   // Sync prosody + reset visualizer on new sentence
   useEffect(() => {
@@ -243,7 +261,15 @@ export default function SpeakingStudio() {
         {/* Top Bar */}
         <div className="absolute top-6 left-0 right-0 px-6 z-50 flex justify-between items-start">
           <div className="flex flex-col gap-2.5 ml-16">
-            <StreakWidget time={streakTime} />
+            <StreakWidget
+              displaySeconds={practiceTimer.displaySeconds}
+              isCountdown={practiceTimer.isCountdown}
+              isComplete={practiceTimer.isComplete}
+              isRunning={practiceTimer.isRunning}
+              isOvertime={practiceTimer.isOvertime}
+              onPause={practiceTimer.pause}
+              onResume={practiceTimer.resume}
+            />
             {mode === "speaking" && (
               <PersonaSelector persona={test.persona} setPersona={test.handlePersonaChange} setShowTestConfig={test.setShowTestConfig} />
             )}

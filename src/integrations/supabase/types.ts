@@ -244,6 +244,42 @@ export type Database = {
         }
         Relationships: []
       }
+      student_practice_logs: {
+        Row: {
+          active_seconds: number
+          activity_type: string
+          course_type: string
+          created_at: string
+          id: string
+          target_seconds: number
+          updated_at: string
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          active_seconds?: number
+          activity_type: string
+          course_type?: string
+          created_at?: string
+          id?: string
+          target_seconds?: number
+          updated_at?: string
+          user_id: string
+          week_number?: number
+        }
+        Update: {
+          active_seconds?: number
+          activity_type?: string
+          course_type?: string
+          created_at?: string
+          id?: string
+          target_seconds?: number
+          updated_at?: string
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

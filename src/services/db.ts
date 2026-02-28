@@ -259,3 +259,18 @@ export async function createClassWithCourse(name: string, createdBy: string, cou
     .insert({ name, created_by: createdBy, course_type: courseType } as any);
   if (error) throw error;
 }
+
+// ── Practice Logs ─────────────────────────────────────────────
+
+export async function fetchTodayPracticeLogs(userId: string) {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  
+  const { data, error } = await supabase
+    .from("student_practice_logs")
+    .select("id, activity_type, week_number, active_seconds, target_seconds")
+    .eq("user_id", userId)
+    .gte("created_at", todayStart.toISOString());
+  if (error) throw error;
+  return data ?? [];
+}
