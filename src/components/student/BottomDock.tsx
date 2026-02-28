@@ -1,4 +1,5 @@
-import { BookOpen, Calendar, Trophy, Settings } from "lucide-react";
+import { BookOpen, Calendar, BarChart3, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface BottomDockProps {
   setShowHomeworkModal: (show: boolean) => void;
@@ -7,6 +8,8 @@ interface BottomDockProps {
 }
 
 export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSettings }: BottomDockProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-[400px] flex justify-center">
       <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-full px-8 py-3 flex items-center justify-between gap-8 shadow-2xl hover:border-white/20 transition-colors">
@@ -21,9 +24,9 @@ export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSe
           <Calendar className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-purple-400" />
           <span className="text-[9px] uppercase font-bold group-hover:text-purple-200">Schedule</span>
         </button>
-        <button className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
-          <Trophy className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-yellow-500/80" />
-          <span className="text-[9px] uppercase font-bold">Ranking</span>
+        <button onClick={() => navigate("/analysis")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
+          <BarChart3 className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-cyan-400" />
+          <span className="text-[9px] uppercase font-bold group-hover:text-cyan-200">Analysis</span>
         </button>
         <button onClick={onSettings} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
           <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />

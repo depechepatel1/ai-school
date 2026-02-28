@@ -17,6 +17,7 @@ import SpeakingStudio from "./pages/SpeakingStudio";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
 import NotFound from "./pages/NotFound";
+import StudentAnalysis from "./pages/StudentAnalysis";
 import DevNav from "@/components/DevNav";
 
 const queryClient = new QueryClient();
@@ -25,7 +26,8 @@ import { VIDEO_1_STACK } from "@/components/PageShell";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const INTRO_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/intro.mp4`;
-const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO];
+const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4`;
+const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO, ANALYSIS_VIDEO];
 
 const App = () => {
   useEffect(() => {
@@ -54,6 +56,7 @@ const App = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentPractice /></ProtectedRoute>} />
             <Route path="/speaking" element={<ProtectedRoute allowedRoles={["student"]}><SpeakingStudio /></ProtectedRoute>} />
+            <Route path="/analysis" element={<ProtectedRoute allowedRoles={["student"]}><StudentAnalysis /></ProtectedRoute>} />
             <Route path="/teacher" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
             <Route path="/parent" element={<ProtectedRoute allowedRoles={["parent"]}><ParentDashboard /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

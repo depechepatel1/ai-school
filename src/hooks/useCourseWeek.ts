@@ -40,7 +40,7 @@ export function useCourseWeek(userId: string | null) {
   );
 
   // Shadowing uses NEXT week's content
-  const shadowingWeek = selectedWeek >= 40 ? 1 : selectedWeek + 1;
+  const shadowingWeek = selectedWeek >= 20 ? 1 : selectedWeek + 1;
 
   return {
     courseType,
