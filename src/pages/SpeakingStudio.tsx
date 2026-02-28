@@ -315,11 +315,6 @@ export default function SpeakingStudio() {
             <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
               {practiceType === "fluency" && (
                 <div className="flex items-center gap-3 mb-2">
-                  {shadowCurriculum.totalChunks > 0 && (
-                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">
-                      Chunk {shadowCurriculum.currentIndex + 1}/{shadowCurriculum.totalChunks}
-                    </span>
-                  )}
                   {courseWeek.courseType && (
                     <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
                   )}
