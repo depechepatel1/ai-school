@@ -1,0 +1,4486 @@
+[
+  {
+    "week_number": 1,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What activities did you usually do to relax after a long day at middle school? Do you prefer spending your free time alone or hanging out with friends? Have your hobbies changed since you started Grade 10?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, finding free time is hard for Grade 10 students."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Nowadays, our schedules are very busy with heavy homework loads."
+              },
+              {
+                "chunk_number": 3,
+                "text": "However, it is still very important to unwind."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Usually, many of my classmates act like a couch potato on weekends."
+              },
+              {
+                "chunk_number": 5,
+                "text": "They just watch videos online and sleep all day."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Personally, I prefer active recreation."
+              },
+              {
+                "chunk_number": 7,
+                "text": "For example, I am a huge basketball enthusiast,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "so I always participate in school matches."
+              },
+              {
+                "chunk_number": 9,
+                "text": "When I play sports with my friends, we always have a blast."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Overall, staying active is a truly fascinating pastime."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a leisure activity you enjoy doing regularly.  What it is and what equipment is needed. Who you do it with. Explain why this is your ideal way to relax.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, my favorite pastime is playing badminton."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Normally, I play it every Saturday afternoon at the local sports center."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, I rarely go alone,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "so I always participate with my best friends."
+              },
+              {
+                "chunk_number": 5,
+                "text": "To be honest, I used to be a couch potato before high school,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "but now, I am a huge sports enthusiast."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Because high school is very stressful,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "I always get some exercise to unwind."
+              },
+              {
+                "chunk_number": 9,
+                "text": "In fact, running around the court is a fascinating form of recreation."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, we highly enjoy this activity,"
+              },
+              {
+                "chunk_number": 11,
+                "text": "and we always have a blast."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 2,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What show on TV do you find most fascinating and why? Do you usually participate in any sports to unwind after school? Are you more of a couch potato or an active enthusiast on weekends?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Honestly speaking, I spend too much time on my phone."
+              },
+              {
+                "chunk_number": 2,
+                "text": "These days, short videos are very addictive."
+              },
+              {
+                "chunk_number": 3,
+                "text": "I subscribe to many funny channels because they are entertaining."
+              },
+              {
+                "chunk_number": 4,
+                "text": "However, my parents think I should watch the news broadcast."
+              },
+              {
+                "chunk_number": 5,
+                "text": "They say it is more informative than cartoons."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Sometimes, I agree with them."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Actually, watching a good documentary is a great way to unwind."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Although the commercials are annoying, the show itself is fascinating."
+              },
+              {
+                "chunk_number": 9,
+                "text": "In conclusion, I try not to be glued to the screen all day."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a memorable movie or TV show.  What it is and what happens in it. Who your favorite character is. Explain why you think it is worth watching.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, the most memorable show for me is 'Planet Earth'."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Basically, it is a nature documentary that is broadcast on the BBC."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, it is much more fascinating than a normal movie."
+              },
+              {
+                "chunk_number": 4,
+                "text": "I subscribe to their channel so I never miss an episode."
+              },
+              {
+                "chunk_number": 5,
+                "text": "The images are so beautiful that I am always glued to the screen."
+              },
+              {
+                "chunk_number": 6,
+                "text": "In fact, it often makes headlines around the world."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Even though it is educational, it is also highly entertaining and addictive."
+              },
+              {
+                "chunk_number": 8,
+                "text": "All in all, it is the most informative show I have ever seen."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 3,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is the most entertaining cooking show you have ever watched? (Recycled vocab) Do you prefer homemade food or eating out at restaurants? Have you ever tried to cook a nutritious meal by yourself?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, I have always had a huge appetite."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Recently, I watched an informative documentary about sugar,"
+              },
+              {
+                "chunk_number": 3,
+                "text": "and I learned that it is very addictive."
+              },
+              {
+                "chunk_number": 4,
+                "text": "However, I have a sweet tooth,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "so it is hard for me to stop eating cakes."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Usually, I try to consume healthy ingredients like vegetables and fish."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Although fast food is tasty,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "I know that homemade food is much more nutritious."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Actually, I have tried Japanese cuisine many times, and I love it."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Overall, cooking healthy food is not a piece of cake,"
+              },
+              {
+                "chunk_number": 11,
+                "text": "but it is worth it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a memorable meal you have had.  Where you had it and who you were with. What specific dishes and ingredients you ate. Explain why this meal was so memorable for you.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, the most memorable meal I have ever had was"
+              },
+              {
+                "chunk_number": 2,
+                "text": "a dinner at my grandmother's house."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Normally, we visit her every Spring Festival."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Actually, she is an amazing cook, and her homemade dumplings are delicious."
+              },
+              {
+                "chunk_number": 5,
+                "text": "To be honest, the ingredients she uses are always fresh from her garden."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Because the food was so nutritious and tasty,"
+              },
+              {
+                "chunk_number": 7,
+                "text": "I consumed three huge bowls!"
+              },
+              {
+                "chunk_number": 8,
+                "text": "In fact, I have such a big appetite when I am there."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, traditional Chinese cuisine is my favorite,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "and eating with family is never a piece of cake to forget."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Also, learning about her recipes was very informative and the taste was truly addictive."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 4,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How do you usually commute to school every day? If you consume too much junk food before a long trip, how do you feel? (Recycled) Is the public transport in your city usually reliable?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, my daily commute to school is quite long."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Usually, I take the subway because it is very convenient."
+              },
+              {
+                "chunk_number": 3,
+                "text": "However, during rush hour, there are too many passengers."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If I wake up late tomorrow,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "I will definitely miss the bus and be late for class."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Sometimes, my father drives me in his vehicle,"
+              },
+              {
+                "chunk_number": 7,
+                "text": "but the congestion is terrible."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Actually, we always try to leave early to beat the traffic."
+              },
+              {
+                "chunk_number": 9,
+                "text": "In my opinion, taking the subway is more reliable than driving."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Also, it's safer because I don't consume fuel or pollute the air,"
+              },
+              {
+                "chunk_number": 11,
+                "text": "which is not very nutritious for the planet."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a long journey you have taken.  Where you went and how you traveled. What happened during the journey. Explain how you felt about the trip.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, last summer I went to Beijing by train."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it was a very long journey, taking over five hours."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, the train was very comfortable and spacious for every passenger."
+              },
+              {
+                "chunk_number": 4,
+                "text": "However, we almost missed the boat because we arrived at the station late!"
+              },
+              {
+                "chunk_number": 5,
+                "text": "If I visit Beijing again,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "I will definitely take the high-speed train to save time."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Fortunately, the train was reliable and we arrived on time."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Overall, despite the congestion near the station,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "it was a convenient way to travel."
+              },
+              {
+                "chunk_number": 10,
+                "text": "I also managed to consume a very nutritious meal on board."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 5,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is your dream holiday destination? Is public transport convenient in your city for tourists? (Recycled) Do you prefer to plan a strict itinerary or just relax?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, I love traveling."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Last year, I went to Yunnan, which is a popular destination."
+              },
+              {
+                "chunk_number": 3,
+                "text": "While I was looking for accommodation online,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "I found a small hotel off the beaten track."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, the traffic congestion on the way there was bad."
+              },
+              {
+                "chunk_number": 6,
+                "text": "While I was hiking up the mountain,"
+              },
+              {
+                "chunk_number": 7,
+                "text": "I saw the most breathtaking view of the clouds."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Actually, I prefer to travel light so I can explore easily."
+              },
+              {
+                "chunk_number": 9,
+                "text": "In the end, I bought a beautiful souvenir for my mom."
+              },
+              {
+                "chunk_number": 10,
+                "text": "It was convenient to carry home."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe an unforgettable trip you have taken.  Where you went and who you went with. What you did there. Explain why it was unforgettable.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, my most unforgettable trip was to Japan."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, I went there with my family two years ago."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, we didn't plan a strict itinerary."
+              },
+              {
+                "chunk_number": 4,
+                "text": "While we were walking through Kyoto, we discovered a breathtaking old temple."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Fortunately, our accommodation was very convenient and close to the subway."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, I bought a traditional fan as a souvenir."
+              },
+              {
+                "chunk_number": 7,
+                "text": "To sum up, we loved to explore the city,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "even though we got lost once!"
+              },
+              {
+                "chunk_number": 9,
+                "text": "We barely avoided the traffic congestion on the way to the airport."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 6,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What was your favorite extracurricular activity in middle school? Did you have time to explore new hobbies last year? (Recycled) Do you find the current school curriculum difficult or easy?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, I used to find school quite stressful."
+              },
+              {
+                "chunk_number": 2,
+                "text": "In the past, I had to complete a huge assignment every week."
+              },
+              {
+                "chunk_number": 3,
+                "text": "However, I was always very motivated to get a good qualification."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Although the curriculum was hard,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "I would always concentrate in class to understand the lessons."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, I loved extracurricular activities like painting."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Actually, art class allowed me to explore my creativity."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Sometimes, I created breathtaking drawings."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Because I wanted to improve,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "I would often hit the books until late at night."
+              },
+              {
+                "chunk_number": 11,
+                "text": "In short, hard work pays off."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a favorite subject you studied at school.  What the subject was. Why you enjoyed it. How it has helped you.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, my favorite subject used to be Geography."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, I loved learning about the world and different cultures."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I would always concentrate fully when the teacher showed us maps."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Since the world is so big,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "I wanted to explore every breathtaking landscape."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Moreover, I was motivated to memorize all the capital cities by heart."
+              },
+              {
+                "chunk_number": 7,
+                "text": "In addition, the curriculum included interesting assignments about climate change."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Even though the exams were difficult,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "getting a high qualification in Geography made me very proud."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, it was a fascinating subject."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 7,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What profession would you like to have in the future? Do you need a high qualification to be a doctor? (Recycled) Are you an ambitious person?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, choosing a future profession is difficult."
+              },
+              {
+                "chunk_number": 2,
+                "text": "In my opinion, being a doctor is a noble job,"
+              },
+              {
+                "chunk_number": 3,
+                "text": "but you have to study for many years."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Also, you must get a high qualification from a university."
+              },
+              {
+                "chunk_number": 5,
+                "text": "If you are motivated and hardworking,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "you can become a successful candidate for the job."
+              },
+              {
+                "chunk_number": 7,
+                "text": "However, some people just want to climb the corporate ladder"
+              },
+              {
+                "chunk_number": 8,
+                "text": "and get a promotion quickly."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Personally, I am ambitious, but I also want to help people."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Ideally, I would like to work with a friendly colleague"
+              },
+              {
+                "chunk_number": 11,
+                "text": "who can help me learn the ropes."
+              },
+              {
+                "chunk_number": 12,
+                "text": "Finally, I would never resign if I loved my job."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a job you would like to have.  What the job is. What qualifications you need. Why you want this job.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I would love to be a software engineer."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, this profession is very popular nowadays."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, you have to be very smart and patient to write code."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Because technology is changing fast,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "you must obtain a high qualification in Computer Science."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, I am very motivated to create new apps."
+              },
+              {
+                "chunk_number": 7,
+                "text": "In the future, I hope to work with a brilliant"
+              },
+              {
+                "chunk_number": 8,
+                "text": "colleague at a big tech company."
+              },
+              {
+                "chunk_number": 9,
+                "text": "If I work hard, I might get a promotion and become a manager."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, I am very ambitious about this career path."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 8,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is something you want to buy that might cost an arm and a leg? If you got a promotion, what would you do with the extra money? (Recycled) Do you think it is important to make a budget?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, managing money is very important."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Nowadays, many young people struggle to make ends meet because"
+              },
+              {
+                "chunk_number": 3,
+                "text": "the cost of living is high."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Personally, I try to save part of my income every month."
+              },
+              {
+                "chunk_number": 5,
+                "text": "If I had a higher salary,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "I would invest in the stock market to make more money."
+              },
+              {
+                "chunk_number": 7,
+                "text": "However, my daily expenses are quite high."
+              },
+              {
+                "chunk_number": 8,
+                "text": "For example, rent in this city costs an arm and a leg."
+              },
+              {
+                "chunk_number": 9,
+                "text": "If I were more ambitious,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "I would ask for a promotion at work."
+              },
+              {
+                "chunk_number": 11,
+                "text": "In my opinion, keeping a strict budget is the only"
+              },
+              {
+                "chunk_number": 12,
+                "text": "way to be profitable in life."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe something expensive you saved up for.  What you bought. How long you saved for it. Why you wanted it.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I once saved up for a new laptop."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it was very expensive and cost an arm and a leg."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I needed it for my studies."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If I didn't have a budget,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "I wouldn't have been able to afford it."
+              },
+              {
+                "chunk_number": 6,
+                "text": "So, I saved 20% of my income for six months."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If I hadn't been so ambitious about my goals,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "I might have spent the money on other expenses."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Fortunately, it was a profitable investment for my education."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, I was very proud when I finally bought it."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 9,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Have you watched a tournament recently? Is buying sports equipment a big expense for you? (Recycled) Do you prefer to be a player or a spectator?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, I love sports."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Recently, I have been watching the World Cup tournament on TV."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, the matches are very competitive."
+              },
+              {
+                "chunk_number": 4,
+                "text": "I have been trying to keep in shape,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "so I do a workout every morning."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, I don't have enough stamina to run a marathon."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Sometimes, the referee makes bad decisions, which makes the spectators angry."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Although sports gear is a big expense,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "I have budgeted for a new pair of running shoes."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Let's get the ball rolling and go for a run now!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a sports match you watched or played.  What the sport was. Who was playing. Why it was exciting.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I recently watched a basketball match at our school."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, our team was playing against a rival school."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, the game was extremely competitive until the very end."
+              },
+              {
+                "chunk_number": 4,
+                "text": "The players have been training for months, so their stamina was incredible."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, the spectators were cheering loudly for every point."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Although the ticket was a small expense,"
+              },
+              {
+                "chunk_number": 7,
+                "text": "it was worth every penny of my budget."
+              },
+              {
+                "chunk_number": 8,
+                "text": "In the end, our team won,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "and we decided to get the ball rolling on a celebration party."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, it was an unforgettable workout for my voice!"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 10,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Do you have a sibling who is very competitive? Do you have enough stamina to argue with your friends? (Recycled) Is it easy for you to compromise in a conflict?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, getting along with people can be hard."
+              },
+              {
+                "chunk_number": 2,
+                "text": "For example, I have a sibling who is very competitive."
+              },
+              {
+                "chunk_number": 3,
+                "text": "We often have a conflict about who is the best at video games,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "which needs a lot of stamina to argue about."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, he is also very trustworthy."
+              },
+              {
+                "chunk_number": 6,
+                "text": "He is the only person who understands me when I"
+              },
+              {
+                "chunk_number": 7,
+                "text": "need a shoulder to cry on."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Usually, we try to compromise to solve our problems."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Actually, I am not very sociable with strangers,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "so I value my family."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Although we don't always see eye to eye, we are best friends."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a friend who is important to you.  Who they are. How you met. Why they are important to you.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, my most important friend is Li Ming."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, he is just an acquaintance from my football club,"
+              },
+              {
+                "chunk_number": 3,
+                "text": "but we became close."
+              },
+              {
+                "chunk_number": 4,
+                "text": "He is a sociable person who loves to make everyone laugh."
+              },
+              {
+                "chunk_number": 5,
+                "text": "To be honest, he is extremely competitive in sports,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "and his stamina is amazing."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Even when we have a conflict,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "he is the one who always tries to compromise first."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Also, he is very trustworthy with my secrets."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, although we don't always see eye to eye on movies,"
+              },
+              {
+                "chunk_number": 11,
+                "text": "he is always a shoulder to cry on when I am sad."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 11,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Have you ever been a volunteer in your community? Do you think it is easy for a sociable person to work in a team? (Recycled) What is a charity you know about?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, volunteering is very important."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Last month, a charity event was organized by our school."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, we wanted to make a difference in our community."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Many students were encouraged to volunteer,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "and a lot of money was collected for the poor."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Personally, I think it is a meaningful activity."
+              },
+              {
+                "chunk_number": 7,
+                "text": "However, there was a small conflict about the schedule."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Fortunately, we managed to compromise and work together."
+              },
+              {
+                "chunk_number": 9,
+                "text": "In my opinion, being sociable helps when you want to contribute to a team."
+              },
+              {
+                "chunk_number": 10,
+                "text": "If everyone tries to lend a helping hand,"
+              },
+              {
+                "chunk_number": 11,
+                "text": "a huge positive impact can be made."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a time you helped someone.  Who you helped. What you did. How you felt about it.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I once helped my neighbor organize a charity sale."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, the event was held in our local community center."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I wanted to contribute because I believe"
+              },
+              {
+                "chunk_number": 4,
+                "text": "it is a meaningful cause."
+              },
+              {
+                "chunk_number": 5,
+                "text": "The clothes were donated by many families,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "and they were sold at a low price."
+              },
+              {
+                "chunk_number": 7,
+                "text": "At first, my neighbor and I had different ideas,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "but we decided to compromise."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Because I am quite sociable, I enjoyed talking to the customers."
+              },
+              {
+                "chunk_number": 10,
+                "text": "A significant impact was made because we raised a lot"
+              },
+              {
+                "chunk_number": 11,
+                "text": "of money to lend a helping hand to those in"
+              },
+              {
+                "chunk_number": 12,
+                "text": "need."
+              },
+              {
+                "chunk_number": 13,
+                "text": "To sum up, I was proud to be a volunteer."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 12,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is a major milestone you want to reach? How can you contribute to your school's success? (Recycled) Have you ever faced a difficult obstacle?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, learning English was hard for me."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Before I came to this school,"
+              },
+              {
+                "chunk_number": 3,
+                "text": "I had never spoken to a foreigner."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Actually, I had to overcome many obstacles."
+              },
+              {
+                "chunk_number": 5,
+                "text": "I had dedicated hours to studying vocabulary before I finally saw an improvement."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Eventually, my hard work paid off."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Also, my teacher's help had contributed greatly to my progress."
+              },
+              {
+                "chunk_number": 8,
+                "text": "By the time I took the exam,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "I had accomplished my goal of learning 500 words."
+              },
+              {
+                "chunk_number": 10,
+                "text": "It was a big milestone when I passed with flying colors."
+              },
+              {
+                "chunk_number": 11,
+                "text": "In my opinion, this achievement had a huge impact on"
+              },
+              {
+                "chunk_number": 12,
+                "text": "my confidence to fulfill my dreams."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a difficult task you succeeded in.  What the task was. Why it was difficult. How you succeeded.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, a difficult task I succeeded in was learning to swim."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, I was terrified of water."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Before I started lessons, I had never entered a pool."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Although I was scared, I had dedicated my summer to overcome this fear."
+              },
+              {
+                "chunk_number": 5,
+                "text": "To be honest, the biggest obstacle was holding my breath."
+              },
+              {
+                "chunk_number": 6,
+                "text": "After I had accomplished swimming one lap,"
+              },
+              {
+                "chunk_number": 7,
+                "text": "I felt like I had fulfilled a big dream."
+              },
+              {
+                "chunk_number": 8,
+                "text": "My coach's advice had contributed a lot to my success."
+              },
+              {
+                "chunk_number": 9,
+                "text": "In the end, my efforts paid off and I passed"
+              },
+              {
+                "chunk_number": 10,
+                "text": "with flying colors in the final test."
+              },
+              {
+                "chunk_number": 11,
+                "text": "This milestone had a lasting impact on me."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 13,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What can we do to reduce pollution in our city? Have you overcome any bad habits to help the environment? (Recycled) Is recycling popular in your country?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, the earth is in danger."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Nowadays, pollution is a huge problem."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, what we see is just the tip of the iceberg."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If we don't protect animal habitats, many species will disappear forever."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Next week, I am going to start a conservation project at school."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We plan to recycle all our plastic waste."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Although it will be hard to accomplish our goals,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "we must try to overcome the difficulties."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Personally, I want to live a sustainable and eco-friendly life."
+              },
+              {
+                "chunk_number": 10,
+                "text": "So, I have decided to go green."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a beautiful natural place you know.  Where it is. What it looks like. Why you like it.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I want to talk about a forest park near my home."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it is a perfect habitat for birds."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I am going to visit it again this weekend."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Because the air is so fresh and there is no pollution,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "it is a very eco-friendly place."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, maintaining this beauty requires conservation efforts."
+              },
+              {
+                "chunk_number": 7,
+                "text": "We must overcome laziness and accomplish the task of keeping it clean."
+              },
+              {
+                "chunk_number": 8,
+                "text": "I think more people will choose to go green if they see this place."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, it is a sustainable paradise."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 14,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is the most useful gadget you own? Is electric car technology sustainable enough yet? (Recycled) Do you like trying virtual reality games?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, technology changes very fast."
+              },
+              {
+                "chunk_number": 2,
+                "text": "My old phone is completely outdated now."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, it is too slow to run new apps."
+              },
+              {
+                "chunk_number": 4,
+                "text": "I want to buy an innovative new gadget,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "but I don't have enough money."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, there has been a major breakthrough in battery life recently."
+              },
+              {
+                "chunk_number": 7,
+                "text": "So, I plan to upgrade soon."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Also, modern phones are more eco-friendly and sustainable."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Using a smartphone is not rocket science,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "so anyone can learn it quickly."
+              },
+              {
+                "chunk_number": 11,
+                "text": "In my opinion, virtual assistants are very helpful."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a piece of technology you use daily.  What it is. How often you use it. Why it is important to you.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I use my tablet every day."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it is an innovative device."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, my laptop was too heavy to carry,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "but this tablet is light enough."
+              },
+              {
+                "chunk_number": 5,
+                "text": "It allows me to enter a virtual classroom and study online,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "which is very sustainable."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Also, I often use it to control other smart gadgets in my home."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Because the company is ahead of the curve,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "they release a major upgrade every year."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Although my old tablet is outdated,"
+              },
+              {
+                "chunk_number": 11,
+                "text": "it is still eco-friendly to recycle it."
+              },
+              {
+                "chunk_number": 12,
+                "text": "To sum up, it is a major technological breakthrough for students."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 15,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is the most important tradition in your family? Are virtual festivals fun, or boring? (Recycled) Why should we respect other cultures?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, China has a rich heritage."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Our country is very diverse, isn't it?"
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, every region has its own customs."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is important to show respect to elders,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "which is a key part of our etiquette."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, some traditions are changing."
+              },
+              {
+                "chunk_number": 7,
+                "text": "For example, young people often send virtual red envelopes now."
+              },
+              {
+                "chunk_number": 8,
+                "text": "That is quite innovative, isn't it?"
+              },
+              {
+                "chunk_number": 9,
+                "text": "We should try to broaden our horizons by learning about other cultures,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "but we must preserve our own traditions too."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Remember, when in Rome, do as the Romans do."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a traditional festival.  When and where it happens. What people do. Why it is important.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I love the Spring Festival."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it is the most important tradition in China."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, the food is amazing, isn't it?"
+              },
+              {
+                "chunk_number": 4,
+                "text": "My family always follows the custom of making dumplings together,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "which is part of our cultural heritage."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, we have to follow strict etiquette when greeting elders."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Although modern life is diverse and fast,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "we still respect these old ways."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Sometimes, we use innovative apps to send virtual greetings."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, this festival helps me broaden my horizons about my own culture."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 16,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Do you prefer a hectic city life or a tranquil country life? Is your city diverse enough for you? (Recycled) What kind of infrastructure does a modern city need?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, living in a big city is exciting."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Shanghai is a truly cosmopolitan place with a rich heritage."
+              },
+              {
+                "chunk_number": 3,
+                "text": "However, the lifestyle can be very hectic."
+              },
+              {
+                "chunk_number": 4,
+                "text": "The pace of life is not as slow as in the countryside."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, the infrastructure is amazing, isn't it?"
+              },
+              {
+                "chunk_number": 6,
+                "text": "But sometimes, people feel isolated in the crowd."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Although the city is diverse,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "it is not as tranquil as my hometown."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Actually, I love the hustle and bustle of the streets."
+              },
+              {
+                "chunk_number": 10,
+                "text": "In my opinion, living here offers the best of both"
+              },
+              {
+                "chunk_number": 11,
+                "text": "worlds: modern convenience and history."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe the city or town where you live.  Where it is located. What parts are interesting. Whether you enjoy living there.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I live in Hangzhou."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it is a beautiful city near Shanghai."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, the pace of life here is quite fast,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "but not as hectic as Beijing."
+              },
+              {
+                "chunk_number": 5,
+                "text": "The West Lake area is very tranquil,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "whereas the city center is full of hustle and bustle."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Also, the infrastructure is modern and convenient."
+              },
+              {
+                "chunk_number": 8,
+                "text": "It is a cosmopolitan city that still preserves its cultural heritage."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Although some areas are crowded,"
+              },
+              {
+                "chunk_number": 10,
+                "text": "I never feel isolated because the people are diverse and friendly."
+              },
+              {
+                "chunk_number": 11,
+                "text": "To sum up, living in Hangzhou is the best of both worlds."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 17,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Do you prefer buying trendy clothes or vintage ones? Is shopping in a mall too hectic for you? (Recycled) What is your favorite clothing brand?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, I love fashion."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Yesterday, I went to the mall to browse some shops."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, I wanted to buy a trendy new garment for a party."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Because I wanted to look perfect,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "I had my hair done at a salon."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, designer brands are not always affordable."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Sometimes, I prefer vintage clothes because they are unique."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Shopping can be hectic, but finding a tranquil cafe to"
+              },
+              {
+                "chunk_number": 9,
+                "text": "rest in helps me relax."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Tomorrow, I plan to dress to kill."
+              },
+              {
+                "chunk_number": 11,
+                "text": "My friends and I will probably shop till we drop."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a favorite item of clothing.  What it looks like. Where you bought it. Why you like it.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, my favorite item is a black leather jacket."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it is a vintage piece I bought in London."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, it was quite affordable for such a cool garment."
+              },
+              {
+                "chunk_number": 4,
+                "text": "I usually get it cleaned professionally to keep it looking new."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, it is very trendy and matches everything."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Even when my life is hectic,"
+              },
+              {
+                "chunk_number": 7,
+                "text": "wearing this jacket makes me feel calm and tranquil."
+              },
+              {
+                "chunk_number": 8,
+                "text": "I love to wear it when I browse the city streets."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, it helps me dress to kill whenever I go out."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 18,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Have you visited an art exhibition recently? Do you think vintage movies are boring? (Recycled) What movie genre do you like best?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, I am not an art expert."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Last week, I went to a gallery to see a new exhibition."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, I saw a beautiful,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "large, modern masterpiece."
+              },
+              {
+                "chunk_number": 5,
+                "text": "The painting was so colorful that it inspired me to start drawing again."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, there was a live performer playing the violin."
+              },
+              {
+                "chunk_number": 7,
+                "text": "His music completely captivated the audience."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Although the gallery was quite trendy,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "I preferred the vintage posters in the gift shop."
+              },
+              {
+                "chunk_number": 10,
+                "text": "In my opinion, art should make you feel something."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Hearing the applause was music to my ears."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe an art exhibition or performance.  Where it was. What you saw. How it made you feel.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I recently saw a masterpiece at the city museum."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, it was a fantastic,"
+              },
+              {
+                "chunk_number": 3,
+                "text": "ancient, Chinese vase."
+              },
+              {
+                "chunk_number": 4,
+                "text": "To be honest, the exhibition was crowded with people."
+              },
+              {
+                "chunk_number": 5,
+                "text": "The history of the object captivated me because I love this genre of art."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, the guide gave an inspireing talk about it."
+              },
+              {
+                "chunk_number": 7,
+                "text": "It wasn't a trendy modern show, but rather a classic vintage display."
+              },
+              {
+                "chunk_number": 8,
+                "text": "In the end, a young performer played traditional music which stole the show."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, it was a memorable cultural experience."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 19,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How long does it usually take you to recover from a cold? What helps you recover when you are sad? Does music inspire you? (Recycled) Do you take any preventive medicine like vitamins?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, health is wealth."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Last month, I felt a bit under the weather."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, my symptoms included a headache and fever."
+              },
+              {
+                "chunk_number": 4,
+                "text": "The doctor diagnosed me with the flu and said that I needed rest."
+              },
+              {
+                "chunk_number": 5,
+                "text": "He also told me to drink plenty of water."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Personally, I believe in preventive measures like exercise to boost immunity."
+              },
+              {
+                "chunk_number": 7,
+                "text": "My coach said that daily therapy would help me recover faster."
+              },
+              {
+                "chunk_number": 8,
+                "text": "His words really inspired me to take better care of myself."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Now, I feel fit as a fiddle."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Also, reading about health captivated my interest."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe a time you were sick and recovered.  What the illness was. What the doctor said. How you got better.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, I remember when I caught a bad cold last winter."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, my main symptom was a terrible cough."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I felt completely under the weather."
+              },
+              {
+                "chunk_number": 4,
+                "text": "My mom said that I had weak immunity because I didn't eat enough vegetables."
+              },
+              {
+                "chunk_number": 5,
+                "text": "The doctor diagnosed a throat infection."
+              },
+              {
+                "chunk_number": 6,
+                "text": "He told me that I needed to take some medicine to recover fully."
+              },
+              {
+                "chunk_number": 7,
+                "text": "After a week of rest and preventive care,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "I was fit as a fiddle again."
+              },
+              {
+                "chunk_number": 9,
+                "text": "The experience inspired me to exercise more."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Also, learning about the body captivated me."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 20,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What do you predict life will be like in 2050? Will technology help us recover from climate change? (Recycled) Do you have a clear vision for your future?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "To be honest, the future is mysterious."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Experts predict that AI will revolutionize our lives."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, this change is inevitable."
+              },
+              {
+                "chunk_number": 4,
+                "text": "In ten years, robots will be working in many factories,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "which has huge potential."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, we must bear in mind the consequences."
+              },
+              {
+                "chunk_number": 7,
+                "text": "For example, some jobs might disappear."
+              },
+              {
+                "chunk_number": 8,
+                "text": "We will be living in a very different world,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "so preventive laws are needed."
+              },
+              {
+                "chunk_number": 10,
+                "text": "If we prepare well, society will recover quickly from any shock."
+              },
+              {
+                "chunk_number": 11,
+                "text": "In my vision, a better future is just around the corner."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Describe your life 10 years from now.  Where you will be living. What you will be doing. How your life will be different.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "Well, in 10 years, I think I will be living in a big city."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, I will be working as an architect."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I predict that technology will revolutionize how we build houses."
+              },
+              {
+                "chunk_number": 4,
+                "text": "I will be designing preventive systems to protect homes from storms."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, I have a vision of a green city."
+              },
+              {
+                "chunk_number": 6,
+                "text": "This change is inevitable, and it will have a positive consequence for the planet."
+              },
+              {
+                "chunk_number": 7,
+                "text": "We must recover the nature we lost."
+              },
+              {
+                "chunk_number": 8,
+                "text": "To sum up, exciting times are around the corner,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "and I see great potential."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 21,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How has technology changed societal relaxation? Do you think a sedentary lifestyle is inevitable for office workers? (Recycled) What activities do you pursue to feel invigorated?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It could be argued that modern life is too fast."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Nowadays, many people have a sedentary lifestyle."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, they spend hours sitting in front of screens."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Some experts predict that this will have inevitable health consequences."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, it is important to pursue hobbies that stimulate the mind and body."
+              },
+              {
+                "chunk_number": 6,
+                "text": "For example, hiking can be very invigorateing."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Others might say that solitude is therapeutic for mental health."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Personally, I need to let my hair down on weekends."
+              },
+              {
+                "chunk_number": 9,
+                "text": "It allows me to recharge my batteries for the week ahead."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss how technology has changed societal relaxation.  What traditional relaxation was like. How we relax now. Whether this change is positive or negative.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often said that technology has transformed leisure."
+              },
+              {
+                "chunk_number": 2,
+                "text": "In the past, people used to enjoy active games."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, today's youth are more sedentary."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It could be argued that digital entertainment fails to invigorate"
+              },
+              {
+                "chunk_number": 5,
+                "text": "us like physical exercise does."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, online games can stimulate cognitive skills."
+              },
+              {
+                "chunk_number": 7,
+                "text": "While some predict a decline in social skills,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "others find solitude in gaming therapeutic."
+              },
+              {
+                "chunk_number": 9,
+                "text": "It seems inevitable that we will rely more on screens."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Nevertheless, we must find ways to recharge our batteries offline."
+              },
+              {
+                "chunk_number": 11,
+                "text": "To sum up, balance is key."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 22,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What are the dangers of media bias and manipulation? Do news channels pursue the truth or just profits? (Recycled) How can we verify information we find online?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is undeniable that media influences us."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Unfortunately, some news outlets manipulate facts to gain views."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, they often sensationalize stories."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is far more difficult to find objective reporting today"
+              },
+              {
+                "chunk_number": 5,
+                "text": "than it used to be."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, we must try to verify what we read."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Personally, I take with a grain of salt everything I see online."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Social media disseminates information much faster than traditional TV,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "but it often contains more bias."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Some content is designed to stimulate anger rather than inform."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Therefore, critical thinking is essential."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the dangers of media bias.  Why media outlets might be biased. How this affects public opinion. What we can do about it.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often observed that media companies pursue profits over truth."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Consequently, they may manipulate headlines to attract clicks."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, this practice sensationalizes trivial events."
+              },
+              {
+                "chunk_number": 4,
+                "text": "This report is nowhere near as objective as it claims to be,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "showing clear political bias."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Moreover, fake news is easy to disseminate via word of mouth online."
+              },
+              {
+                "chunk_number": 7,
+                "text": "It is slightly less difficult to verify facts if you check multiple sources."
+              },
+              {
+                "chunk_number": 8,
+                "text": "We should stimulate open discussions instead of echoing one view."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, skepticism is a necessary tool."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 23,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Why is there a global epidemic of unhealthy eating? Do food companies manipulate us to buy processed food? (Recycled) What are your worst dietary habits?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is alarming that obesity has become an epidemic."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, many people blame the food industry."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Companies often manipulate advertising to sell processed snacks."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If they had not added so much sugar,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "the public wouldn't have developed such a strong bias towards sweet foods."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, we also have a responsibility."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Sometimes, we indulge in fast food too often."
+              },
+              {
+                "chunk_number": 8,
+                "text": "If I had known about the effect on my metabolism,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "I would have changed my dietary habits sooner."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Although culinary skills are fading, cooking at home is best."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Remember, you are what you eat."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss why unhealthy eating is increasing.  The role of convenience. The impact of advertising. The consequences for health.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is clear that our food environment is toxic."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, processed food is everywhere."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, the marketing is very persuasive."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If the government had regulated ads earlier,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "this epidemic might not have spread so fast."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, people love to indulge in mouth-watering burgers."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If I hadn't learned culinary skills at school,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "I would have relied on take-out, damaging my metabolism."
+              },
+              {
+                "chunk_number": 9,
+                "text": "There is a clear bias towards convenience over health."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, we must be mindful of our dietary choices."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 24,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How can cities solve gridlock sustainably? Do people indulge in buying cars they don't need? (Recycled) Is cycling a viable option in your city?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is obvious that traffic is a nightmare."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Every morning, the roads are bumper to bumper."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, this gridlock drives me up the wall."
+              },
+              {
+                "chunk_number": 4,
+                "text": "By 2030, I hope the government will have subsidized cleaner alternatives like electric buses."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, cars emit dangerous fumes."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Personally, I think we should integrate more bike lanes."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If we don't act, we will have processed too much"
+              },
+              {
+                "chunk_number": 8,
+                "text": "pollution into the air by next year."
+              },
+              {
+                "chunk_number": 9,
+                "text": "We need a viable plan."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, public transport must improve."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss how to solve city traffic problems.  What the main problems are. What solutions exist. What the future holds.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is widely agreed that cities are too crowded."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, the gridlock causes wasted time and stress."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, we indulge in driving too much."
+              },
+              {
+                "chunk_number": 4,
+                "text": "By the end of the decade,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "experts hope we will have integrated AI into traffic systems."
+              },
+              {
+                "chunk_number": 6,
+                "text": "This viable solution could reduce waiting times."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Also, if we subsidize electric cars,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "we will have emitted far less carbon by 2040."
+              },
+              {
+                "chunk_number": 9,
+                "text": "An alternative is to promote walking."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, we must avoid bumper to bumper roads."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 25,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What is the cultural impact of commercializing pristine destinations? Is camping a viable alternative to hotels? (Recycled) Do you like to immerse yourself in local culture?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is sad that tourism ruins places."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Many villages, which used to be quiet, are now noisy."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, they have been commercialized to sell cheap souvenirs."
+              },
+              {
+                "chunk_number": 4,
+                "text": "My hometown, which was once pristine, is now full of trash."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, travel does broaden the mind."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Personally, I try to find authentic experiences."
+              },
+              {
+                "chunk_number": 7,
+                "text": "I prefer small guesthouses, which allow me to immerse myself in the culture."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Also, finding an alternative route leads to picturesque views."
+              },
+              {
+                "chunk_number": 9,
+                "text": "The scenery is often out of this world."
+              },
+              {
+                "chunk_number": 10,
+                "text": "But, I wouldn't want to live out of a suitcase forever."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the impact of tourism on culture.  Benefits of tourism. Negative effects on culture. How to be a responsible tourist.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is undeniable that tourism brings money."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, mass tourism, which is increasing, can damage authentic traditions."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Local festivals, which should be sacred, are often commercialized for profit."
+              },
+              {
+                "chunk_number": 4,
+                "text": "On the other hand, travel helps us broaden our understanding of the world."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Eco-tourism, which is a viable alternative, protects pristine environments."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We should try to immerse ourselves respectfully."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If we do, the picturesque beauty remains out of this world."
+              },
+              {
+                "chunk_number": 8,
+                "text": "To sum up, responsible travel is key."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 26,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Do you prefer theoretical or practical learning? Does reading books cultivate your mind? (Recycled) How do teachers evaluate students in your country?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is commonly believed that education is the key to success."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, some systems focus too much on theoretical knowledge."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, students often have to memorize facts without understanding them."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If schools had focused on cognitive skills earlier,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "students would be better problem-solvers today."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We need a more comprehensive approach."
+              },
+              {
+                "chunk_number": 7,
+                "text": "For example, we should cultivate creativity, not just memory."
+              },
+              {
+                "chunk_number": 8,
+                "text": "If I hadn't had the chance to immerse myself in authentic projects,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "I wouldn't be so confident now."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Unfortunately, many people learn the hard way that grades aren't everything."
+              },
+              {
+                "chunk_number": 11,
+                "text": "We must put our thinking caps on to improve the system."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss whether schools should prioritize theory or practice.  The benefits of theory. The importance of practical skills. Your opinion on the best balance.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often debated whether schools should teach facts or skills."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, both are important."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, pure theoretical learning can be boring."
+              },
+              {
+                "chunk_number": 4,
+                "text": "If I hadn't been forced to memorize so many dates,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "I would enjoy history more now."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, we need to evaluate evidence critically."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If schools had cultivated more cognitive abilities in the past,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "society would be smarter today."
+              },
+              {
+                "chunk_number": 9,
+                "text": "I believe we need authentic tasks that force us to immerse in real work."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, a comprehensive education balances both."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 27,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Is being an entrepreneur more lucrative than having a regular job? How can we cultivate good leadership skills? (Recycled) Do you like working in a strict hierarchy?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is said that the workplace is changing."
+              },
+              {
+                "chunk_number": 2,
+                "text": "In the past, there was a strict hierarchy."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Now, it is more flexible."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is believed that being an entrepreneur is a lucrative path,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "but it is risky."
+              },
+              {
+                "chunk_number": 6,
+                "text": "To succeed, you must be versatile and able to delegate tasks."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Also, you need strong cognitive skills to solve problems."
+              },
+              {
+                "chunk_number": 8,
+                "text": "It is expected that leaders cultivate a team that can think outside the box."
+              },
+              {
+                "chunk_number": 9,
+                "text": "However, starting a business is hard work."
+              },
+              {
+                "chunk_number": 10,
+                "text": "You often have to burn the midnight oil."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Ultimately, you want to fulfill your potential."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss how the corporate hierarchy is changing.  What traditional structures were like. How modern companies operate. The pros and cons of this change.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is widely thought that traditional jobs are disappearing."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, the hierarchy is becoming flatter."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, this allows employees to be more versatile."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is reported that companies now value people who can"
+              },
+              {
+                "chunk_number": 5,
+                "text": "think outside the box and fulfill multiple roles."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Also, managers are learning to delegate more."
+              },
+              {
+                "chunk_number": 7,
+                "text": "It is assumed that being an entrepreneur is the most lucrative option,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "but it requires high cognitive resilience."
+              },
+              {
+                "chunk_number": 9,
+                "text": "We must cultivate adaptability."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, work is about skills, not just titles."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 28,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What are the consequences of a materialistic society? Is your current job lucrative enough for you? (Recycled) How do you allocate your monthly budget?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is obvious that money matters."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, there is a huge disparity between rich and poor."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, we live in a very materialistic world."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Having observed society, I see that people buy things to compensate for sadness."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Ideally, wealth should be allocated more fairly."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Some jobs are indispensable but pay poorly."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Working hard, everyone should be able to flourish."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Unfortunately, even lucrative jobs are stressful."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Managers often fail to delegate work."
+              },
+              {
+                "chunk_number": 10,
+                "text": "We should remember that money is just bread and butter, not everything."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Always save for a rainy day."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the problem of wealth inequality.  Why there is a gap. How it affects people. What can be done.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is undeniable that economic disparity is growing."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, the rich get richer while the poor struggle."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, being materialistic doesn't make us happy."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Having realized this, many people are seeking a simpler life."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, money is indispensable for survival."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Being a lucrative business, tech companies should compensate their workers better."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If we want society to flourish, we must allocate resources wisely."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Leaders need to delegate power to the community."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, fairness is key."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 29,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Is the high prestige of professional athletes justified? Are sports indispensable for a society to flourish? (Recycled) Do you prefer amateur or professional sports?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is shocking that athletes earn so much."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Rarely do we see such high salaries in other jobs."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, brands pay them millions to endorse products."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Never have I seen an amateur player gain such prestige,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "even if they work harder."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, athletes must persevere through pain."
+              },
+              {
+                "chunk_number": 7,
+                "text": "They exert enormous energy."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Little do people realize that team solidarity is indispensable for success."
+              },
+              {
+                "chunk_number": 9,
+                "text": "If sports are to flourish, we need fairness."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Don't throw in the towel just because it's hard."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Always give it your best shot."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the salaries of professional athletes.  Why they earn so much. If it is fair. The impact on society.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often debated whether athletes are overpaid."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, their careers are short."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, rarely do people work as physically hard as they do."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Not only do they exert themselves daily,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "but they also inspire solidarity among fans."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, teachers are also indispensable but earn less."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Seldom have I seen a teacher flourish financially like a sports star."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Brands endorse athletes for their prestige."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Even an amateur must persevere."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, the market decides."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 30,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How has digital communication affected human empathy? Should we endorse people who are superficial? (Recycled) How do you nurture a harmonious relationship?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It seems that technology connects us."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, screens can alienate people."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, online chats are often superficial."
+              },
+              {
+                "chunk_number": 4,
+                "text": "What we need is more empathy towards others,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "especially those who are vulnerable."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Some people hide behind avatars."
+              },
+              {
+                "chunk_number": 7,
+                "text": "To build a harmonious society, we must nurture real connections."
+              },
+              {
+                "chunk_number": 8,
+                "text": "It is trust that allows relationships to persevere through hard times."
+              },
+              {
+                "chunk_number": 9,
+                "text": "I don't endorse cyberbullying."
+              },
+              {
+                "chunk_number": 10,
+                "text": "True friends stick together through thick and thin."
+              },
+              {
+                "chunk_number": 11,
+                "text": "We should always see the best in someone."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the impact of screens on relationships.  How we communicate now. What is missing. How to improve empathy.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is clear that digital communication is fast."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, what worries me is the lack of empathy."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, texts can be superficial and alienate friends."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is face-to-face contact that helps us nurture harmonious bonds."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Without it, we feel vulnerable."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Although technology is useful, what matters most is that we persevere in meeting people."
+              },
+              {
+                "chunk_number": 7,
+                "text": "I endorse putting phones away."
+              },
+              {
+                "chunk_number": 8,
+                "text": "To sum up, real feelings need real presence."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 31,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Do corporations have a moral duty to engage in philanthropy? How can we empower vulnerable groups? (Recycled) Is it truly possible to be 100% altruistic?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is essential that society helps the poor."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, many groups are still marginalized."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, philanthropy is not just about giving money."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is vital that big companies be more altruistic and support local initiatives."
+              },
+              {
+                "chunk_number": 5,
+                "text": "I wish everyone were willing to do their bit."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Personally, I try to show empathy to those who are vulnerable."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If we were to mobilize our resources, we could empower many people."
+              },
+              {
+                "chunk_number": 8,
+                "text": "It is time for leaders to step up to the plate."
+              },
+              {
+                "chunk_number": 9,
+                "text": "We suggest that every student join a volunteer club."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the role of charity in society.  Who should be responsible for helping. The benefits of volunteering. Challenges charities face.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often debated whether the government or individuals should do more."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, philanthropy fills gaps that laws miss."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, I wish the government were more active in helping marginalized groups."
+              },
+              {
+                "chunk_number": 4,
+                "text": "It is crucial that we empower vulnerable people rather than just giving them handouts."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, showing empathy is key."
+              },
+              {
+                "chunk_number": 6,
+                "text": "If everyone were to mobilize for a common initiative, society would change."
+              },
+              {
+                "chunk_number": 7,
+                "text": "We need altruistic leaders to step up to the plate."
+              },
+              {
+                "chunk_number": 8,
+                "text": "To sum up, we must all do our bit."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 32,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "What role do resilience and tenacity play in overcoming obstacles? Does failing help you mobilize more effort next time? (Recycled) Have you ever achieved something unprecedented in your family?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is widely recognized that success takes time."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, having tenacious habits is key."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Many people strive to reach the pinnacle of their career."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Having faced many failures, they develop the resilience needed to continue."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, talent is not enough."
+              },
+              {
+                "chunk_number": 6,
+                "text": "You must be willing to go the extra mile."
+              },
+              {
+                "chunk_number": 7,
+                "text": "I appreciate being empowered by my teachers to try new things."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Some athletes have achieved unprecedented records."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Actually, they surpass expectations against all odds."
+              },
+              {
+                "chunk_number": 10,
+                "text": "In my opinion, mobilizeing your inner strength is vital."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the importance of resilience.  What resilience means. A time you were resilient. Why it leads to success.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often said that resilience is more important than IQ."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, life is full of challenges."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, having failed a math exam once, I felt terrible."
+              },
+              {
+                "chunk_number": 4,
+                "text": "However, being supported by my parents helped me mobilize my energy to study again."
+              },
+              {
+                "chunk_number": 5,
+                "text": "I decided to strive for better grades."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Having worked tenaciously for months, I eventually surpassed my classmates."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Reaching the pinnacle of the class was an unprecedented feeling for me."
+              },
+              {
+                "chunk_number": 8,
+                "text": "I learned that you can succeed against all odds if"
+              },
+              {
+                "chunk_number": 9,
+                "text": "you go the extra mile."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, never give up."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 33,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Is irreversible ecological damage inevitable? Can nature's resilience help it recover from unprecedented heat? (Recycled) How can we mitigate the effects of plastic waste?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is undeniable that our planet is suffering."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, we have caused unprecedented damage."
+              },
+              {
+                "chunk_number": 3,
+                "text": "The more resources we use, the faster we deplete the earth."
+              },
+              {
+                "chunk_number": 4,
+                "text": "The harder we try to grow the economy,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "the more detrimental the ecological impact becomes."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Sadly, some damage is irreversible."
+              },
+              {
+                "chunk_number": 7,
+                "text": "We risk wiping out vital biodiversity."
+              },
+              {
+                "chunk_number": 8,
+                "text": "The longer we wait, the harder it will be to mitigate the disaster."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Although nature has resilience, it has limits."
+              },
+              {
+                "chunk_number": 10,
+                "text": "My efforts feel like a drop in the ocean."
+              },
+              {
+                "chunk_number": 11,
+                "text": "However, we must act now."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the urgency of climate action.  What the main threats are. How our actions are linked to results. What must be done.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is widely agreed that time is running out."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, the loss of biodiversity is alarming."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, unprecedented storms are becoming common."
+              },
+              {
+                "chunk_number": 4,
+                "text": "The more we deplete forests,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "the less resilience the planet has against carbon."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We must mitigate these detrimental effects before they become irreversible."
+              },
+              {
+                "chunk_number": 7,
+                "text": "The sooner we act, the better chance we have to avoid wiping out species."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Individual acts may seem like a drop in the ocean,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "but together they matter."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, our ecological future is in our hands."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 34,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How will workplace automation force society to adapt? Is the shift to AI an irreversible change? (Recycled) Do you think coding is an indispensable skill?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is fascinating that tech evolves so fast."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Last year, our school was going to buy new computers."
+              },
+              {
+                "chunk_number": 3,
+                "text": "However, they became obsolete very quickly."
+              },
+              {
+                "chunk_number": 4,
+                "text": "They were going to automate the library system,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "but the algorithm was too sophisticated."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Now, AI is a new paradigm."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Some people worry it will cause irreversible job losses."
+              },
+              {
+                "chunk_number": 8,
+                "text": "We were going to mitigate this by training staff,"
+              },
+              {
+                "chunk_number": 9,
+                "text": "but the change is happening too fast."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Actually, this tech is light years ahead of old tools."
+              },
+              {
+                "chunk_number": 11,
+                "text": "We shouldn't reinvent the wheel; we should use it."
+              },
+              {
+                "chunk_number": 12,
+                "text": "Technology is now indispensable."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss how technology changes plans.  A plan you had involving tech. Why it changed. The outcome.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is interesting that plans often fail due to tech speed."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, my company was going to launch a simple app."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, we realized the code was obsolete."
+              },
+              {
+                "chunk_number": 4,
+                "text": "We were going to automate customer service,"
+              },
+              {
+                "chunk_number": 5,
+                "text": "but we needed a more sophisticated algorithm."
+              },
+              {
+                "chunk_number": 6,
+                "text": "This shift represents a new paradigm."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Although the delay was frustrating,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "we managed to mitigate the loss and build something indispensable."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Our new AI is light years ahead."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, adaptation is key to avoid irreversible failure."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 35,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Will globalization inevitably homogenize diverse cultures? Is the Western cultural paradigm too dominant? (Recycled) Do you want to assimilate into a new culture if you move abroad?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is feared that globalization destroys diversity."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Some people think we will all become the same."
+              },
+              {
+                "chunk_number": 3,
+                "text": "I hope not."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Actually, big brands tend to homogenize cities."
+              },
+              {
+                "chunk_number": 5,
+                "text": "They sell sophisticated products that everyone wants,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "but this creates a boring paradigm."
+              },
+              {
+                "chunk_number": 7,
+                "text": "We must preserve our unique traditions."
+              },
+              {
+                "chunk_number": 8,
+                "text": "If we don't, we lose our linguistic roots."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Immigrants often try to assimilate, but they shouldn't lose their identity."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Don't believe every stereotype you hear."
+              },
+              {
+                "chunk_number": 11,
+                "text": "Some are true, but many aren't."
+              },
+              {
+                "chunk_number": 12,
+                "text": "Our city is a melting pot."
+              },
+              {
+                "chunk_number": 13,
+                "text": "Avoid culture shock by being open."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the future of culture.  If cultures are becoming the same. Why this happens. How to keep traditions alive.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often asked if we are losing our identity."
+              },
+              {
+                "chunk_number": 2,
+                "text": "I think so."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, media tends to homogenize fashion and food."
+              },
+              {
+                "chunk_number": 4,
+                "text": "To be honest, this paradigm endangers linguistic diversity."
+              },
+              {
+                "chunk_number": 5,
+                "text": "People want to be sophisticated, so they copy global trends."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, patriotism can help us preserve customs."
+              },
+              {
+                "chunk_number": 7,
+                "text": "We welcome those who want to assimilate,"
+              },
+              {
+                "chunk_number": 8,
+                "text": "but we also value the old ways."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Living in a melting pot helps reduce stereotypes."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Will we lose everything?"
+              },
+              {
+                "chunk_number": 11,
+                "text": "I hope not."
+              },
+              {
+                "chunk_number": 12,
+                "text": "To sum up, diversity matters."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 36,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Does rapid urbanization create better amenitys or social alienation? Can we preserve nature in a sprawling city? (Recycled) Do you prefer to be anonymous in a big city?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is true that cities offer jobs."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, rapid urbanization causes problems."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Much as I love the convenience of every modern amenity,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "the noise is stressful."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, cities can feel like a concrete jungle."
+              },
+              {
+                "chunk_number": 6,
+                "text": "People often feel anonymous and lonely."
+              },
+              {
+                "chunk_number": 7,
+                "text": "However hard we try to build communities, social alienation is increasing."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Furthermore, urban sprawl destroys nature."
+              },
+              {
+                "chunk_number": 9,
+                "text": "It tends to displace local farmers."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Some developers homogenize neighborhoods, making them look the same."
+              },
+              {
+                "chunk_number": 11,
+                "text": "We must try to preserve green spaces."
+              },
+              {
+                "chunk_number": 12,
+                "text": "Escaping the rat race is becoming a priority for many."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the pros and cons of city life.  Why people move to cities. The negative side effects. How to improve city living.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is widely accepted that cities drive the economy."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, urbanization brings better hospitals and schools."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, much as I enjoy the amenitys,"
+              },
+              {
+                "chunk_number": 4,
+                "text": "I hate the pollution."
+              },
+              {
+                "chunk_number": 5,
+                "text": "In spite of living among millions,"
+              },
+              {
+                "chunk_number": 6,
+                "text": "it is easy to feel anonymous and suffer from alienation."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Also, the sprawl of housing threatens to displace wildlife."
+              },
+              {
+                "chunk_number": 8,
+                "text": "However fast the city grows, we must preserve our parks."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Otherwise, we just live in a concrete jungle."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Modern life tends to homogenize our experiences."
+              },
+              {
+                "chunk_number": 11,
+                "text": "To sum up, we need balance to avoid the rat race."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 37,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "How does consumerism affect our perception of status? Do impulsive purchases cause financial alienation? (Recycled) Why do celebrities endorse products?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is worrying that we buy too much."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, consumerism drives the economy but hurts the planet."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Companies manufacture goods cheaply."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Whatever you buy, it likely has a hidden environmental cost."
+              },
+              {
+                "chunk_number": 5,
+                "text": "People often buy things to boost their status."
+              },
+              {
+                "chunk_number": 6,
+                "text": "However, this is superficial happiness."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Whenever I feel impulsive, I try to wait before spending money."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Celebrities endorse luxury items that cost a fortune."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Trying to keep up with the Joneses leads to debt."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Also, shopping online keeps us anonymous but causes social alienation."
+              },
+              {
+                "chunk_number": 11,
+                "text": "We should be smarter shoppers."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the effects of advertising.  How ads influence us. If they are honest. Should they be regulated.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is clear that ads are powerful."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, they create impulsive desires."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, the link between products and status is superficial."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Whoever creates these ads knows how to manipulate our emotions."
+              },
+              {
+                "chunk_number": 5,
+                "text": "They pay stars to endorse things we don't need."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Wherever you go, you see ads promoting consumerism."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Mass manufacture creates waste."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Buying things to keep up with the Joneses is foolish."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Even though online shopping is anonymous, it increases alienation."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, we must resist the pressure."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 38,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Why is contemporary abstract art often controversial? Is judging art purely subjective or superficial? (Recycled) Does good art always evoke strong emotions?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is often said that art is subjective."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, abstract paintings confuse many people."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Understanding the artist's message requires a profound mind."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Some critics focus only on the aesthetic value."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, contemporary art is about ideas."
+              },
+              {
+                "chunk_number": 6,
+                "text": "The way colors are used can evoke deep sadness or joy."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Some say modern art is superficial and driven by consumerism."
+              },
+              {
+                "chunk_number": 8,
+                "text": "But beauty is a matter of taste."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Great art sets the stage for new ways of thinking."
+              },
+              {
+                "chunk_number": 10,
+                "text": "In my opinion, being subjective is what makes art interesting."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the value of modern art.  Why it is popular. Why some dislike it. Your opinion.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is undeniable that contemporary art divides opinion."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, abstract pieces can look simple."
+              },
+              {
+                "chunk_number": 3,
+                "text": "The reason why people pay millions is often linked to consumerism rather than talent."
+              },
+              {
+                "chunk_number": 4,
+                "text": "However, art should evoke feelings."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Creating something unique sets a profound aesthetic standard."
+              },
+              {
+                "chunk_number": 6,
+                "text": "Some critiques are superficial."
+              },
+              {
+                "chunk_number": 7,
+                "text": "Whether you like it is a matter of taste."
+              },
+              {
+                "chunk_number": 8,
+                "text": "I believe daring artists set the stage for future innovation."
+              },
+              {
+                "chunk_number": 9,
+                "text": "To sum up, art is subjective."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 39,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "As longevity increases, how must society adapt to holistic care? Does a sedentary lifestyle evoke fear of chronic illness? (Recycled) Why are back problems so prevalent today?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is alarming that we are living longer but sicker."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, a sedentary lifestyle is so prevalent that everyone sits all day."
+              },
+              {
+                "chunk_number": 3,
+                "text": "This habit takes a toll on our bodies."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Our health can deteriorate so fast that we develop chronic pain."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Doctors say we need a holistic approach."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We need to fix the mind and body."
+              },
+              {
+                "chunk_number": 7,
+                "text": "It is such a profound problem that medicine alone isn't enough."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Even thinking about it can evoke worry."
+              },
+              {
+                "chunk_number": 9,
+                "text": "However, with exercise, you can get back on your feet."
+              },
+              {
+                "chunk_number": 10,
+                "text": "We aim for longevity with quality."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the challenges of an aging population.  Why people live longer. The problems this creates. How we can help.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is clear that longevity is increasing."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, modern medicine is amazing."
+              },
+              {
+                "chunk_number": 3,
+                "text": "However, chronic diseases are prevalent."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Some elderly people are so lonely that their mental health deteriorates."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Also, a sedentary life takes a toll on mobility."
+              },
+              {
+                "chunk_number": 6,
+                "text": "This creates such a heavy burden on families that we"
+              },
+              {
+                "chunk_number": 7,
+                "text": "need a holistic care system."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Seeing them suffer evokes profound sadness."
+              },
+              {
+                "chunk_number": 9,
+                "text": "We must help them get back on their feet emotionally."
+              },
+              {
+                "chunk_number": 10,
+                "text": "To sum up, care is essential."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "week_number": 40,
+    "sections": [
+      {
+        "section_id": "transcoded",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Speculating on the next 50 years, what is humanity's greatest dilemma? Is it prevalent to fear that society will deteriorate? (Recycled) What optimum future do you anticipate?",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is exciting to speculate about 2070."
+              },
+              {
+                "chunk_number": 2,
+                "text": "However, a climate crisis looms over us."
+              },
+              {
+                "chunk_number": 3,
+                "text": "Actually, we face a serious dilemma."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Due to pollution, the environment is bound to deteriorate further unless we act."
+              },
+              {
+                "chunk_number": 5,
+                "text": "Scientists anticipate major changes."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We are on the verge of a breakthrough that could"
+              },
+              {
+                "chunk_number": 7,
+                "text": "restore the optimum balance of nature."
+              },
+              {
+                "chunk_number": 8,
+                "text": "We need visionary leaders."
+              },
+              {
+                "chunk_number": 9,
+                "text": "Otherwise, suffering will become prevalent."
+              },
+              {
+                "chunk_number": 10,
+                "text": "Will we succeed?"
+              },
+              {
+                "chunk_number": 11,
+                "text": "Only time will tell."
+              },
+              {
+                "chunk_number": 12,
+                "text": "As for aliens, we will cross that bridge when we come to it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section_id": "model_answer",
+        "questions": [
+          {
+            "question_id": "q1",
+            "question_text": "Discuss the future of humanity.  Biggest challenges. Technological hopes. Your prediction.",
+            "answer_id": "a1",
+            "chunks": [
+              {
+                "chunk_number": 1,
+                "text": "It is hard to know what lies ahead."
+              },
+              {
+                "chunk_number": 2,
+                "text": "Actually, a resource war looms."
+              },
+              {
+                "chunk_number": 3,
+                "text": "To be honest, this is our biggest dilemma."
+              },
+              {
+                "chunk_number": 4,
+                "text": "Due to overpopulation, shortages are bound to become prevalent."
+              },
+              {
+                "chunk_number": 5,
+                "text": "However, I anticipate that visionary inventors will save us."
+              },
+              {
+                "chunk_number": 6,
+                "text": "We are on the verge of finding the optimum energy source."
+              },
+              {
+                "chunk_number": 7,
+                "text": "If not, society will deteriorate."
+              },
+              {
+                "chunk_number": 8,
+                "text": "Can we speculate on peace?"
+              },
+              {
+                "chunk_number": 9,
+                "text": "Only time will tell."
+              },
+              {
+                "chunk_number": 10,
+                "text": "For now, we tackle today's problems and cross that bridge"
+              },
+              {
+                "chunk_number": 11,
+                "text": "when we come to it."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

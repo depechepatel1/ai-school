@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.upload-videos]
 verify_jwt = false
+
+[functions.upload-curriculum]
+verify_jwt = false

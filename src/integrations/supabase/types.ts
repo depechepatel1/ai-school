@@ -52,6 +52,7 @@ export type Database = {
       }
       classes: {
         Row: {
+          course_type: string
           created_at: string
           created_by: string
           id: string
@@ -60,6 +61,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          course_type?: string
           created_at?: string
           created_by: string
           id?: string
@@ -68,6 +70,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          course_type?: string
           created_at?: string
           created_by?: string
           id?: string
@@ -193,6 +196,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          selected_week: number
           updated_at: string
         }
         Insert: {
@@ -200,6 +204,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          selected_week?: number
           updated_at?: string
         }
         Update: {
@@ -207,6 +212,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          selected_week?: number
           updated_at?: string
         }
         Relationships: []

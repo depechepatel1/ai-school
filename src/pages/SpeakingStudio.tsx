@@ -29,7 +29,11 @@ import { useXP } from "@/hooks/useXP";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
+import { useCourseWeek } from "@/hooks/useCourseWeek";
+import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { PART2_TOPIC } from "@/types/speaking";
+import WeekSelector from "@/components/speaking/WeekSelector";
+import { getSpeakingQuestions } from "@/services/curriculum-storage";
 
 export default function SpeakingStudio() {
   const navigate = useNavigate();
@@ -39,7 +43,7 @@ export default function SpeakingStudio() {
   // ── Local UI state ──
   const [mode, setMode] = useState<"shadowing" | "speaking">("shadowing");
   const [accent, setAccent] = useState<"UK" | "US">("UK");
-  const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency">("pronunciation");
+  const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency" | "curriculum">("pronunciation");
   const [rawText, setRawText] = useState("");
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [isPlayingModel, setIsPlayingModel] = useState(false);
@@ -58,8 +62,13 @@ export default function SpeakingStudio() {
   // ── Hooks ──
   const { xp, level, addXP } = useXP();
   const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
-  const curriculum = useCurriculum(userId, practiceType);
+  const curriculumPracticeType = practiceType === "curriculum" ? "pronunciation" : practiceType;
+  const curriculum = useCurriculum(userId, curriculumPracticeType as "pronunciation" | "fluency");
   const test = useSpeakingTest({ accent: accentLower });
+  const courseWeek = useCourseWeek(userId);
+  const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
+  const [speakingQuestions, setSpeakingQuestions] = useState<string[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   // Sync prosody + reset visualizer on new sentence
   useEffect(() => {
@@ -71,31 +80,51 @@ export default function SpeakingStudio() {
   useEffect(() => { preloadVoices(); preloadAccent(accentLower); }, []);
   useEffect(() => { preloadAccent(accentLower); }, [accentLower]);
 
-  // Sync curriculum sentence
+  // Sync curriculum sentence (pronunciation mode)
   useEffect(() => {
     if (curriculum.currentSentence && practiceType === "pronunciation") {
       setRawText(curriculum.currentSentence);
     }
   }, [curriculum.currentSentence, practiceType]);
 
+  // Sync shadowing curriculum chunk (curriculum mode)
+  useEffect(() => {
+    if (practiceType === "curriculum" && shadowCurriculum.currentChunk) {
+      setRawText(shadowCurriculum.currentChunk.text);
+    }
+  }, [practiceType, shadowCurriculum.currentChunk]);
+
+  // Load speaking questions when course/week changes
+  useEffect(() => {
+    if (!courseWeek.courseType || !shadowCurriculum.curriculumData) return;
+    const qs = getSpeakingQuestions(shadowCurriculum.curriculumData, courseWeek.selectedWeek);
+    setSpeakingQuestions(qs);
+    setCurrentQuestionIndex(0);
+  }, [courseWeek.courseType, courseWeek.selectedWeek, shadowCurriculum.curriculumData]);
+
   // Auto-scroll chat
   useEffect(() => { chatScrollRef.current?.scrollIntoView({ behavior: "smooth" }); }, [test.messages, test.isAiThinking]);
 
   // ── Shadowing handlers ──
-  const handleGenerate = (type: "pronunciation" | "fluency") => {
+  const handleGenerate = (type: "pronunciation" | "fluency" | "curriculum") => {
     if (type === "pronunciation") {
       curriculum.loadCurriculumPage(Math.floor(Math.random() * 100) * 5);
-    } else {
+    } else if (type === "fluency") {
       setRawText(FLUENCY_SENTENCES[Math.floor(Math.random() * FLUENCY_SENTENCES.length)]);
     }
+    // curriculum type is handled by useShadowingCurriculum
     clearRecording();
   };
 
   const handleNextSentence = useCallback(async () => {
     clearRecording();
-    const sentence = await curriculum.handleNextSentence();
-    if (sentence) setRawText(sentence);
-  }, [curriculum, clearRecording]);
+    if (practiceType === "curriculum") {
+      shadowCurriculum.nextChunk();
+    } else {
+      const sentence = await curriculum.handleNextSentence();
+      if (sentence) setRawText(sentence);
+    }
+  }, [curriculum, clearRecording, practiceType, shadowCurriculum]);
 
   const handlePitchContour = useCallback((contour: number[]) => {
     if (mode === "shadowing" && contour.length > 0) {
@@ -228,17 +257,28 @@ export default function SpeakingStudio() {
                     <USFlag /><span className="text-[10px] font-bold tracking-wider text-white/70">US</span>
                   </button>
                 </div>
-                {curriculum.currentTopic && (
+                {curriculum.currentTopic && practiceType === "pronunciation" && (
                   <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2">
                     <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">Topic</span>
                     <div className="text-sm font-semibold text-white/90 mt-0.5">{curriculum.currentTopic}</div>
                   </div>
                 )}
+                {practiceType === "curriculum" && shadowCurriculum.totalChunks > 0 && (
+                  <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                      Chunk {shadowCurriculum.currentIndex + 1} / {shadowCurriculum.totalChunks}
+                    </span>
+                    <div className="text-[10px] text-white/50 mt-0.5">Week {courseWeek.shadowingWeek}</div>
+                  </div>
+                )}
+                {courseWeek.courseType && (
+                  <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
+                )}
                 <div className="flex gap-1 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-1">
-                  {(["pronunciation", "fluency"] as const).map((t) => (
+                  {(["pronunciation", "curriculum", "fluency"] as const).map((t) => (
                     <button key={t} onClick={() => { setPracticeType(t); handleGenerate(t); }}
                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${practiceType === t ? "bg-white/[0.08] text-white border border-white/[0.06]" : "text-white/35 hover:text-white/60"}`}>
-                      {t}
+                      {t === "curriculum" ? "Shadowing" : t}
                     </button>
                   ))}
                 </div>
@@ -326,8 +366,8 @@ export default function SpeakingStudio() {
                 <Ghost className="w-7 h-7 group-hover:scale-110 transition-transform" />
               </button>
               <div className="w-8 h-px bg-white/[0.06]" />
-              {practiceType === "pronunciation" && (
-                <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
+              {(practiceType === "pronunciation" || practiceType === "curriculum") && (
+                <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
                   <SkipForward className="w-7 h-7 group-hover:scale-110 transition-transform" />
                 </button>
               )}
@@ -360,6 +400,31 @@ export default function SpeakingStudio() {
                 </div>
                 {test.testState.currentPart?.startsWith("part2") && <CueCard topic={PART2_TOPIC} />}
                 {test.testState.currentPart?.startsWith("part2") && <FreehandNotePad />}
+              </div>
+            )}
+
+            {/* Speaking questions from curriculum */}
+            {speakingQuestions.length > 0 && test.testState.status === "idle" && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[80] max-w-lg w-full px-4">
+                <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                      Week {courseWeek.selectedWeek} — Question {currentQuestionIndex + 1}/{speakingQuestions.length}
+                    </span>
+                    {courseWeek.courseType && (
+                      <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
+                    )}
+                  </div>
+                  <p className="text-sm text-white/90 leading-relaxed">{speakingQuestions[currentQuestionIndex]}</p>
+                  {speakingQuestions.length > 1 && (
+                    <button
+                      onClick={() => setCurrentQuestionIndex((i) => (i + 1) % speakingQuestions.length)}
+                      className="mt-3 px-4 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                      Next Question
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
