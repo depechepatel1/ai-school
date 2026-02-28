@@ -8,7 +8,7 @@ import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadVoices, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
-import { FLUENCY_SENTENCES } from "@/types/speaking";
+
 
 // ── Components ──
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
@@ -44,7 +44,7 @@ export default function SpeakingStudio() {
   // ── Local UI state ──
   const [mode, setMode] = useState<"shadowing" | "speaking">("shadowing");
   const [accent, setAccent] = useState<"UK" | "US">("UK");
-  const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency" | "curriculum">("pronunciation");
+  const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency">("pronunciation");
   const [rawText, setRawText] = useState("");
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [isPlayingModel, setIsPlayingModel] = useState(false);
@@ -62,8 +62,7 @@ export default function SpeakingStudio() {
   // ── Hooks ──
   const { xp, level, addXP } = useXP();
   const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
-  const curriculumPracticeType = practiceType === "curriculum" ? "pronunciation" : practiceType;
-  const curriculum = useCurriculum(userId, curriculumPracticeType as "pronunciation" | "fluency");
+  const curriculum = useCurriculum(userId, "pronunciation");
   const test = useSpeakingTest({ accent: accentLower });
   const courseWeek = useCourseWeek(userId);
   const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
@@ -73,7 +72,7 @@ export default function SpeakingStudio() {
   // Derive activity type for timer
   const timerActivityType: ActivityType = mode === "speaking" ?
   "speaking" :
-  practiceType === "curriculum" ?
+  practiceType === "fluency" ?
   "shadowing" :
   "pronunciation";
 
@@ -105,9 +104,9 @@ export default function SpeakingStudio() {
     }
   }, [curriculum.currentSentence, practiceType]);
 
-  // Sync shadowing curriculum chunk (curriculum mode)
+  // Sync shadowing curriculum chunk (fluency mode)
   useEffect(() => {
-    if (practiceType === "curriculum" && shadowCurriculum.currentChunk) {
+    if (practiceType === "fluency" && shadowCurriculum.currentChunk) {
       setRawText(shadowCurriculum.currentChunk.text);
     }
   }, [practiceType, shadowCurriculum.currentChunk]);
@@ -124,19 +123,17 @@ export default function SpeakingStudio() {
   useEffect(() => {chatScrollRef.current?.scrollIntoView({ behavior: "smooth" });}, [test.messages, test.isAiThinking]);
 
   // ── Shadowing handlers ──
-  const handleGenerate = (type: "pronunciation" | "fluency" | "curriculum") => {
+  const handleGenerate = (type: "pronunciation" | "fluency") => {
     if (type === "pronunciation") {
       curriculum.loadCurriculumPage(Math.floor(Math.random() * 100) * 5);
-    } else if (type === "fluency") {
-      setRawText(FLUENCY_SENTENCES[Math.floor(Math.random() * FLUENCY_SENTENCES.length)]);
     }
-    // curriculum type is handled by useShadowingCurriculum
+    // fluency type is handled by useShadowingCurriculum
     clearRecording();
   };
 
   const handleNextSentence = useCallback(async () => {
     clearRecording();
-    if (practiceType === "curriculum") {
+    if (practiceType === "fluency") {
       shadowCurriculum.nextChunk();
     } else {
       const sentence = await curriculum.handleNextSentence();
@@ -289,7 +286,7 @@ export default function SpeakingStudio() {
                     <div className="text-[13px] font-semibold text-white/90 mt-1 leading-tight">{curriculum.currentTopic}</div>
                   </div>
               }
-                {practiceType === "curriculum" && shadowCurriculum.totalChunks > 0 &&
+                {practiceType === "fluency" && shadowCurriculum.totalChunks > 0 &&
               <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-3.5 py-2.5">
                     <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">
                       Chunk {shadowCurriculum.currentIndex + 1} / {shadowCurriculum.totalChunks}
@@ -301,10 +298,10 @@ export default function SpeakingStudio() {
               <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
               }
                 <div className="flex gap-0.5 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1">
-                  {(["pronunciation", "curriculum", "fluency"] as const).map((t) =>
+                  {(["pronunciation", "fluency"] as const).map((t) =>
                 <button key={t} onClick={() => {setPracticeType(t);handleGenerate(t);}}
                 className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${practiceType === t ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" : "text-white/30 hover:text-white/60 hover:bg-white/[0.04]"}`}>
-                      {t === "curriculum" ? "Shadowing" : t}
+                      {t}
                     </button>
                 )}
                 </div>
@@ -392,7 +389,7 @@ export default function SpeakingStudio() {
                 <Ghost className="w-7 h-7 group-hover:scale-110 transition-transform" />
               </button>
               <div className="w-8 h-px bg-white/[0.06]" />
-              {(practiceType === "pronunciation" || practiceType === "curriculum") &&
+              {(practiceType === "pronunciation" || practiceType === "fluency") &&
             <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
                   <SkipForward className="w-7 h-7 group-hover:scale-110 transition-transform" />
                 </button>
