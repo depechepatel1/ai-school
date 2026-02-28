@@ -304,7 +304,7 @@ export default function SpeakingStudio() {
             }
           </div>
 
-          <div className="flex flex-col gap-2.5 items-end mt-1 mr-1">
+          <div className="flex flex-col gap-2.5 items-end -mt-2 mr-1">
             <XPWidget xp={xp} level={level} />
           </div>
         </div>
