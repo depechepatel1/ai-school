@@ -258,6 +258,18 @@ export default function SpeakingStudio() {
         {/* Top Bar */}
         <div className="absolute top-16 left-0 right-0 px-3 z-50 flex justify-between items-start">
           <div className="gap-2.5 ml-2 flex flex-col animate-fade-in">
+            {test.testState.status === "idle" &&
+              <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
+                <button onClick={() => setMode("shadowing")}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "shadowing" ? "bg-cyan-500/90 text-black shadow-[0_2px_12px_rgba(6,182,212,0.4)]" : "text-white/35 hover:text-white/60"}`}>
+                  Shadowing
+                </button>
+                <button onClick={() => {setMode("speaking");test.setShowTestConfig(true);}}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "speaking" ? "bg-purple-500/90 text-white shadow-[0_2px_12px_rgba(168,85,247,0.4)]" : "text-white/35 hover:text-white/60"}`}>
+                  Speaking
+                </button>
+              </div>
+            }
             <div style={{ animationDelay: '0s' }} className="animate-fade-in">
               <StreakWidget
                 displaySeconds={practiceTimer.displaySeconds}
@@ -294,18 +306,6 @@ export default function SpeakingStudio() {
 
           <div className="flex flex-col gap-2.5 items-end mt-1 mr-1">
             <XPWidget xp={xp} level={level} />
-            {test.testState.status === "idle" &&
-            <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
-                <button onClick={() => setMode("shadowing")}
-              className={`px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "shadowing" ? "bg-cyan-500/90 text-black shadow-[0_2px_12px_rgba(6,182,212,0.4)]" : "text-white/35 hover:text-white/60"}`}>
-                  Shadowing
-                </button>
-                <button onClick={() => {setMode("speaking");test.setShowTestConfig(true);}}
-              className={`px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "speaking" ? "bg-purple-500/90 text-white shadow-[0_2px_12px_rgba(168,85,247,0.4)]" : "text-white/35 hover:text-white/60"}`}>
-                  Speaking
-                </button>
-              </div>
-            }
           </div>
         </div>
 
