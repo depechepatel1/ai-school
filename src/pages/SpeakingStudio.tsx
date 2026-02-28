@@ -503,7 +503,7 @@ export default function SpeakingStudio() {
         }
 
         {/* Modals */}
-        {test.showTestConfig && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
+        {mode === "speaking" && test.showTestConfig && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
         {test.showSaveModal &&
         <SaveSessionModal isPartial={true}
         onSave={() => {addXP(50);test.resetTest();}}
