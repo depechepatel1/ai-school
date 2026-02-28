@@ -4,13 +4,14 @@ interface WeekSelectorProps {
   selectedWeek: number;
   onWeekChange: (week: number) => void;
   maxWeek?: number;
+  contextLabel?: string;
 }
 
-export default function WeekSelector({ selectedWeek, onWeekChange, maxWeek = 20 }: WeekSelectorProps) {
+export default function WeekSelector({ selectedWeek, onWeekChange, maxWeek = 20, contextLabel }: WeekSelectorProps) {
   return (
     <div className="flex items-center gap-2 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2">
       <Calendar className="w-3.5 h-3.5 text-white/40" />
-      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/40">Week</span>
+      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/40">Wk</span>
       <select
         value={selectedWeek}
         onChange={(e) => onWeekChange(Number(e.target.value))}
@@ -22,6 +23,12 @@ export default function WeekSelector({ selectedWeek, onWeekChange, maxWeek = 20 
           </option>
         ))}
       </select>
+      {contextLabel && (
+        <>
+          <span className="text-white/20">·</span>
+          <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/50">{contextLabel}</span>
+        </>
+      )}
     </div>
   );
 }

@@ -13,6 +13,8 @@ export interface CurriculumChunk {
 
 export interface CurriculumChunkWithQuestion extends CurriculumChunk {
   question_text: string;
+  section_id: string;
+  question_id: string;
 }
 
 export interface CurriculumQuestion {
@@ -94,9 +96,17 @@ export function getWeekShadowingChunks(
   const chunks: CurriculumChunkWithQuestion[] = [];
   for (const section of week.sections) {
     if (sectionIds.includes(section.section_id)) {
+      // Track question index per section for display (Q1, Q2, …)
+      let qIndex = 0;
       for (const q of section.questions) {
+        qIndex++;
         for (const chunk of q.chunks) {
-          chunks.push({ ...chunk, question_text: q.question_text });
+          chunks.push({
+            ...chunk,
+            question_text: q.question_text,
+            section_id: section.section_id,
+            question_id: `q${qIndex}`,
+          });
         }
       }
     }

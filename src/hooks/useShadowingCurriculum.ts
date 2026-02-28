@@ -61,5 +61,7 @@ export function useShadowingCurriculum(
     resetToFirst,
     curriculumData,
     currentQuestionText: currentChunk?.question_text ?? null,
+    currentSectionId: currentChunk?.section_id ?? null,
+    currentQuestionId: currentChunk?.question_id ?? null,
   };
 }
