@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BarChart3, Zap } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import PageShell from "@/components/PageShell";
 import { useAuth } from "@/lib/auth";
@@ -113,13 +114,20 @@ export default function StudentAnalysis() {
               <button
                 key={p.key}
                 onClick={() => setPeriod(p.key)}
-                className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all ${
+                className={`relative px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors ${
                   period === p.key
-                    ? "bg-white/15 text-white border border-white/20 shadow-lg"
-                    : "text-white/40 hover:text-white/60 border border-transparent"
+                    ? "text-white"
+                    : "text-white/40 hover:text-white/60"
                 }`}
               >
-                {p.label}
+                {period === p.key && (
+                  <motion.div
+                    layoutId="period-pill"
+                    className="absolute inset-0 rounded-full bg-white/15 border border-white/20 shadow-lg"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{p.label}</span>
               </button>
             ))}
           </div>
@@ -127,45 +135,77 @@ export default function StudentAnalysis() {
           {/* Content */}
           <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 px-6 overflow-y-auto">
             {loading || !data ? (
-              <div className="text-white/40 text-sm animate-pulse">Loading analytics…</div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-white/40 text-sm animate-pulse"
+              >
+                Loading analytics…
+              </motion.div>
             ) : (
-              <>
-                {/* Progress rings */}
-                <div className="flex items-center justify-center gap-10">
-                  {ACTIVITIES.map((a) => (
-                    <ProgressRing key={a.key} data={data[a.key]} color={a.color} label={a.label} />
-                  ))}
-                </div>
-
-                {/* Bar chart */}
-                {data.breakdown.length > 0 && (
-                  <div className="w-full max-w-[700px] h-[160px] mt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.breakdown} barCategoryGap="20%">
-                        <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => fmt(v)} />
-                        <Tooltip
-                          contentStyle={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 11 }}
-                          labelStyle={{ color: "rgba(255,255,255,0.6)" }}
-                          formatter={(v: number) => fmt(v)}
-                        />
-                        {ACTIVITIES.map((a) => (
-                          <Bar key={a.key} dataKey={a.key} fill={a.barColor} radius={[4, 4, 0, 0]} />
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={period}
+                  initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="flex flex-col items-center gap-6 w-full"
+                >
+                  {/* Progress rings */}
+                  <div className="flex items-center justify-center gap-10">
+                    {ACTIVITIES.map((a, i) => (
+                      <motion.div
+                        key={a.key}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
+                      >
+                        <ProgressRing data={data[a.key]} color={a.color} label={a.label} />
+                      </motion.div>
+                    ))}
                   </div>
-                )}
 
-                {/* Total summary */}
-                <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
-                  <Zap className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm font-bold text-white/70">
-                    Total: <span className="text-white">{fmt(data.totalSeconds)}</span>
-                    <span className="text-white/30"> / {fmt(data.totalTarget)}</span>
-                  </span>
-                </div>
-              </>
+                  {/* Bar chart */}
+                  {data.breakdown.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25, duration: 0.35 }}
+                      className="w-full max-w-[700px] h-[160px] mt-2"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data.breakdown} barCategoryGap="20%">
+                          <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => fmt(v)} />
+                          <Tooltip
+                            contentStyle={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 11 }}
+                            labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+                            formatter={(v: number) => fmt(v)}
+                          />
+                          {ACTIVITIES.map((a) => (
+                            <Bar key={a.key} dataKey={a.key} fill={a.barColor} radius={[4, 4, 0, 0]} />
+                          ))}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </motion.div>
+                  )}
+
+                  {/* Total summary */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10"
+                  >
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    <span className="text-sm font-bold text-white/70">
+                      Total: <span className="text-white">{fmt(data.totalSeconds)}</span>
+                      <span className="text-white/30"> / {fmt(data.totalTarget)}</span>
+                    </span>
+                  </motion.div>
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </div>
