@@ -260,7 +260,7 @@ export default function SpeakingStudio() {
 
         {/* Top Bar */}
         <div className="absolute top-16 left-0 right-0 px-3 z-50 flex justify-between items-start">
-          <div className="gap-2 ml-2 flex flex-col">
+          <div className="gap-2 ml-2 flex flex-col max-w-[200px]">
             <StreakWidget
               displaySeconds={practiceTimer.displaySeconds}
               isCountdown={practiceTimer.isCountdown}
