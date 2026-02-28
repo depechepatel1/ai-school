@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, BarChart3, Settings } from "lucide-react";
+import { BookOpen, Calendar, BarChart3, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface BottomDockProps {
@@ -28,9 +28,9 @@ export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSe
           <BarChart3 className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-cyan-400" />
           <span className="text-[9px] uppercase font-bold group-hover:text-cyan-200">Analysis</span>
         </button>
-        <button onClick={onSettings} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
-          <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
-          <span className="text-[9px] uppercase font-bold">Settings</span>
+        <button onClick={() => navigate("/profile")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
+          <User className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white/50" />
+          <span className="text-[9px] uppercase font-bold group-hover:text-white/80">Profile</span>
         </button>
       </div>
     </div>
