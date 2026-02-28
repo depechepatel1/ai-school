@@ -11,6 +11,8 @@ const routes = [
   { path: "/reset-password", label: "Reset PW" },
   { path: "/student", label: "Student" },
   { path: "/speaking", label: "Speaking Studio" },
+  { path: "/analysis", label: "Analysis" },
+  { path: "/profile", label: "Profile" },
   { path: "/teacher", label: "Teacher" },
   { path: "/parent", label: "Parent" },
 ];
