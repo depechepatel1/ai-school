@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BarChart3, Zap } from "lucide-react";
+import { ArrowLeft, BarChart3, Zap, Trophy, Crown, Medal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import PageShell from "@/components/PageShell";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useAnalyticsData, type Period, type ActivityData } from "@/hooks/useAnalyticsData";
-import { getWeekNumber, SEMESTER_WEEKS } from "@/lib/semester";
+import { useClassLeaderboard } from "@/hooks/useClassLeaderboard";
+import { getWeekNumber, getWeekDateRange, SEMESTER_WEEKS, SEMESTER_START } from "@/lib/semester";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4`;
@@ -78,6 +79,29 @@ export default function StudentAnalysis() {
   const navigate = useNavigate();
   const weekNum = getWeekNumber();
 
+  // Compute date range for leaderboard based on period
+  const { rangeStart, rangeEnd } = useMemo(() => {
+    const now = new Date();
+    if (period === "daily") {
+      const s = new Date(now); s.setHours(0, 0, 0, 0);
+      const e = new Date(now); e.setHours(23, 59, 59, 999);
+      return { rangeStart: s, rangeEnd: e };
+    } else if (period === "weekly") {
+      const wk = getWeekNumber(now) || 1;
+      const r = getWeekDateRange(wk);
+      return { rangeStart: r.start, rangeEnd: r.end };
+    } else if (period === "monthly") {
+      const s = new Date(now.getFullYear(), now.getMonth(), 1);
+      const e = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      return { rangeStart: s, rangeEnd: e };
+    } else {
+      const s = new Date(`${SEMESTER_START}T00:00:00`);
+      return { rangeStart: s, rangeEnd: now };
+    }
+  }, [period]);
+
+  const { entries: leaderboard, loading: lbLoading } = useClassLeaderboard(user?.id ?? null, rangeStart, rangeEnd);
+
   return (
     <PageShell fullWidth loopVideos={[ANALYSIS_VIDEO]}>
       {/* Full-screen glass card */}
@@ -132,81 +156,143 @@ export default function StudentAnalysis() {
             ))}
           </div>
 
-          {/* Content */}
-          <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 px-6 overflow-y-auto">
-            {loading || !data ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-white/40 text-sm animate-pulse"
-              >
-                Loading analytics…
-              </motion.div>
-            ) : (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={period}
-                  initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -12, scale: 0.97 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="flex flex-col items-center gap-6 w-full"
-                >
-                  {/* Progress rings */}
-                  <div className="flex items-center justify-center gap-10">
-                    {ACTIVITIES.map((a, i) => (
-                      <motion.div
-                        key={a.key}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
-                      >
-                        <ProgressRing data={data[a.key]} color={a.color} label={a.label} />
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Bar chart */}
-                  {data.breakdown.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25, duration: 0.35 }}
-                      className="w-full max-w-[700px] h-[160px] mt-2"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data.breakdown} barCategoryGap="20%">
-                          <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => fmt(v)} />
-                          <Tooltip
-                            contentStyle={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 11 }}
-                            labelStyle={{ color: "rgba(255,255,255,0.6)" }}
-                            formatter={(v: number) => fmt(v)}
-                          />
-                          {ACTIVITIES.map((a) => (
-                            <Bar key={a.key} dataKey={a.key} fill={a.barColor} radius={[4, 4, 0, 0]} />
-                          ))}
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </motion.div>
-                  )}
-
-                  {/* Total summary */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10"
-                  >
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm font-bold text-white/70">
-                      Total: <span className="text-white">{fmt(data.totalSeconds)}</span>
-                      <span className="text-white/30"> / {fmt(data.totalTarget)}</span>
-                    </span>
-                  </motion.div>
+          {/* Content — two columns */}
+          <div className="relative z-10 flex-1 flex gap-4 px-6 pb-4 overflow-hidden">
+            {/* Left: Analytics */}
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 overflow-y-auto">
+              {loading || !data ? (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white/40 text-sm animate-pulse">
+                  Loading analytics…
                 </motion.div>
-              </AnimatePresence>
-            )}
+              ) : (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={period}
+                    initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="flex flex-col items-center gap-5 w-full"
+                  >
+                    {/* Progress rings */}
+                    <div className="flex items-center justify-center gap-8">
+                      {ACTIVITIES.map((a, i) => (
+                        <motion.div
+                          key={a.key}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
+                        >
+                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} />
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Bar chart */}
+                    {data.breakdown.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25, duration: 0.35 }}
+                        className="w-full max-w-[520px] h-[130px]"
+                      >
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={data.breakdown} barCategoryGap="20%">
+                            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => fmt(v)} />
+                            <Tooltip
+                              contentStyle={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 11 }}
+                              labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+                              formatter={(v: number) => fmt(v)}
+                            />
+                            {ACTIVITIES.map((a) => (
+                              <Bar key={a.key} dataKey={a.key} fill={a.barColor} radius={[4, 4, 0, 0]} />
+                            ))}
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </motion.div>
+                    )}
+
+                    {/* Total summary */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10"
+                    >
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      <span className="text-sm font-bold text-white/70">
+                        Total: <span className="text-white">{fmt(data.totalSeconds)}</span>
+                        <span className="text-white/30"> / {fmt(data.totalTarget)}</span>
+                      </span>
+                    </motion.div>
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
+
+            {/* Right: Leaderboard */}
+            <div className="w-[220px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
+                <Trophy className="w-4 h-4 text-yellow-400" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white/70">Class Ranking</span>
+              </div>
+              <div className="flex-1 overflow-y-auto scrollbar-hide px-2 py-2 space-y-1">
+                {lbLoading ? (
+                  <div className="text-white/30 text-[11px] text-center py-4 animate-pulse">Loading…</div>
+                ) : leaderboard.length === 0 ? (
+                  <div className="text-white/30 text-[11px] text-center py-4">No class data</div>
+                ) : (
+                  <AnimatePresence>
+                    {leaderboard.map((entry, i) => {
+                      const isMe = entry.user_id === user?.id;
+                      return (
+                        <motion.div
+                          key={entry.user_id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.04, duration: 0.25 }}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
+                            isMe ? "bg-white/10 border border-white/15" : "hover:bg-white/5"
+                          }`}
+                        >
+                          {/* Rank badge */}
+                          <div className="w-6 shrink-0 flex justify-center">
+                            {entry.rank === 1 ? (
+                              <Crown className="w-4 h-4 text-yellow-400" />
+                            ) : entry.rank === 2 ? (
+                              <Medal className="w-4 h-4 text-gray-300" />
+                            ) : entry.rank === 3 ? (
+                              <Medal className="w-4 h-4 text-amber-600" />
+                            ) : (
+                              <span className="text-[11px] font-bold text-white/30">{entry.rank}</span>
+                            )}
+                          </div>
+                          {/* Avatar */}
+                          <div className="w-6 h-6 rounded-full bg-white/10 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                            {entry.avatar_url ? (
+                              <img src={entry.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[9px] font-bold text-white/40">
+                                {entry.display_name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          {/* Name & time */}
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-[11px] font-semibold truncate ${isMe ? "text-white" : "text-white/60"}`}>
+                              {entry.display_name}
+                              {isMe && <span className="text-[9px] ml-1 text-white/30">(you)</span>}
+                            </div>
+                            <div className="text-[10px] text-white/30 font-medium">{fmt(entry.total_seconds)}</div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

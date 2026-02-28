@@ -326,6 +326,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_class_leaderboard: {
+        Args: { _range_end: string; _range_start: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          rank: number
+          total_seconds: number
+          user_id: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
