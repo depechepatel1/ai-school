@@ -326,8 +326,8 @@ export default function SpeakingStudio() {
                 </div>
               )}
               {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
-                <p className="text-[11px] italic text-white/40 max-w-lg mx-auto mb-1 text-center line-clamp-2 leading-relaxed">
-                  Q: {shadowCurriculum.currentQuestionText}
+                <p className="text-[13px] italic text-white/70 max-w-lg mx-auto mb-1.5 text-center line-clamp-2 leading-relaxed">
+                  Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
                 </p>
               )}
               <div key={sentenceKey} className="mb-1 w-full text-center relative z-10 animate-fade-in">
