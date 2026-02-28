@@ -1,126 +1,77 @@
 
 
-# UI/UX Audit & Redesign Plan: Shadowing Screen
+## Understanding the Current Logic
 
-## Current State Analysis
+**Week offset**: `selectedWeek + 1` is used for shadowing. So when Week 1 is selected, the app fetches Week **2** from the JSON.
 
-From the screenshots and code review, here is what exists in **shadowing mode**:
+**IGCSE Week 2 JSON** has two sections: `transcoded` (1 question) and `model_answer` (1 question). All chunks from both sections are flattened into a single list. The current UI shows the `selectedWeek` (1) in the WeekSelector but the content actually comes from Week 2.
 
-**Left column (stacked vertically, top-left):**
-1. Timer/StreakWidget — functional, connected to `usePracticeTimer`
-2. UK/US accent toggle — functional, switches TTS accent
-3. Topic box (pronunciation) / Chunk counter (fluency) — functional
-4. Week Selector — functional, changes curriculum week
-5. Pronunciation/Fluency pill toggle — functional
+**IELTS Week 2 JSON** has two sections: `part_2` (3 questions) and `part_3` (multiple questions). Same flattening.
 
-**Top-right:**
-6. XP Widget — functional, tracks session XP
-7. Shadowing/Speaking mode toggle — functional
-
-**Right sidebar (vertically centered):**
-8. Headphones button — functional (plays TTS model)
-9. Mic button — functional (records student)
-10. Play button — functional (replays recording)
-11. Ghost button — functional (simultaneous TTS+record)
-12. Skip button — functional (next sentence/chunk)
-
-**Bottom bar:**
-13. Question text (fluency only) — functional, shows parent question
-14. ProsodyVisualizer (karaoke text) — functional
-15. Progress bar (pronunciation only) — functional
-16. PronunciationVisualizer (dual-canvas waveform) — functional
-
-**Dead elements found: None.** All buttons are wired to real logic.
+**The problem**: The WeekSelector just says "Week 1" but the content is from Week 2's sections. There's no indication of which section (Transcoded vs Model Answer, or Part 2 vs Part 3) or which question the current chunk belongs to.
 
 ---
 
-## Problems Identified
+## Proposed Label Logic
 
-### Layout & Obstruction
-- **P1**: The left column has 5 stacked widgets creating a tall, heavy block that encroaches toward the teacher's face area. On the 1024x768 frame, this column extends roughly 350px down from the top.
-- **P2**: The right action bar is vertically centered, placing the mic button directly beside the teacher's face.
-- **P3**: The bottom panel (karaoke + visualizer) is dense and tall (~180px), reducing the visible face area.
+### Data changes needed
 
-### Visual Quality
-- **P4**: Left widgets are all `max-w-[200px]` — some feel cramped (Week Selector text is tiny), others feel oversized for their content.
-- **P5**: Inconsistent border radii — `rounded-2xl`, `rounded-xl`, `rounded-3xl` mixed without hierarchy.
-- **P6**: The accent toggle (UK/US) is only relevant context, not a frequent action, yet occupies prime real estate.
-- **P7**: Chunk counter box has two lines ("Chunk 1/17" + "Week 2") but looks identical to the Topic box — no visual distinction between info types.
-- **P8**: The question text (`Q: ...`) is truncated with `truncate` — long questions get cut off.
+Extend `CurriculumChunkWithQuestion` to carry `section_id` and `question_id` alongside each chunk. The `getWeekShadowingChunks` function already iterates over sections and questions — it just needs to tag each chunk with this metadata.
 
-### Micro-interactions
-- **P9**: No entry animations on left widgets — they appear instantly.
-- **P10**: No hover feedback on info-only boxes (Topic, Chunk counter).
-- **P11**: The Skip button has no visual confirmation that the sentence actually changed.
+### Display format in the pill box
 
----
+**IGCSE** (selectedWeek = 1, shadowingWeek = 2):
+- `Week 1 HW · Wk 2 Model Answer · Q1`
+- `Week 1 HW · Wk 2 Transcoded · Q1`
 
-## Redesign Plan
+**IELTS** (selectedWeek = 1, shadowingWeek = 2):
+- `Week 1 HW · Wk 2 Part 2 · Q1`
+- `Week 1 HW · Wk 2 Part 2 · Q2`
+- `Week 1 HW · Wk 2 Part 3 · Q1`
 
-### Step 1: Relocate left column — reduce to essentials, move secondary items
+The pill box replaces the current plain "Week [n]" selector with a richer contextual label that updates as the user progresses through chunks.
 
-**Move accent toggle into the action sidebar** as a small toggle at the top (it's a setting, not a status). This removes one widget from the left stack.
+### Section ID → Display Name Map
 
-**Merge chunk counter into the bottom bar** next to the question text — it's contextual to the content being displayed, not a global status. Remove it from the left column entirely.
-
-**Remaining left column (top-left):**
-- Timer (StreakWidget)
-- Topic box (pronunciation mode only)
-- Pronunciation/Fluency pill toggle
-
-This reduces the left stack from 5 items to 2-3, keeping the teacher's face clear.
-
-### Step 2: Move Week Selector to the bottom bar (fluency mode)
-
-Place it inline with the chunk counter in the bottom content area. It's a content-navigation control, not a global setting. In pronunciation mode, it stays hidden (not used).
-
-### Step 3: Reposition right action bar — push lower
-
-Move the right action bar from `top-1/2 -translate-y-1/2` (dead center) to `bottom-32 right-5`. This shifts all buttons below the teacher's face zone (lower-right quadrant). The bar becomes a compact floating dock.
-
-### Step 4: Upgrade bottom panel spacing
-
-- Remove `truncate` from question text — use `line-clamp-2` instead so longer questions wrap to 2 lines max.
-- Add a subtle fade-in animation (`animate-fade-in`) when chunk text changes.
-- Reduce bottom padding from `pb-6` to `pb-4` and tighten the gradient.
-
-### Step 5: Consistent glassmorphism refinement
-
-Standardize all glass containers to one recipe:
-- `bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl`
-- Hover state (interactive items only): `hover:border-white/[0.12] hover:bg-black/50`
-- Shadows: `shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]`
-
-Remove the `max-w-[200px]` constraint — let items size naturally within the column.
-
-### Step 6: Typography cleanup
-
-- All label text: `text-[9px] font-bold uppercase tracking-[0.15em] text-white/35` (consistent)
-- All value text: `text-[13px] font-semibold text-white/90`
-- Question text: `text-[12px] italic text-white/50 leading-relaxed` (remove truncate, add line-clamp-2)
-- Karaoke text: unchanged (protected zone)
-
-### Step 7: Micro-interactions
-
-- **Staggered entry**: Left column widgets get `animate-fade-in` with increasing `animation-delay` (0s, 0.1s, 0.2s).
-- **Chunk transition**: When `sentenceKey` changes, the ProsodyVisualizer content fades out/in using a CSS transition on opacity with a key-driven remount.
-- **Skip button**: Add a brief `scale-90` press feedback and a subtle cyan flash on the karaoke area.
-- **Accent toggle**: Smooth background slide using `transition-all duration-200` (already present, just needs the relocation).
-
-### Step 8: XP Widget position refinement
-
-Keep top-right but add `mt-4 mr-3` for breathing room from the frame edge. The Shadowing/Speaking toggle stays below it.
+| `section_id` | `courseType` | Display |
+|---|---|---|
+| `model_answer` | igcse | Model Answer |
+| `transcoded` | igcse | Transcoded Text |
+| `part_2` | ielts | Part 2 |
+| `part_3` | ielts | Part 3 |
 
 ---
 
-## File Changes Summary
+## Implementation Steps
 
-| File | Changes |
-|------|---------|
-| `src/pages/SpeakingStudio.tsx` | Relocate accent toggle to action sidebar; move chunk counter + week selector to bottom bar; reposition action bar lower-right; standardize glass styles; add staggered animations; fix question text truncation |
-| `src/components/speaking/StreakWidget.tsx` | Minor: standardize border-radius to `rounded-2xl` consistently |
-| `src/components/speaking/WeekSelector.tsx` | Minor: match glass style recipe |
-| `src/components/speaking/ProsodyVisualizer.tsx` | Add fade transition wrapper keyed to content changes |
+### 1. Extend chunk type and `getWeekShadowingChunks` (`src/services/curriculum-storage.ts`)
 
-No new files created. No components removed (all are functional).
+Add `section_id` and `question_id` to `CurriculumChunkWithQuestion`. In the flattening loop, spread these fields onto each chunk alongside `question_text`.
+
+### 2. Expose metadata from `useShadowingCurriculum` hook
+
+Return `currentSectionId` and `currentQuestionId` from the current chunk so the UI can read them.
+
+### 3. Update WeekSelector to accept and display context label (`src/components/speaking/WeekSelector.tsx`)
+
+Add an optional `contextLabel` prop (e.g. `"Wk 2 Model Answer · Q1"`). When present, display it after the week dropdown. The week dropdown still controls `selectedWeek` (the homework week).
+
+### 4. Build the context label in `SpeakingStudio.tsx`
+
+Using `courseWeek.selectedWeek`, `courseWeek.shadowingWeek`, the current chunk's `section_id`, and `question_id`, construct the label string:
+
+```
+`Week ${selectedWeek} HW · Wk ${shadowingWeek} ${sectionLabel} · ${questionId.toUpperCase()}`
+```
+
+Pass it to `WeekSelector` as `contextLabel`.
+
+### Files Modified
+
+| File | Change |
+|---|---|
+| `src/services/curriculum-storage.ts` | Add `section_id`, `question_id` to chunk type and flattening |
+| `src/hooks/useShadowingCurriculum.ts` | Expose `currentSectionId`, `currentQuestionId` |
+| `src/components/speaking/WeekSelector.tsx` | Accept and render `contextLabel` prop |
+| `src/pages/SpeakingStudio.tsx` | Build context label string and pass to WeekSelector |
 
