@@ -14,6 +14,60 @@ interface LeftPillarProps {
   setTeacherHint: (hint: string | null) => void;
 }
 
+/* ── tiny progress ring (SVG) ── */
+function ProgressRing({ done, total, size = 32 }: { done: number; total: number; size?: number }) {
+  const r = (size - 4) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = total > 0 ? done / total : 0;
+  return (
+    <svg width={size} height={size} className="shrink-0">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={2.5} />
+      <circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke="url(#prog-grad)" strokeWidth={2.5}
+        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        className="transition-all duration-700"
+      />
+      <defs>
+        <linearGradient id="prog-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="hsl(24 100% 50%)" />
+          <stop offset="100%" stopColor="hsl(0 72% 51%)" />
+        </linearGradient>
+      </defs>
+      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" className="fill-white/70 text-[8px] font-bold font-outfit">
+        {done}/{total}
+      </text>
+    </svg>
+  );
+}
+
+/* ── section divider with centered label chip ── */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="relative flex items-center py-1">
+      <div className="flex-1 h-px bg-white/[0.06]" />
+      <span className="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white/35 bg-black/40 rounded-full">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-white/[0.06]" />
+    </div>
+  );
+}
+
+/* ── micro progress bar ── */
+function MicroProgress({ pct, color }: { pct: number; color: string }) {
+  return (
+    <div className="h-[2px] w-full rounded-full overflow-hidden mt-2" style={{ background: 'hsl(0 0% 100% / 0.04)' }}>
+      <div
+        className="h-full rounded-full transition-all duration-500"
+        style={{ width: `${pct}%`, background: color }}
+      />
+    </div>
+  );
+}
+
 export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint }: LeftPillarProps) {
   return (
     <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
@@ -46,113 +100,116 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
 
       {/* Tasks / Messages Panel */}
       <div className="flex-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
-        <div className="flex border-b border-white/5 pb-2 mb-0">
-          <button onClick={() => setActiveTab('tasks')} className={`flex-1 text-base font-bold text-center transition-colors ${activeTab === 'tasks' ? 'text-white' : 'text-gray-500'}`}>Tasks</button>
-          <button onClick={() => setActiveTab('messages')} className={`flex-1 text-base font-bold text-center transition-colors ${activeTab === 'messages' ? 'text-white' : 'text-gray-500'}`}>Messages</button>
+        {/* ── Sliding pill tab bar ── */}
+        <div className="relative flex bg-white/[0.04] rounded-full p-0.5 mb-1">
+          {/* sliding pill */}
+          <div
+            className="absolute top-0.5 bottom-0.5 w-1/2 rounded-full bg-white/10 transition-transform duration-300 ease-out"
+            style={{ transform: activeTab === 'tasks' ? 'translateX(0)' : 'translateX(100%)' }}
+          />
+          <button
+            onClick={() => setActiveTab('tasks')}
+            className={`relative z-10 flex-1 text-[11px] font-bold text-center py-1.5 rounded-full transition-colors duration-200 ${activeTab === 'tasks' ? 'text-white' : 'text-white/35'}`}
+          >
+            Tasks
+          </button>
+          <button
+            onClick={() => setActiveTab('messages')}
+            className={`relative z-10 flex-1 text-[11px] font-bold text-center py-1.5 rounded-full transition-colors duration-200 ${activeTab === 'messages' ? 'text-white' : 'text-white/35'}`}
+          >
+            Messages
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide p-2 space-y-3">
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-1 space-y-3">
           {activeTab === 'tasks' ? (
             <>
-              {/* Priority Task */}
-              <div className="bg-gradient-to-br from-red-900/40 to-red-800/20 border border-red-500/40 p-4 rounded-2xl shadow-[0_0_15px_rgba(239,68,68,0.2)] relative overflow-hidden group hover:border-red-500/60 transition-all">
-                <div className="absolute inset-0 bg-red-500/5 animate-pulse pointer-events-none" />
-                <div className="flex justify-between items-start mb-0 relative z-10">
-                  <div className="flex items-center gap-2 text-red-300 text-xs font-bold uppercase tracking-wider">
-                    <AlertCircle className="w-4 h-4" /> First Task
+              {/* Priority Task – gradient border, no pulse */}
+              <div
+                className="relative rounded-2xl p-[1px] overflow-hidden animate-fade-in-up"
+                style={{ animationDelay: '0ms', background: 'linear-gradient(135deg, hsl(24 100% 50%), hsl(0 72% 51%), hsl(24 100% 50%))', backgroundSize: '200% 200%' }}
+              >
+                <div className="animate-gradient-x absolute inset-0" style={{ background: 'inherit', backgroundSize: 'inherit' }} />
+                <div className="relative bg-black/80 backdrop-blur-xl rounded-2xl p-4">
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
+                      <AlertCircle className="w-3.5 h-3.5 text-primary" /> Priority
+                    </div>
+                    <ProgressRing done={3} total={12} size={30} />
                   </div>
-                  <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-red-500/20">Today</span>
-                </div>
-                <div className="relative z-10">
-                  <h3 className="text-lg font-bold text-white mb-0 leading-tight">Reading:<br /><span className="text-xl">Passage 2</span></h3>
-                  <p className="text-xs text-gray-300 mb-3 mt-1">Test 4 • Questions 14–26</p>
-                  <button className="w-full py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2">
-                    Start Segment <ChevronRight className="w-4 h-4" />
+                  <h3 className="text-base font-bold text-white mb-0 leading-tight">Reading:<br /><span className="text-lg">Passage 2</span></h3>
+                  <p className="text-[10px] text-white/40 mb-3 mt-1">Test 4 · Questions 14–26</p>
+                  <button className="w-full py-2 bg-gradient-to-r from-primary to-destructive hover:shadow-[0_0_20px_hsl(24_100%_50%/0.3)] text-primary-foreground text-xs font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                    Start Segment <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
               {/* Daily Routine */}
-              <div className="space-y-2">
-                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-1">Daily Routine</div>
-                <div className="bg-red-900/20 border border-red-500/30 p-3 rounded-xl flex items-center gap-3 hover:bg-red-800/30 transition-colors cursor-pointer"
-                  onMouseEnter={() => setTeacherHint("Let's fix those persistent grammar errors together.")}
-                  onMouseLeave={() => setTeacherHint(null)}>
-                  <div className="bg-red-500/20 p-2 rounded-lg"><AlertTriangle className="w-5 h-5 text-red-300" /></div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Mistake Book</div>
-                    <div className="text-xs text-red-200/70">3 Recurring Errors</div>
-                  </div>
-                </div>
-                <button className="w-full bg-purple-900/20 border border-purple-500/30 p-3 rounded-xl text-left hover:bg-purple-800/30 transition-all group flex items-center gap-3">
-                  <div className="bg-purple-500/20 p-2 rounded-lg"><Zap className="w-5 h-5 text-purple-300" /></div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Daily Idiom</div>
-                    <div className="text-xs text-purple-200/70">Quiz: "Burning The Midnight Oil"</div>
-                  </div>
-                </button>
-                <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3 hover:bg-white/10 transition-colors cursor-pointer">
-                  <div className="bg-orange-500/20 p-2 rounded-lg"><Check className="w-5 h-5 text-orange-300" /></div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Vocabulary</div>
-                    <div className="text-xs text-gray-400">Quiz: Environment</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Upcoming */}
-              <div className="space-y-2">
-                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-1">Upcoming</div>
-                <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors cursor-pointer group">
+              <SectionDivider label="Daily Routine" />
+              {[
+                { icon: AlertTriangle, label: "Mistake Book", sub: "3 Recurring Errors", accent: "hsl(0 72% 51% / 0.5)", pct: 30, hint: "Let's fix those persistent grammar errors together.", iconBg: "bg-destructive/20", iconColor: "text-red-300", delay: 50 },
+                { icon: Zap, label: "Daily Idiom", sub: '"Burning The Midnight Oil"', accent: "hsl(280 80% 50% / 0.5)", pct: 0, hint: null, iconBg: "bg-purple-500/20", iconColor: "text-purple-300", delay: 100 },
+                { icon: Check, label: "Vocabulary", sub: "Quiz: Environment", accent: "hsl(24 100% 50% / 0.5)", pct: 60, hint: null, iconBg: "bg-primary/20", iconColor: "text-accent-foreground", delay: 150 },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer group animate-fade-in-up"
+                  style={{ animationDelay: `${item.delay}ms` }}
+                  onMouseEnter={() => item.hint && setTeacherHint(item.hint)}
+                  onMouseLeave={() => item.hint && setTeacherHint(null)}
+                >
                   <div className="flex items-center gap-3">
-                    <div className="bg-blue-500/20 p-2 rounded-lg"><Book className="w-5 h-5 text-blue-300" /></div>
-                    <div>
-                      <div className="text-sm font-bold text-white">Reading</div>
-                      <div className="text-xs text-gray-400">Passage 3 (Due Tmr)</div>
+                    <div className={`${item.iconBg} p-2 rounded-lg`}><item.icon className={`w-4 h-4 ${item.iconColor}`} /></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-white">{item.label}</div>
+                      <div className="text-[10px] text-white/40 truncate">{item.sub}</div>
                     </div>
                   </div>
-                  <CloudDownload className="w-4 h-4 text-green-400 opacity-50 group-hover:opacity-100" />
+                  {item.pct > 0 && <MicroProgress pct={item.pct} color={item.accent} />}
                 </div>
-                <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3 hover:bg-white/10 transition-colors cursor-pointer"
-                  onMouseEnter={() => setTeacherHint("Past tense can be tricky. Want a quick review?")}
-                  onMouseLeave={() => setTeacherHint(null)}>
-                  <div className="bg-green-500/20 p-2 rounded-lg"><PenTool className="w-5 h-5 text-green-300" /></div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Grammar</div>
-                    <div className="text-xs text-gray-400">Present Perfect Tense</div>
+              ))}
+
+              {/* Upcoming */}
+              <SectionDivider label="Upcoming" />
+              {[
+                { icon: Book, label: "Reading", sub: "Passage 3 (Due Tmr)", accent: "hsl(210 80% 50% / 0.4)", pct: 0, hint: null, iconBg: "bg-blue-500/20", iconColor: "text-blue-300", extra: <CloudDownload className="w-3.5 h-3.5 text-green-400 opacity-40 group-hover:opacity-100 transition-opacity" />, delay: 200 },
+                { icon: PenTool, label: "Grammar", sub: "Present Perfect Tense", accent: "hsl(140 60% 40% / 0.4)", pct: 20, hint: "Past tense can be tricky. Want a quick review?", iconBg: "bg-green-500/20", iconColor: "text-green-300", extra: null, delay: 250 },
+                { icon: Headphones, label: "Listening", sub: "Part 3 Practice", accent: "hsl(170 60% 40% / 0.4)", pct: 0, hint: null, iconBg: "bg-teal-500/20", iconColor: "text-teal-300", extra: null, delay: 300 },
+                { icon: Edit, label: "Writing", sub: "Task 2 Outline", accent: "hsl(330 70% 50% / 0.4)", pct: 0, hint: "Need help brainstorming ideas for writing?", iconBg: "bg-pink-500/20", iconColor: "text-pink-300", extra: null, delay: 350 },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer group animate-fade-in-up"
+                  style={{ animationDelay: `${item.delay}ms` }}
+                  onMouseEnter={() => item.hint && setTeacherHint(item.hint)}
+                  onMouseLeave={() => item.hint && setTeacherHint(null)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`${item.iconBg} p-2 rounded-lg`}><item.icon className={`w-4 h-4 ${item.iconColor}`} /></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-white">{item.label}</div>
+                      <div className="text-[10px] text-white/40 truncate">{item.sub}</div>
+                    </div>
+                    {item.extra}
                   </div>
+                  {item.pct > 0 && <MicroProgress pct={item.pct} color={item.accent} />}
                 </div>
-                <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3 hover:bg-white/10 transition-colors cursor-pointer">
-                  <div className="bg-teal-500/20 p-2 rounded-lg"><Headphones className="w-5 h-5 text-teal-300" /></div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Listening</div>
-                    <div className="text-xs text-gray-400">Part 3 Practice</div>
-                  </div>
-                </div>
-                <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3 hover:bg-white/10 transition-colors cursor-pointer"
-                  onMouseEnter={() => setTeacherHint("Need help brainstorming ideas for writing?")}
-                  onMouseLeave={() => setTeacherHint(null)}>
-                  <div className="bg-pink-500/20 p-2 rounded-lg"><Edit className="w-5 h-5 text-pink-300" /></div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Writing</div>
-                    <div className="text-xs text-gray-400">Task 2 Outline</div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[
-                { from: "Teacher Li", time: "10:30 AM", subject: "Feedback: Essay Task 2", icon: Mail, color: "pink" },
-                { from: "System", time: "Yesterday", subject: "Streak Saved!", icon: Zap, color: "blue" },
-                { from: "System", time: "2 days ago", subject: "Weekly Report Ready", icon: FileText, color: "blue" },
-                { from: "Teacher Li", time: "3 days ago", subject: "Reminder: Mock Test", icon: AlertCircle, color: "pink" },
-                { from: "System", time: "Last Week", subject: "Subscription Renewed", icon: Check, color: "blue" },
-                { from: "Teacher Li", time: "Last Week", subject: "New Assignment: Speaking", icon: Mic, color: "pink" },
-                { from: "System", time: "Last Week", subject: "Badge Unlocked: Early Bird", icon: Trophy, color: "yellow" },
-                { from: "Teacher Li", time: "2 Weeks ago", subject: "Office Hours Update", icon: Calendar, color: "pink" },
-                { from: "System", time: "3 Weeks ago", subject: "Welcome to Course 2", icon: Star, color: "yellow" },
-                { from: "Teacher Li", time: "1 Month ago", subject: "Introductory Session", icon: Video, color: "pink" },
+                { from: "Teacher Li", time: "10:30 AM", subject: "Feedback: Essay Task 2", icon: Mail, color: "pink", unread: true },
+                { from: "System", time: "Yesterday", subject: "Streak Saved!", icon: Zap, color: "blue", unread: true },
+                { from: "System", time: "2 days ago", subject: "Weekly Report Ready", icon: FileText, color: "blue", unread: false },
+                { from: "Teacher Li", time: "3 days ago", subject: "Reminder: Mock Test", icon: AlertCircle, color: "pink", unread: false },
+                { from: "System", time: "Last Week", subject: "Subscription Renewed", icon: Check, color: "blue", unread: false },
+                { from: "Teacher Li", time: "Last Week", subject: "New Assignment: Speaking", icon: Mic, color: "pink", unread: false },
+                { from: "System", time: "Last Week", subject: "Badge Unlocked: Early Bird", icon: Trophy, color: "yellow", unread: false },
+                { from: "Teacher Li", time: "2 Weeks ago", subject: "Office Hours Update", icon: Calendar, color: "pink", unread: false },
+                { from: "System", time: "3 Weeks ago", subject: "Welcome to Course 2", icon: Star, color: "yellow", unread: false },
+                { from: "Teacher Li", time: "1 Month ago", subject: "Introductory Session", icon: Video, color: "pink", unread: false },
               ].map((msg, i) => {
                 const colorClasses: Record<string, string> = {
                   pink: "text-pink-400 group-hover:text-pink-300",
@@ -164,16 +221,32 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
                   blue: "text-blue-400",
                   yellow: "text-yellow-400",
                 };
+                const dotColors: Record<string, string> = {
+                  pink: "bg-pink-400",
+                  blue: "bg-blue-400",
+                  yellow: "bg-yellow-400",
+                };
                 return (
-                  <div key={i} onClick={() => handleEmailClick(msg.subject, "Content placeholder...")} className="bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-colors group">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="flex items-center gap-2">
-                        <msg.icon className={`w-3 h-3 ${iconColorClasses[msg.color]}`} />
-                        <span className={`font-bold text-xs ${colorClasses[msg.color]}`}>{msg.from}</span>
+                  <div
+                    key={i}
+                    onClick={() => handleEmailClick(msg.subject, "Content placeholder...")}
+                    className={`relative bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl hover:bg-white/[0.06] cursor-pointer transition-all group animate-fade-in-up ${!msg.unread ? 'opacity-60' : ''}`}
+                    style={{ animationDelay: `${i * 40}ms` }}
+                  >
+                    {/* unread dot */}
+                    {msg.unread && (
+                      <div className={`absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${dotColors[msg.color]} shadow-[0_0_6px_currentColor]`} />
+                    )}
+                    <div className={`${msg.unread ? 'pl-2' : ''}`}>
+                      <div className="flex justify-between items-start mb-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <msg.icon className={`w-3 h-3 ${iconColorClasses[msg.color]}`} />
+                          <span className={`font-bold text-[10px] ${colorClasses[msg.color]}`}>{msg.from}</span>
+                        </div>
+                        <span className="text-[8px] text-white/25">{msg.time}</span>
                       </div>
-                      <span className="text-[9px] text-gray-500">{msg.time}</span>
+                      <div className="text-[10px] text-white/50 line-clamp-1">{msg.subject}</div>
                     </div>
-                    <div className="text-xs text-gray-300 line-clamp-1">{msg.subject}</div>
                   </div>
                 );
               })}
