@@ -1,77 +1,51 @@
 
 
-## Understanding the Current Logic
+## UI Design Improvements for the Tasks/Messages Panel
 
-**Week offset**: `selectedWeek + 1` is used for shadowing. So when Week 1 is selected, the app fetches Week **2** from the JSON.
+After reviewing the current implementation, here are the key issues and proposed refinements:
 
-**IGCSE Week 2 JSON** has two sections: `transcoded` (1 question) and `model_answer` (1 question). All chunks from both sections are flattened into a single list. The current UI shows the `selectedWeek` (1) in the WeekSelector but the content actually comes from Week 2.
+### Current Problems
+1. **Tab switcher** is plain text with no visual indicator for the active state -- just a color change from gray to white. No underline, pill, or background differentiation.
+2. **Task cards are visually dense** -- every card uses the same rounded-xl shape, same padding, same icon-left layout. There is no breathing room or visual rhythm.
+3. **Section headers** ("Daily Routine", "Upcoming") are tiny 10px uppercase labels that blend into the background, offering weak visual separation.
+4. **The priority task card** uses a pulsing red overlay which is distracting and feels like an error state rather than an urgent-but-positive call to action.
+5. **Icon containers** are all the same size and shape (p-2 rounded-lg), creating monotony across 8+ items in a narrow column.
+6. **No progress indicators** -- tasks have no completion state, progress bar, or checkmark to show what has been done vs. what remains.
+7. **Messages tab** items all look identical with no unread/read distinction.
 
-**IELTS Week 2 JSON** has two sections: `part_2` (3 questions) and `part_3` (multiple questions). Same flattening.
+### Proposed Changes
 
-**The problem**: The WeekSelector just says "Week 1" but the content is from Week 2's sections. There's no indication of which section (Transcoded vs Model Answer, or Part 2 vs Part 3) or which question the current chunk belongs to.
+#### 1. Animated tab indicator
+Replace the plain text tabs with a sliding pill indicator behind the active tab. A small `rounded-full bg-white/10` element animates horizontally between "Tasks" and "Messages" using a CSS translate transition.
 
----
+#### 2. Section dividers with subtle line + label
+Replace the floating 10px labels with a horizontal rule pattern: a thin `border-white/[0.06]` line with the label centered inside a small `bg-black/40` background chip, creating a clear visual break between groups.
 
-## Proposed Label Logic
+#### 3. Priority task card refinement
+- Remove the `animate-pulse` red overlay (too aggressive)
+- Add a thin animated gradient border (`background-size: 200%` with `animate-gradient-x`) using orange-to-red tones instead of flat red
+- Replace the solid red CTA button with a gradient `from-orange-500 to-red-500` with a subtle glow on hover
+- Add a small circular progress ring (e.g., "3/12 done") to the top-right corner instead of the "Today" pill
 
-### Data changes needed
+#### 4. Task item micro-progress
+Add a thin 2px progress bar at the bottom of each daily routine/upcoming card showing completion (e.g., Vocabulary quiz: 60% done). Use the item's accent color at low opacity.
 
-Extend `CurriculumChunkWithQuestion` to carry `section_id` and `question_id` alongside each chunk. The `getWeekShadowingChunks` function already iterates over sections and questions — it just needs to tag each chunk with this metadata.
+#### 5. Unread dot for messages
+Add a small 6px colored dot on the left edge of unread messages (first 2 items). Read messages get slightly lower opacity (`opacity-70`).
 
-### Display format in the pill box
+#### 6. Staggered entrance animation
+Add `animate-fade-in-up` with increasing `animation-delay` (50ms increments) to each task card for a polished load-in feel.
 
-**IGCSE** (selectedWeek = 1, shadowingWeek = 2):
-- `Week 1 HW · Wk 2 Model Answer · Q1`
-- `Week 1 HW · Wk 2 Transcoded · Q1`
+### Implementation
 
-**IELTS** (selectedWeek = 1, shadowingWeek = 2):
-- `Week 1 HW · Wk 2 Part 2 · Q1`
-- `Week 1 HW · Wk 2 Part 2 · Q2`
-- `Week 1 HW · Wk 2 Part 3 · Q1`
+**File: `src/components/student/LeftPillar.tsx`**
+- Replace tab bar with sliding pill indicator using a `div` with `transition-transform` keyed to `activeTab`
+- Update section header markup to use centered-line-with-chip pattern
+- Refactor priority card: remove pulse overlay, add gradient border wrapper, add progress ring
+- Add 2px bottom progress bars to routine items
+- Add unread dot to first 2 message items
+- Add staggered `style={{ animationDelay }}` to each card
 
-The pill box replaces the current plain "Week [n]" selector with a richer contextual label that updates as the user progresses through chunks.
-
-### Section ID → Display Name Map
-
-| `section_id` | `courseType` | Display |
-|---|---|---|
-| `model_answer` | igcse | Model Answer |
-| `transcoded` | igcse | Transcoded Text |
-| `part_2` | ielts | Part 2 |
-| `part_3` | ielts | Part 3 |
-
----
-
-## Implementation Steps
-
-### 1. Extend chunk type and `getWeekShadowingChunks` (`src/services/curriculum-storage.ts`)
-
-Add `section_id` and `question_id` to `CurriculumChunkWithQuestion`. In the flattening loop, spread these fields onto each chunk alongside `question_text`.
-
-### 2. Expose metadata from `useShadowingCurriculum` hook
-
-Return `currentSectionId` and `currentQuestionId` from the current chunk so the UI can read them.
-
-### 3. Update WeekSelector to accept and display context label (`src/components/speaking/WeekSelector.tsx`)
-
-Add an optional `contextLabel` prop (e.g. `"Wk 2 Model Answer · Q1"`). When present, display it after the week dropdown. The week dropdown still controls `selectedWeek` (the homework week).
-
-### 4. Build the context label in `SpeakingStudio.tsx`
-
-Using `courseWeek.selectedWeek`, `courseWeek.shadowingWeek`, the current chunk's `section_id`, and `question_id`, construct the label string:
-
-```
-`Week ${selectedWeek} HW · Wk ${shadowingWeek} ${sectionLabel} · ${questionId.toUpperCase()}`
-```
-
-Pass it to `WeekSelector` as `contextLabel`.
-
-### Files Modified
-
-| File | Change |
-|---|---|
-| `src/services/curriculum-storage.ts` | Add `section_id`, `question_id` to chunk type and flattening |
-| `src/hooks/useShadowingCurriculum.ts` | Expose `currentSectionId`, `currentQuestionId` |
-| `src/components/speaking/WeekSelector.tsx` | Accept and render `contextLabel` prop |
-| `src/pages/SpeakingStudio.tsx` | Build context label string and pass to WeekSelector |
+**File: `src/index.css`**
+- Add a `@keyframes slide-tab` if needed for the pill indicator (or handle with Tailwind translate classes)
 
