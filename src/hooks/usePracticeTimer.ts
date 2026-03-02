@@ -100,12 +100,12 @@ export function usePracticeTimer({
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const { data: existing } = await (supabase
+      const { data: existing } = await supabase
         .from("student_practice_logs")
         .select("id, active_seconds")
         .eq("user_id", userId)
         .eq("activity_type", activityType)
-        .eq("week_number", weekNumber) as any)
+        .eq("week_number", weekNumber)
         .eq("practice_mode", practiceMode)
         .gte("created_at", todayStart.toISOString())
         .order("created_at", { ascending: false })
@@ -126,7 +126,7 @@ export function usePracticeTimer({
             target_seconds: practiceMode === "independent" ? 0 : targetSeconds,
             active_seconds: 0,
             practice_mode: practiceMode,
-          } as any)
+          })
           .select("id")
           .single();
         if (newLog) logIdRef.current = newLog.id;
