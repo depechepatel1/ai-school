@@ -96,10 +96,13 @@ export function subscribeToMessages(
 export async function fetchClasses() {
   const { data, error } = await supabase
     .from("classes")
-    .select("*")
+    .select("*, class_memberships(count)")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((c: any) => ({
+    ...c,
+    student_count: c.class_memberships?.[0]?.count ?? 0,
+  }));
 }
 
 export async function createClass(name: string, createdBy: string) {

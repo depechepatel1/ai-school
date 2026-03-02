@@ -20,6 +20,7 @@ interface ClassInfo {
   join_code: string;
   created_at: string;
   course_type: string;
+  student_count: number;
 }
 
 const fadeUp = {
@@ -162,7 +163,12 @@ export default function TeacherDashboard() {
                               c.course_type === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"
                             }`}>{c.course_type}</span>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[9px] font-semibold text-gray-400">
+                              <Users className="w-3 h-3" /> {c.student_count}
+                            </span>
+                            <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                          </div>
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <code className="flex-1 px-2.5 py-1.5 bg-white/[0.04] rounded-lg text-[10px] text-blue-300 font-mono tracking-wider">{c.join_code}</code>
