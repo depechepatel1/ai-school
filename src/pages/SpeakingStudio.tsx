@@ -481,6 +481,7 @@ export default function SpeakingStudio() {
                       courseType={courseWeek.courseType}
                       selectedWeek={courseWeek.selectedWeek}
                       shadowingWeek={courseWeek.shadowingWeek}
+                      userId={userId}
                     />
                   }
                 </div>
