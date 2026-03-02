@@ -1,53 +1,47 @@
 
 
-## Plan: Subtle Background for Teacher & Admin Dashboards + Full-Width Layout
+## Homework Mode vs Independent Practice Mode
 
-### 1. Download & Store the Video
-- Fetch the Cloudinary video from `https://res.cloudinary.com/daujjfaqg/video/upload/Subtle_Background_Animation_Generation_brjkvo.mp4`
-- Upload it to the existing Supabase `videos` storage bucket as `dashboard-bg.mp4`
-- Define a constant for the URL in a shared location
+### Current State
+The Speaking Studio has two activity modes (`shadowing` / `speaking`) and two practice types (`pronunciation` / `fluency`). All practice time is logged to `student_practice_logs` with a single `activity_type` field. There's no distinction between mandatory homework and voluntary independent practice.
 
-### 2. Ping-Pong (Forward-Backward) Playback
-HTML5 `<video>` does not reliably support negative `playbackRate`. Instead:
-- Add a `pingPong` prop to `PageShell`
-- When `pingPong` is enabled, use a `requestAnimationFrame` loop that manually increments/decrements `currentTime` on the video element
-- When the video reaches the end, reverse direction; when it reaches the start, go forward again
-- This produces smooth forward-then-backward looping using the same isolated `<video>` player already in PageShell
-- Set `loop={false}` and `pause()` the native player — the rAF loop drives playback
+### Proposed Design
 
-### 3. Pass `fullWidth` + New Video to Teacher & Admin Dashboards
-- **TeacherDashboard.tsx**: Change `<PageShell>` to `<PageShell fullWidth loopVideos={[DASHBOARD_BG_VIDEO]} pingPong>`
-- **AdminDashboard.tsx**: Same change
+**Add a top-level mode toggle: "Homework" vs "Free Practice"** — displayed as a prominent pill switcher above the existing shadowing/speaking controls.
 
-### 4. Redesign Teacher Dashboard Layout (Full-Width)
-Currently renders in a 40%-width glass card. With `fullWidth`, wrap content in a full-screen glass overlay (like StudentProfile/StudentAnalysis pattern):
-- Use a centered glassmorphic container spanning most of the screen (`inset-4` or similar)
-- **Header row**: Logo + Teacher badge on left, language toggle + sign out on right — now in a wider horizontal bar
-- **Create class**: Input + button + course type selector in a single horizontal row instead of stacked
-- **Classes grid**: Switch from vertical list to a 2-column or 3-column grid of class cards
-- **Feature cards**: Place in a horizontal row at the bottom
-- **ClassDetailPanel**: Also benefits from wider layout — place summary cards and chart side-by-side
+#### How it works:
 
-### 5. Redesign Admin Dashboard Layout (Full-Width)
-Same glass overlay wrapper. The extra width allows:
-- **Tabs**: Can show full labels more comfortably in a horizontal bar
-- **Analytics panel**: Put KPI cards in a wider row; place charts side-by-side (2-column grid for bar chart + area chart, 2-column for pie + growth)
-- **Users panel**: Show more columns in the user table (display name, role, created date, actions all visible)
-- **All panels**: Get more breathing room with the wider container
+1. **New column**: Add `practice_mode` (`text`, default `'homework'`) to `student_practice_logs` with values `'homework'` or `'independent'`.
 
-### Technical Details
+2. **UI mode switcher**: A new pill toggle at the top of the Speaking Studio (above the shadowing/speaking toggle). Two options:
+   - **Homework** — locks to the student's `selected_week`, shows the HomeworkInstructions panel, progress bars track against weekly homework targets. WeekSelector is visible but read-only (or hidden).
+   - **Free Practice** — unlocks all weeks/content freely, hides homework instructions, timer tracks independently. No weekly target enforcement.
 
-**PageShell changes** (`src/components/PageShell.tsx`):
-- New prop: `pingPong?: boolean`
-- When `pingPong` is true and the loop video is loaded:
-  - Pause native playback
-  - Start a rAF loop: `currentTime += direction * (deltaMs / 1000)`, clamped to `[0, duration]`
-  - Flip `direction` at boundaries
-  - Set `video.currentTime` each frame
+3. **Timer separation**: `usePracticeTimer` receives the new `practiceMode` parameter. It creates/loads a separate `student_practice_logs` row per mode (the existing unique lookup by `user_id + activity_type + week_number + today` also factors in `practice_mode`). Homework and independent logs never merge.
 
-**Files to modify**:
-1. `src/components/PageShell.tsx` — add `pingPong` prop + rAF logic
-2. `src/pages/TeacherDashboard.tsx` — `fullWidth` + new video + wider layout
-3. `src/pages/AdminDashboard.tsx` — `fullWidth` + new video + wider layout
-4. `src/components/teacher/ClassDetailPanel.tsx` — adjust for wider container
+4. **HomeworkInstructions update**: Only aggregates rows where `practice_mode = 'homework'` so independent practice doesn't count toward homework completion.
+
+5. **Teacher dashboard / analytics**: The `get_class_engagement` function and teacher views can later be extended to show both homework and independent practice totals separately, but initially independent practice simply accumulates as a separate tally visible in the StreakWidget label ("Free Practice" instead of countdown-to-target).
+
+6. **StreakWidget label**: Shows "Homework · 3:42" or "Free Practice · +2:15" to make the current mode obvious.
+
+#### Database Changes
+
+```sql
+ALTER TABLE student_practice_logs
+  ADD COLUMN practice_mode text NOT NULL DEFAULT 'homework';
+```
+
+Update the validation trigger to also validate `practice_mode IN ('homework', 'independent')`.
+
+#### Files to Change
+
+| File | Change |
+|---|---|
+| Migration SQL | Add `practice_mode` column + update trigger |
+| `src/hooks/usePracticeTimer.ts` | Accept `practiceMode`, include in log lookup/create |
+| `src/pages/SpeakingStudio.tsx` | Add mode toggle state, pass to timer, conditionally show/hide HomeworkInstructions and WeekSelector behavior |
+| `src/components/speaking/StreakWidget.tsx` | Accept + display mode label |
+| `src/components/speaking/HomeworkInstructions.tsx` | Filter by `practice_mode = 'homework'` |
+| `src/services/db.ts` | Update `fetchTodayPracticeLogs` to accept/filter by `practice_mode` |
 
