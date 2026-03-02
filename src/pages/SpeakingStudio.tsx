@@ -312,32 +312,31 @@ export default function SpeakingStudio() {
         {/* ==================== SHADOWING MODE ==================== */}
         {mode === "shadowing" &&
         <>
-            <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
-              {practiceType === "fluency" && (
-                <div className="flex items-center gap-3 mb-2">
-                  {courseWeek.courseType && (() => {
-                    const sectionMap: Record<string, string> = {
-                      model_answer: "Model Answer",
-                      transcoded: "Transcoded Text",
-                      part_2: "Part 2",
-                      part_3: "Part 3",
-                    };
-                    const sectionLabel = shadowCurriculum.currentSectionId
-                      ? sectionMap[shadowCurriculum.currentSectionId] ?? shadowCurriculum.currentSectionId
-                      : null;
-                    const contextLabel = sectionLabel && shadowCurriculum.currentQuestionId
-                      ? `Wk ${courseWeek.shadowingWeek} ${sectionLabel} · ${shadowCurriculum.currentQuestionId.toUpperCase()}`
-                      : undefined;
-                    return (
-                      <WeekSelector
-                        selectedWeek={courseWeek.selectedWeek}
-                        onWeekChange={courseWeek.setSelectedWeek}
-                        contextLabel={contextLabel}
-                      />
-                    );
-                  })()}
+            {/* WeekSelector — pinned top-right */}
+            {practiceType === "fluency" && courseWeek.courseType && (() => {
+              const sectionMap: Record<string, string> = {
+                model_answer: "Model Answer",
+                transcoded: "Transcoded Text",
+                part_2: "Part 2",
+                part_3: "Part 3",
+              };
+              const sectionLabel = shadowCurriculum.currentSectionId
+                ? sectionMap[shadowCurriculum.currentSectionId] ?? shadowCurriculum.currentSectionId
+                : null;
+              const contextLabel = sectionLabel && shadowCurriculum.currentQuestionId
+                ? `Wk ${courseWeek.shadowingWeek} ${sectionLabel} · ${shadowCurriculum.currentQuestionId.toUpperCase()}`
+                : undefined;
+              return (
+                <div className="absolute top-5 right-5 z-50">
+                  <WeekSelector
+                    selectedWeek={courseWeek.selectedWeek}
+                    onWeekChange={courseWeek.setSelectedWeek}
+                    contextLabel={contextLabel}
+                  />
                 </div>
-              )}
+              );
+            })()}
+            <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
               {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
                 <p className="text-[13px] italic text-white/70 max-w-lg mx-auto mb-1.5 text-center line-clamp-2 leading-relaxed">
                   Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
