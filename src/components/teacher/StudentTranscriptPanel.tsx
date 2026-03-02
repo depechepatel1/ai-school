@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageSquare, ChevronRight, Bot, User } from "lucide-react";
+import { ArrowLeft, MessageSquare, ChevronRight, Bot, User, Search, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface Conversation {
@@ -35,6 +35,7 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingConvos, setLoadingConvos] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -120,6 +121,11 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
     );
   }
 
+  const q = searchQuery.toLowerCase().trim();
+  const filteredConversations = q
+    ? conversations.filter((c) => (c.title || "Untitled").toLowerCase().includes(q))
+    : conversations;
+
   // Conversation list view
   return (
     <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }} className="flex-1 flex flex-col">
@@ -133,6 +139,24 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
         </div>
       </motion.div>
 
+      {/* Search bar */}
+      {conversations.length > 0 && (
+        <motion.div variants={fadeUp} className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations…"
+            className="w-full h-9 pl-9 pr-8 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </motion.div>
+      )}
+
       <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5">
         {loadingConvos && <p className="text-center text-xs text-gray-600 py-8">Loading…</p>}
         {!loadingConvos && conversations.length === 0 && (
@@ -141,7 +165,13 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
             <p className="text-xs text-gray-500">No conversations yet</p>
           </div>
         )}
-        {conversations.map((c) => (
+        {!loadingConvos && conversations.length > 0 && filteredConversations.length === 0 && (
+          <div className="text-center py-8">
+            <Search className="w-5 h-5 text-gray-600 mx-auto mb-2" />
+            <p className="text-xs text-gray-500">No conversations match "{searchQuery}"</p>
+          </div>
+        )}
+        {filteredConversations.map((c) => (
           <motion.div
             key={c.id}
             variants={fadeUp}
