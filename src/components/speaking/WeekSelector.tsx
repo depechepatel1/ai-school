@@ -5,11 +5,17 @@ interface WeekSelectorProps {
   onWeekChange: (week: number) => void;
   maxWeek?: number;
   contextLabel?: string;
+  courseType?: "ielts" | "igcse" | null;
 }
 
-export default function WeekSelector({ selectedWeek, onWeekChange, maxWeek = 20, contextLabel }: WeekSelectorProps) {
+export default function WeekSelector({ selectedWeek, onWeekChange, maxWeek = 20, contextLabel, courseType }: WeekSelectorProps) {
+  const courseLabel = courseType === "ielts" ? "IELTS" : courseType === "igcse" ? "IGCSE" : null;
+
   return (
     <div className="flex flex-col items-start gap-1.5 bg-black/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-5 py-3.5">
+      {courseLabel && (
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">{courseLabel} Course</span>
+      )}
       <div className="flex items-center gap-2.5">
         <Calendar className="w-5 h-5 text-white/50" />
         <span className="text-sm font-bold uppercase tracking-[0.1em] text-white/50">Week</span>

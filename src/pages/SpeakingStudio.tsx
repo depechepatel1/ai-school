@@ -333,6 +333,7 @@ export default function SpeakingStudio() {
                     selectedWeek={courseWeek.selectedWeek}
                     onWeekChange={courseWeek.setSelectedWeek}
                     contextLabel={contextLabel}
+                    courseType={courseWeek.courseType}
                   />
                 </div>
               );
@@ -465,7 +466,7 @@ export default function SpeakingStudio() {
                       })()} · Q{currentQuestionIndex + 1}
                     </span>
                     {courseWeek.courseType &&
-                <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
+                <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} courseType={courseWeek.courseType} />
                 }
                   </div>
                   <p className="text-sm text-white/90 leading-relaxed">{speakingQuestions[currentQuestionIndex]?.text.split("?")[0]}?</p>
