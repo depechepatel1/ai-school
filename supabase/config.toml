@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.upload-curriculum]
 verify_jwt = false
+
+[functions.admin-manage-users]
+verify_jwt = false
