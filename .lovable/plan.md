@@ -1,39 +1,53 @@
 
 
-## Plan: Update Dev Accounts Edge Function
+## Plan: Subtle Background for Teacher & Admin Dashboards + Full-Width Layout
 
-### Current State
-- Three old dev accounts exist: `dev-student@test.com`, `dev-teacher@test.com`, `dev-parent@test.com`
-- One IGCSE class exists (`Test IGCSE Class`), but no IELTS class
-- The edge function needs updating to create 5 accounts matching the new PageShell config
+### 1. Download & Store the Video
+- Fetch the Cloudinary video from `https://res.cloudinary.com/daujjfaqg/video/upload/Subtle_Background_Animation_Generation_brjkvo.mp4`
+- Upload it to the existing Supabase `videos` storage bucket as `dashboard-bg.mp4`
+- Define a constant for the URL in a shared location
 
-### Changes
+### 2. Ping-Pong (Forward-Backward) Playback
+HTML5 `<video>` does not reliably support negative `playbackRate`. Instead:
+- Add a `pingPong` prop to `PageShell`
+- When `pingPong` is enabled, use a `requestAnimationFrame` loop that manually increments/decrements `currentTime` on the video element
+- When the video reaches the end, reverse direction; when it reaches the start, go forward again
+- This produces smooth forward-then-backward looping using the same isolated `<video>` player already in PageShell
+- Set `loop={false}` and `pause()` the native player — the rAF loop drives playback
 
-#### 1. Update `supabase/functions/create-dev-accounts/index.ts`
+### 3. Pass `fullWidth` + New Video to Teacher & Admin Dashboards
+- **TeacherDashboard.tsx**: Change `<PageShell>` to `<PageShell fullWidth loopVideos={[DASHBOARD_BG_VIDEO]} pingPong>`
+- **AdminDashboard.tsx**: Same change
 
-Replace the `DEV_ACCOUNTS` array with 5 accounts:
-- `dev-igcse@test.com` (student, "Dev IGCSE Student")
-- `dev-ielts@test.com` (student, "Dev IELTS Student")
-- `dev-teacher@test.com` (student→teacher, "Dev Teacher")
-- `dev-parent@test.com` (parent, "Dev Parent")
-- `dev-admin@test.com` (admin→teacher role, "Dev Admin")
+### 4. Redesign Teacher Dashboard Layout (Full-Width)
+Currently renders in a 40%-width glass card. With `fullWidth`, wrap content in a full-screen glass overlay (like StudentProfile/StudentAnalysis pattern):
+- Use a centered glassmorphic container spanning most of the screen (`inset-4` or similar)
+- **Header row**: Logo + Teacher badge on left, language toggle + sign out on right — now in a wider horizontal bar
+- **Create class**: Input + button + course type selector in a single horizontal row instead of stacked
+- **Classes grid**: Switch from vertical list to a 2-column or 3-column grid of class cards
+- **Feature cards**: Place in a horizontal row at the bottom
+- **ClassDetailPanel**: Also benefits from wider layout — place summary cards and chart side-by-side
 
-Add post-creation logic:
-1. Create an IELTS class owned by the teacher account (if not exists)
-2. Ensure the existing IGCSE class exists (or create one) owned by the teacher
-3. Add `dev-igcse@test.com` to the IGCSE class membership
-4. Add `dev-ielts@test.com` to the IELTS class membership
-5. Link `dev-parent@test.com` to both student accounts in `parent_student_links`
+### 5. Redesign Admin Dashboard Layout (Full-Width)
+Same glass overlay wrapper. The extra width allows:
+- **Tabs**: Can show full labels more comfortably in a horizontal bar
+- **Analytics panel**: Put KPI cards in a wider row; place charts side-by-side (2-column grid for bar chart + area chart, 2-column for pie + growth)
+- **Users panel**: Show more columns in the user table (display name, role, created date, actions all visible)
+- **All panels**: Get more breathing room with the wider container
 
-Note: The `admin` role doesn't exist in the `app_role` enum (only `student`, `teacher`, `parent`). The admin account will be assigned the `teacher` role for now.
+### Technical Details
 
-#### 2. Deploy and invoke the function
+**PageShell changes** (`src/components/PageShell.tsx`):
+- New prop: `pingPong?: boolean`
+- When `pingPong` is true and the loop video is loaded:
+  - Pause native playback
+  - Start a rAF loop: `currentTime += direction * (deltaMs / 1000)`, clamped to `[0, duration]`
+  - Flip `direction` at boundaries
+  - Set `video.currentTime` each frame
 
-After updating, deploy the edge function and call it to provision all accounts.
-
-### Files Modified
-
-| File | Change |
-|---|---|
-| `supabase/functions/create-dev-accounts/index.ts` | Update accounts list, add class creation + membership + parent linking logic |
+**Files to modify**:
+1. `src/components/PageShell.tsx` — add `pingPong` prop + rAF logic
+2. `src/pages/TeacherDashboard.tsx` — `fullWidth` + new video + wider layout
+3. `src/pages/AdminDashboard.tsx` — `fullWidth` + new video + wider layout
+4. `src/components/teacher/ClassDetailPanel.tsx` — adjust for wider container
 
