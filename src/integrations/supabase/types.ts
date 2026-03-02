@@ -353,6 +353,20 @@ export type Database = {
       }
     }
     Functions: {
+      get_class_engagement: {
+        Args: { _class_id: string; _range_end: string; _range_start: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          last_active: string
+          pronunciation_seconds: number
+          session_count: number
+          shadowing_seconds: number
+          speaking_seconds: number
+          total_seconds: number
+          user_id: string
+        }[]
+      }
       get_class_leaderboard: {
         Args: { _range_end: string; _range_start: string }
         Returns: {

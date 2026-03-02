@@ -9,6 +9,7 @@ import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
 import { fetchClasses, createClassWithCourse, getCurrentUserId } from "@/services/db";
+import ClassDetailPanel from "@/components/teacher/ClassDetailPanel";
 
 interface ClassInfo {
   id: string;
@@ -29,6 +30,7 @@ export default function TeacherDashboard() {
   const [newClassName, setNewClassName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [newCourseType, setNewCourseType] = useState<"ielts" | "igcse">("ielts");
+  const [selectedClass, setSelectedClass] = useState<ClassInfo | null>(null);
   const { t } = useLanguage();
 
   useEffect(() => { loadClasses(); }, []);
@@ -63,8 +65,15 @@ export default function TeacherDashboard() {
 
   return (
     <PageShell>
+      {selectedClass ? (
+        <ClassDetailPanel
+          classId={selectedClass.id}
+          className={selectedClass.name}
+          courseType={selectedClass.course_type}
+          onBack={() => setSelectedClass(null)}
+        />
+      ) : (
       <motion.div
-        initial="hidden"
         animate="visible"
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
         className="flex-1 flex flex-col"
@@ -137,7 +146,8 @@ export default function TeacherDashboard() {
             <motion.div
               key={c.id}
               variants={fadeUp}
-              className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all space-y-2"
+              onClick={() => setSelectedClass(c)}
+              className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all space-y-2 cursor-pointer"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -150,7 +160,7 @@ export default function TeacherDashboard() {
                   <Users className="w-3 h-3" /> 0
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 <code className="flex-1 px-2.5 py-1.5 bg-white/[0.04] rounded-lg text-[10px] text-blue-300 font-mono tracking-wider">{c.join_code}</code>
                 <button
                   onClick={() => copyCode(c.join_code)}
@@ -166,7 +176,7 @@ export default function TeacherDashboard() {
         {/* Bottom feature cards */}
         <div className="space-y-2 mt-auto">
           {[
-            { icon: <BarChart3 className="w-4 h-4" />, title: t("teacher.studentAnalytics"), tag: t("teacher.soon") },
+            { icon: <BarChart3 className="w-4 h-4" />, title: t("teacher.studentAnalytics"), tag: "✓ Live" },
             { icon: <MessageSquare className="w-4 h-4" />, title: t("teacher.conversationReview"), tag: t("teacher.soon") },
           ].map((item, i) => (
             <motion.div
@@ -183,6 +193,7 @@ export default function TeacherDashboard() {
           ))}
         </div>
       </motion.div>
+      )}
     </PageShell>
   );
 }
