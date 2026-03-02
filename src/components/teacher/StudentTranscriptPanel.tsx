@@ -51,18 +51,25 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
   const [loadingNote, setLoadingNote] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
+  const [notedConvoIds, setNotedConvoIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Load conversations
+  // Load conversations + which ones have notes
   useEffect(() => {
     const load = async () => {
       setLoadingConvos(true);
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, title, created_at, updated_at")
-        .eq("user_id", studentId)
-        .order("updated_at", { ascending: false });
-      setConversations(data ?? []);
+      const [convosRes, notesRes] = await Promise.all([
+        supabase
+          .from("conversations")
+          .select("id, title, created_at, updated_at")
+          .eq("user_id", studentId)
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("conversation_notes")
+          .select("conversation_id"),
+      ]);
+      setConversations(convosRes.data ?? []);
+      setNotedConvoIds(new Set((notesRes.data ?? []).map((n) => n.conversation_id)));
       setLoadingConvos(false);
     };
     load();
@@ -136,6 +143,7 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
         setNote(data);
       }
       setEditingNote(false);
+      if (selectedConvo) setNotedConvoIds((prev) => new Set(prev).add(selectedConvo.id));
       toast({ title: "Note saved" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message ?? "Failed to save note", variant: "destructive" });
@@ -152,6 +160,7 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
       setNote(null);
       setNoteText("");
       setEditingNote(false);
+      if (selectedConvo) setNotedConvoIds((prev) => { const s = new Set(prev); s.delete(selectedConvo.id); return s; });
       toast({ title: "Note deleted" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message ?? "Failed to delete note", variant: "destructive" });
@@ -332,6 +341,9 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
               <p className="text-xs font-semibold text-gray-200 truncate">{c.title || "Untitled"}</p>
               <p className="text-[10px] text-gray-500">{new Date(c.updated_at).toLocaleDateString()}</p>
             </div>
+            {notedConvoIds.has(c.id) && (
+              <StickyNote className="w-3.5 h-3.5 text-amber-400/70" />
+            )}
             <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
           </motion.div>
         ))}
