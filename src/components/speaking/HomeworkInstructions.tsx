@@ -44,11 +44,11 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
     if (!userId || !open) return;
 
     const load = async () => {
-      const { data } = await (supabase
+      const { data } = await supabase
         .from("student_practice_logs")
         .select("activity_type, active_seconds, target_seconds")
         .eq("user_id", userId)
-        .eq("week_number", selectedWeek) as any)
+        .eq("week_number", selectedWeek)
         .eq("practice_mode", "homework");
 
       if (!data) return;

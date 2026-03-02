@@ -265,15 +265,21 @@ export async function createClassWithCourse(name: string, createdBy: string, cou
 
 // ── Practice Logs ─────────────────────────────────────────────
 
-export async function fetchTodayPracticeLogs(userId: string) {
+export async function fetchTodayPracticeLogs(userId: string, practiceMode?: "homework" | "independent") {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   
-  const { data, error } = await supabase
+  let query = supabase
     .from("student_practice_logs")
-    .select("id, activity_type, week_number, active_seconds, target_seconds")
+    .select("id, activity_type, week_number, active_seconds, target_seconds, practice_mode")
     .eq("user_id", userId)
     .gte("created_at", todayStart.toISOString());
+
+  if (practiceMode) {
+    query = query.eq("practice_mode", practiceMode);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
 }
