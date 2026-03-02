@@ -327,7 +327,7 @@ export default function SpeakingStudio() {
                 ? `Wk ${courseWeek.shadowingWeek} ${sectionLabel} · ${shadowCurriculum.currentQuestionId.toUpperCase()}`
                 : undefined;
               return (
-                <div className="absolute top-5 right-5 z-50">
+                <div className="absolute top-5 left-5 z-50">
                   <WeekSelector
                     selectedWeek={courseWeek.selectedWeek}
                     onWeekChange={courseWeek.setSelectedWeek}
