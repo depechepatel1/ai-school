@@ -34,7 +34,8 @@ import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { usePracticeTimer, type ActivityType } from "@/hooks/usePracticeTimer";
 import { PART2_TOPIC } from "@/types/speaking";
 import WeekSelector from "@/components/speaking/WeekSelector";
-import { getSpeakingQuestions } from "@/services/curriculum-storage";
+import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curriculum-storage";
+import HomeworkInstructions from "@/components/speaking/HomeworkInstructions";
 
 export default function SpeakingStudio() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function SpeakingStudio() {
   const test = useSpeakingTest({ accent: accentLower });
   const courseWeek = useCourseWeek(userId);
   const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
-  const [speakingQuestions, setSpeakingQuestions] = useState<string[]>([]);
+  const [speakingQuestions, setSpeakingQuestions] = useState<SpeakingQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   // Derive activity type for timer
@@ -264,7 +265,7 @@ export default function SpeakingStudio() {
                   className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "shadowing" ? "bg-cyan-500/90 text-black shadow-[0_2px_12px_rgba(6,182,212,0.4)]" : "text-white/35 hover:text-white/60"}`}>
                   Shadowing
                 </button>
-                <button onClick={() => {setMode("speaking");test.setShowTestConfig(true);}}
+                <button onClick={() => {setMode("speaking");if (courseWeek.courseType === "ielts") test.setShowTestConfig(true);}}
                   className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "speaking" ? "bg-purple-500/90 text-white shadow-[0_2px_12px_rgba(168,85,247,0.4)]" : "text-white/35 hover:text-white/60"}`}>
                   Speaking
                 </button>
@@ -454,21 +455,34 @@ export default function SpeakingStudio() {
                 <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
-                      Week {courseWeek.selectedWeek} — Question {currentQuestionIndex + 1}/{speakingQuestions.length}
+                      Week {courseWeek.selectedWeek} Speaking · {(() => {
+                        const sid = speakingQuestions[currentQuestionIndex]?.sectionId;
+                        const sectionMap: Record<string, string> = {
+                          section_6: "Section 6", model_answer: "Section 6",
+                          part_2: "Part 2", part_3: "Part 3",
+                        };
+                        return sectionMap[sid] ?? sid ?? "";
+                      })()} · Q{currentQuestionIndex + 1}
                     </span>
                     {courseWeek.courseType &&
                 <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} />
                 }
                   </div>
-                  <p className="text-sm text-white/90 leading-relaxed">{speakingQuestions[currentQuestionIndex]}</p>
+                  <p className="text-sm text-white/90 leading-relaxed">{speakingQuestions[currentQuestionIndex]?.text.split("?")[0]}?</p>
                   {speakingQuestions.length > 1 &&
               <button
                 onClick={() => setCurrentQuestionIndex((i) => (i + 1) % speakingQuestions.length)}
                 className="mt-3 px-4 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/10 transition-all">
-
                       Next Question
                     </button>
               }
+                  {courseWeek.courseType &&
+                    <HomeworkInstructions
+                      courseType={courseWeek.courseType}
+                      selectedWeek={courseWeek.selectedWeek}
+                      shadowingWeek={courseWeek.shadowingWeek}
+                    />
+                  }
                 </div>
               </div>
           }
@@ -522,7 +536,7 @@ export default function SpeakingStudio() {
         }
 
         {/* Modals */}
-        {mode === "speaking" && test.showTestConfig && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
+        {mode === "speaking" && test.showTestConfig && courseWeek.courseType === "ielts" && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
         {test.showSaveModal &&
         <SaveSessionModal isPartial={true}
         onSave={() => {addXP(50);test.resetTest();}}

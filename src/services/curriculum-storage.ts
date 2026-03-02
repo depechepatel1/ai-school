@@ -114,20 +114,25 @@ export function getWeekShadowingChunks(
   return chunks;
 }
 
+export interface SpeakingQuestion {
+  text: string;
+  sectionId: string;
+}
+
 /**
- * Get speaking questions for a specific week (question_text only, no model answers).
+ * Get speaking questions for a specific week with section context.
  */
 export function getSpeakingQuestions(
   data: CurriculumData,
   weekNumber: number
-): string[] {
+): SpeakingQuestion[] {
   const week = data.find((w) => w.week_number === weekNumber);
   if (!week) return [];
 
-  const questions: string[] = [];
+  const questions: SpeakingQuestion[] = [];
   for (const section of week.sections) {
     for (const q of section.questions) {
-      questions.push(q.question_text);
+      questions.push({ text: q.question_text, sectionId: section.section_id });
     }
   }
   return questions;
