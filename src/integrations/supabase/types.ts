@@ -362,7 +362,7 @@ export type Database = {
       join_class_by_code: { Args: { _join_code: string }; Returns: string }
     }
     Enums: {
-      app_role: "student" | "teacher" | "parent"
+      app_role: "student" | "teacher" | "parent" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -490,7 +490,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "teacher", "parent"],
+      app_role: ["student", "teacher", "parent", "admin"],
     },
   },
 } as const
