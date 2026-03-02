@@ -13,11 +13,14 @@ const TIME_TARGETS: Record<string, Record<string, number>> = {
 
 export type ActivityType = "shadowing" | "pronunciation" | "speaking";
 
+export type PracticeMode = "homework" | "independent";
+
 interface UsePracticeTimerOptions {
   userId: string | null;
   courseType: "ielts" | "igcse" | null;
   activityType: ActivityType;
   weekNumber: number;
+  practiceMode: PracticeMode;
   /** Whether audio is actively being produced (recording or TTS playing) */
   isAudioActive: boolean;
 }
@@ -52,6 +55,7 @@ export function usePracticeTimer({
   courseType,
   activityType,
   weekNumber,
+  practiceMode,
   isAudioActive,
 }: UsePracticeTimerOptions): PracticeTimerState {
   const [activeSeconds, setActiveSeconds] = useState(0);
@@ -96,12 +100,13 @@ export function usePracticeTimer({
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase
         .from("student_practice_logs")
         .select("id, active_seconds")
         .eq("user_id", userId)
         .eq("activity_type", activityType)
-        .eq("week_number", weekNumber)
+        .eq("week_number", weekNumber) as any)
+        .eq("practice_mode", practiceMode)
         .gte("created_at", todayStart.toISOString())
         .order("created_at", { ascending: false })
         .limit(1)
@@ -118,9 +123,10 @@ export function usePracticeTimer({
             course_type: courseType,
             activity_type: activityType,
             week_number: weekNumber,
-            target_seconds: targetSeconds,
+            target_seconds: practiceMode === "independent" ? 0 : targetSeconds,
             active_seconds: 0,
-          })
+            practice_mode: practiceMode,
+          } as any)
           .select("id")
           .single();
         if (newLog) logIdRef.current = newLog.id;
@@ -129,7 +135,7 @@ export function usePracticeTimer({
     };
 
     loadOrCreate().catch(console.error);
-  }, [userId, courseType, activityType, weekNumber, targetSeconds]);
+  }, [userId, courseType, activityType, weekNumber, targetSeconds, practiceMode]);
 
   // Periodic save (every 10 seconds while running)
   useEffect(() => {
