@@ -313,6 +313,7 @@ export type Database = {
           course_type: string
           created_at: string
           id: string
+          practice_mode: string
           target_seconds: number
           updated_at: string
           user_id: string
@@ -324,6 +325,7 @@ export type Database = {
           course_type?: string
           created_at?: string
           id?: string
+          practice_mode?: string
           target_seconds?: number
           updated_at?: string
           user_id: string
@@ -335,6 +337,7 @@ export type Database = {
           course_type?: string
           created_at?: string
           id?: string
+          practice_mode?: string
           target_seconds?: number
           updated_at?: string
           user_id?: string
