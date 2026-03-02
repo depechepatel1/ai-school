@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Volume2, VolumeX, ShieldCheck, Code, GraduationCap, BookOpen, Heart } from "lucide-react";
+import { Volume2, VolumeX, ShieldCheck, Code, GraduationCap, BookOpen, Heart, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
@@ -25,9 +26,11 @@ export const VIDEO_1_STACK = [
 ];
 
 const DEV_ACCOUNTS = [
-  { role: "student", email: "dev-student@test.com", password: "devtest123", icon: GraduationCap, label: "Student", color: "from-blue-500 to-cyan-500" },
-  { role: "teacher", email: "dev-teacher@test.com", password: "devtest123", icon: BookOpen, label: "Teacher", color: "from-emerald-500 to-green-500" },
-  { role: "parent", email: "dev-parent@test.com", password: "devtest123", icon: Heart, label: "Parent", color: "from-rose-500 to-pink-500" },
+  { role: "student", email: "dev-igcse@test.com", password: "devtest123", icon: GraduationCap, label: "IGCSE Student", color: "from-blue-500 to-cyan-500", redirect: "/student" },
+  { role: "student", email: "dev-ielts@test.com", password: "devtest123", icon: GraduationCap, label: "IELTS Student", color: "from-indigo-500 to-blue-500", redirect: "/student" },
+  { role: "teacher", email: "dev-teacher@test.com", password: "devtest123", icon: BookOpen, label: "Teacher", color: "from-emerald-500 to-green-500", redirect: "/teacher" },
+  { role: "parent", email: "dev-parent@test.com", password: "devtest123", icon: Heart, label: "Parent", color: "from-rose-500 to-pink-500", redirect: "/parent" },
+  { role: "admin", email: "dev-admin@test.com", password: "devtest123", icon: Shield, label: "Administrator", color: "from-amber-500 to-orange-500", redirect: "/teacher" },
 ];
 
 interface PageShellProps {
@@ -39,6 +42,7 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false }: PageShellProps) {
+  const navigate = useNavigate();
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
   const useIntro = playIntroVideo && !customVideoUrl && !loopVideos;
@@ -79,7 +83,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
   };
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
-    setDevLoading(account.role);
+    setDevLoading(account.email);
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: account.email,
@@ -87,6 +91,9 @@ export default function PageShell({ children, playIntroVideo = false, customVide
       });
       if (error) {
         toast({ title: "Dev Login Failed", description: getSafeErrorMessage(error), variant: "destructive" });
+      } else {
+        setDevOpen(false);
+        navigate(account.redirect);
       }
     } catch (err: any) {
       toast({ title: "Dev Login Failed", description: getSafeErrorMessage(err), variant: "destructive" });
@@ -260,12 +267,12 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                   const Icon = account.icon;
                   return (
                     <button
-                      key={account.role}
+                      key={account.email}
                       onClick={() => handleDevLogin(account)}
                       disabled={devLoading !== null}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-gradient-to-r ${account.color} text-white text-xs font-semibold hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
-                      {devLoading === account.role ? (
+                      {devLoading === account.email ? (
                         <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       ) : (
                         <Icon className="w-4 h-4" />
