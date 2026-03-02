@@ -30,7 +30,7 @@ const DEV_ACCOUNTS = [
   { role: "student", email: "dev-ielts@test.com", password: "devtest123", icon: GraduationCap, label: "IELTS Student", color: "from-indigo-500 to-blue-500", redirect: "/student" },
   { role: "teacher", email: "dev-teacher@test.com", password: "devtest123", icon: BookOpen, label: "Teacher", color: "from-emerald-500 to-green-500", redirect: "/teacher" },
   { role: "parent", email: "dev-parent@test.com", password: "devtest123", icon: Heart, label: "Parent", color: "from-rose-500 to-pink-500", redirect: "/parent" },
-  { role: "admin", email: "dev-admin@test.com", password: "devtest123", icon: Shield, label: "Administrator", color: "from-amber-500 to-orange-500", redirect: "/teacher" },
+  { role: "admin", email: "dev-admin@test.com", password: "devtest123", icon: Shield, label: "Administrator", color: "from-amber-500 to-orange-500", redirect: "/admin" },
 ];
 
 interface PageShellProps {
