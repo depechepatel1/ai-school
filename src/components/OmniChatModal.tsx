@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, forwardRef, useCallback } from "react";
-import { X, Send, Mic, Loader2 } from "lucide-react";
+import { X, Send, Mic, Loader2, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import NeuralLogo from "./NeuralLogo";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { streamChat } from "@/lib/chat-stream";
+import { startListening, type STTHandle } from "@/lib/stt-provider";
 import {
   fetchConversations,
   createConversation,
@@ -26,8 +27,10 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [conversationId, setConversationId] = useState<string | null>(null);
+    const [isListening, setIsListening] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const abortRef = useRef<AbortController | null>(null);
+    const sttRef = useRef<STTHandle | null>(null);
 
     // Load or create conversation on open
     useEffect(() => {
@@ -53,12 +56,53 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
       init().catch(console.error);
     }, [isOpen, session?.user?.id]);
 
+    // Stop listening when modal closes
+    useEffect(() => {
+      if (!isOpen && sttRef.current) {
+        sttRef.current.stop();
+        sttRef.current = null;
+        setIsListening(false);
+      }
+    }, [isOpen]);
+
     // Auto-scroll
     useEffect(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }, [messages]);
 
+    const toggleVoice = useCallback(() => {
+      if (isListening) {
+        sttRef.current?.stop();
+        sttRef.current = null;
+        setIsListening(false);
+        return;
+      }
+
+      setIsListening(true);
+      sttRef.current = startListening("en-US", {
+        onResult: (text) => {
+          setInput((prev) => (prev + " " + text).trim());
+        },
+        onInterim: () => {},
+        onError: (err) => {
+          console.warn("[STT] error:", err);
+          setIsListening(false);
+        },
+        onEnd: () => {
+          setIsListening(false);
+          sttRef.current = null;
+        },
+      }, true);
+    }, [isListening]);
+
     const send = useCallback(async () => {
+      // Stop voice if active
+      if (sttRef.current) {
+        sttRef.current.stop();
+        sttRef.current = null;
+        setIsListening(false);
+      }
+
       const text = input.trim();
       if (!text || isLoading || !conversationId || !session) return;
 
@@ -191,27 +235,42 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={isListening ? "Listening..." : "Type or speak..."}
                 disabled={isLoading}
                 className="flex-1 bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none focus:ring-0 mr-2 disabled:opacity-50"
               />
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className={`p-2 rounded-full transition-all duration-300 shadow-lg ${
-                  input.trim()
-                    ? "bg-blue-600 text-white"
-                    : "bg-white/10 text-white/80"
-                } disabled:opacity-40`}
-              >
-                {isLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : input.trim() ? (
-                  <Send className="w-3.5 h-3.5 fill-current" />
-                ) : (
-                  <Mic className="w-3.5 h-3.5" />
-                )}
-              </button>
+              {/* Voice toggle button — shown when input is empty and not loading */}
+              {!input.trim() && !isLoading && (
+                <button
+                  type="button"
+                  onClick={toggleVoice}
+                  className={`p-2 rounded-full transition-all duration-300 shadow-lg ${
+                    isListening
+                      ? "bg-red-500 text-white animate-pulse"
+                      : "bg-white/10 text-white/80 hover:bg-white/20"
+                  }`}
+                >
+                  {isListening ? (
+                    <MicOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Mic className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              )}
+              {/* Send button — shown when there's text or loading */}
+              {(input.trim() || isLoading) && (
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="p-2 rounded-full transition-all duration-300 shadow-lg bg-blue-600 text-white disabled:opacity-40"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5 fill-current" />
+                  )}
+                </button>
+              )}
             </form>
           </div>
         </div>
