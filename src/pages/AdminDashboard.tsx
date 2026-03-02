@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -481,6 +481,8 @@ function UsersPanel() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<{ action: "role" | "delete"; role?: string } | null>(null);
 
   const loadUsers = useCallback(async () => {
     const { data: roles } = await supabase.from("user_roles").select("user_id, role");
@@ -519,6 +521,43 @@ function UsersPanel() {
       toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
     }
     setBusy(false);
+  };
+
+  const toggleCheck = (id: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const bulkIds = Array.from(checked).filter((id) => id !== currentUser?.id);
+
+  const handleBulkAction = async () => {
+    if (!bulkConfirm || !bulkIds.length) return;
+    setBusy(true);
+    let success = 0;
+    let failed = 0;
+    for (const uid of bulkIds) {
+      try {
+        if (bulkConfirm.action === "role" && bulkConfirm.role) {
+          await adminAction("change_role", { user_id: uid, new_role: bulkConfirm.role });
+        } else if (bulkConfirm.action === "delete") {
+          await adminAction("delete_user", { user_id: uid });
+        }
+        success++;
+      } catch {
+        failed++;
+      }
+    }
+    toast({
+      title: bulkConfirm.action === "delete" ? "Bulk delete complete" : "Bulk role change complete",
+      description: `${success} succeeded${failed ? `, ${failed} failed` : ""}`,
+    });
+    setChecked(new Set());
+    setBulkConfirm(null);
+    setBusy(false);
+    await loadUsers();
   };
 
   if (loading) return <LoadingSpinner />;
@@ -582,10 +621,107 @@ function UsersPanel() {
         </div>
       </div>
 
-      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{filteredUsers.length} of {users.length} Users</p>
+      {/* Bulk Actions Toolbar */}
+      <AnimatePresence>
+        {checked.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/20 space-y-2"
+          >
+            {!bulkConfirm ? (
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-amber-300 font-bold flex-1">{bulkIds.length} selected {checked.size !== bulkIds.length ? `(${checked.size - bulkIds.length} self excluded)` : ""}</p>
+                <button
+                  onClick={() => setBulkConfirm({ action: "role" })}
+                  className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-blue-500/15 border border-blue-400/20 text-blue-300 hover:bg-blue-500/25 transition-all"
+                >
+                  Change Role
+                </button>
+                <button
+                  onClick={() => setBulkConfirm({ action: "delete" })}
+                  className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-red-500/15 border border-red-400/20 text-red-300 hover:bg-red-500/25 transition-all"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setChecked(new Set())}
+                  className="text-[10px] text-gray-500 hover:text-gray-300 px-1"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : bulkConfirm.action === "role" && !bulkConfirm.role ? (
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-amber-300 font-bold">Set role for {bulkIds.length} users:</p>
+                <div className="flex gap-1">
+                  {ROLES.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setBulkConfirm({ action: "role", role: r })}
+                      className={`flex-1 px-2 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all ${roleColors[r]} hover:scale-105`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                  <button onClick={() => setBulkConfirm(null)} className="text-[10px] text-gray-500 hover:text-gray-300 px-1">✕</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <p className="text-[10px] text-red-300 flex-1">
+                  {bulkConfirm.action === "delete"
+                    ? `Permanently delete ${bulkIds.length} user(s)?`
+                    : `Change ${bulkIds.length} user(s) to ${bulkConfirm.role}?`}
+                </p>
+                <button
+                  disabled={busy}
+                  onClick={handleBulkAction}
+                  className="px-2.5 py-1 rounded text-[9px] font-bold bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-all disabled:opacity-50"
+                >
+                  {busy ? "…" : "Confirm"}
+                </button>
+                <button onClick={() => setBulkConfirm(null)} className="text-[10px] text-gray-500 hover:text-gray-300 px-1">Cancel</button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Select All for current page */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => {
+            const pageIds = pagedUsers.filter((u) => !isSelf(u.id)).map((u) => u.id);
+            const allChecked = pageIds.every((id) => checked.has(id));
+            setChecked((prev) => {
+              const next = new Set(prev);
+              pageIds.forEach((id) => allChecked ? next.delete(id) : next.add(id));
+              return next;
+            });
+          }}
+          className="text-[10px] text-gray-500 hover:text-gray-300 transition-all"
+        >
+          {pagedUsers.filter((u) => !isSelf(u.id)).every((u) => checked.has(u.id)) && pagedUsers.some((u) => !isSelf(u.id))
+            ? <CheckSquare className="w-3.5 h-3.5 inline text-amber-400" />
+            : <Square className="w-3.5 h-3.5 inline" />}
+        </button>
+        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{filteredUsers.length} of {users.length} Users</p>
+      </div>
+
       {pagedUsers.map((u) => (
         <div key={u.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
           <div className="flex items-center gap-3">
+            {/* Checkbox */}
+            {!isSelf(u.id) ? (
+              <button onClick={() => toggleCheck(u.id)} className="shrink-0 text-gray-500 hover:text-amber-400 transition-all">
+                {checked.has(u.id) ? <CheckSquare className="w-4 h-4 text-amber-400" /> : <Square className="w-4 h-4" />}
+              </button>
+            ) : (
+              <div className="w-4 shrink-0" />
+            )}
             <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-xs font-bold text-gray-400 shrink-0">
               {(u.display_name || "?")[0].toUpperCase()}
             </div>
