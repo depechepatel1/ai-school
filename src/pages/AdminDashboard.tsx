@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -732,6 +732,22 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   };
 
+  const exportCSV = () => {
+    if (!logs.length) return;
+    const header = "Date,Activity,Course,Week,Seconds,Minutes";
+    const rows = logs.map((l) =>
+      `${new Date(l.created_at).toISOString()},${l.activity_type},${l.course_type},${l.week_number},${l.active_seconds},${Math.round(l.active_seconds / 60)}`
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(user.display_name || "student").replace(/\s+/g, "_")}_practice_data.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -749,10 +765,20 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
         <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center text-sm font-bold text-gray-300 shrink-0">
           {(user.display_name || "?")[0].toUpperCase()}
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-bold text-gray-100">{user.display_name || "No Name"}</p>
           <p className="text-[10px] text-gray-500">Joined {new Date(user.created_at).toLocaleDateString()}</p>
         </div>
+        {logs.length > 0 && (
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all"
+            title="Export as CSV"
+          >
+            <Download className="w-3.5 h-3.5" />
+            CSV
+          </button>
+        )}
       </div>
 
       {loading ? (
