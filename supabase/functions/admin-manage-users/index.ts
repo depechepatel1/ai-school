@@ -58,20 +58,43 @@ serve(async (req) => {
 
     const { action, ...params } = await req.json();
 
+    // Helper to write audit log (fire-and-forget)
+    const audit = (targetUserId: string | null, details: Record<string, unknown> = {}) => {
+      adminClient
+        .from("admin_audit_logs")
+        .insert({
+          admin_id: caller.id,
+          action,
+          target_user_id: targetUserId,
+          details,
+        })
+        .then(({ error }) => {
+          if (error) console.error("Audit log error:", error.message);
+        });
+    };
+
     switch (action) {
       case "change_role": {
         const { user_id, new_role } = params;
         if (!user_id || !new_role) {
           return respond(400, { error: "user_id and new_role required" });
         }
-        // Prevent self-demotion
         if (user_id === caller.id) {
           return respond(400, { error: "Cannot change your own role" });
         }
-        // Delete existing roles and insert new one
+        // Get old role for audit
+        const { data: oldRoleData } = await adminClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user_id)
+          .maybeSingle();
+        const oldRole = oldRoleData?.role ?? "none";
+
         await adminClient.from("user_roles").delete().eq("user_id", user_id);
         const { error } = await adminClient.from("user_roles").insert({ user_id, role: new_role });
         if (error) return respond(500, { error: error.message });
+
+        audit(user_id, { old_role: oldRole, new_role });
         return respond(200, { success: true });
       }
 
@@ -81,14 +104,21 @@ serve(async (req) => {
         if (user_id === caller.id) {
           return respond(400, { error: "Cannot delete yourself" });
         }
-        // Delete auth user (cascades to profiles, roles, memberships via FK)
+        // Get display name for audit
+        const { data: profile } = await adminClient
+          .from("profiles")
+          .select("display_name")
+          .eq("id", user_id)
+          .maybeSingle();
+
         const { error } = await adminClient.auth.admin.deleteUser(user_id);
         if (error) return respond(500, { error: error.message });
-        // Clean up tables without FK cascade
         await adminClient.from("user_roles").delete().eq("user_id", user_id);
         await adminClient.from("class_memberships").delete().eq("user_id", user_id);
         await adminClient.from("parent_student_links").delete().or(`parent_id.eq.${user_id},student_id.eq.${user_id}`);
         await adminClient.from("profiles").delete().eq("id", user_id);
+
+        audit(user_id, { deleted_name: profile?.display_name ?? "Unknown" });
         return respond(200, { success: true });
       }
 
@@ -100,7 +130,6 @@ serve(async (req) => {
           .select("user_id, joined_at")
           .eq("class_id", class_id);
         if (error) return respond(500, { error: error.message });
-        // Enrich with profile names
         const userIds = (data ?? []).map((m: any) => m.user_id);
         const { data: profiles } = await adminClient
           .from("profiles")
@@ -122,6 +151,8 @@ serve(async (req) => {
           .eq("class_id", class_id)
           .eq("user_id", user_id);
         if (error) return respond(500, { error: error.message });
+
+        audit(user_id, { class_id, removed_from_class: true });
         return respond(200, { success: true });
       }
 
@@ -132,6 +163,8 @@ serve(async (req) => {
           .from("class_memberships")
           .upsert({ class_id, user_id }, { onConflict: "class_id,user_id" });
         if (error) return respond(500, { error: error.message });
+
+        audit(user_id, { class_id, added_to_class: true });
         return respond(200, { success: true });
       }
 
