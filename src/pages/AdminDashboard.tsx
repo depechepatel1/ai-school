@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -479,6 +479,8 @@ function UsersPanel() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
 
   const loadUsers = useCallback(async () => {
     const { data: roles } = await supabase.from("user_roles").select("user_id, role");
@@ -535,11 +537,19 @@ function UsersPanel() {
 
   const isSelf = (uid: string) => uid === currentUser?.id;
 
-  const filteredUsers = users.filter((u) => {
-    const matchesSearch = !searchQuery || (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || u.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const matchesSearch = !searchQuery || (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRole = roleFilter === "all" || u.role === roleFilter;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchQuery, roleFilter]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [searchQuery, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const pagedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="space-y-2">
@@ -573,7 +583,7 @@ function UsersPanel() {
       </div>
 
       <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{filteredUsers.length} of {users.length} Users</p>
-      {filteredUsers.map((u) => (
+      {pagedUsers.map((u) => (
         <div key={u.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-xs font-bold text-gray-400 shrink-0">
@@ -666,6 +676,29 @@ function UsersPanel() {
           </AnimatePresence>
         </div>
       ))}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all disabled:opacity-30 disabled:cursor-default"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-[10px] text-gray-400 font-bold tabular-nums">
+            {page} / {totalPages}
+          </span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all disabled:opacity-30 disabled:cursor-default"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
