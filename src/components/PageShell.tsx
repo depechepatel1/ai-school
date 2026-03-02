@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Volume2, VolumeX, ShieldCheck, Code, GraduationCap, BookOpen, Heart, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -39,9 +39,10 @@ interface PageShellProps {
   customVideoUrl?: string;
   loopVideos?: string[];
   fullWidth?: boolean;
+  pingPong?: boolean;
 }
 
-export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, pingPong = false }: PageShellProps) {
   const navigate = useNavigate();
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
@@ -60,8 +61,32 @@ export default function PageShell({ children, playIntroVideo = false, customVide
 
   const activeLoopRef = activePlayer === "A" ? loopRefA : loopRefB;
   const activeVideoRef = introFinished ? activeLoopRef : introRef;
+  const pingPongDir = useRef(1);
+  const lastFrameTime = useRef(0);
 
-  
+  // Ping-pong rAF loop: manually drives currentTime forward then backward
+  useEffect(() => {
+    if (!pingPong || !introFinished) return;
+    let rafId: number;
+    const step = (now: number) => {
+      const vid = activeLoopRef.current;
+      if (vid && vid.duration && vid.readyState >= 2) {
+        if (lastFrameTime.current === 0) lastFrameTime.current = now;
+        const delta = (now - lastFrameTime.current) / 1000;
+        lastFrameTime.current = now;
+        let next = vid.currentTime + pingPongDir.current * delta;
+        if (next >= vid.duration - 0.05) { next = vid.duration - 0.05; pingPongDir.current = -1; }
+        if (next <= 0.05) { next = 0.05; pingPongDir.current = 1; }
+        vid.currentTime = next;
+      }
+      rafId = requestAnimationFrame(step);
+    };
+    // Pause native playback; rAF drives it
+    const vid = activeLoopRef.current;
+    if (vid) { vid.pause(); vid.currentTime = 0; }
+    rafId = requestAnimationFrame(step);
+    return () => { cancelAnimationFrame(rafId); lastFrameTime.current = 0; };
+  }, [pingPong, introFinished, activePlayer]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
