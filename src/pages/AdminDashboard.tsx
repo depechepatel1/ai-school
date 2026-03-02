@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -477,6 +477,8 @@ function UsersPanel() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   const loadUsers = useCallback(async () => {
     const { data: roles } = await supabase.from("user_roles").select("user_id, role");
@@ -533,10 +535,45 @@ function UsersPanel() {
 
   const isSelf = (uid: string) => uid === currentUser?.id;
 
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch = !searchQuery || (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "all" || u.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">{users.length} Users</p>
-      {users.map((u) => (
+      {/* Search & Filter Bar */}
+      <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by name…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[11px] text-gray-200 placeholder:text-gray-600 outline-none focus:border-amber-400/30 transition-all"
+          />
+        </div>
+        <div className="flex gap-1">
+          {["all", ...ROLES].map((r) => (
+            <button
+              key={r}
+              onClick={() => setRoleFilter(r)}
+              className={`flex-1 px-1.5 py-1 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all ${
+                roleFilter === r
+                  ? "bg-amber-500/15 border border-amber-400/20 text-amber-300"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{filteredUsers.length} of {users.length} Users</p>
+      {filteredUsers.map((u) => (
         <div key={u.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-xs font-bold text-gray-400 shrink-0">
