@@ -1327,6 +1327,11 @@ function AuditPanel() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
+  const [actionFilter, setActionFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [fromOpen, setFromOpen] = useState(false);
+  const [toOpen, setToOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -1334,12 +1339,11 @@ function AuditPanel() {
         .from("admin_audit_logs")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(500);
 
       const entries = auditData ?? [];
       setLogs(entries);
 
-      // Gather unique user IDs for name lookup
       const ids = new Set<string>();
       for (const e of entries) {
         if (e.admin_id) ids.add(e.admin_id);
@@ -1363,10 +1367,27 @@ function AuditPanel() {
     })();
   }, []);
 
+  const filteredLogs = useMemo(() => {
+    return logs.filter((l) => {
+      if (actionFilter !== "all" && l.action !== actionFilter) return false;
+      if (dateFrom) {
+        const start = startOfDay(dateFrom).getTime();
+        if (new Date(l.created_at).getTime() < start) return false;
+      }
+      if (dateTo) {
+        const end = endOfDay(dateTo).getTime();
+        if (new Date(l.created_at).getTime() > end) return false;
+      }
+      return true;
+    });
+  }, [logs, actionFilter, dateFrom, dateTo]);
+
+  useEffect(() => { setPage(1); }, [actionFilter, dateFrom, dateTo]);
+
   if (loading) return <LoadingSpinner />;
 
-  const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
-  const pagedLogs = logs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
+  const pagedLogs = filteredLogs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const getName = (id: string | null) => {
     if (!id) return "—";
@@ -1387,12 +1408,94 @@ function AuditPanel() {
     return null;
   };
 
+  const actionTypes = ["all", ...Object.keys(ACTION_LABELS)];
+
+  const clearFilters = () => {
+    setActionFilter("all");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
+  const hasFilters = actionFilter !== "all" || dateFrom || dateTo;
+
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{logs.length} Audit Entries</p>
+      {/* Filter Bar */}
+      <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+        {/* Action type filter */}
+        <div className="flex gap-1 flex-wrap">
+          {actionTypes.map((a) => {
+            const meta = a === "all" ? null : ACTION_LABELS[a];
+            return (
+              <button
+                key={a}
+                onClick={() => setActionFilter(a)}
+                className={`px-2 py-1 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all ${
+                  actionFilter === a
+                    ? "bg-amber-500/15 border border-amber-400/20 text-amber-300"
+                    : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
+                }`}
+              >
+                {a === "all" ? "All" : meta?.label || a}
+              </button>
+            );
+          })}
+        </div>
 
-      {logs.length === 0 && (
-        <p className="text-xs text-gray-500 text-center py-8">No audit logs yet. Actions will appear here as admins make changes.</p>
+        {/* Date range */}
+        <div className="flex items-center gap-2">
+          <Popover open={fromOpen} onOpenChange={setFromOpen}>
+            <PopoverTrigger asChild>
+              <button className="flex-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-gray-300 hover:bg-white/[0.06] transition-all">
+                <CalendarIcon className="w-3 h-3 text-gray-500" />
+                {dateFrom ? format(dateFrom, "MMM d, yyyy") : "From…"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-gray-900 border-white/10" align="start" side="bottom">
+              <Calendar
+                mode="single"
+                selected={dateFrom}
+                onSelect={(d) => { setDateFrom(d ?? undefined); setFromOpen(false); }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="text-[10px] text-gray-600">→</span>
+          <Popover open={toOpen} onOpenChange={setToOpen}>
+            <PopoverTrigger asChild>
+              <button className="flex-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-gray-300 hover:bg-white/[0.06] transition-all">
+                <CalendarIcon className="w-3 h-3 text-gray-500" />
+                {dateTo ? format(dateTo, "MMM d, yyyy") : "To…"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-gray-900 border-white/10" align="end" side="bottom">
+              <Calendar
+                mode="single"
+                selected={dateTo}
+                onSelect={(d) => { setDateTo(d ?? undefined); setToOpen(false); }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-[9px] text-gray-500 hover:text-gray-300 px-1.5 py-1 rounded hover:bg-white/[0.04] transition-all"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{filteredLogs.length} of {logs.length} Entries</p>
+
+      {filteredLogs.length === 0 && (
+        <p className="text-xs text-gray-500 text-center py-8">
+          {logs.length === 0 ? "No audit logs yet. Actions will appear here as admins make changes." : "No entries match the current filters."}
+        </p>
       )}
 
       {pagedLogs.map((entry) => {
