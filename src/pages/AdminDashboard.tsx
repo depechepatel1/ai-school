@@ -1,12 +1,25 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
-import { motion } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
+import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/safe-error";
+
+const ROLES = ["student", "teacher", "parent", "admin"] as const;
+
+async function adminAction(action: string, params: Record<string, any>) {
+  const { data, error } = await supabase.functions.invoke("admin-manage-users", {
+    body: { action, ...params },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 
 type Tab = "analytics" | "users" | "classes" | "practice" | "conversations";
 
@@ -347,21 +360,51 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 
 /* ── Users Panel ─────────────────────────────────────────── */
 function UsersPanel() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [changingRole, setChangingRole] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-      const { data: profiles } = await supabase.from("profiles").select("id, display_name, avatar_url, created_at");
-      const merged = (profiles ?? []).map((p) => ({
-        ...p,
-        role: roles?.find((r) => r.user_id === p.id)?.role ?? "unknown",
-      }));
-      setUsers(merged);
-      setLoading(false);
-    })();
+  const loadUsers = useCallback(async () => {
+    const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+    const { data: profiles } = await supabase.from("profiles").select("id, display_name, avatar_url, created_at");
+    const merged = (profiles ?? []).map((p) => ({
+      ...p,
+      role: roles?.find((r) => r.user_id === p.id)?.role ?? "unknown",
+    }));
+    setUsers(merged);
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    setBusy(true);
+    try {
+      await adminAction("change_role", { user_id: userId, new_role: newRole });
+      toast({ title: "Role updated" });
+      setChangingRole(null);
+      await loadUsers();
+    } catch (err: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+    }
+    setBusy(false);
+  };
+
+  const handleDelete = async (userId: string) => {
+    setBusy(true);
+    try {
+      await adminAction("delete_user", { user_id: userId });
+      toast({ title: "User deleted" });
+      setConfirmDelete(null);
+      await loadUsers();
+    } catch (err: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+    }
+    setBusy(false);
+  };
 
   if (loading) return <LoadingSpinner />;
 
@@ -372,21 +415,93 @@ function UsersPanel() {
     admin: "bg-amber-500/15 text-amber-300 border-amber-400/20",
   };
 
+  const isSelf = (uid: string) => uid === currentUser?.id;
+
   return (
     <div className="space-y-2">
       <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">{users.length} Users</p>
       {users.map((u) => (
-        <div key={u.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-          <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-xs font-bold text-gray-400">
-            {(u.display_name || "?")[0].toUpperCase()}
+        <div key={u.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-xs font-bold text-gray-400 shrink-0">
+              {(u.display_name || "?")[0].toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-200 truncate">{u.display_name || "No Name"}</p>
+              <p className="text-[10px] text-gray-500">{new Date(u.created_at).toLocaleDateString()}</p>
+            </div>
+
+            {/* Role selector */}
+            {changingRole === u.id ? (
+              <div className="flex gap-1">
+                {ROLES.map((r) => (
+                  <button
+                    key={r}
+                    disabled={busy || r === u.role}
+                    onClick={() => handleRoleChange(u.id, r)}
+                    className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border transition-all ${
+                      r === u.role
+                        ? roleColors[r] + " opacity-50"
+                        : "bg-white/[0.04] border-white/[0.1] text-gray-400 hover:text-white hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+                <button onClick={() => setChangingRole(null)} className="text-[10px] text-gray-500 hover:text-gray-300 px-1">✕</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => !isSelf(u.id) && setChangingRole(u.id)}
+                disabled={isSelf(u.id)}
+                className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border transition-all ${
+                  roleColors[u.role] || "bg-gray-500/15 text-gray-400 border-gray-400/20"
+                } ${isSelf(u.id) ? "opacity-50 cursor-default" : "hover:scale-105 cursor-pointer"}`}
+                title={isSelf(u.id) ? "Can't change own role" : "Click to change role"}
+              >
+                {u.role}
+              </button>
+            )}
+
+            {/* Delete button */}
+            {!isSelf(u.id) && (
+              <button
+                onClick={() => setConfirmDelete(u.id)}
+                className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                title="Delete user"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-gray-200 truncate">{u.display_name || "No Name"}</p>
-            <p className="text-[10px] text-gray-500">{new Date(u.created_at).toLocaleDateString()}</p>
-          </div>
-          <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border ${roleColors[u.role] || "bg-gray-500/15 text-gray-400 border-gray-400/20"}`}>
-            {u.role}
-          </span>
+
+          {/* Delete confirmation */}
+          <AnimatePresence>
+            {confirmDelete === u.id && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <p className="text-[10px] text-red-300 flex-1">Permanently delete <strong>{u.display_name}</strong>?</p>
+                <button
+                  disabled={busy}
+                  onClick={() => handleDelete(u.id)}
+                  className="px-2 py-1 rounded text-[9px] font-bold bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-all disabled:opacity-50"
+                >
+                  {busy ? "…" : "Delete"}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="text-[10px] text-gray-500 hover:text-gray-300 px-1"
+                >
+                  Cancel
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       ))}
     </div>
@@ -397,6 +512,10 @@ function UsersPanel() {
 function ClassesPanel() {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedClass, setExpandedClass] = useState<string | null>(null);
+  const [members, setMembers] = useState<any[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -406,20 +525,100 @@ function ClassesPanel() {
     })();
   }, []);
 
+  const toggleExpand = async (classId: string) => {
+    if (expandedClass === classId) {
+      setExpandedClass(null);
+      return;
+    }
+    setExpandedClass(classId);
+    setMembersLoading(true);
+    try {
+      const data = await adminAction("list_members", { class_id: classId });
+      setMembers(data.members ?? []);
+    } catch {
+      setMembers([]);
+    }
+    setMembersLoading(false);
+  };
+
+  const removeMember = async (classId: string, userId: string) => {
+    setBusy(true);
+    try {
+      await adminAction("remove_member", { class_id: classId, user_id: userId });
+      toast({ title: "Member removed" });
+      setMembers((prev) => prev.filter((m) => m.user_id !== userId));
+    } catch (err: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(err), variant: "destructive" });
+    }
+    setBusy(false);
+  };
+
   if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-2">
       <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">{classes.length} Classes</p>
       {classes.map((c) => (
-        <div key={c.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
-          <div className="flex items-center gap-2">
-            <h3 className="text-xs font-semibold text-gray-200">{c.name}</h3>
-            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-              c.course_type === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"
-            }`}>{c.course_type}</span>
-          </div>
-          <code className="block px-2 py-1 bg-white/[0.04] rounded text-[10px] text-blue-300 font-mono">{c.join_code}</code>
+        <div key={c.id} className="rounded-xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
+          <button
+            onClick={() => toggleExpand(c.id)}
+            className="w-full p-3 flex items-center gap-2 hover:bg-white/[0.02] transition-all text-left"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-semibold text-gray-200">{c.name}</h3>
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                  c.course_type === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"
+                }`}>{c.course_type}</span>
+              </div>
+              <code className="text-[10px] text-blue-300/60 font-mono">{c.join_code}</code>
+            </div>
+            {expandedClass === c.id ? (
+              <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {expandedClass === c.id && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="border-t border-white/[0.06]"
+              >
+                <div className="p-3 space-y-1.5">
+                  <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Members</p>
+                  {membersLoading ? (
+                    <div className="py-2 flex justify-center">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                    </div>
+                  ) : members.length === 0 ? (
+                    <p className="text-[10px] text-gray-500 py-2">No members</p>
+                  ) : (
+                    members.map((m) => (
+                      <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02]">
+                        <div className="w-6 h-6 rounded-full bg-white/[0.06] flex items-center justify-center text-[10px] font-bold text-gray-400 shrink-0">
+                          {(m.display_name || "?")[0].toUpperCase()}
+                        </div>
+                        <p className="text-[10px] text-gray-300 flex-1 truncate">{m.display_name}</p>
+                        <p className="text-[9px] text-gray-600">{new Date(m.joined_at).toLocaleDateString()}</p>
+                        <button
+                          disabled={busy}
+                          onClick={() => removeMember(c.id, m.user_id)}
+                          className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
+                          title="Remove from class"
+                        >
+                          <UserMinus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       ))}
     </div>
