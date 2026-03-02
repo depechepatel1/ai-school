@@ -1,9 +1,9 @@
 import { useState } from "react";
 import {
   ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
-  Book, PenTool, Headphones, Edit, CloudDownload, Mail, FileText,
-  Mic, Trophy, Calendar, Star, Video
+  Book, PenTool, Headphones, Edit, CloudDownload,
 } from "lucide-react";
+import StudentMessagesTab from "./StudentMessagesTab";
 
 interface LeftPillarProps {
   onShowSkills: () => void;
@@ -198,59 +198,7 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
               ))}
             </>
           ) : (
-            <div className="space-y-2">
-              {[
-                { from: "Teacher Li", time: "10:30 AM", subject: "Feedback: Essay Task 2", icon: Mail, color: "pink", unread: true },
-                { from: "System", time: "Yesterday", subject: "Streak Saved!", icon: Zap, color: "blue", unread: true },
-                { from: "System", time: "2 days ago", subject: "Weekly Report Ready", icon: FileText, color: "blue", unread: false },
-                { from: "Teacher Li", time: "3 days ago", subject: "Reminder: Mock Test", icon: AlertCircle, color: "pink", unread: false },
-                { from: "System", time: "Last Week", subject: "Subscription Renewed", icon: Check, color: "blue", unread: false },
-                { from: "Teacher Li", time: "Last Week", subject: "New Assignment: Speaking", icon: Mic, color: "pink", unread: false },
-                { from: "System", time: "Last Week", subject: "Badge Unlocked: Early Bird", icon: Trophy, color: "yellow", unread: false },
-                { from: "Teacher Li", time: "2 Weeks ago", subject: "Office Hours Update", icon: Calendar, color: "pink", unread: false },
-                { from: "System", time: "3 Weeks ago", subject: "Welcome to Course 2", icon: Star, color: "yellow", unread: false },
-                { from: "Teacher Li", time: "1 Month ago", subject: "Introductory Session", icon: Video, color: "pink", unread: false },
-              ].map((msg, i) => {
-                const colorClasses: Record<string, string> = {
-                  pink: "text-pink-400 group-hover:text-pink-300",
-                  blue: "text-blue-400 group-hover:text-blue-300",
-                  yellow: "text-yellow-400 group-hover:text-yellow-300",
-                };
-                const iconColorClasses: Record<string, string> = {
-                  pink: "text-pink-400",
-                  blue: "text-blue-400",
-                  yellow: "text-yellow-400",
-                };
-                const dotColors: Record<string, string> = {
-                  pink: "bg-pink-400",
-                  blue: "bg-blue-400",
-                  yellow: "bg-yellow-400",
-                };
-                return (
-                  <div
-                    key={i}
-                    onClick={() => handleEmailClick(msg.subject, "Content placeholder...")}
-                    className={`relative bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl hover:bg-white/[0.06] cursor-pointer transition-all group animate-fade-in-up ${!msg.unread ? 'opacity-60' : ''}`}
-                    style={{ animationDelay: `${i * 40}ms` }}
-                  >
-                    {/* unread dot */}
-                    {msg.unread && (
-                      <div className={`absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${dotColors[msg.color]} shadow-[0_0_6px_currentColor]`} />
-                    )}
-                    <div className={`${msg.unread ? 'pl-2' : ''}`}>
-                      <div className="flex justify-between items-start mb-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <msg.icon className={`w-3 h-3 ${iconColorClasses[msg.color]}`} />
-                          <span className={`font-bold text-[10px] ${colorClasses[msg.color]}`}>{msg.from}</span>
-                        </div>
-                        <span className="text-[8px] text-white/25">{msg.time}</span>
-                      </div>
-                      <div className="text-[10px] text-white/50 line-clamp-1">{msg.subject}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <StudentMessagesTab />
           )}
         </div>
       </div>
