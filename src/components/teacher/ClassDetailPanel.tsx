@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getWeekNumber, getWeekDateRange, TIME_TARGETS, SCHOOL_DAYS_PER_WEEK } from "@/lib/semester";
 import { useLanguage } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, TrendingUp, Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Users, Clock, TrendingUp, Flame, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface StudentEngagement {
@@ -96,6 +96,22 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
       pct: weeklyTarget > 0 ? Math.min(s.total_seconds / weeklyTarget, 1) : 0,
     })), [students, weeklyTarget]);
 
+  const exportCSV = () => {
+    if (!students.length) return;
+    const header = "Student,Shadowing (min),Pronunciation (min),Speaking (min),Total (min),Sessions,Last Active";
+    const rows = students.map((s) =>
+      `"${s.display_name}",${Math.round(s.shadowing_seconds / 60)},${Math.round(s.pronunciation_seconds / 60)},${Math.round(s.speaking_seconds / 60)},${Math.round(s.total_seconds / 60)},${s.session_count},${s.last_active ? new Date(s.last_active).toLocaleDateString() : "Never"}`
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${className.replace(/\s+/g, "_")}_week${viewWeek}_engagement.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }} className="flex-1 flex flex-col">
       {/* Header */}
@@ -123,6 +139,17 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+        {/* CSV Export */}
+        {students.length > 0 && (
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all"
+            title="Export as CSV"
+          >
+            <Download className="w-3.5 h-3.5" />
+            CSV
+          </button>
+        )}
       </motion.div>
 
       {/* Summary cards + Chart side by side */}
