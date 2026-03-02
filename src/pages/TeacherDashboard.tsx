@@ -189,7 +189,7 @@ export default function TeacherDashboard() {
               <div className="flex gap-3 mt-auto">
                 {[
                   { icon: <BarChart3 className="w-4 h-4" />, title: t("teacher.studentAnalytics"), tag: "✓ Live" },
-                  { icon: <MessageSquare className="w-4 h-4" />, title: t("teacher.conversationReview"), tag: t("teacher.soon") },
+                  { icon: <MessageSquare className="w-4 h-4" />, title: t("teacher.conversationReview"), tag: "✓ Live" },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
