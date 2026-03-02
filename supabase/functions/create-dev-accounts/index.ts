@@ -11,7 +11,7 @@ const DEV_ACCOUNTS = [
   { email: "dev-ielts@test.com", password: "devtest123", role: "student", displayName: "Dev IELTS Student" },
   { email: "dev-teacher@test.com", password: "devtest123", role: "teacher", displayName: "Dev Teacher" },
   { email: "dev-parent@test.com", password: "devtest123", role: "parent", displayName: "Dev Parent" },
-  { email: "dev-admin@test.com", password: "devtest123", role: "teacher", displayName: "Dev Admin" },
+  { email: "dev-admin@test.com", password: "devtest123", role: "admin", displayName: "Dev Admin" },
 ];
 
 serve(async (req) => {
