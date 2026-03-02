@@ -1,63 +1,39 @@
 
 
-## Plan: Speaking Screen Improvements
+## Plan: Update Dev Accounts Edge Function
 
-### Problem Summary
-
-1. **ExaminerConfig ("Choose Test Setup")** shows for all students — should only appear for IELTS students.
-2. **Question box** displays the full concatenated question text (e.g., "What activities...? Do you prefer...? Have your hobbies changed...?"). Only the **first question** (before the first `?`) should be displayed — the rest are peer follow-up questions.
-3. **No homework context** — the speaking screen doesn't tell students what they're supposed to be doing in the speaking module. The homework tasks differ by course type.
+### Current State
+- Three old dev accounts exist: `dev-student@test.com`, `dev-teacher@test.com`, `dev-parent@test.com`
+- One IGCSE class exists (`Test IGCSE Class`), but no IELTS class
+- The edge function needs updating to create 5 accounts matching the new PageShell config
 
 ### Changes
 
-#### 1. Hide ExaminerConfig for IGCSE (`SpeakingStudio.tsx`)
+#### 1. Update `supabase/functions/create-dev-accounts/index.ts`
 
-The ExaminerConfig render at line 525 and the "Speaking" tab click at line 267 both trigger `setShowTestConfig(true)`. Gate both on `courseWeek.courseType === "ielts"`:
-- Line 267: Only call `test.setShowTestConfig(true)` if IELTS.
-- Line 525: Only render `<ExaminerConfig>` if `courseWeek.courseType === "ielts"`.
+Replace the `DEV_ACCOUNTS` array with 5 accounts:
+- `dev-igcse@test.com` (student, "Dev IGCSE Student")
+- `dev-ielts@test.com` (student, "Dev IELTS Student")
+- `dev-teacher@test.com` (student→teacher, "Dev Teacher")
+- `dev-parent@test.com` (parent, "Dev Parent")
+- `dev-admin@test.com` (admin→teacher role, "Dev Admin")
 
-For IGCSE students clicking "Speaking", they go straight into speaking mode without the test config panel.
+Add post-creation logic:
+1. Create an IELTS class owned by the teacher account (if not exists)
+2. Ensure the existing IGCSE class exists (or create one) owned by the teacher
+3. Add `dev-igcse@test.com` to the IGCSE class membership
+4. Add `dev-ielts@test.com` to the IELTS class membership
+5. Link `dev-parent@test.com` to both student accounts in `parent_student_links`
 
-#### 2. Show only the first question (`SpeakingStudio.tsx`)
+Note: The `admin` role doesn't exist in the `app_role` enum (only `student`, `teacher`, `parent`). The admin account will be assigned the `teacher` role for now.
 
-Line 463 currently renders `{speakingQuestions[currentQuestionIndex]}`. Change to split by `?` and take only the first part + `?`:
+#### 2. Deploy and invoke the function
 
-```tsx
-{speakingQuestions[currentQuestionIndex]?.split("?")[0]}?
-```
-
-This matches the same pattern already used in the fluency mode question display (line 342).
-
-#### 3. Add section/week context to the question box header
-
-The header at line 456-458 currently says `Week {selectedWeek} — Question {n}/{total}`. Enhance it to also identify which section the question comes from. To do this:
-
-**Modify `getSpeakingQuestions`** in `curriculum-storage.ts` to return objects with `{ text, sectionId }` instead of plain strings, so the UI knows which section each question belongs to.
-
-**Update the question box header** to show:
-- IGCSE: `"Week {selectedWeek} Speaking · Section 6 · Q{n}"`
-- IELTS: `"Week {selectedWeek} Speaking · Part 2 · Q{n}"` / `"Part 3 · Q{n}"`
-
-#### 4. Add homework task instructions panel (`SpeakingStudio.tsx`)
-
-Add a collapsible info box below the question box (or as a small icon-triggered popover) showing the relevant homework instructions for the current course type. This tells students exactly what they need to do.
-
-**IGCSE instructions:**
-- Pre-HW: "Shadow Week {shadowingWeek} Model Answers (10 min)"
-- Post-HW: "Record 2-min audio answering this week's question. Use 1 complex sentence + Present Perfect."
-
-**IELTS instructions:**
-- Part 1: "Shadow read all model answers for next week (10 min) + Tongue Twisters (5 min)"
-- Part 2: "Record answers for all 3 Part 2 questions (3 × 2 min)"
-- Part 3: "Record answers for all Part 3 questions (6 × 1 min)"
-
-This will be a small `HomeworkInstructions` component rendered when `test.testState.status === "idle"`, positioned below the question box.
+After updating, deploy the edge function and call it to provision all accounts.
 
 ### Files Modified
 
 | File | Change |
 |---|---|
-| `src/pages/SpeakingStudio.tsx` | Gate ExaminerConfig on IELTS; truncate question to first `?`; add homework instructions panel; update question header with section context |
-| `src/services/curriculum-storage.ts` | Update `getSpeakingQuestions` to return `{ text, sectionId }` objects |
-| `src/components/speaking/HomeworkInstructions.tsx` | New component: collapsible panel showing course-specific homework tasks |
+| `supabase/functions/create-dev-accounts/index.ts` | Update accounts list, add class creation + membership + parent linking logic |
 
