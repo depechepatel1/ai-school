@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ async function adminAction(action: string, params: Record<string, any>) {
   return data;
 }
 
-type Tab = "analytics" | "users" | "classes" | "practice" | "conversations";
+type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -42,6 +42,7 @@ export default function AdminDashboard() {
     { id: "classes", label: "Classes", icon: <BookOpen className="w-3.5 h-3.5" /> },
     { id: "practice", label: "Logs", icon: <BarChart3 className="w-3.5 h-3.5" /> },
     { id: "conversations", label: "Chat", icon: <MessageSquare className="w-3.5 h-3.5" /> },
+    { id: "audit", label: "Audit", icon: <ClipboardList className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -95,6 +96,7 @@ export default function AdminDashboard() {
           {activeTab === "classes" && <ClassesPanel />}
           {activeTab === "practice" && <PracticePanel />}
           {activeTab === "conversations" && <ConversationsPanel />}
+          {activeTab === "audit" && <AuditPanel />}
         </div>
       </motion.div>
     </PageShell>
@@ -1307,6 +1309,143 @@ function ConversationsPanel() {
           <p className="text-[10px] text-gray-500">{new Date(c.created_at).toLocaleString()}</p>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ── Audit Panel ──────────────────────────────────────────── */
+const ACTION_LABELS: Record<string, { label: string; color: string }> = {
+  change_role: { label: "Role Changed", color: "text-blue-300 bg-blue-500/15 border-blue-400/20" },
+  delete_user: { label: "User Deleted", color: "text-red-300 bg-red-500/15 border-red-400/20" },
+  remove_member: { label: "Member Removed", color: "text-orange-300 bg-orange-500/15 border-orange-400/20" },
+  add_member: { label: "Member Added", color: "text-emerald-300 bg-emerald-500/15 border-emerald-400/20" },
+};
+
+function AuditPanel() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+
+  useEffect(() => {
+    (async () => {
+      const { data: auditData } = await supabase
+        .from("admin_audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      const entries = auditData ?? [];
+      setLogs(entries);
+
+      // Gather unique user IDs for name lookup
+      const ids = new Set<string>();
+      for (const e of entries) {
+        if (e.admin_id) ids.add(e.admin_id);
+        if (e.target_user_id) ids.add(e.target_user_id);
+      }
+
+      if (ids.size > 0) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", Array.from(ids));
+
+        const map: Record<string, string> = {};
+        for (const p of profileData ?? []) {
+          map[p.id] = p.display_name || "Unknown";
+        }
+        setProfiles(map);
+      }
+
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) return <LoadingSpinner />;
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
+  const pagedLogs = logs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const getName = (id: string | null) => {
+    if (!id) return "—";
+    return profiles[id] || id.slice(0, 8) + "…";
+  };
+
+  const formatDetails = (action: string, details: any) => {
+    if (!details || typeof details !== "object") return null;
+    if (action === "change_role") {
+      return `${details.old_role} → ${details.new_role}`;
+    }
+    if (action === "delete_user" && details.deleted_name) {
+      return `"${details.deleted_name}"`;
+    }
+    if (details.class_id) {
+      return `Class ${(details.class_id as string).slice(0, 8)}…`;
+    }
+    return null;
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{logs.length} Audit Entries</p>
+
+      {logs.length === 0 && (
+        <p className="text-xs text-gray-500 text-center py-8">No audit logs yet. Actions will appear here as admins make changes.</p>
+      )}
+
+      {pagedLogs.map((entry) => {
+        const actionMeta = ACTION_LABELS[entry.action] || { label: entry.action, color: "text-gray-300 bg-gray-500/15 border-gray-400/20" };
+        const detail = formatDetails(entry.action, entry.details);
+
+        return (
+          <div key={entry.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border ${actionMeta.color}`}>
+                {actionMeta.label}
+              </span>
+              <span className="text-[10px] text-gray-500 ml-auto">{new Date(entry.created_at).toLocaleString()}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="text-gray-500">by</span>
+              <span className="text-amber-300 font-semibold">{getName(entry.admin_id)}</span>
+              {entry.target_user_id && (
+                <>
+                  <span className="text-gray-600">→</span>
+                  <span className="text-gray-300 font-semibold">{getName(entry.target_user_id)}</span>
+                </>
+              )}
+              {detail && (
+                <span className="text-gray-500 ml-1">({detail})</span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all disabled:opacity-30 disabled:cursor-default"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-[10px] text-gray-400 font-bold tabular-nums">
+            {page} / {totalPages}
+          </span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all disabled:opacity-30 disabled:cursor-default"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
