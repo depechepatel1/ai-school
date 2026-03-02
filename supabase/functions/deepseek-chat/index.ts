@@ -1,23 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ALLOWED_ORIGINS = [
-  "https://id-preview--84043c13-90f0-443c-a7e4-5b223d663f66.lovable.app",
-  "http://localhost:8080",
-  "http://localhost:5173",
-];
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-    "Access-Control-Allow-Credentials": "true",
-  };
-}
-
-const SYSTEM_PROMPT = `You are a friendly, patient, and encouraging English language tutor helping students prepare for the IELTS Speaking exam. 
+const SYSTEM_PROMPT = `You are Teacher Li — a friendly, patient, and encouraging English language tutor helping students prepare for IELTS and IGCSE Speaking exams.
 
 Guidelines:
 - Keep responses concise (2-4 sentences when possible)
@@ -26,11 +16,10 @@ Guidelines:
 - Use natural, conversational English
 - Provide tips specific to IELTS speaking criteria: Fluency, Vocabulary, Grammar, Pronunciation
 - Be supportive and celebrate improvement
-- If the student seems stuck, offer prompts or rephrase your question`;
+- If the student seems stuck, offer prompts or rephrase your question
+- Use markdown formatting for emphasis when helpful`;
 
 serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -48,11 +37,12 @@ serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
+      { global: { headers: { Authorization: authHeader } } },
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    const { data: claimsData, error: claimsError } =
+      await supabaseClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -60,91 +50,87 @@ serve(async (req) => {
       });
     }
 
-    // --- AI Provider Configuration (env-driven) ---
-    const AI_API_KEY = Deno.env.get("AI_API_KEY") || Deno.env.get("DEEPSEEK_API_KEY");
-    const AI_API_BASE_URL = Deno.env.get("AI_API_BASE_URL") || "https://api.deepseek.com/v1";
-    const AI_MODEL = Deno.env.get("AI_MODEL") || "deepseek-chat";
-
-    if (!AI_API_KEY) {
-      throw new Error("AI_API_KEY (or DEEPSEEK_API_KEY) is not configured");
-    }
-
     // --- Input validation ---
     const { messages } = await req.json();
 
-    if (!Array.isArray(messages)) {
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 100) {
       return new Response(
-        JSON.stringify({ error: "Messages must be an array" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (messages.length === 0 || messages.length > 100) {
-      return new Response(
-        JSON.stringify({ error: "Messages count must be between 1 and 100" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Messages must be an array of 1-100 items" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const validRoles = new Set(["user", "assistant"]);
-
     const validMessages = messages
-      .filter((m: any) =>
-        m &&
-        typeof m.role === "string" &&
-        validRoles.has(m.role) &&
-        typeof m.content === "string" &&
-        m.content.length > 0 &&
-        m.content.length <= 10000
+      .filter(
+        (m: any) =>
+          m &&
+          typeof m.role === "string" &&
+          validRoles.has(m.role) &&
+          typeof m.content === "string" &&
+          m.content.length > 0 &&
+          m.content.length <= 10000,
       )
-      .map((m: any) => ({
-        role: m.role,
-        content: m.content.substring(0, 10000),
-      }));
+      .map((m: any) => ({ role: m.role, content: m.content.substring(0, 10000) }));
 
     if (validMessages.length === 0) {
       return new Response(
         JSON.stringify({ error: "No valid messages provided" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const apiMessages = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...validMessages,
-    ];
-
-    // --- OpenAI-compatible chat completions call ---
-    const response = await fetch(`${AI_API_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${AI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        messages: apiMessages,
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`AI API error: ${response.status} - ${errorText}`);
+    // --- Lovable AI Gateway (streaming) ---
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+    const response = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...validMessages],
+          stream: true,
+        }),
+      },
+    );
 
-    return new Response(JSON.stringify({ content }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded, please try again shortly." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI credits exhausted. Please add credits in Settings." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
+      return new Response(
+        JSON.stringify({ error: "AI service error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
     console.error("Edge function error:", error.message);
-    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "An internal error occurred" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 });
