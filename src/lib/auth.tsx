@@ -3,7 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchUserRole, insertUserRole } from "@/services/db";
 
-type AppRole = "student" | "teacher" | "parent";
+type AppRole = "student" | "teacher" | "parent" | "admin";
 
 interface AuthContextType {
   session: Session | null;

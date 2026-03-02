@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ("student" | "teacher" | "parent")[];
+  allowedRoles?: ("student" | "teacher" | "parent" | "admin")[];
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -20,8 +20,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
   if (!user) return <Navigate to="/login" replace />;
 
   if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect to their correct dashboard
-    const redirectMap = { student: "/student", teacher: "/teacher", parent: "/parent" };
+    const redirectMap: Record<string, string> = { student: "/student", teacher: "/teacher", parent: "/parent", admin: "/admin" };
     return <Navigate to={redirectMap[role] || "/login"} replace />;
   }
 
