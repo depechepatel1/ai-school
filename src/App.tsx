@@ -29,7 +29,7 @@ import { VIDEO_1_STACK } from "@/components/PageShell";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const INTRO_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/intro.mp4`;
 const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4`;
-const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO, ANALYSIS_VIDEO];
+const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO, ANALYSIS_VIDEO, "/images/dashboard-bg.jpg"];
 
 const App = () => {
   useEffect(() => {
