@@ -250,7 +250,8 @@ export default function SpeakingStudio() {
   return (
     <PageShell
       fullWidth
-      loopVideos={VIDEO_1_STACK}>
+      loopVideos={VIDEO_1_STACK}
+      hideFooter>
 
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         {/* Back button */}

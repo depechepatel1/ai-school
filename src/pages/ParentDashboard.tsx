@@ -16,7 +16,7 @@ export default function ParentDashboard() {
   const { t } = useLanguage();
 
   return (
-    <PageShell>
+    <PageShell hideFooter>
       <motion.div
         initial="hidden"
         animate="visible"

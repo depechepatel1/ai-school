@@ -99,7 +99,7 @@ export default function StudentProfile() {
   };
 
   return (
-    <PageShell fullWidth loopVideos={VIDEO_1_STACK}>
+    <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
       <div className="absolute inset-4 z-10 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
