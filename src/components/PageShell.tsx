@@ -89,6 +89,22 @@ export default function PageShell({ children, playIntroVideo = false, customVide
     return () => { cancelAnimationFrame(rafId); lastFrameTime.current = 0; };
   }, [pingPong, introFinished, activePlayer]);
 
+  // Force muted attribute via ref (React bug: muted prop doesn't always sync to DOM)
+  // and auto-play the active video
+  useEffect(() => {
+    if (bgImage) return;
+    // Set muted on all video refs to work around React muted bug
+    [introRef, loopRefA, loopRefB].forEach(ref => {
+      if (ref.current) ref.current.muted = true;
+    });
+    if (!introFinished) {
+      introRef.current?.play().catch(() => {});
+    } else {
+      const activeRef = activePlayer === "A" ? loopRefA : loopRefB;
+      activeRef.current?.play().catch(() => {});
+    }
+  }, [introFinished, bgImage, activePlayer]);
+
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
     if (vid) {
