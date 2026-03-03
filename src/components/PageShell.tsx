@@ -40,9 +40,10 @@ interface PageShellProps {
   loopVideos?: string[];
   fullWidth?: boolean;
   pingPong?: boolean;
+  bgImage?: string;
 }
 
-export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, pingPong = false }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, pingPong = false, bgImage }: PageShellProps) {
   const navigate = useNavigate();
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
@@ -134,8 +135,17 @@ export default function PageShell({ children, playIntroVideo = false, customVide
 
         {/* Video Background */}
         <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900 rounded-[2.5rem]">
+          {/* Static background image mode */}
+          {bgImage && (
+            <img
+              src={bgImage}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+
           {/* Intro video — plays once on student page */}
-          {useIntro && (
+          {!bgImage && useIntro && (
             <video
               ref={introRef}
               src={VIDEO_2}
@@ -150,89 +160,94 @@ export default function PageShell({ children, playIntroVideo = false, customVide
           )}
 
           {/* Dual-video crossfade: Player A */}
-          <video
-            ref={loopRefA}
-            src={videoList[videoIndexA]}
-            autoPlay={!useIntro && activePlayer === "A"}
-            loop={shouldLoop}
-            playsInline
-            muted={isMuted}
-            preload="auto"
-            onLoadedData={() => {
-              if (loopRefA.current && loopRefA.current.currentTime < TRIM_SECONDS) {
-                loopRefA.current.currentTime = TRIM_SECONDS;
-              }
-            }}
-            onTimeUpdate={() => {
-              const v = loopRefA.current;
-              if (!shouldLoop && activePlayer === "A" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
-                setActivePlayer("B");
-                loopRefB.current?.play().catch(() => {});
-                const nextNext = (videoIndexB + 1) % videoList.length;
-                setVideoIndexA(nextNext);
-              }
-            }}
-            onEnded={() => {
-              if (!shouldLoop && activePlayer === "A") {
-                setActivePlayer("B");
-                loopRefB.current?.play().catch(() => {});
-                const nextNext = (videoIndexB + 1) % videoList.length;
-                setVideoIndexA(nextNext);
-              }
-            }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
-              (useIntro && !introFinished) ? "opacity-0" : activePlayer === "A" ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
-          />
-
-          {/* Dual-video crossfade: Player B */}
-          {!shouldLoop && (
+          {!bgImage && (
+            <>
             <video
-              ref={loopRefB}
-              src={videoList[videoIndexB]}
+              ref={loopRefA}
+              src={videoList[videoIndexA]}
+              autoPlay={!useIntro && activePlayer === "A"}
+              loop={shouldLoop}
               playsInline
               muted={isMuted}
               preload="auto"
               onLoadedData={() => {
-                if (loopRefB.current && loopRefB.current.currentTime < TRIM_SECONDS) {
-                  loopRefB.current.currentTime = TRIM_SECONDS;
+                if (loopRefA.current && loopRefA.current.currentTime < TRIM_SECONDS) {
+                  loopRefA.current.currentTime = TRIM_SECONDS;
                 }
               }}
               onTimeUpdate={() => {
-                const v = loopRefB.current;
-                if (activePlayer === "B" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
-                  setActivePlayer("A");
-                  loopRefA.current?.play().catch(() => {});
-                  const nextNext = (videoIndexA + 1) % videoList.length;
-                  setVideoIndexB(nextNext);
+                const v = loopRefA.current;
+                if (!shouldLoop && activePlayer === "A" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
+                  setActivePlayer("B");
+                  loopRefB.current?.play().catch(() => {});
+                  const nextNext = (videoIndexB + 1) % videoList.length;
+                  setVideoIndexA(nextNext);
                 }
               }}
               onEnded={() => {
-                if (activePlayer === "B") {
-                  setActivePlayer("A");
-                  loopRefA.current?.play().catch(() => {});
-                  const nextNext = (videoIndexA + 1) % videoList.length;
-                  setVideoIndexB(nextNext);
+                if (!shouldLoop && activePlayer === "A") {
+                  setActivePlayer("B");
+                  loopRefB.current?.play().catch(() => {});
+                  const nextNext = (videoIndexB + 1) % videoList.length;
+                  setVideoIndexA(nextNext);
                 }
               }}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
-                activePlayer === "B" ? "opacity-100" : "opacity-0"
+                (useIntro && !introFinished) ? "opacity-0" : activePlayer === "A" ? "opacity-100" : "opacity-0"
               }`}
               style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
             />
-          )}
 
+            {/* Dual-video crossfade: Player B */}
+            {!shouldLoop && (
+              <video
+                ref={loopRefB}
+                src={videoList[videoIndexB]}
+                playsInline
+                muted={isMuted}
+                preload="auto"
+                onLoadedData={() => {
+                  if (loopRefB.current && loopRefB.current.currentTime < TRIM_SECONDS) {
+                    loopRefB.current.currentTime = TRIM_SECONDS;
+                  }
+                }}
+                onTimeUpdate={() => {
+                  const v = loopRefB.current;
+                  if (activePlayer === "B" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
+                    setActivePlayer("A");
+                    loopRefA.current?.play().catch(() => {});
+                    const nextNext = (videoIndexA + 1) % videoList.length;
+                    setVideoIndexB(nextNext);
+                  }
+                }}
+                onEnded={() => {
+                  if (activePlayer === "B") {
+                    setActivePlayer("A");
+                    loopRefA.current?.play().catch(() => {});
+                    const nextNext = (videoIndexA + 1) % videoList.length;
+                    setVideoIndexB(nextNext);
+                  }
+                }}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
+                  activePlayer === "B" ? "opacity-100" : "opacity-0"
+                }`}
+                style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
+              />
+            )}
+            </>
+          )}
           {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />}
 
-          {/* Audio Toggle */}
-          <button
-            onClick={toggleAudio}
-            className="absolute bottom-8 left-8 z-30 p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
-            title={isMuted ? "Unmute Background" : "Mute Background"}
-          >
-            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-          </button>
+          {/* Audio Toggle — only for video backgrounds */}
+          {!bgImage && (
+            <button
+              onClick={toggleAudio}
+              className="absolute bottom-8 left-8 z-30 p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
+              title={isMuted ? "Unmute Background" : "Mute Background"}
+            >
+              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </button>
+          )}
         </div>
 
         {/* Compliance Footer — hidden on fullWidth pages */}
