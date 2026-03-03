@@ -41,9 +41,10 @@ interface PageShellProps {
   fullWidth?: boolean;
   pingPong?: boolean;
   bgImage?: string;
+  hideFooter?: boolean;
 }
 
-export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, pingPong = false, bgImage }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, pingPong = false, bgImage, hideFooter = false }: PageShellProps) {
   const navigate = useNavigate();
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
@@ -267,14 +268,16 @@ export default function PageShell({ children, playIntroVideo = false, customVide
         </div>
 
         {/* Compliance Footer */}
-        <div className={`absolute bottom-0 left-0 z-20 pb-6 pt-12 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none ${fullWidth ? "right-0" : "right-[40%]"}`}>
-          <div className="flex flex-col items-center gap-2 pointer-events-auto">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] text-gray-400 font-medium tracking-wide shadow-xl">
-              <ShieldCheck className="w-3 h-3 text-green-500" />
-              <span>Data Resides in Mainland China (Aliyun)</span>
+        {!hideFooter && (
+          <div className={`absolute bottom-0 left-0 z-20 pb-6 pt-12 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none ${fullWidth ? "right-0" : "right-[40%]"}`}>
+            <div className="flex flex-col items-center gap-2 pointer-events-auto">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] text-gray-400 font-medium tracking-wide shadow-xl">
+                <ShieldCheck className="w-3 h-3 text-green-500" />
+                <span>Data Resides in Mainland China (Aliyun)</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Content Layer */}
         {fullWidth ? (

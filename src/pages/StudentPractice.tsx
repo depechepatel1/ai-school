@@ -26,7 +26,7 @@ export default function StudentPractice() {
   };
 
   return (
-    <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK}>
+    <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
       <div className="relative w-full h-full text-white animate-fade-in-up font-outfit">
         <HomeworkModal isOpen={showHomeworkModal} onClose={() => setShowHomeworkModal(false)} />
         <ScheduleModal isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} />

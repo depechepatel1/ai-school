@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <PageShell fullWidth bgImage={DASHBOARD_BG}>
+    <PageShell fullWidth bgImage={DASHBOARD_BG} hideFooter>
       {/* Full-width glassmorphic overlay */}
       <div className="absolute inset-4 z-10 flex flex-col rounded-[2rem] bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
