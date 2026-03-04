@@ -68,25 +68,35 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   // Object position: auth pages offset left, fullWidth centered
   const objectPosition = fullWidth ? "center center" : "30% center";
 
+  // Robust play helper with retry for Edge
+  const safePlay = useCallback((v: HTMLVideoElement) => {
+    v.muted = true;
+    v.play().catch(() => {
+      setTimeout(() => {
+        if (v) {
+          v.muted = true;
+          v.play().catch(() => {});
+        }
+      }, 150);
+    });
+  }, []);
+
   // Edge-safe initialization: force muted via DOM and explicitly start playback
-  // This effect handles both initial mount AND intro→loop transition
   useEffect(() => {
     if (bgImage) return;
-    // Always force muted on all video refs (React muted prop bug in Edge)
     [introRef, loopRef].forEach(ref => {
       if (ref.current) ref.current.muted = true;
     });
     if (introFinished) {
       const v = loopRef.current;
       if (v) {
-        // Reset to first clip on mount, set src explicitly via DOM
         v.src = videoList[videoIndexRef.current];
         v.muted = true;
         v.load();
-        // play() will be triggered by onCanPlay after load completes
+        safePlay(v);
       }
     }
-  }, [introFinished, bgImage, videoList]);
+  }, [introFinished, bgImage, videoList, safePlay]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -95,6 +105,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       const next = !isMuted;
       vid.muted = next;
       setIsMuted(next);
+      if (!next) safePlay(vid);
     }
   };
 
@@ -103,26 +114,22 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
     setIntroFinished(true);
   };
 
-  // Single-element: when a clip ends, swap src via DOM and let onCanPlay restart
   const handleLoopEnded = useCallback(() => {
-    if (shouldLoop) return; // loop attribute handles single-video case
+    if (shouldLoop) return;
     const v = loopRef.current;
     if (!v) return;
     const nextIndex = (videoIndexRef.current + 1) % videoList.length;
     videoIndexRef.current = nextIndex;
     v.src = videoList[nextIndex];
-    v.load(); // Edge requires explicit load() after src change
-  }, [shouldLoop, videoList]);
+    v.load();
+    safePlay(v);
+  }, [shouldLoop, videoList, safePlay]);
 
-  // onCanPlay: Edge-safe — muted enforcement + play
   const handleLoopCanPlay = useCallback(() => {
     if (!introFinished) return;
     const v = loopRef.current;
-    if (v) {
-      v.muted = true;
-      v.play().catch(() => {});
-    }
-  }, [introFinished]);
+    if (v) safePlay(v);
+  }, [introFinished, safePlay]);
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -178,15 +185,18 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
           {!bgImage && (
             <video
               ref={loopRef}
-              loop={shouldLoop}
+              muted
+              autoPlay
               playsInline
+              controls={false}
+              loop={shouldLoop}
               preload="auto"
               onEnded={handleLoopEnded}
               onCanPlay={handleLoopCanPlay}
               className={`absolute inset-0 w-full h-full object-cover ${
                 (useIntro && !introFinished) ? "opacity-0" : "opacity-100"
               }`}
-              style={{ objectPosition }}
+              style={{ objectPosition, backgroundColor: 'transparent' }}
             />
           )}
 
