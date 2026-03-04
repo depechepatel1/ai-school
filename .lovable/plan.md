@@ -1,46 +1,48 @@
 
 
-## Forensic Analysis: Edge Video Playback Bug
+## Plan: Rewrite Video Player from Scratch for Edge Compatibility
 
-### Root Cause
+### Problem
+The dual-player A/B swap system is fundamentally unreliable in Edge. The complexity of coordinating two video elements with reactive src swaps, opacity toggles, and play() calls creates race conditions that Edge's stricter media lifecycle rejects silently.
 
-After reviewing `PageShell.tsx`, I've identified multiple issues that would cause Edge to fail playing the video stack:
+### New Approach: Single-Element Sequential Player
+Replace the dual-player system with a **single `<video>` element** that plays clips sequentially. When one clip ends, swap `src` to the next clip and call `play()` from `onCanPlay`. This eliminates all cross-player coordination issues.
 
-1. **Dead ping-pong code still present (lines 71-92)**: Although `pingPong` defaults to `false` and the effect returns early, its presence in the dependency array (`activePlayer`) means Edge's stricter media lifecycle handling may be affected by the effect mounting/unmounting on every player swap.
+### Current PageShell usage by page type:
+- **Auth pages** (Login, Signup, ForgotPassword, ResetPassword): `<PageShell>` — right-side card, no video props
+- **ParentDashboard**: `<PageShell hideFooter>` — right-side card
+- **StudentPractice**: `<PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK} hideFooter>`
+- **SpeakingStudio, StudentProfile**: `<PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>`
+- **StudentAnalysis**: `<PageShell fullWidth loopVideos={[ANALYSIS_VIDEO]} hideFooter>`
+- **Teacher, Admin**: `<PageShell fullWidth bgImage={DASHBOARD_BG} hideFooter>` — keep as-is
 
-2. **`play()` called before new source is loaded**: When players swap (e.g., line 201-203 and 237-239), `setVideoIndexA(nextNext)` changes the `src` via React state, but `play()` is called on the *other* player in the same handler. The problem: when that other player gets its *next* turn and its src has been swapped by React, Edge requires the video to be fully loaded before `play()` succeeds. Chrome is lenient; Edge rejects the promise silently (caught by `.catch(() => {})`).
+### Changes
 
-3. **`muted` not re-applied after src change**: The muted-fix effect (lines 96-108) only runs on `[introFinished, bgImage, activePlayer]` — **not** on `videoIndexA`/`videoIndexB`. When a video element gets a new `src`, Edge resets the muted state, violating autoplay policy.
+**File: `src/components/PageShell.tsx`** — rewrite video section only
 
-4. **Player B has no `autoPlay` attribute** (line 223): It relies entirely on explicit `play()` calls, which fail in Edge if the video isn't loaded yet.
+1. **Remove**: Both `loopRefA`/`loopRefB`, `activePlayer`, `videoIndexA`/`videoIndexB` states, and the entire dual-player JSX block (Player A + Player B).
 
-### Fix Plan
+2. **Add**: Single `loopRef` + `videoIndex` state. One `<video>` element with:
+   - `onEnded`: increment `videoIndex` (mod list length), set new `src` on the ref directly via DOM (not React state for src — avoids re-render race), then let `onCanPlay` trigger play.
+   - `onCanPlay`: `ref.current.muted = true; ref.current.play().catch(() => {})` — Edge-safe.
+   - `loop={shouldLoop}` for single-video lists (e.g., analysis page).
 
-**File: `src/components/PageShell.tsx`**
+3. **Video positioning**:
+   - **Auth pages** (`!fullWidth`): Change from `96% center` to `30% center` — offsets the video subject LEFT to centre between left edge and the right-side floating card.
+   - **`fullWidth` pages**: Keep `center center`.
 
-1. **Remove the entire ping-pong effect** (lines 71-92) and the `pingPongDir`/`lastFrameTime` refs (lines 67-68). Also remove `pingPong` from the props interface since it's unused.
+4. **Intro video** (`playIntroVideo`): Keep the separate intro `<video>` element. On `onEnded`, set `introFinished = true`, then the loop video's `onCanPlay` picks up automatically.
 
-2. **Add `onCanPlay` handlers to both players** that call `play()` when the player is the active one — this guarantees Edge plays after a src swap:
-   ```tsx
-   // Player A
-   onCanPlay={() => {
-     if (introFinished && activePlayer === "A" && loopRefA.current) {
-       loopRefA.current.muted = true;
-       loopRefA.current.play().catch(() => {});
-     }
-   }}
-   // Player B
-   onCanPlay={() => {
-     if (activePlayer === "B" && loopRefB.current) {
-       loopRefB.current.muted = true;
-       loopRefB.current.play().catch(() => {});
-     }
-   }}
-   ```
+5. **Muted enforcement**: Single `useEffect` on mount that sets `ref.current.muted = true` on all video refs. The `onCanPlay` handler also forces `muted = true` before every `play()`.
 
-3. **Force `muted = true` via ref before every `play()` call** in the swap handlers (lines 201, 209, 237, 245) — not just in the effect. Edge requires this for autoplay compliance.
+6. **Remove** the `customVideoUrl` prop (unused by any page). Keep `loopVideos` and `bgImage`.
 
-4. **Add `videoIndexA` and `videoIndexB` to the autoplay effect dependencies** (line 108) so the muted fix re-applies after src changes.
-
-These changes remove dead code, fix Edge's strict autoplay enforcement, and ensure videos always play after source swaps.
+### Video positioning summary
+```text
+Page Type         objectPosition    Why
+─────────────────────────────────────────────────
+Auth (card right) "30% center"      Centres subject between left edge & card
+Student fullWidth "center center"   Subject centred in full frame
+Teacher/Admin     N/A (bgImage)     Static image, no video
+```
 
