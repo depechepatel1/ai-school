@@ -1,14 +1,46 @@
 
 
-## Plan: Move accent flag toggle between XP bar and button column
+## Forensic Analysis: Edge Video Playback Bug
 
-**Current state**: The accent toggle floats above the action bar at `bottom-[calc(32px+24rem+1rem)]`. The XP bar is in the top-right header area. The action button column is at `bottom-32 right-5`.
+### Root Cause
 
-**Change**: Reposition the accent toggle to sit on the right side, vertically between the XP bar (top) and the button column (bottom). This means moving it from its current bottom-anchored position to a top-anchored position roughly in the middle-right area.
+After reviewing `PageShell.tsx`, I've identified multiple issues that would cause Edge to fail playing the video stack:
 
-### Changes in `src/pages/SpeakingStudio.tsx`:
+1. **Dead ping-pong code still present (lines 71-92)**: Although `pingPong` defaults to `false` and the effect returns early, its presence in the dependency array (`activePlayer`) means Edge's stricter media lifecycle handling may be affected by the effect mounting/unmounting on every player swap.
 
-1. **Move the accent toggle div** (lines 403-411) from its current `bottom-[calc(32px+24rem+1rem)]` position to approximately `top-1/2 -translate-y-1/2 right-5` or a similar mid-right position (e.g., `top-[45%] right-5`) so it visually sits between the XP widget at the top-right and the button column at the bottom-right.
+2. **`play()` called before new source is loaded**: When players swap (e.g., line 201-203 and 237-239), `setVideoIndexA(nextNext)` changes the `src` via React state, but `play()` is called on the *other* player in the same handler. The problem: when that other player gets its *next* turn and its src has been swapped by React, Edge requires the video to be fully loaded before `play()` succeeds. Chrome is lenient; Edge rejects the promise silently (caught by `.catch(() => {})`).
 
-2. **Keep the same styling** — glassmorphism container, flag buttons, all unchanged. Only the positioning classes change.
+3. **`muted` not re-applied after src change**: The muted-fix effect (lines 96-108) only runs on `[introFinished, bgImage, activePlayer]` — **not** on `videoIndexA`/`videoIndexB`. When a video element gets a new `src`, Edge resets the muted state, violating autoplay policy.
+
+4. **Player B has no `autoPlay` attribute** (line 223): It relies entirely on explicit `play()` calls, which fail in Edge if the video isn't loaded yet.
+
+### Fix Plan
+
+**File: `src/components/PageShell.tsx`**
+
+1. **Remove the entire ping-pong effect** (lines 71-92) and the `pingPongDir`/`lastFrameTime` refs (lines 67-68). Also remove `pingPong` from the props interface since it's unused.
+
+2. **Add `onCanPlay` handlers to both players** that call `play()` when the player is the active one — this guarantees Edge plays after a src swap:
+   ```tsx
+   // Player A
+   onCanPlay={() => {
+     if (introFinished && activePlayer === "A" && loopRefA.current) {
+       loopRefA.current.muted = true;
+       loopRefA.current.play().catch(() => {});
+     }
+   }}
+   // Player B
+   onCanPlay={() => {
+     if (activePlayer === "B" && loopRefB.current) {
+       loopRefB.current.muted = true;
+       loopRefB.current.play().catch(() => {});
+     }
+   }}
+   ```
+
+3. **Force `muted = true` via ref before every `play()` call** in the swap handlers (lines 201, 209, 237, 245) — not just in the effect. Edge requires this for autoplay compliance.
+
+4. **Add `videoIndexA` and `videoIndexB` to the autoplay effect dependencies** (line 108) so the muted fix re-applies after src changes.
+
+These changes remove dead code, fix Edge's strict autoplay enforcement, and ensure videos always play after source swaps.
 
