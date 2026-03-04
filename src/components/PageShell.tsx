@@ -48,7 +48,8 @@ export default function PageShell({ children, playIntroVideo = false, customVide
   const navigate = useNavigate();
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
-  const useIntro = playIntroVideo && !customVideoUrl && !loopVideos;
+  const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
+  const useIntro = playIntroVideo && !alreadyPlayedIntro;
   const [isMuted, setIsMuted] = useState(true);
   const [introFinished, setIntroFinished] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
@@ -117,6 +118,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
   };
 
   const handleIntroEnd = () => {
+    sessionStorage.setItem("intro_video_played", "true");
     setIntroFinished(true);
     if (loopRefA.current) {
       loopRefA.current.currentTime = 0;
@@ -182,7 +184,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
             <video
               ref={loopRefA}
               src={videoList[videoIndexA]}
-              autoPlay={!useIntro && activePlayer === "A"}
+              autoPlay={introFinished && activePlayer === "A"}
               loop={shouldLoop}
               playsInline
               muted={isMuted}
