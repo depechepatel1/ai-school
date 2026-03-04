@@ -400,17 +400,18 @@ export default function SpeakingStudio() {
             </div>
 
             {/* Right action bar — lower-right to avoid face */}
+            {/* Accent toggle — floats above action bar */}
+            <div className="absolute bottom-[calc(32px+24rem+1rem)] right-5 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
+              <button onClick={() => setAccent("UK")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
+                <UKFlag /><span className="text-[9px] font-semibold">UK</span>
+              </button>
+              <button onClick={() => setAccent("US")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "US" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
+                <USFlag /><span className="text-[9px] font-semibold">US</span>
+              </button>
+            </div>
+
+            {/* Right action bar — lower-right */}
             <div className="absolute bottom-32 right-5 flex flex-col items-center gap-3 z-50 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-3.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-slide-in-right">
-              {/* Accent toggle */}
-              <div className="flex items-center gap-1 bg-black/30 rounded-xl p-0.5">
-                <button onClick={() => setAccent("UK")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
-                  <UKFlag /><span className="text-[9px] font-semibold">UK</span>
-                </button>
-                <button onClick={() => setAccent("US")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "US" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
-                  <USFlag /><span className="text-[9px] font-semibold">US</span>
-                </button>
-              </div>
-              <div className="w-8 h-px bg-white/[0.06]" />
               <button onClick={handlePlayModel} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
                 {isPlayingModel ? <Loader2 className="w-7 h-7 animate-spin" /> : <Headphones className="w-7 h-7 group-hover:scale-110 transition-transform" />}
               </button>
