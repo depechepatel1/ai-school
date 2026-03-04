@@ -68,23 +68,25 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   // Object position: auth pages offset left, fullWidth centered
   const objectPosition = fullWidth ? "center center" : "30% center";
 
-  // Force muted on mount for all video refs (Edge workaround)
+  // Edge-safe initialization: force muted via DOM and explicitly start playback
+  // This effect handles both initial mount AND intro→loop transition
   useEffect(() => {
     if (bgImage) return;
+    // Always force muted on all video refs (React muted prop bug in Edge)
     [introRef, loopRef].forEach(ref => {
       if (ref.current) ref.current.muted = true;
     });
-  }, [bgImage]);
-
-  // Start loop video when intro finishes
-  useEffect(() => {
-    if (bgImage || !introFinished) return;
-    const v = loopRef.current;
-    if (v) {
-      v.muted = true;
-      v.play().catch(() => {});
+    if (introFinished) {
+      const v = loopRef.current;
+      if (v) {
+        // Reset to first clip on mount, set src explicitly via DOM
+        v.src = videoList[videoIndexRef.current];
+        v.muted = true;
+        v.load();
+        // play() will be triggered by onCanPlay after load completes
+      }
     }
-  }, [introFinished, bgImage]);
+  }, [introFinished, bgImage, videoList]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -176,11 +178,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
           {!bgImage && (
             <video
               ref={loopRef}
-              src={videoList[0]}
-              autoPlay={introFinished}
               loop={shouldLoop}
               playsInline
-              muted
               preload="auto"
               onEnded={handleLoopEnded}
               onCanPlay={handleLoopCanPlay}
