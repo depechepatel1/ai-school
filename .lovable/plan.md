@@ -1,15 +1,14 @@
 
 
-## Plan: Separate accent flags from the action button bar
+## Plan: Move accent flag toggle between XP bar and button column
 
-**Problem**: The UK/US flag toggle (lines 405-411) is inside the right action bar, making it too wide for the icon buttons.
+**Current state**: The accent toggle floats above the action bar at `bottom-[calc(32px+24rem+1rem)]`. The XP bar is in the top-right header area. The action button column is at `bottom-32 right-5`.
 
-**Solution**: Move the accent toggle out of the action bar into its own small element positioned just above or to the left of the bar. Keep the action bar thin with only the icon buttons.
+**Change**: Reposition the accent toggle to sit on the right side, vertically between the XP bar (top) and the button column (bottom). This means moving it from its current bottom-anchored position to a top-anchored position roughly in the middle-right area.
 
 ### Changes in `src/pages/SpeakingStudio.tsx`:
 
-1. **Extract the accent toggle** (lines 405-411) from the action bar div
-2. **Place it as a separate absolutely-positioned element** above the action bar (e.g., `absolute bottom-[calc(32px+full-bar-height)] right-5` or simply above the bar using a wrapper with flex-col)
-3. **Remove the separator** div on line 413 that follows the accent toggle
-4. **Result**: The action bar only contains the icon buttons (Headphones, Mic, Play, Ghost, Skip) and stays narrow at ~`w-[4.5rem]`-ish width, while the flag toggle floats independently above it
+1. **Move the accent toggle div** (lines 403-411) from its current `bottom-[calc(32px+24rem+1rem)]` position to approximately `top-1/2 -translate-y-1/2 right-5` or a similar mid-right position (e.g., `top-[45%] right-5`) so it visually sits between the XP widget at the top-right and the button column at the bottom-right.
+
+2. **Keep the same styling** — glassmorphism container, flag buttons, all unchanged. Only the positioning classes change.
 
