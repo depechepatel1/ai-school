@@ -555,7 +555,7 @@ export default function SpeakingStudio() {
         }
 
         {/* Modals */}
-        {mode === "speaking" && test.showTestConfig && courseWeek.courseType === "ielts" && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
+        {mode === "speaking" && practiceMode === "independent" && test.showTestConfig && courseWeek.courseType === "ielts" && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
         {test.showSaveModal &&
         <SaveSessionModal isPartial={true}
         onSave={() => {addXP(50);test.resetTest();}}
