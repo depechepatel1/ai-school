@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Volume2, VolumeX, ShieldCheck, Code, GraduationCap, BookOpen, Heart, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +10,6 @@ import OmniChatModal from "@/components/OmniChatModal";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/videos`;
 
-const TRIM_SECONDS = 0;
 const VIDEO_2 = `${STORAGE_BASE}/intro.mp4`;
 
 export const VIDEO_1_STACK = [
@@ -36,49 +35,56 @@ const DEV_ACCOUNTS = [
 interface PageShellProps {
   children: React.ReactNode;
   playIntroVideo?: boolean;
-  customVideoUrl?: string;
   loopVideos?: string[];
   fullWidth?: boolean;
-  
   bgImage?: string;
   hideFooter?: boolean;
 }
 
-export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
   const navigate = useNavigate();
-  const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
+
+  // Video list defaults to VIDEO_1_STACK if no loopVideos provided and no bgImage
+  const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : VIDEO_1_STACK;
   const shouldLoop = videoList.length === 1;
+
+  // Intro video logic
   const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
   const useIntro = playIntroVideo && !alreadyPlayedIntro;
+
   const [isMuted, setIsMuted] = useState(true);
   const [introFinished, setIntroFinished] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [activePlayer, setActivePlayer] = useState<"A" | "B">("A");
-  const [videoIndexA, setVideoIndexA] = useState(0);
-  const [videoIndexB, setVideoIndexB] = useState(1 % (videoList.length || 1));
-  const introRef = useRef<HTMLVideoElement>(null);
-  const loopRefA = useRef<HTMLVideoElement>(null);
-  const loopRefB = useRef<HTMLVideoElement>(null);
 
-  const activeLoopRef = activePlayer === "A" ? loopRefA : loopRefB;
-  const activeVideoRef = introFinished ? activeLoopRef : introRef;
-  // Force muted attribute via ref (React bug: muted prop doesn't always sync to DOM)
-  // and auto-play the active video
+  // Single-element sequential player state
+  const videoIndexRef = useRef(0);
+  const introRef = useRef<HTMLVideoElement>(null);
+  const loopRef = useRef<HTMLVideoElement>(null);
+
+  const activeVideoRef = introFinished ? loopRef : introRef;
+
+  // Object position: auth pages offset left, fullWidth centered
+  const objectPosition = fullWidth ? "center center" : "30% center";
+
+  // Force muted on mount for all video refs (Edge workaround)
   useEffect(() => {
     if (bgImage) return;
-    // Set muted on all video refs to work around React muted bug
-    [introRef, loopRefA, loopRefB].forEach(ref => {
+    [introRef, loopRef].forEach(ref => {
       if (ref.current) ref.current.muted = true;
     });
-    if (!introFinished) {
-      introRef.current?.play().catch(() => {});
-    } else {
-      const activeRef = activePlayer === "A" ? loopRefA : loopRefB;
-      activeRef.current?.play().catch(() => {});
+  }, [bgImage]);
+
+  // Start loop video when intro finishes
+  useEffect(() => {
+    if (bgImage || !introFinished) return;
+    const v = loopRef.current;
+    if (v) {
+      v.muted = true;
+      v.play().catch(() => {});
     }
-  }, [introFinished, bgImage, activePlayer, videoIndexA, videoIndexB]);
+  }, [introFinished, bgImage]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -93,12 +99,28 @@ export default function PageShell({ children, playIntroVideo = false, customVide
   const handleIntroEnd = () => {
     sessionStorage.setItem("intro_video_played", "true");
     setIntroFinished(true);
-    if (loopRefA.current) {
-      loopRefA.current.currentTime = 0;
-      loopRefA.current.muted = isMuted;
-      loopRefA.current.play().catch(() => {});
-    }
   };
+
+  // Single-element: when a clip ends, swap src via DOM and let onCanPlay restart
+  const handleLoopEnded = useCallback(() => {
+    if (shouldLoop) return; // loop attribute handles single-video case
+    const v = loopRef.current;
+    if (!v) return;
+    const nextIndex = (videoIndexRef.current + 1) % videoList.length;
+    videoIndexRef.current = nextIndex;
+    v.src = videoList[nextIndex];
+    v.load(); // Edge requires explicit load() after src change
+  }, [shouldLoop, videoList]);
+
+  // onCanPlay: Edge-safe — muted enforcement + play
+  const handleLoopCanPlay = useCallback(() => {
+    if (!introFinished) return;
+    const v = loopRef.current;
+    if (v) {
+      v.muted = true;
+      v.play().catch(() => {});
+    }
+  }, [introFinished]);
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -143,103 +165,32 @@ export default function PageShell({ children, playIntroVideo = false, customVide
               src={VIDEO_2}
               autoPlay
               playsInline
-              muted={isMuted}
+              muted
               onEnded={handleIntroEnd}
-              
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
-              style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
+              style={{ objectPosition }}
             />
           )}
 
-          {/* Dual-video crossfade: Player A */}
+          {/* Single-element sequential loop player */}
           {!bgImage && (
-            <>
             <video
-              ref={loopRefA}
-              src={videoList[videoIndexA]}
-              autoPlay={introFinished && activePlayer === "A"}
+              ref={loopRef}
+              src={videoList[0]}
+              autoPlay={introFinished}
               loop={shouldLoop}
               playsInline
-              muted={isMuted}
+              muted
               preload="auto"
-              onLoadedData={() => {
-                if (loopRefA.current && loopRefA.current.currentTime < TRIM_SECONDS) {
-                  loopRefA.current.currentTime = TRIM_SECONDS;
-                }
-              }}
-              onCanPlay={() => {
-                if (introFinished && activePlayer === "A" && loopRefA.current) {
-                  loopRefA.current.muted = true;
-                  loopRefA.current.play().catch(() => {});
-                }
-              }}
-              onTimeUpdate={() => {
-                const v = loopRefA.current;
-                if (!shouldLoop && activePlayer === "A" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
-                  setActivePlayer("B");
-                  if (loopRefB.current) { loopRefB.current.muted = true; loopRefB.current.play().catch(() => {}); }
-                  const nextNext = (videoIndexB + 1) % videoList.length;
-                  setVideoIndexA(nextNext);
-                }
-              }}
-              onEnded={() => {
-                if (!shouldLoop && activePlayer === "A") {
-                  setActivePlayer("B");
-                  if (loopRefB.current) { loopRefB.current.muted = true; loopRefB.current.play().catch(() => {}); }
-                  const nextNext = (videoIndexB + 1) % videoList.length;
-                  setVideoIndexA(nextNext);
-                }
-              }}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
-                (useIntro && !introFinished) ? "opacity-0" : activePlayer === "A" ? "opacity-100" : "opacity-0"
+              onEnded={handleLoopEnded}
+              onCanPlay={handleLoopCanPlay}
+              className={`absolute inset-0 w-full h-full object-cover ${
+                (useIntro && !introFinished) ? "opacity-0" : "opacity-100"
               }`}
-              style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
+              style={{ objectPosition }}
             />
-
-            {/* Dual-video crossfade: Player B */}
-            {!shouldLoop && (
-              <video
-                ref={loopRefB}
-                src={videoList[videoIndexB]}
-                playsInline
-                muted={isMuted}
-                preload="auto"
-                onLoadedData={() => {
-                  if (loopRefB.current && loopRefB.current.currentTime < TRIM_SECONDS) {
-                    loopRefB.current.currentTime = TRIM_SECONDS;
-                  }
-                }}
-                onCanPlay={() => {
-                  if (activePlayer === "B" && loopRefB.current) {
-                    loopRefB.current.muted = true;
-                    loopRefB.current.play().catch(() => {});
-                  }
-                }}
-                onTimeUpdate={() => {
-                  const v = loopRefB.current;
-                  if (activePlayer === "B" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
-                    setActivePlayer("A");
-                    if (loopRefA.current) { loopRefA.current.muted = true; loopRefA.current.play().catch(() => {}); }
-                    const nextNext = (videoIndexA + 1) % videoList.length;
-                    setVideoIndexB(nextNext);
-                  }
-                }}
-                onEnded={() => {
-                  if (activePlayer === "B") {
-                    setActivePlayer("A");
-                    if (loopRefA.current) { loopRefA.current.muted = true; loopRefA.current.play().catch(() => {}); }
-                    const nextNext = (videoIndexA + 1) % videoList.length;
-                    setVideoIndexB(nextNext);
-                  }
-                }}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-0 ${
-                  activePlayer === "B" ? "opacity-100" : "opacity-0"
-                }`}
-                style={{ objectPosition: fullWidth ? "center center" : "96% center" }}
-              />
-            )}
-            </>
           )}
+
           {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />}
 
           {/* Audio Toggle — only for video backgrounds */}
