@@ -71,32 +71,27 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   // Robust play helper with retry for Edge
   const safePlay = useCallback((v: HTMLVideoElement) => {
     v.muted = true;
-    v.play().catch(() => {
+    console.log('[VideoPlayer] safePlay called, src:', v.src, 'readyState:', v.readyState);
+    v.play().catch((err) => {
+      console.warn('[VideoPlayer] play() rejected:', err.message, 'retrying in 150ms');
       setTimeout(() => {
         if (v) {
           v.muted = true;
-          v.play().catch(() => {});
+          v.play().catch((err2) => {
+            console.error('[VideoPlayer] retry play() also failed:', err2.message);
+          });
         }
       }, 150);
     });
   }, []);
 
-  // Edge-safe initialization: force muted via DOM and explicitly start playback
+  // Edge-safe: force muted on all video refs via DOM (React muted prop bug)
   useEffect(() => {
     if (bgImage) return;
     [introRef, loopRef].forEach(ref => {
       if (ref.current) ref.current.muted = true;
     });
-    if (introFinished) {
-      const v = loopRef.current;
-      if (v) {
-        v.src = videoList[videoIndexRef.current];
-        v.muted = true;
-        v.load();
-        safePlay(v);
-      }
-    }
-  }, [introFinished, bgImage, videoList, safePlay]);
+  }, [bgImage, introFinished]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -120,10 +115,11 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
     if (!v) return;
     const nextIndex = (videoIndexRef.current + 1) % videoList.length;
     videoIndexRef.current = nextIndex;
+    console.log('[VideoPlayer] clip ended, loading next:', videoList[nextIndex]);
     v.src = videoList[nextIndex];
     v.load();
-    safePlay(v);
-  }, [shouldLoop, videoList, safePlay]);
+    // onCanPlay will call safePlay once data is ready
+  }, [shouldLoop, videoList]);
 
   const handleLoopCanPlay = useCallback(() => {
     if (!introFinished) return;
@@ -185,14 +181,18 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
           {!bgImage && (
             <video
               ref={loopRef}
+              src={videoList[0]}
               muted
-              autoPlay
               playsInline
               controls={false}
               loop={shouldLoop}
               preload="auto"
               onEnded={handleLoopEnded}
               onCanPlay={handleLoopCanPlay}
+              onError={(e) => {
+                const v = e.currentTarget;
+                console.error('[VideoPlayer] video error:', v.error?.code, v.error?.message, 'src:', v.src);
+              }}
               className={`absolute inset-0 w-full h-full object-cover ${
                 (useIntro && !introFinished) ? "opacity-0" : "opacity-100"
               }`}
