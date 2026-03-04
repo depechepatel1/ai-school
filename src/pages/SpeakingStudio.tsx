@@ -299,7 +299,7 @@ export default function SpeakingStudio() {
                 onResume={practiceTimer.resume} />
             </div>
 
-            {mode === "speaking" &&
+            {mode === "speaking" && practiceMode === "independent" &&
             <PersonaSelector persona={test.persona} setPersona={test.handlePersonaChange} setShowTestConfig={test.setShowTestConfig} />
             }
             {mode === "shadowing" &&
