@@ -507,7 +507,7 @@ export default function SpeakingStudio() {
           }
 
             {/* Chat panels */}
-            <div className="absolute bottom-28 left-6 w-[260px] max-h-[200px] bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-2xl overflow-hidden z-[100] shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)]">
+            {practiceMode === "independent" && <div className="absolute bottom-28 left-6 w-[260px] max-h-[200px] bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-2xl overflow-hidden z-[100] shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)]">
               <div className="p-3 border-b border-white/10 bg-white/5 flex items-center gap-2">
                 <Mic className="w-4 h-4 text-green-300" />
                 <span className="text-xs font-bold uppercase tracking-widest text-white/80">{test.persona}</span>
@@ -525,7 +525,7 @@ export default function SpeakingStudio() {
               }
                 <div ref={chatScrollRef} />
               </div>
-            </div>
+            </div>}
 
             <div className="absolute bottom-28 right-6 w-[260px] max-h-[200px] bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-2xl overflow-hidden z-[100] shadow-[0_0_30px_-5px_rgba(168,85,247,0.3)]">
               <div className="p-3 border-b border-white/10 bg-white/5 flex items-center gap-2">
