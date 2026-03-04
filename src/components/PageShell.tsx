@@ -39,12 +39,12 @@ interface PageShellProps {
   customVideoUrl?: string;
   loopVideos?: string[];
   fullWidth?: boolean;
-  pingPong?: boolean;
+  
   bgImage?: string;
   hideFooter?: boolean;
 }
 
-export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, pingPong = false, bgImage, hideFooter = false }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, customVideoUrl, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
   const navigate = useNavigate();
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : [customVideoUrl || VIDEO_1_STACK[0]];
   const shouldLoop = videoList.length === 1;
@@ -64,33 +64,6 @@ export default function PageShell({ children, playIntroVideo = false, customVide
 
   const activeLoopRef = activePlayer === "A" ? loopRefA : loopRefB;
   const activeVideoRef = introFinished ? activeLoopRef : introRef;
-  const pingPongDir = useRef(1);
-  const lastFrameTime = useRef(0);
-
-  // Ping-pong rAF loop: manually drives currentTime forward then backward
-  useEffect(() => {
-    if (!pingPong || !introFinished) return;
-    let rafId: number;
-    const step = (now: number) => {
-      const vid = activeLoopRef.current;
-      if (vid && vid.duration && vid.readyState >= 2) {
-        if (lastFrameTime.current === 0) lastFrameTime.current = now;
-        const delta = (now - lastFrameTime.current) / 1000;
-        lastFrameTime.current = now;
-        let next = vid.currentTime + pingPongDir.current * delta;
-        if (next >= vid.duration - 0.05) { next = vid.duration - 0.05; pingPongDir.current = -1; }
-        if (next <= 0.05) { next = 0.05; pingPongDir.current = 1; }
-        vid.currentTime = next;
-      }
-      rafId = requestAnimationFrame(step);
-    };
-    // Pause native playback; rAF drives it
-    const vid = activeLoopRef.current;
-    if (vid) { vid.pause(); vid.currentTime = 0; }
-    rafId = requestAnimationFrame(step);
-    return () => { cancelAnimationFrame(rafId); lastFrameTime.current = 0; };
-  }, [pingPong, introFinished, activePlayer]);
-
   // Force muted attribute via ref (React bug: muted prop doesn't always sync to DOM)
   // and auto-play the active video
   useEffect(() => {
@@ -105,7 +78,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
       const activeRef = activePlayer === "A" ? loopRefA : loopRefB;
       activeRef.current?.play().catch(() => {});
     }
-  }, [introFinished, bgImage, activePlayer]);
+  }, [introFinished, bgImage, activePlayer, videoIndexA, videoIndexB]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -194,11 +167,17 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                   loopRefA.current.currentTime = TRIM_SECONDS;
                 }
               }}
+              onCanPlay={() => {
+                if (introFinished && activePlayer === "A" && loopRefA.current) {
+                  loopRefA.current.muted = true;
+                  loopRefA.current.play().catch(() => {});
+                }
+              }}
               onTimeUpdate={() => {
                 const v = loopRefA.current;
                 if (!shouldLoop && activePlayer === "A" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
                   setActivePlayer("B");
-                  loopRefB.current?.play().catch(() => {});
+                  if (loopRefB.current) { loopRefB.current.muted = true; loopRefB.current.play().catch(() => {}); }
                   const nextNext = (videoIndexB + 1) % videoList.length;
                   setVideoIndexA(nextNext);
                 }
@@ -206,7 +185,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
               onEnded={() => {
                 if (!shouldLoop && activePlayer === "A") {
                   setActivePlayer("B");
-                  loopRefB.current?.play().catch(() => {});
+                  if (loopRefB.current) { loopRefB.current.muted = true; loopRefB.current.play().catch(() => {}); }
                   const nextNext = (videoIndexB + 1) % videoList.length;
                   setVideoIndexA(nextNext);
                 }
@@ -230,11 +209,17 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                     loopRefB.current.currentTime = TRIM_SECONDS;
                   }
                 }}
+                onCanPlay={() => {
+                  if (activePlayer === "B" && loopRefB.current) {
+                    loopRefB.current.muted = true;
+                    loopRefB.current.play().catch(() => {});
+                  }
+                }}
                 onTimeUpdate={() => {
                   const v = loopRefB.current;
                   if (activePlayer === "B" && v && v.duration && v.currentTime >= v.duration - TRIM_SECONDS) {
                     setActivePlayer("A");
-                    loopRefA.current?.play().catch(() => {});
+                    if (loopRefA.current) { loopRefA.current.muted = true; loopRefA.current.play().catch(() => {}); }
                     const nextNext = (videoIndexA + 1) % videoList.length;
                     setVideoIndexB(nextNext);
                   }
@@ -242,7 +227,7 @@ export default function PageShell({ children, playIntroVideo = false, customVide
                 onEnded={() => {
                   if (activePlayer === "B") {
                     setActivePlayer("A");
-                    loopRefA.current?.play().catch(() => {});
+                    if (loopRefA.current) { loopRefA.current.muted = true; loopRefA.current.play().catch(() => {}); }
                     const nextNext = (videoIndexA + 1) % videoList.length;
                     setVideoIndexB(nextNext);
                   }
