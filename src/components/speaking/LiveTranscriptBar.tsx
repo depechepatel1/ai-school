@@ -18,7 +18,7 @@ export default function LiveTranscriptBar({ transcript, interim, isRecording }: 
   const hasContent = transcript.trim().length > 0 || interim.trim().length > 0;
 
   return (
-    <div className="absolute bottom-24 left-6 right-6 z-[100] bg-black/50 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_4px_30px_-8px_rgba(0,0,0,0.6)] animate-fade-in">
+    <div className="absolute bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.6)] animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.06]">
         <Mic className={`w-3.5 h-3.5 ${isRecording ? "text-red-400 animate-pulse" : "text-white/40"}`} />
