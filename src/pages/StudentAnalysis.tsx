@@ -11,7 +11,7 @@ import { useClassLeaderboard } from "@/hooks/useClassLeaderboard";
 import { getWeekNumber, getWeekDateRange, SEMESTER_WEEKS, SEMESTER_START } from "@/lib/semester";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4`;
+const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4?v=2`;
 
 const PERIODS: { key: Period; label: string }[] = [
   { key: "daily", label: "Daily" },

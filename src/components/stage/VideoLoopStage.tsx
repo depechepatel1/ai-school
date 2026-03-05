@@ -3,20 +3,21 @@ import { Volume2, VolumeX } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/videos`;
+const CACHE_BUST = "?v=2";
 
-const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4`;
+const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4${CACHE_BUST}`;
 
 export const VIDEO_LOOP_STACK = [
-  `${STORAGE_BASE}/loop-stack/1.mp4`,
-  `${STORAGE_BASE}/loop-stack/2.mp4`,
-  `${STORAGE_BASE}/loop-stack/3.mp4`,
-  `${STORAGE_BASE}/loop-stack/4.mp4`,
-  `${STORAGE_BASE}/loop-stack/5.mp4`,
-  `${STORAGE_BASE}/loop-stack/6.mp4`,
-  `${STORAGE_BASE}/loop-stack/7.mp4`,
-  `${STORAGE_BASE}/loop-stack/8.mp4`,
-  `${STORAGE_BASE}/loop-stack/9.mp4`,
-  `${STORAGE_BASE}/loop-stack/10.mp4`,
+  `${STORAGE_BASE}/loop-stack/1.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/2.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/3.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/4.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/5.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/6.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/7.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/8.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/9.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/10.mp4${CACHE_BUST}`,
 ];
 
 interface VideoLoopStageProps {
