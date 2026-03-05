@@ -68,7 +68,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const activeVideoRef = !introFinished ? introRef : (activePlayer === 'A' ? refA : refB);
 
   // Object position: auth pages offset left, fullWidth centered
-  const objectPosition = fullWidth ? "center center" : "30% center";
+  const objectPosition = fullWidth ? "center center" : "96% center";
 
   // Robust play helper with retry for Edge
   const safePlay = useCallback((v: HTMLVideoElement) => {
