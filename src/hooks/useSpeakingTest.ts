@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { TestState, TestPart, TestStatus, ChatMsg, Persona } from "@/types/speaking";
 import { INITIAL_TEST_STATE, SYSTEM_PROMPT } from "@/types/speaking";
 import { chat, type ChatMessage } from "@/services/ai";
 import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import type { Accent } from "@/lib/tts-provider";
+import { createDebouncedPunctuate } from "@/lib/punctuate";
 
 interface UseSpeakingTestOptions {
   accent: Accent;
@@ -24,6 +25,8 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const [countdown, setCountdown] = useState<number | null>(null);
   const [completedParts, setCompletedParts] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const [liveInterim, setLiveInterim] = useState("");
 
   const ttsHandleRef = useRef<TTSHandle | null>(null);
   const sttHandleRef = useRef<STTHandle | null>(null);
@@ -33,6 +36,14 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
 
+  // Debounced punctuation — updates liveTranscript with punctuated text
+  const debouncedPunctuate = useMemo(
+    () => createDebouncedPunctuate((punctuated) => {
+      setLiveTranscript(punctuated);
+    }, 800),
+    []
+  );
+
   useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
   useEffect(() => { testStateRef.current = testState; }, [testState]);
 
@@ -40,8 +51,16 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const startSpeechRecognition = useCallback(() => {
     if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
     sttHandleRef.current = startListening("en-US", {
-      onResult: (text) => { currentTranscriptRef.current += " " + text; },
-      onInterim: (text) => { interimTranscriptRef.current = text; },
+      onResult: (text) => {
+        currentTranscriptRef.current += " " + text;
+        setLiveTranscript(prev => (prev + " " + text).trimStart());
+        setLiveInterim("");
+        debouncedPunctuate(currentTranscriptRef.current.trim());
+      },
+      onInterim: (text) => {
+        interimTranscriptRef.current = text;
+        setLiveInterim(text);
+      },
       onError: (err) => { if (err === "not-allowed") setIsRecording(false); },
     });
   }, []);
@@ -221,10 +240,19 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     setMessages((prev) => [...prev, { role: "student", text: userSpeech }]);
     currentTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    setLiveTranscript("");
+    setLiveInterim("");
     await triggerAIQuestion();
     setIsRecording(true);
     startSpeechRecognition();
   }, [stopSpeechRecognition, startSpeechRecognition, triggerAIQuestion]);
+
+  const clearTranscript = useCallback(() => {
+    currentTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
+    setLiveTranscript("");
+    setLiveInterim("");
+  }, []);
 
   const handlePersonaChange = useCallback((newPersona: Persona) => {
     setPersona(newPersona);
@@ -275,6 +303,9 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     completedParts,
     isRecording,
     setIsRecording,
+    liveTranscript,
+    liveInterim,
+    clearTranscript,
     ttsHandleRef,
     startSpeechRecognition,
     stopSpeechRecognition,
