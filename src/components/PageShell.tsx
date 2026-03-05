@@ -1,28 +1,14 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Volume2, VolumeX, ShieldCheck, Code, GraduationCap, BookOpen, Heart, Shield } from "lucide-react";
+import { ShieldCheck, Code, GraduationCap, BookOpen, Heart, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
+import BackgroundStage from "@/components/stage/BackgroundStage";
+import { VIDEO_LOOP_STACK } from "@/components/stage/VideoLoopStage";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/videos`;
-
-const VIDEO_2 = `${STORAGE_BASE}/intro.mp4`;
-
-export const VIDEO_1_STACK = [
-  `${STORAGE_BASE}/loop-stack/1.mp4`,
-  `${STORAGE_BASE}/loop-stack/2.mp4`,
-  `${STORAGE_BASE}/loop-stack/3.mp4`,
-  `${STORAGE_BASE}/loop-stack/4.mp4`,
-  `${STORAGE_BASE}/loop-stack/5.mp4`,
-  `${STORAGE_BASE}/loop-stack/6.mp4`,
-  `${STORAGE_BASE}/loop-stack/7.mp4`,
-  `${STORAGE_BASE}/loop-stack/8.mp4`,
-  `${STORAGE_BASE}/loop-stack/9.mp4`,
-  `${STORAGE_BASE}/loop-stack/10.mp4`,
-];
+export { VIDEO_LOOP_STACK as VIDEO_1_STACK };
 
 const DEV_ACCOUNTS = [
   { role: "student", email: "dev-igcse@test.com", password: "devtest123", icon: GraduationCap, label: "IGCSE Student", color: "from-blue-500 to-cyan-500", redirect: "/student" },
@@ -43,105 +29,10 @@ interface PageShellProps {
 
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
   const navigate = useNavigate();
-
-  const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : VIDEO_1_STACK;
-  const shouldLoop = videoList.length === 1;
-
-  const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
-  const useIntro = playIntroVideo && !alreadyPlayedIntro;
-
-  const [isMuted, setIsMuted] = useState(true);
-  const [introFinished, setIntroFinished] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
 
-  // A/B dual player refs
-  const introRef = useRef<HTMLVideoElement>(null);
-  const refA = useRef<HTMLVideoElement>(null);
-  const refB = useRef<HTMLVideoElement>(null);
-  const [activePlayer, setActivePlayer] = useState<'A' | 'B'>('A');
-
-  // Tracks which video index to preload next (starts at 2 because A=0, B=1 preloaded)
-  const nextIndexRef = useRef(2);
-  // Ensures initial autoplay fires only once
-  const initialPlayDone = useRef(false);
-
-  const activeVideoRef = !introFinished ? introRef : (activePlayer === 'A' ? refA : refB);
-
   const objectPosition = fullWidth ? "center center" : "101% center";
-
-  // Robust play helper with retry for Edge
-  const safePlay = useCallback((v: HTMLVideoElement) => {
-    v.muted = true;
-    v.play().catch(() => {
-      setTimeout(() => {
-        if (v) {
-          v.muted = true;
-          v.play().catch(() => {});
-        }
-      }, 150);
-    });
-  }, []);
-
-  // Edge-safe: force muted on all video refs via DOM
-  useEffect(() => {
-    if (bgImage) return;
-    [introRef, refA, refB].forEach(ref => {
-      if (ref.current) ref.current.muted = true;
-    });
-  }, [bgImage, introFinished]);
-
-  const toggleAudio = () => {
-    const vid = activeVideoRef.current;
-    if (vid) {
-      vid.volume = 1.0;
-      const next = !isMuted;
-      vid.muted = next;
-      setIsMuted(next);
-      if (!next) safePlay(vid);
-    }
-  };
-
-  const handleIntroEnd = () => {
-    sessionStorage.setItem("intro_video_played", "true");
-    setIntroFinished(true);
-  };
-
-  // When active player ends, swap to the preloaded one and queue the next preload
-  const handlePlayerEnded = useCallback((player: 'A' | 'B') => {
-    if (shouldLoop) return;
-    const nextPlayer = player === 'A' ? 'B' : 'A';
-    const nextRef = nextPlayer === 'A' ? refA : refB;
-
-    // Swap active and play the already-preloaded player
-    setActivePlayer(nextPlayer);
-    if (nextRef.current) safePlay(nextRef.current);
-
-    // Preload the next video on the now-inactive player
-    const inactiveRef = player === 'A' ? refA : refB;
-    if (inactiveRef.current) {
-      const preloadIdx = nextIndexRef.current % videoList.length;
-      inactiveRef.current.src = videoList[preloadIdx];
-      inactiveRef.current.load();
-      nextIndexRef.current = preloadIdx + 1;
-    }
-  }, [shouldLoop, videoList, safePlay]);
-
-  // Initial preload: when intro finishes, ensure Player B has the next video ready
-  useEffect(() => {
-    if (!introFinished || bgImage || shouldLoop) return;
-    if (refB.current && videoList.length > 1) {
-      refB.current.src = videoList[1];
-      refB.current.load();
-    }
-  }, [introFinished, bgImage, shouldLoop, videoList]);
-
-  // Auto-play Player A only once on initial load
-  const handleCanPlayA = useCallback(() => {
-    if (!introFinished || initialPlayDone.current) return;
-    initialPlayDone.current = true;
-    if (refA.current) safePlay(refA.current);
-  }, [introFinished, safePlay]);
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -168,82 +59,19 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       {/* iPad Frame */}
       <div className="relative w-[1024px] h-[768px] bg-black overflow-hidden rounded-[3rem] border-8 border-gray-800 ring-8 ring-gray-900 select-none shadow-2xl">
 
-        {/* Video Background */}
+        {/* Background Stage */}
         <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900 rounded-[2.5rem]">
-          {/* Static background image mode */}
-          {bgImage && (
-            <img
-              src={bgImage}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
+          {bgImage ? (
+            <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <BackgroundStage
+              videoList={loopVideos}
+              playIntro={playIntroVideo}
+              objectPosition={objectPosition}
             />
           )}
 
-          {/* Intro video — plays once on student page */}
-          {!bgImage && useIntro && (
-            <video
-              ref={introRef}
-              src={VIDEO_2}
-              autoPlay
-              playsInline
-              muted
-              onEnded={handleIntroEnd}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
-              style={{ objectPosition }}
-            />
-          )}
-
-          {/* Player A */}
-          {!bgImage && (
-            <video
-              ref={refA}
-              src={videoList[0]}
-              muted
-              playsInline
-              controls={false}
-              loop={shouldLoop}
-              preload="auto"
-              onEnded={() => handlePlayerEnded('A')}
-              onCanPlay={handleCanPlayA}
-              onError={(e) => {
-                const v = e.currentTarget;
-                console.error('[VideoPlayer] A error:', v.error?.code, v.error?.message, 'src:', v.src);
-              }}
-              className={`absolute inset-0 w-full h-full object-cover ${activePlayer === 'A' ? 'z-[2]' : 'z-[1]'}`}
-              style={{ objectPosition }}
-            />
-          )}
-
-          {/* Player B */}
-          {!bgImage && !shouldLoop && (
-            <video
-              ref={refB}
-              muted
-              playsInline
-              controls={false}
-              preload="auto"
-              onEnded={() => handlePlayerEnded('B')}
-              onError={(e) => {
-                const v = e.currentTarget;
-                console.error('[VideoPlayer] B error:', v.error?.code, v.error?.message, 'src:', v.src);
-              }}
-              className={`absolute inset-0 w-full h-full object-cover ${activePlayer === 'B' ? 'z-[2]' : 'z-[1]'}`}
-              style={{ objectPosition }}
-            />
-          )}
-
-          {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />}
-
-          {/* Audio Toggle */}
-          {!bgImage && (
-            <button
-              onClick={toggleAudio}
-              className="absolute bottom-8 left-8 z-30 p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
-              title={isMuted ? "Unmute Background" : "Mute Background"}
-            >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </button>
-          )}
+          {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50 z-10" />}
         </div>
 
         {/* Compliance Footer */}
