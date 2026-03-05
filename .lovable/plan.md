@@ -1,43 +1,36 @@
 
 
-## Plan: Fix Video Playback
+## Plan: Create a Video Upload Page
 
-### Root Cause
+Since you can't access the backend storage directly, I'll build a simple admin-only upload page in the app where you can drag-and-drop your re-encoded videos.
 
-The video player logic is intact and correct. The problem is twofold:
+### What Gets Built
 
-1. **MIME type on `loop-stack/10.mp4`** is still `application/octet-stream` (the upload-videos function missed it or failed on that file). All other loop-stack files show `video/mp4` in the database.
+**1. New page: `/admin/upload-videos`**
+- A simple drag-and-drop zone that accepts `.mp4` files
+- Shows the 12 expected filenames as a checklist: `intro.mp4`, `1.mp4` through `10.mp4`, `analysis-bg.mp4`
+- You drop a file, pick which slot it goes to, and it uploads directly to storage (overwriting the old H.265 version)
+- Shows upload progress and a green checkmark when done
+- Only accessible to admin users
 
-2. **CDN cache** — Even though most files now have correct MIME types in the database, the Supabase CDN (Cloudflare) is likely still serving cached responses with the old `application/octet-stream` content-type header. This explains why error code 4 fires on files like `1.mp4` that already have the correct MIME in the DB.
+**2. New edge function: `upload-video-file`**
+- Receives the video file and target path
+- Uses the service role key to overwrite the existing file in the `videos` bucket with `contentType: video/mp4`
+- Validates that the target path is one of the 12 expected paths
 
-### Fix
+**3. Add route in `App.tsx`**
+- Protected admin route at `/admin/upload-videos`
 
-**1. Fix `10.mp4` MIME type via SQL migration**
-Update the metadata for the one remaining file:
-```sql
-UPDATE storage.objects 
-SET metadata = jsonb_set(metadata, '{mimetype}', '"video/mp4"')
-WHERE bucket_id = 'videos' AND name = 'loop-stack/10.mp4';
-```
+### How You'll Use It
+1. Open the app and log in as admin
+2. Navigate to `/admin/upload-videos`
+3. For each video, select the slot (e.g., "Loop 1", "Loop 2", "Intro") and drop the file
+4. Wait for the upload to complete (green checkmark)
+5. Once all 12 are done, navigate to the student dashboard and the videos will play
 
-**2. Add cache-busting to video URLs** (`src/components/stage/VideoLoopStage.tsx`)
-Append a version query param to all video URLs to force the CDN to serve fresh responses:
-```typescript
-const CACHE_BUST = "?v=2";
-const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4${CACHE_BUST}`;
-
-export const VIDEO_LOOP_STACK = [
-  `${STORAGE_BASE}/loop-stack/1.mp4${CACHE_BUST}`,
-  // ... all 10
-];
-```
-
-Also update the analysis-bg video URL in any page that uses it.
-
-**3. No changes to player logic** — The A/B player, `safePlay`, `handlePlayerEnded`, intro handling, and `sessionStorage` gating are all correct. The `introFinished` state correctly gates `handleCanPlayA` so Player A only auto-starts after the intro ends (or immediately if no intro). The student dashboard correctly passes `playIntroVideo` and `loopVideos={VIDEO_1_STACK}`.
-
-### Files Changed
-- SQL migration: fix `10.mp4` MIME type
-- `src/components/stage/VideoLoopStage.tsx` — add cache-bust param to all URLs
-- `src/pages/StudentAnalysis.tsx` — add cache-bust to analysis-bg URL if present
+### Files
+- `supabase/functions/upload-video-file/index.ts` — new edge function
+- `src/pages/AdminUploadVideos.tsx` — new upload page
+- `src/App.tsx` — add route
+- `supabase/config.toml` — register the new function
 
