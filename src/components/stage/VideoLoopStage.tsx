@@ -47,6 +47,22 @@ export default function VideoLoopStage({
   const nextIndexRef = useRef(2);
   const initialPlayDone = useRef(false);
 
+  // Diagnostic: test if the first video URL is fetchable
+  useEffect(() => {
+    const testUrl = videoList[0];
+    console.log("[VideoDebug] Testing fetch for:", testUrl);
+    fetch(testUrl, { method: "HEAD" })
+      .then((res) => {
+        console.log("[VideoDebug] HEAD response:", {
+          status: res.status,
+          contentType: res.headers.get("content-type"),
+          contentLength: res.headers.get("content-length"),
+          allHeaders: Object.fromEntries(res.headers.entries()),
+        });
+      })
+      .catch((err) => console.error("[VideoDebug] HEAD fetch failed:", err));
+  }, [videoList]);
+
   const activeVideoRef = !introFinished ? introRef : activePlayer === "A" ? refA : refB;
 
   // Robust play helper with retry for Edge
