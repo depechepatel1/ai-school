@@ -22,6 +22,7 @@ export const VIDEO_1_STACK = [
   `${STORAGE_BASE}/loop-stack/7.mp4`,
   `${STORAGE_BASE}/loop-stack/8.mp4`,
   `${STORAGE_BASE}/loop-stack/9.mp4`,
+  `${STORAGE_BASE}/loop-stack/10.mp4`,
 ];
 
 const DEV_ACCOUNTS = [
