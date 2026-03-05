@@ -1,50 +1,43 @@
 
 
-## Plan: Extract Background Stage as a Swappable Component
+## Plan: Fix Video Playback
 
-### Problem
-The A/B video player (refs, state, effects, JSX) is embedded directly in `PageShell.tsx`. To swap it with a Live2D Cubism avatar later, you'd need to rewrite PageShell internals. There's no clean boundary.
+### Root Cause
 
-### Architecture
+The video player logic is intact and correct. The problem is twofold:
 
-Create a `BackgroundStage` abstraction with two implementations behind a feature flag:
+1. **MIME type on `loop-stack/10.mp4`** is still `application/octet-stream` (the upload-videos function missed it or failed on that file). All other loop-stack files show `video/mp4` in the database.
 
-```text
-PageShell.tsx
-  └─ <div className="absolute inset-0 z-0">   ← "stage slot"
-       └─ <BackgroundStage />                   ← dispatches to:
-            ├─ <VideoLoopStage />                ← current A/B player (extracted)
-            └─ <Live2DStage />                   ← future Cubism renderer
+2. **CDN cache** — Even though most files now have correct MIME types in the database, the Supabase CDN (Cloudflare) is likely still serving cached responses with the old `application/octet-stream` content-type header. This explains why error code 4 fires on files like `1.mp4` that already have the correct MIME in the DB.
+
+### Fix
+
+**1. Fix `10.mp4` MIME type via SQL migration**
+Update the metadata for the one remaining file:
+```sql
+UPDATE storage.objects 
+SET metadata = jsonb_set(metadata, '{mimetype}', '"video/mp4"')
+WHERE bucket_id = 'videos' AND name = 'loop-stack/10.mp4';
 ```
 
-### Files to Create/Modify
+**2. Add cache-busting to video URLs** (`src/components/stage/VideoLoopStage.tsx`)
+Append a version query param to all video URLs to force the CDN to serve fresh responses:
+```typescript
+const CACHE_BUST = "?v=2";
+const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4${CACHE_BUST}`;
 
-**1. `src/components/stage/VideoLoopStage.tsx`** (new)
-- Extract all video player logic from PageShell: `safePlay`, `handlePlayerEnded`, `handleCanPlayA`, dual refs, `activePlayer` state, `nextIndexRef`, `initialPlayDone`, intro video handling
-- Props: `videoList`, `introSrc?`, `playIntro`, `objectPosition`, `isMuted`, `onMuteToggle`
-- Renders the intro video, Player A, Player B, and the mute button
-- Self-contained; PageShell just mounts it
+export const VIDEO_LOOP_STACK = [
+  `${STORAGE_BASE}/loop-stack/1.mp4${CACHE_BUST}`,
+  // ... all 10
+];
+```
 
-**2. `src/components/stage/Live2DStage.tsx`** (new, placeholder)
-- Wraps the existing dormant `Live2DAvatar` canvas
-- Same prop interface as VideoLoopStage where applicable (`isMuted`, `onMuteToggle`)
-- Ready to receive Cubism SDK integration when pixi.js vulnerability is resolved
+Also update the analysis-bg video URL in any page that uses it.
 
-**3. `src/components/stage/BackgroundStage.tsx`** (new)
-- Reads a flag (e.g., `USE_LIVE2D` from `provider-config.ts`) to choose which stage to render
-- Falls back to `VideoLoopStage` by default
+**3. No changes to player logic** — The A/B player, `safePlay`, `handlePlayerEnded`, intro handling, and `sessionStorage` gating are all correct. The `introFinished` state correctly gates `handleCanPlayA` so Player A only auto-starts after the intro ends (or immediately if no intro). The student dashboard correctly passes `playIntroVideo` and `loopVideos={VIDEO_1_STACK}`.
 
-**4. `src/lib/provider-config.ts`** (modify)
-- Add `USE_LIVE2D: false` flag alongside existing provider flags
-
-**5. `src/components/PageShell.tsx`** (modify)
-- Remove all video player state, refs, effects, and video JSX (~lines 47-143, 172-246)
-- Replace with `<BackgroundStage />` inside the existing `absolute inset-0 z-0` container
-- PageShell becomes purely a layout shell: frame, content slot, footer, dev panel
-
-### Result
-- PageShell drops from ~325 lines to ~180 lines
-- Video logic is isolated and testable
-- Swapping to Live2D is a single flag change in `provider-config.ts`
-- Both implementations share the same stage slot and z-index contract
+### Files Changed
+- SQL migration: fix `10.mp4` MIME type
+- `src/components/stage/VideoLoopStage.tsx` — add cache-bust param to all URLs
+- `src/pages/StudentAnalysis.tsx` — add cache-bust to analysis-bg URL if present
 
