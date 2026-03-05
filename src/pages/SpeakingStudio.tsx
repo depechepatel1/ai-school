@@ -22,6 +22,7 @@ import ExaminerConfig from "@/components/speaking/ExaminerConfig";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import SaveSessionModal from "@/components/speaking/SaveSessionModal";
+import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 import { UKFlag, USFlag } from "@/components/speaking/FlagIcons";
 
 // ── Hooks ──
@@ -535,17 +536,12 @@ export default function SpeakingStudio() {
               </div>
             </div>}
 
-            <div className="absolute bottom-28 right-6 w-[260px] max-h-[200px] bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-2xl overflow-hidden z-[100] shadow-[0_0_30px_-5px_rgba(168,85,247,0.3)]">
-              <div className="p-3 border-b border-white/10 bg-white/5 flex items-center gap-2">
-                <Mic className="w-4 h-4 text-purple-300" />
-                <span className="text-xs font-bold uppercase tracking-widest text-white/80">You</span>
-              </div>
-              <div className="overflow-y-auto p-3 text-sm space-y-2 max-h-[140px] scrollbar-hide">
-                {test.messages.filter((m) => m.role === "student").map((m, i) =>
-              <div key={i} className="bg-purple-500/20 p-3 rounded-xl rounded-tr-none mb-1 border border-purple-500/20 text-right text-purple-100">{m.text}</div>
-              )}
-              </div>
-            </div>
+            {/* Live Transcript Bar — replaces old "You" bubble */}
+            <LiveTranscriptBar
+              transcript={test.liveTranscript}
+              interim={test.liveInterim}
+              isRecording={test.isRecording}
+            />
 
             {/* Bottom action bar */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[310] flex items-center gap-4 p-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">

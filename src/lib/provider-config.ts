@@ -21,4 +21,7 @@ export const PROVIDERS = {
 
   /** "video" = looping background videos, "live2d" = Cubism avatar (requires pixi.js) */
   avatar: "video" as "video" | "live2d",
+
+  /** "lovable" = Lovable AI gateway (gemini-2.5-flash-lite), "aliyun" = DashScope qwen-turbo */
+  punctuation: "lovable" as "lovable" | "aliyun",
 };

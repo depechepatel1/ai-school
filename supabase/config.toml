@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.upload-video-file]
 verify_jwt = false
+
+[functions.punctuate]
+verify_jwt = false
