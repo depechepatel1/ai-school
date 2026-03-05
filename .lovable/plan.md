@@ -1,43 +1,50 @@
 
 
-## Plan: Clean Up Video Player Code in PageShell
+## Plan: Extract Background Stage as a Swappable Component
 
-### Problem Diagnosis
+### Problem
+The A/B video player (refs, state, effects, JSX) is embedded directly in `PageShell.tsx`. To swap it with a Live2D Cubism avatar later, you'd need to rewrite PageShell internals. There's no clean boundary.
 
-1. **MIME type was broken** — The re-upload process stored videos as `application/octet-stream`. I just ran the edge function to re-upload all 10 files with `contentType: "video/mp4"`. This should fix the `MEDIA_ERR_SRC_NOT_SUPPORTED` (error code 4) you're seeing. **A hard refresh (Ctrl+Shift+R) in Edge may be needed** to bust the CDN/browser cache.
+### Architecture
 
-2. **Player code has accumulated cruft** — Multiple rewrites have left fragile logic. The A/B dual-player approach is correct and necessary for gap-free transitions, but the implementation has issues.
+Create a `BackgroundStage` abstraction with two implementations behind a feature flag:
 
-### Current Issues in the A/B Player
+```text
+PageShell.tsx
+  └─ <div className="absolute inset-0 z-0">   ← "stage slot"
+       └─ <BackgroundStage />                   ← dispatches to:
+            ├─ <VideoLoopStage />                ← current A/B player (extracted)
+            └─ <Live2DStage />                   ← future Cubism renderer
+```
 
-- `onCanPlay` callbacks call `safePlay` on every `canplay` event, not just the first — this can cause race conditions and double-play attempts
-- `handlePlayerEnded` uses a `videoIndexRef` that drifts because it increments by 1 but represents an offset from initial, while preload calculates `currentIndex + 2` — this works but is hard to reason about
-- The `chatOpen` state and `OmniChatModal` are unused (chat button was removed but state remains)
-- The intro video fading logic adds unnecessary complexity to the className of the loop players
+### Files to Create/Modify
 
-### Cleanup Plan
+**1. `src/components/stage/VideoLoopStage.tsx`** (new)
+- Extract all video player logic from PageShell: `safePlay`, `handlePlayerEnded`, `handleCanPlayA`, dual refs, `activePlayer` state, `nextIndexRef`, `initialPlayDone`, intro video handling
+- Props: `videoList`, `introSrc?`, `playIntro`, `objectPosition`, `isMuted`, `onMuteToggle`
+- Renders the intro video, Player A, Player B, and the mute button
+- Self-contained; PageShell just mounts it
 
-**File: `src/components/PageShell.tsx`**
+**2. `src/components/stage/Live2DStage.tsx`** (new, placeholder)
+- Wraps the existing dormant `Live2DAvatar` canvas
+- Same prop interface as VideoLoopStage where applicable (`isMuted`, `onMuteToggle`)
+- Ready to receive Cubism SDK integration when pixi.js vulnerability is resolved
 
-1. **Remove dead chat state** — Delete `chatOpen`/`setChatOpen` state, the `OmniChatModal` import and render, since no button triggers it.
+**3. `src/components/stage/BackgroundStage.tsx`** (new)
+- Reads a flag (e.g., `USE_LIVE2D` from `provider-config.ts`) to choose which stage to render
+- Falls back to `VideoLoopStage` by default
 
-2. **Simplify A/B player index tracking** — Replace the `videoIndexRef` with a clearer `nextIndexRef` that directly tracks which video index to play next. Initialize to 1 (since A starts with index 0).
+**4. `src/lib/provider-config.ts`** (modify)
+- Add `USE_LIVE2D: false` flag alongside existing provider flags
 
-3. **Fix `onCanPlay` to only auto-play on initial load** — Use a ref flag (`initialPlayDone`) so `onCanPlay` on Player A only triggers `safePlay` once on mount, not on every buffer event. Remove `onCanPlay` from Player B entirely (it only needs to play when swapped to via `handlePlayerEnded`).
-
-4. **Simplify `handlePlayerEnded`** — Rewrite to:
-   - Swap active player
-   - Play the next player (already preloaded)
-   - Set the now-inactive player's `src` to the next-next video and call `.load()`
-   - Increment `nextIndexRef` with modular wrap
-
-5. **Remove intro opacity class from loop players** — The intro video already covers them via z-index. The conditional `opacity-0` class on the A/B players when intro is playing is unnecessary since the intro video sits on top.
-
-6. **Keep the `safePlay` helper** — The 150ms retry is genuinely needed for Edge's autoplay policy quirks.
+**5. `src/components/PageShell.tsx`** (modify)
+- Remove all video player state, refs, effects, and video JSX (~lines 47-143, 172-246)
+- Replace with `<BackgroundStage />` inside the existing `absolute inset-0 z-0` container
+- PageShell becomes purely a layout shell: frame, content slot, footer, dev panel
 
 ### Result
-A cleaner, more predictable A/B player with fewer state variables and no dead code. The dual-player z-index swap architecture is preserved as the correct solution for seamless transitions.
-
-### Files Changed
-- `src/components/PageShell.tsx` — remove dead code, simplify player logic
+- PageShell drops from ~325 lines to ~180 lines
+- Video logic is isolated and testable
+- Swapping to Live2D is a single flag change in `provider-config.ts`
+- Both implementations share the same stage slot and z-index contract
 
