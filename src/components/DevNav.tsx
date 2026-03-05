@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const routes = [
-  { path: "/", label: "Landing" },
   { path: "/login", label: "Login" },
   { path: "/signup", label: "Signup" },
   { path: "/forgot-password", label: "Forgot PW" },
