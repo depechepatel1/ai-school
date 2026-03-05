@@ -401,7 +401,7 @@ export default function SpeakingStudio() {
 
             {/* Right action bar — lower-right to avoid face */}
             {/* Accent toggle — floats above action bar */}
-            <div className="absolute top-[45%] -translate-y-1/2 right-5 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
+            <div className="absolute top-[30%] right-5 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
               <button onClick={() => setAccent("UK")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
                 <UKFlag /><span className="text-[9px] font-semibold">UK</span>
               </button>
