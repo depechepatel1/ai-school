@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import StudentAnalysis from "./pages/StudentAnalysis";
 import StudentProfile from "./pages/StudentProfile";
 import DevNav from "@/components/DevNav";
+import AdminUploadVideos from "./pages/AdminUploadVideos";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="/teacher" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
             <Route path="/parent" element={<ProtectedRoute allowedRoles={["parent"]}><ParentDashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/upload-videos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUploadVideos /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <DevNav />
