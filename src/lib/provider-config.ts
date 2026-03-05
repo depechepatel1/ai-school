@@ -18,4 +18,7 @@ export const PROVIDERS = {
 
   /** "browser" = local pitch detection + DTW, "aliyun" = Aliyun Speech Analysis API */
   speechAnalysis: "browser" as "browser" | "aliyun",
+
+  /** "video" = looping background videos, "live2d" = Cubism avatar (requires pixi.js) */
+  avatar: "video" as "video" | "live2d",
 };
