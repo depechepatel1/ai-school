@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
-import OmniChatModal from "@/components/OmniChatModal";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/videos`;
@@ -45,11 +44,9 @@ interface PageShellProps {
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
   const navigate = useNavigate();
 
-  // Video list defaults to VIDEO_1_STACK if no loopVideos provided and no bgImage
   const videoList = loopVideos && loopVideos.length > 0 ? loopVideos : VIDEO_1_STACK;
   const shouldLoop = videoList.length === 1;
 
-  // Intro video logic
   const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
   const useIntro = playIntroVideo && !alreadyPlayedIntro;
 
@@ -57,38 +54,36 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const [introFinished, setIntroFinished] = useState(!useIntro);
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
 
-  // Dual A/B player state for seamless transitions
-  const videoIndexRef = useRef(0);
+  // A/B dual player refs
   const introRef = useRef<HTMLVideoElement>(null);
   const refA = useRef<HTMLVideoElement>(null);
   const refB = useRef<HTMLVideoElement>(null);
   const [activePlayer, setActivePlayer] = useState<'A' | 'B'>('A');
 
+  // Tracks which video index to preload next (starts at 2 because A=0, B=1 preloaded)
+  const nextIndexRef = useRef(2);
+  // Ensures initial autoplay fires only once
+  const initialPlayDone = useRef(false);
+
   const activeVideoRef = !introFinished ? introRef : (activePlayer === 'A' ? refA : refB);
 
-  // Object position: auth pages offset left, fullWidth centered
   const objectPosition = fullWidth ? "center center" : "101% center";
 
   // Robust play helper with retry for Edge
   const safePlay = useCallback((v: HTMLVideoElement) => {
     v.muted = true;
-    console.log('[VideoPlayer] safePlay called, src:', v.src, 'readyState:', v.readyState);
-    v.play().catch((err) => {
-      console.warn('[VideoPlayer] play() rejected:', err.message, 'retrying in 150ms');
+    v.play().catch(() => {
       setTimeout(() => {
         if (v) {
           v.muted = true;
-          v.play().catch((err2) => {
-            console.error('[VideoPlayer] retry play() also failed:', err2.message);
-          });
+          v.play().catch(() => {});
         }
       }, 150);
     });
   }, []);
 
-  // Edge-safe: force muted on all video refs via DOM (React muted prop bug)
+  // Edge-safe: force muted on all video refs via DOM
   useEffect(() => {
     if (bgImage) return;
     [introRef, refA, refB].forEach(ref => {
@@ -112,26 +107,23 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
     setIntroFinished(true);
   };
 
-  // Dual A/B: when active player ends, swap to the other (already preloaded)
+  // When active player ends, swap to the preloaded one and queue the next preload
   const handlePlayerEnded = useCallback((player: 'A' | 'B') => {
     if (shouldLoop) return;
-    const len = videoList.length;
     const nextPlayer = player === 'A' ? 'B' : 'A';
     const nextRef = nextPlayer === 'A' ? refA : refB;
 
-    // Swap visibility — the next player is already loaded
+    // Swap active and play the already-preloaded player
     setActivePlayer(nextPlayer);
     if (nextRef.current) safePlay(nextRef.current);
 
-    // Advance index and preload on the now-inactive player
-    const currentIndex = videoIndexRef.current;
-    const preloadIndex = (currentIndex + 2) % len;
-    videoIndexRef.current = currentIndex + 1;
+    // Preload the next video on the now-inactive player
     const inactiveRef = player === 'A' ? refA : refB;
     if (inactiveRef.current) {
-      inactiveRef.current.src = videoList[preloadIndex];
+      const preloadIdx = nextIndexRef.current % videoList.length;
+      inactiveRef.current.src = videoList[preloadIdx];
       inactiveRef.current.load();
-      console.log('[VideoPlayer] preloading next on', player, ':', videoList[preloadIndex]);
+      nextIndexRef.current = preloadIdx + 1;
     }
   }, [shouldLoop, videoList, safePlay]);
 
@@ -144,15 +136,12 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
     }
   }, [introFinished, bgImage, shouldLoop, videoList]);
 
+  // Auto-play Player A only once on initial load
   const handleCanPlayA = useCallback(() => {
-    if (!introFinished) return;
-    if (activePlayer === 'A' && refA.current) safePlay(refA.current);
-  }, [introFinished, activePlayer, safePlay]);
-
-  const handleCanPlayB = useCallback(() => {
-    if (!introFinished) return;
-    if (activePlayer === 'B' && refB.current) safePlay(refB.current);
-  }, [introFinished, activePlayer, safePlay]);
+    if (!introFinished || initialPlayDone.current) return;
+    initialPlayDone.current = true;
+    if (refA.current) safePlay(refA.current);
+  }, [introFinished, safePlay]);
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -199,12 +188,12 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               playsInline
               muted
               onEnded={handleIntroEnd}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
               style={{ objectPosition }}
             />
           )}
 
-          {/* Dual A/B seamless loop player */}
+          {/* Player A */}
           {!bgImage && (
             <video
               ref={refA}
@@ -220,12 +209,12 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
                 const v = e.currentTarget;
                 console.error('[VideoPlayer] A error:', v.error?.code, v.error?.message, 'src:', v.src);
               }}
-              className={`absolute inset-0 w-full h-full object-cover ${
-                (useIntro && !introFinished) ? "opacity-0" : ""
-              } ${activePlayer === 'A' ? 'z-[2]' : 'z-[1]'}`}
+              className={`absolute inset-0 w-full h-full object-cover ${activePlayer === 'A' ? 'z-[2]' : 'z-[1]'}`}
               style={{ objectPosition }}
             />
           )}
+
+          {/* Player B */}
           {!bgImage && !shouldLoop && (
             <video
               ref={refB}
@@ -234,21 +223,18 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               controls={false}
               preload="auto"
               onEnded={() => handlePlayerEnded('B')}
-              onCanPlay={handleCanPlayB}
               onError={(e) => {
                 const v = e.currentTarget;
                 console.error('[VideoPlayer] B error:', v.error?.code, v.error?.message, 'src:', v.src);
               }}
-              className={`absolute inset-0 w-full h-full object-cover ${
-                (useIntro && !introFinished) ? "opacity-0" : ""
-              } ${activePlayer === 'B' ? 'z-[2]' : 'z-[1]'}`}
+              className={`absolute inset-0 w-full h-full object-cover ${activePlayer === 'B' ? 'z-[2]' : 'z-[1]'}`}
               style={{ objectPosition }}
             />
           )}
 
           {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50" />}
 
-          {/* Audio Toggle — only for video backgrounds */}
+          {/* Audio Toggle */}
           {!bgImage && (
             <button
               onClick={toggleAudio}
@@ -290,9 +276,6 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             </div>
           </div>
         )}
-
-        {/* Chat Modal */}
-        <OmniChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} />
 
         {/* Dev Login Panel */}
         <div className="absolute top-4 left-4 z-50">
