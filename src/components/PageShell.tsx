@@ -68,7 +68,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const activeVideoRef = !introFinished ? introRef : (activePlayer === 'A' ? refA : refB);
 
   // Object position: auth pages offset left, fullWidth centered
-  const objectPosition = fullWidth ? "center center" : "96% center";
+  const objectPosition = fullWidth ? "center center" : "101% center";
 
   // Robust play helper with retry for Edge
   const safePlay = useCallback((v: HTMLVideoElement) => {
@@ -221,8 +221,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               }}
               className={`absolute inset-0 w-full h-full object-cover ${
                 (useIntro && !introFinished) ? "opacity-0" : ""
-              } ${activePlayer === 'A' ? 'opacity-100 z-[1]' : 'opacity-0 z-[0]'}`}
-              style={{ objectPosition, backgroundColor: 'transparent' }}
+              } ${activePlayer === 'A' ? 'z-[2]' : 'z-[1]'}`}
+              style={{ objectPosition }}
             />
           )}
           {!bgImage && !shouldLoop && (
@@ -240,8 +240,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               }}
               className={`absolute inset-0 w-full h-full object-cover ${
                 (useIntro && !introFinished) ? "opacity-0" : ""
-              } ${activePlayer === 'B' ? 'opacity-100 z-[1]' : 'opacity-0 z-[0]'}`}
-              style={{ objectPosition, backgroundColor: 'transparent' }}
+              } ${activePlayer === 'B' ? 'z-[2]' : 'z-[1]'}`}
+              style={{ objectPosition }}
             />
           )}
 
