@@ -58,12 +58,14 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const [devLoading, setDevLoading] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
-  // Single-element sequential player state
+  // Dual A/B player state for seamless transitions
   const videoIndexRef = useRef(0);
   const introRef = useRef<HTMLVideoElement>(null);
-  const loopRef = useRef<HTMLVideoElement>(null);
+  const refA = useRef<HTMLVideoElement>(null);
+  const refB = useRef<HTMLVideoElement>(null);
+  const [activePlayer, setActivePlayer] = useState<'A' | 'B'>('A');
 
-  const activeVideoRef = introFinished ? loopRef : introRef;
+  const activeVideoRef = !introFinished ? introRef : (activePlayer === 'A' ? refA : refB);
 
   // Object position: auth pages offset left, fullWidth centered
   const objectPosition = fullWidth ? "center center" : "30% center";
@@ -88,7 +90,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   // Edge-safe: force muted on all video refs via DOM (React muted prop bug)
   useEffect(() => {
     if (bgImage) return;
-    [introRef, loopRef].forEach(ref => {
+    [introRef, refA, refB].forEach(ref => {
       if (ref.current) ref.current.muted = true;
     });
   }, [bgImage, introFinished]);
@@ -109,23 +111,47 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
     setIntroFinished(true);
   };
 
-  const handleLoopEnded = useCallback(() => {
+  // Dual A/B: when active player ends, swap to the other (already preloaded)
+  const handlePlayerEnded = useCallback((player: 'A' | 'B') => {
     if (shouldLoop) return;
-    const v = loopRef.current;
-    if (!v) return;
-    const nextIndex = (videoIndexRef.current + 1) % videoList.length;
-    videoIndexRef.current = nextIndex;
-    console.log('[VideoPlayer] clip ended, loading next:', videoList[nextIndex]);
-    v.src = videoList[nextIndex];
-    v.load();
-    // onCanPlay will call safePlay once data is ready
-  }, [shouldLoop, videoList]);
+    const len = videoList.length;
+    const nextPlayer = player === 'A' ? 'B' : 'A';
+    const nextRef = nextPlayer === 'A' ? refA : refB;
 
-  const handleLoopCanPlay = useCallback(() => {
+    // Swap visibility — the next player is already loaded
+    setActivePlayer(nextPlayer);
+    if (nextRef.current) safePlay(nextRef.current);
+
+    // Advance index and preload on the now-inactive player
+    const currentIndex = videoIndexRef.current;
+    const preloadIndex = (currentIndex + 2) % len;
+    videoIndexRef.current = currentIndex + 1;
+    const inactiveRef = player === 'A' ? refA : refB;
+    if (inactiveRef.current) {
+      inactiveRef.current.src = videoList[preloadIndex];
+      inactiveRef.current.load();
+      console.log('[VideoPlayer] preloading next on', player, ':', videoList[preloadIndex]);
+    }
+  }, [shouldLoop, videoList, safePlay]);
+
+  // Initial preload: when intro finishes, ensure Player B has the next video ready
+  useEffect(() => {
+    if (!introFinished || bgImage || shouldLoop) return;
+    if (refB.current && videoList.length > 1) {
+      refB.current.src = videoList[1];
+      refB.current.load();
+    }
+  }, [introFinished, bgImage, shouldLoop, videoList]);
+
+  const handleCanPlayA = useCallback(() => {
     if (!introFinished) return;
-    const v = loopRef.current;
-    if (v) safePlay(v);
-  }, [introFinished, safePlay]);
+    if (activePlayer === 'A' && refA.current) safePlay(refA.current);
+  }, [introFinished, activePlayer, safePlay]);
+
+  const handleCanPlayB = useCallback(() => {
+    if (!introFinished) return;
+    if (activePlayer === 'B' && refB.current) safePlay(refB.current);
+  }, [introFinished, activePlayer, safePlay]);
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -177,25 +203,44 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             />
           )}
 
-          {/* Single-element sequential loop player */}
+          {/* Dual A/B seamless loop player */}
           {!bgImage && (
             <video
-              ref={loopRef}
+              ref={refA}
               src={videoList[0]}
               muted
               playsInline
               controls={false}
               loop={shouldLoop}
               preload="auto"
-              onEnded={handleLoopEnded}
-              onCanPlay={handleLoopCanPlay}
+              onEnded={() => handlePlayerEnded('A')}
+              onCanPlay={handleCanPlayA}
               onError={(e) => {
                 const v = e.currentTarget;
-                console.error('[VideoPlayer] video error:', v.error?.code, v.error?.message, 'src:', v.src);
+                console.error('[VideoPlayer] A error:', v.error?.code, v.error?.message, 'src:', v.src);
               }}
               className={`absolute inset-0 w-full h-full object-cover ${
-                (useIntro && !introFinished) ? "opacity-0" : "opacity-100"
-              }`}
+                (useIntro && !introFinished) ? "opacity-0" : ""
+              } ${activePlayer === 'A' ? 'opacity-100 z-[1]' : 'opacity-0 z-[0]'}`}
+              style={{ objectPosition, backgroundColor: 'transparent' }}
+            />
+          )}
+          {!bgImage && !shouldLoop && (
+            <video
+              ref={refB}
+              muted
+              playsInline
+              controls={false}
+              preload="auto"
+              onEnded={() => handlePlayerEnded('B')}
+              onCanPlay={handleCanPlayB}
+              onError={(e) => {
+                const v = e.currentTarget;
+                console.error('[VideoPlayer] B error:', v.error?.code, v.error?.message, 'src:', v.src);
+              }}
+              className={`absolute inset-0 w-full h-full object-cover ${
+                (useIntro && !introFinished) ? "opacity-0" : ""
+              } ${activePlayer === 'B' ? 'opacity-100 z-[1]' : 'opacity-0 z-[0]'}`}
               style={{ objectPosition, backgroundColor: 'transparent' }}
             />
           )}
