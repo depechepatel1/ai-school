@@ -32,7 +32,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
 
-  const objectPosition = fullWidth ? "center center" : "101% center";
+  const objectPosition = "center center";
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -71,12 +71,11 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             />
           )}
 
-          {!fullWidth && <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/50 z-10" />}
         </div>
 
         {/* Compliance Footer */}
         {!hideFooter && (
-          <div className={`absolute bottom-0 left-0 z-20 pb-6 pt-12 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none ${fullWidth ? "right-0" : "right-[40%]"}`}>
+          <div className="absolute bottom-0 left-0 right-0 z-20 pb-6 pt-12 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none">
             <div className="flex flex-col items-center gap-2 pointer-events-auto">
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] text-gray-400 font-medium tracking-wide shadow-xl">
                 <ShieldCheck className="w-3 h-3 text-green-500" />
@@ -92,15 +91,9 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             {children}
           </div>
         ) : (
-          <div className="absolute right-0 top-0 bottom-0 w-[40%] min-w-[340px] z-20 flex flex-col py-[30px] pr-5 pl-0">
-            <div className="relative group flex-1 flex flex-col">
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700" />
-              <div className="relative w-full flex-1 px-6 py-5 rounded-2xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 w-full flex-1 flex flex-col overflow-y-auto scrollbar-hide">
-                  {children}
-                </div>
-              </div>
+          <div className="absolute inset-0 z-20 flex items-center justify-center p-6">
+            <div className="w-full max-w-md px-6 py-8 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)] flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide">
+              {children}
             </div>
           </div>
         )}
