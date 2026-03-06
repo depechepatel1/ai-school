@@ -541,6 +541,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_extended_practice_leaderboard: {
+        Args: { _range_end: string; _range_start: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          extended_seconds: number
+          rank: number
+          user_id: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
