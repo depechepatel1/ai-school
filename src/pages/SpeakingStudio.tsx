@@ -45,7 +45,7 @@ export default function SpeakingStudio() {
 
   // ── Local UI state ──
   const [mode, setMode] = useState<"shadowing" | "speaking">("shadowing");
-  const [practiceMode, setPracticeMode] = useState<PracticeMode>("homework");
+  const practiceMode: PracticeMode = "homework";
   const [accent, setAccent] = useState<"UK" | "US">("UK");
   const [practiceType, setPracticeType] = useState<"pronunciation" | "fluency">("pronunciation");
   const [rawText, setRawText] = useState("");
@@ -261,8 +261,8 @@ export default function SpeakingStudio() {
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
           </button>
           {courseWeek.courseType && (
-            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl ${practiceMode === "homework" ? "bg-amber-500/20 border border-amber-500/30 text-amber-300" : "bg-white/[0.06] border border-white/10 text-white/50"}`}>
-              {courseWeek.courseType === "ielts" ? "IELTS" : "IGCSE"} · {practiceMode === "homework" ? "Homework" : "Free Practice"} · Speaking
+            <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl bg-amber-500/20 border border-amber-500/30 text-amber-300">
+              {courseWeek.courseType === "ielts" ? "IELTS" : "IGCSE"} · Homework · Speaking
             </span>
           )}
         </div>
@@ -271,18 +271,7 @@ export default function SpeakingStudio() {
         <div className="absolute top-16 left-0 right-0 px-3 z-50 flex justify-between items-start">
           <div className="gap-2.5 ml-2 flex flex-col animate-fade-in">
             {/* Practice Mode toggle */}
-            {test.testState.status === "idle" &&
-              <div className="flex p-0.5 gap-0.5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/[0.06]">
-                <button onClick={() => setPracticeMode("homework")}
-                  className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all duration-200 ${practiceMode === "homework" ? "bg-amber-500/80 text-black shadow-[0_1px_8px_rgba(245,158,11,0.3)]" : "text-white/30 hover:text-white/50"}`}>
-                  Homework
-                </button>
-                <button onClick={() => setPracticeMode("independent")}
-                  className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all duration-200 ${practiceMode === "independent" ? "bg-sky-500/80 text-white shadow-[0_1px_8px_rgba(14,165,233,0.3)]" : "text-white/30 hover:text-white/50"}`}>
-                  Free Practice
-                </button>
-              </div>
-            }
+            
             {test.testState.status === "idle" &&
               <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                 <button onClick={() => setMode("shadowing")}
@@ -297,19 +286,16 @@ export default function SpeakingStudio() {
             }
             <div style={{ animationDelay: '0s' }} className="animate-fade-in">
               <StreakWidget
-                displaySeconds={practiceMode === "independent" ? practiceTimer.activeSeconds : practiceTimer.displaySeconds}
-                isCountdown={practiceMode === "homework" && practiceTimer.isCountdown}
-                isComplete={practiceMode === "homework" && practiceTimer.isComplete}
+                displaySeconds={practiceTimer.displaySeconds}
+                isCountdown={practiceTimer.isCountdown}
+                isComplete={practiceTimer.isComplete}
                 isRunning={practiceTimer.isRunning}
-                isOvertime={practiceMode === "homework" && practiceTimer.isOvertime}
-                modeLabel={practiceMode === "homework" ? "Homework" : "Free Practice"}
+                isOvertime={practiceTimer.isOvertime}
+                modeLabel="Homework"
                 onPause={practiceTimer.pause}
                 onResume={practiceTimer.resume} />
             </div>
 
-            {mode === "speaking" && practiceMode === "independent" &&
-            <PersonaSelector persona={test.persona} setPersona={test.handlePersonaChange} setShowTestConfig={test.setShowTestConfig} />
-            }
             {mode === "shadowing" &&
             <>
                 {curriculum.currentTopic && practiceType === "pronunciation" &&
@@ -515,26 +501,7 @@ export default function SpeakingStudio() {
               </div>
           }
 
-            {/* Chat panels */}
-            {practiceMode === "independent" && <div className="absolute bottom-28 left-6 w-[260px] max-h-[200px] bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-2xl overflow-hidden z-[100] shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)]">
-              <div className="p-3 border-b border-white/10 bg-white/5 flex items-center gap-2">
-                <Mic className="w-4 h-4 text-green-300" />
-                <span className="text-xs font-bold uppercase tracking-widest text-white/80">{test.persona}</span>
-              </div>
-              <div className="overflow-y-auto p-3 text-sm space-y-2 max-h-[140px] scrollbar-hide">
-                {test.messages.filter((m) => m.role === "teacher").map((m, i) =>
-              <div key={i} className={`p-3 rounded-xl rounded-tl-none mb-1 border ${test.getPersonaBubbleStyle(test.persona)}`}>{m.text}</div>
-              )}
-                {test.isAiThinking &&
-              <div className="flex gap-1 p-2">
-                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0s" }} />
-                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0.2s" }} />
-                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0.4s" }} />
-                  </div>
-              }
-                <div ref={chatScrollRef} />
-              </div>
-            </div>}
+            
 
             {/* Live Transcript Bar — replaces old "You" bubble */}
             <LiveTranscriptBar
@@ -559,7 +526,7 @@ export default function SpeakingStudio() {
         }
 
         {/* Modals */}
-        {mode === "speaking" && practiceMode === "independent" && test.showTestConfig && courseWeek.courseType === "ielts" && <ExaminerConfig onClose={() => test.setShowTestConfig(false)} onStartTest={test.initiateCountdown} />}
+        
         {test.showSaveModal &&
         <SaveSessionModal isPartial={true}
         onSave={() => {addXP(50);test.resetTest();}}
