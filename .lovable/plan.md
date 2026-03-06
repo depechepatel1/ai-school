@@ -1,55 +1,20 @@
 
 
-## Phase 1: Database & Curriculum Storage Setup
+## Problem
 
-### Step 1.1 — Create `curriculums` Storage Bucket
+The right-side action bar in the shadowing view has two issues:
+1. **Not vertically centered** — it's anchored with `bottom-32`, placing it low-right rather than centered on the right edge.
+2. **Inconsistent gaps** — there's a decorative separator (`div w-6 h-px`) between Record and the Next button, plus between other buttons. With Ghost Mode removed, the 4-button stack is small enough that these separators add unnecessary visual weight and uneven spacing.
 
-Single migration to:
-- Create a new public bucket `curriculums`
-- Add storage RLS policies: authenticated read; admins/teachers write
+## Plan
 
-### Step 1.2 — Create 4 Database Tables
+**File:** `src/pages/SpeakingStudio.tsx` (lines 381-410)
 
-All in one migration with RLS and seed data:
+1. **Center vertically** — Replace `bottom-32` with `top-1/2 -translate-y-1/2` to properly center the action bar on the right side of the screen.
 
-**`curriculum_metadata`** — tracks active JSON files in the bucket
-- id (uuid PK), course_type (text), module_type (text), file_path (text), version (int default 1), uploaded_at (timestamptz), uploaded_by (uuid), is_active (boolean default true)
-- RLS: authenticated read; admin/teacher insert; admin update/delete
+2. **Remove all separator divs** — Delete the three `<div className="w-6 h-px bg-white/[0.06]" />` elements (lines 386, 390, 404). The `gap-1.5` on the flex container already provides consistent spacing between buttons.
 
-**`student_progress`** — per-student resume position
-- id (uuid PK), student_id (uuid), course_type (text), module_type (text), current_position (jsonb default '{}'), last_accessed (timestamptz)
-- Unique on (student_id, course_type, module_type)
-- RLS: own data read/upsert; teachers/parents/admins can read
+3. **Uniform gap** — Keep `gap-1.5` for tight, balanced spacing across all 4 buttons (Hear Model, Record, Replay, Next).
 
-**`practice_time_log`** — session duration tracking
-- id (uuid PK), student_id (uuid), course_type (text), module_type (text), session_date (date), required_time_seconds (int default 0), extended_time_seconds (int default 0), total_time_seconds (int default 0), week_number (int default 1), created_at (timestamptz)
-- RLS: own data read/insert; teachers/parents/admins can read
-
-**`timer_settings`** — admin-configurable countdown durations
-- id (uuid PK), course_type (text), module_type (text), countdown_minutes (int), updated_by (uuid), updated_at (timestamptz)
-- Unique on (course_type, module_type)
-- RLS: authenticated read; admin insert/update
-- Seeded with 6 rows:
-
-| Course | Module | Minutes |
-|--------|--------|---------|
-| ielts | shadowing-pronunciation | 5 |
-| ielts | shadowing-fluency | 10 |
-| ielts | speaking | 12 |
-| igcse | shadowing-pronunciation | 5 |
-| igcse | shadowing-fluency | 10 |
-| igcse | speaking | 10 |
-
-### File Mapping (for later upload steps)
-
-| Uploaded File | Bucket Path |
-|--------------|-------------|
-| Tongue_Twisters_Curriculum.txt | `shared/tongue-twisters.json` (also serves as `ielts/shadowing-pronunciation.json`) |
-| IELTS_APP_Shadowing_chunks-3.txt | `ielts/shadowing-fluency.json` |
-| master_Curiculum.json | `ielts/speaking-questions.json` |
-| IGCSE_Course_Shadowing_Chunks-3.txt | `igcse/shadowing-fluency.json` |
-| IGCSE_pronunciation_shadowing.txt | `igcse/shadowing-pronunciation.json` |
-| IGCSE_course_data.csv | `igcse/speaking-questions.json` (will convert to JSON) |
-
-No code files change in this step — purely database/storage infrastructure.
+Result: A clean, vertically-centered 4-button stack with consistent spacing and no leftover artifacts from removed features.
 
