@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
-  Mic, Play, Headphones, Ghost, ChevronRight, ArrowLeft, SkipForward, Loader2 } from
+  Mic, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2 } from
 "lucide-react";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
@@ -55,7 +55,7 @@ export default function SpeakingStudio() {
   const [targetProgress, setTargetProgress] = useState(0);
   const [sentenceKey, setSentenceKey] = useState(0);
 
-  const [ghostMode, setGhostMode] = useState(false);
+  
 
   const [isRecordingShadow, setIsRecordingShadow] = useState(false);
 
@@ -220,33 +220,14 @@ export default function SpeakingStudio() {
   const startShadowRecording = async () => {
     setIsRecordingShadow(true);
     clearRecording();
-    // Fire TTS immediately if ghost mode
-    if (ghostMode) {
-      setTargetProgress(0);
-      test.ttsHandleRef.current = speak(rawText, accentLower, {
-        rate: 0.8, pitch: 1.1,
-        onBoundary: (charIndex) => {
-          const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar);
-          if (idx !== -1) {
-            setActiveWordIndex(idx);
-            setTargetProgress(computeTargetProgress(idx));
-          }
-        },
-        onEnd: () => {
-          setActiveWordIndex(-1);
-          setTargetProgress(1);
-        }
-      });
-    }
     await startMediaRecorder();
   };
 
   const stopShadowRecording = useCallback(() => {
     setIsRecordingShadow(false);
-    if (ghostMode) stopSpeaking();
     stopMediaRecorder();
     addXP(20);
-  }, [ghostMode, stopMediaRecorder, addXP]);
+  }, [stopMediaRecorder, addXP]);
 
   return (
     <PageShell
@@ -421,9 +402,7 @@ export default function SpeakingStudio() {
 
                 <Play className="w-7 h-7 ml-0.5 group-hover:scale-110 transition-transform" />
               </button>
-              <button onClick={() => setGhostMode(!ghostMode)} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${ghostMode ? "bg-purple-500/15 border border-purple-500/25 text-purple-300" : "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"}`} title="Ghost Mode">
-                <Ghost className="w-7 h-7 group-hover:scale-110 transition-transform" />
-              </button>
+              
               <div className="w-8 h-px bg-white/[0.06]" />
               {(practiceType === "pronunciation" || practiceType === "fluency") &&
             <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-90 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
