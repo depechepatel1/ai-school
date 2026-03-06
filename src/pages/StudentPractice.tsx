@@ -7,7 +7,7 @@ import RightPillar from "@/components/student/RightPillar";
 import BottomDock from "@/components/student/BottomDock";
 import HomeworkModal from "@/components/student/HomeworkModal";
 import ScheduleModal from "@/components/student/ScheduleModal";
-import OmniMicButton from "@/components/student/OmniMicButton";
+
 
 export default function StudentPractice() {
   const { signOut } = useAuth();
@@ -41,7 +41,7 @@ export default function StudentPractice() {
         />
         <RightPillar onNavigate={handleNavigate} />
         <BottomDock setShowHomeworkModal={setShowHomeworkModal} setCalendarOpen={setCalendarOpen} onSettings={signOut} />
-        <OmniMicButton teacherHint={teacherHint} />
+        
       </div>
     </PageShell>
   );
