@@ -1,36 +1,23 @@
 
 
-## The Problem
+## Plan: Remove the right-side glass column on non-fullWidth pages
 
-You're right to flag this. The current `PageShell` component hardcodes a fixed `1024x768` iPad-shaped frame centered on a dark background:
+### Problem
+When `fullWidth` is false (Login, Signup, WeekSelection, etc.), PageShell renders a 40%-width glass panel on the right side. This panel, along with the `bg-gradient-to-r from-black/30 via-transparent to-black/50` overlay, creates a visual anomaly over the teacher's shoulder in the looping background video.
 
-```
-<div className="min-h-screen bg-neutral-900 flex items-center justify-center p-8">
-  <div className="relative w-[1024px] h-[768px] rounded-[3rem] border-8 ...">
-```
+### Changes — `src/components/PageShell.tsx`
 
-This means on any screen larger than 1024x768, there will be dead black space around the frame. On an actual iPad or tablet, it won't fill the screen either. It's a design mockup frame, not a production layout.
+1. **Remove the gradient overlay** (line 74) — the `bg-gradient-to-r from-black/30 via-transparent to-black/50` darkening strip that covers the right side of the video.
 
-## Plan: Make PageShell fill the viewport
+2. **Replace the glass column with a centered floating layout** — Instead of pinning children to a right-side 40% panel with the opaque backdrop-blur glass card, render children in a centered container (similar to a standard auth page layout) that floats over the full video without a large semi-transparent column blocking the teacher figure.
 
-**File: `src/components/PageShell.tsx`**
+   The new layout for non-fullWidth pages:
+   - Children rendered in a centered column (`flex items-center justify-center`) with a max-width constraint (`max-w-md`)
+   - A subtle glass card (`bg-black/30 backdrop-blur-xl rounded-2xl border border-white/10`) wrapping children — much lighter than the current heavy column
+   - No gradient overlay darkening the video
 
-1. **Remove the iPad frame entirely** -- Replace the fixed-size centered container with a full-viewport layout:
-   - Outer wrapper: `min-h-screen w-full` (no padding, no centering)
-   - Inner container: `w-full h-screen` (no fixed dimensions, no rounded corners, no border/ring)
-   - Remove the decorative border, ring, and `rounded-[3rem]` that create the iPad bezel effect
-
-2. **Preserve all child layout logic** -- The `fullWidth` vs sidebar split, the background stage, compliance footer, and dev login panel all stay functionally identical, just now filling the full viewport instead of a fixed box.
-
-3. **Adjust border radii** -- Remove or reduce the inner `rounded-[2.5rem]` on the background stage since there's no bezel to inset from.
+3. **Update `objectPosition`** — Since there's no longer a right-side panel to offset the video subject against, change the non-fullWidth position from `"101% center"` to `"center center"` so the teacher is centered in frame.
 
 ### Result
-
-The app fills 100% of the browser window on desktop, and 100% of the screen on iPad/tablet. No wasted black canvas. The OmniMic button (portaled to `document.body`) will naturally sit over the actual content area since the content now IS the full viewport.
-
-### What stays the same
-- All page content, video backgrounds, left/right pillar layouts
-- Dev login panel positioning (top-left corner, now of the viewport)
-- GlobalOmniChat floating button (already portaled to body)
-- Compliance footer
+The full background video is visible edge-to-edge. The login/signup form floats as a centered glass card over the video. No column, no gradient strip, no shoulder anomaly.
 
