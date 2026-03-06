@@ -26,6 +26,9 @@ import WeekSelection from "./pages/WeekSelection";
 import IELTSPronunciation from "./pages/IELTSPronunciation";
 import IELTSFluency from "./pages/IELTSFluency";
 import IELTSSpeaking from "./pages/IELTSSpeaking";
+import IGCSEPronunciation from "./pages/IGCSEPronunciation";
+import IGCSEFluency from "./pages/IGCSEFluency";
+import IGCSESpeaking from "./pages/IGCSESpeaking";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +70,9 @@ const App = () => {
             <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><IELTSPronunciation /></ProtectedRoute>} />
             <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><IELTSFluency /></ProtectedRoute>} />
             <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><IELTSSpeaking /></ProtectedRoute>} />
+            <Route path="/igcse/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><IGCSEPronunciation /></ProtectedRoute>} />
+            <Route path="/igcse/fluency" element={<ProtectedRoute allowedRoles={["student"]}><IGCSEFluency /></ProtectedRoute>} />
+            <Route path="/igcse/speaking" element={<ProtectedRoute allowedRoles={["student"]}><IGCSESpeaking /></ProtectedRoute>} />
             <Route path="/analysis" element={<ProtectedRoute allowedRoles={["student"]}><StudentAnalysis /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
             <Route path="/teacher" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
