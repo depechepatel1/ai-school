@@ -55,12 +55,12 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   };
 
   return (
-    <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-8 font-outfit overflow-auto">
-      {/* iPad Frame */}
-      <div className="relative w-[1024px] h-[768px] bg-black overflow-hidden rounded-[3rem] border-8 border-gray-800 ring-8 ring-gray-900 select-none shadow-2xl">
+    <div className="h-screen w-full font-outfit overflow-hidden">
+      {/* Full Viewport Container */}
+      <div className="relative w-full h-full bg-black overflow-hidden select-none">
 
         {/* Background Stage */}
-        <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900 rounded-[2.5rem]">
+        <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900">
           {bgImage ? (
             <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
@@ -94,8 +94,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
         ) : (
           <div className="absolute right-0 top-0 bottom-0 w-[40%] min-w-[340px] z-20 flex flex-col py-[30px] pr-5 pl-0">
             <div className="relative group flex-1 flex flex-col">
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-[2.5rem] blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700" />
-              <div className="relative w-full flex-1 px-6 py-5 rounded-[2.5rem] bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
+              <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700" />
+              <div className="relative w-full flex-1 px-6 py-5 rounded-2xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 w-full flex-1 flex flex-col overflow-y-auto scrollbar-hide">
                   {children}
