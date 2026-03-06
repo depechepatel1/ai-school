@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList, Film } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList, Film, Timer, Upload } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, A
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
+import AdminTimerSettings from "@/components/admin/AdminTimerSettings";
+import AdminCurriculumUpload from "@/components/admin/AdminCurriculumUpload";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,7 +30,7 @@ async function adminAction(action: string, params: Record<string, any>) {
   return data;
 }
 
-type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit";
+type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -46,6 +48,8 @@ export default function AdminDashboard() {
     { id: "practice", label: "Logs", icon: <BarChart3 className="w-3.5 h-3.5" /> },
     { id: "conversations", label: "Chat", icon: <MessageSquare className="w-3.5 h-3.5" /> },
     { id: "audit", label: "Audit", icon: <ClipboardList className="w-3.5 h-3.5" /> },
+    { id: "timers", label: "Timers", icon: <Timer className="w-3.5 h-3.5" /> },
+    { id: "curriculum", label: "Curriculum", icon: <Upload className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -109,6 +113,8 @@ export default function AdminDashboard() {
               {activeTab === "practice" && <PracticePanel />}
               {activeTab === "conversations" && <ConversationsPanel />}
               {activeTab === "audit" && <AuditPanel />}
+              {activeTab === "timers" && <AdminTimerSettings />}
+              {activeTab === "curriculum" && <AdminCurriculumUpload />}
             </div>
           </motion.div>
         </div>
