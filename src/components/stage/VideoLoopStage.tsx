@@ -37,7 +37,7 @@ export default function VideoLoopStage({
   const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
   const useIntro = playIntro && !alreadyPlayedIntro;
 
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false); // Sound ON by default
   const [introFinished, setIntroFinished] = useState(!useIntro);
   const [activePlayer, setActivePlayer] = useState<"A" | "B">("A");
 
@@ -45,45 +45,32 @@ export default function VideoLoopStage({
   const refA = useRef<HTMLVideoElement>(null);
   const refB = useRef<HTMLVideoElement>(null);
   const nextIndexRef = useRef(2);
-  const initialPlayDone = useRef(false);
-
-  // Diagnostic: test if the first video URL is fetchable
-  useEffect(() => {
-    const testUrl = videoList[0];
-    console.log("[VideoDebug] Testing fetch for:", testUrl);
-    fetch(testUrl, { method: "HEAD" })
-      .then((res) => {
-        console.log("[VideoDebug] HEAD response:", {
-          status: res.status,
-          contentType: res.headers.get("content-type"),
-          contentLength: res.headers.get("content-length"),
-          allHeaders: Object.fromEntries(res.headers.entries()),
-        });
-      })
-      .catch((err) => console.error("[VideoDebug] HEAD fetch failed:", err));
-  }, [videoList]);
 
   const activeVideoRef = !introFinished ? introRef : activePlayer === "A" ? refA : refB;
 
-  // Robust play helper with retry for Edge
-  const safePlay = useCallback((v: HTMLVideoElement) => {
-    v.muted = true;
+  // Robust play helper — respects current muted state, falls back to muted if browser blocks
+  const safePlay = useCallback((v: HTMLVideoElement, forceMuted = false) => {
+    if (forceMuted) v.muted = true;
     v.play().catch(() => {
-      setTimeout(() => {
-        if (v) {
-          v.muted = true;
-          v.play().catch(() => {});
-        }
-      }, 150);
+      // Browser blocked unmuted autoplay — fall back to muted
+      v.muted = true;
+      v.play().catch(() => {});
     });
   }, []);
 
-  // Edge-safe: force muted on all video refs via DOM
+  // Try to autoplay intro with sound; browser may block and we fall back to muted
   useEffect(() => {
-    [introRef, refA, refB].forEach((ref) => {
-      if (ref.current) ref.current.muted = true;
+    if (!useIntro || !introRef.current) return;
+    const v = introRef.current;
+    v.muted = false;
+    v.volume = 1.0;
+    v.play().catch(() => {
+      // Browser blocked unmuted autoplay — fall back to muted, update UI state
+      v.muted = true;
+      setIsMuted(true);
+      v.play().catch(() => {});
     });
-  }, [introFinished]);
+  }, [useIntro]);
 
   const toggleAudio = () => {
     const vid = activeVideoRef.current;
@@ -92,7 +79,7 @@ export default function VideoLoopStage({
       const next = !isMuted;
       vid.muted = next;
       setIsMuted(next);
-      if (!next) safePlay(vid);
+      if (!next) vid.play().catch(() => {});
     }
   };
 
@@ -100,6 +87,20 @@ export default function VideoLoopStage({
     sessionStorage.setItem("intro_video_played", "true");
     setIntroFinished(true);
   };
+
+  // When intro finishes, explicitly start Player A (onCanPlay may have already fired)
+  useEffect(() => {
+    if (!introFinished) return;
+    if (refA.current) {
+      refA.current.muted = isMuted;
+      safePlay(refA.current);
+    }
+    // Preload Player B with next video
+    if (!shouldLoop && refB.current && videoList.length > 1) {
+      refB.current.src = videoList[1];
+      refB.current.load();
+    }
+  }, [introFinished]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // When active player ends, swap to preloaded one and queue next
   const handlePlayerEnded = useCallback(
@@ -109,7 +110,10 @@ export default function VideoLoopStage({
       const nextRef = nextPlayer === "A" ? refA : refB;
 
       setActivePlayer(nextPlayer);
-      if (nextRef.current) safePlay(nextRef.current);
+      if (nextRef.current) {
+        nextRef.current.muted = isMuted;
+        safePlay(nextRef.current);
+      }
 
       // Preload next video on the now-inactive player
       const inactiveRef = player === "A" ? refA : refB;
@@ -120,35 +124,23 @@ export default function VideoLoopStage({
         nextIndexRef.current = preloadIdx + 1;
       }
     },
-    [shouldLoop, videoList, safePlay]
+    [shouldLoop, videoList, safePlay, isMuted]
   );
 
-  // Initial preload: when intro finishes, ensure Player B has next video
+  // Sync muted state to the currently active video element
   useEffect(() => {
-    if (!introFinished || shouldLoop) return;
-    if (refB.current && videoList.length > 1) {
-      refB.current.src = videoList[1];
-      refB.current.load();
-    }
-  }, [introFinished, shouldLoop, videoList]);
-
-  // Auto-play Player A only once on initial load
-  const handleCanPlayA = useCallback(() => {
-    if (!introFinished || initialPlayDone.current) return;
-    initialPlayDone.current = true;
-    if (refA.current) safePlay(refA.current);
-  }, [introFinished, safePlay]);
+    const vid = activeVideoRef.current;
+    if (vid) vid.muted = isMuted;
+  }, [isMuted, activeVideoRef]);
 
   return (
     <>
-      {/* Intro video — plays once */}
+      {/* Intro video — plays once, attempts unmuted autoplay */}
       {useIntro && (
         <video
           ref={introRef}
           src={VIDEO_INTRO}
-          autoPlay
           playsInline
-          muted
           onEnded={handleIntroEnd}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
           style={{ objectPosition }}
@@ -165,7 +157,6 @@ export default function VideoLoopStage({
         loop={shouldLoop}
         preload="auto"
         onEnded={() => handlePlayerEnded("A")}
-        onCanPlay={handleCanPlayA}
         onError={(e) => {
           const v = e.currentTarget;
           console.error("[VideoPlayer] A error:", v.error?.code, v.error?.message, "src:", v.src);
