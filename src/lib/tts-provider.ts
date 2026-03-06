@@ -9,7 +9,7 @@ import { PROVIDERS } from "./provider-config";
 
 // ── Types ──────────────────────────────────────────────────────
 
-export type Accent = "uk" | "us";
+export type Accent = "uk" | "us" | "zh";
 
 export interface TTSHandle {
   /** Stop playback */
@@ -32,10 +32,34 @@ let cachedVoices: Record<string, SpeechSynthesisVoice | null> = {};
 let voicesReady = false;
 
 function findVoice(accent: Accent): SpeechSynthesisVoice | null {
-  const langPrefix = accent === "uk" ? "en-GB" : "en-US";
+  const langPrefix = accent === "uk" ? "en-GB" : accent === "us" ? "en-US" : "zh-CN";
   const voices = speechSynthesis.getVoices();
   if (voices.length === 0) return null;
 
+  if (accent === "zh") {
+    // Priority 1: Edge Natural female Chinese voices (Xiaoxiao, Xiaoyi)
+    const naturalFemale = voices.filter(
+      (v) => v.lang.startsWith("zh-CN") && v.name.includes("Natural") &&
+        (v.name.includes("Xiaoxiao") || v.name.includes("Xiaoyi") || !v.name.includes("Yun"))
+    );
+    if (naturalFemale.length > 0) return naturalFemale[0];
+
+    // Priority 2: Any Natural zh-CN voice
+    const natural = voices.filter(
+      (v) => v.lang.startsWith("zh-CN") && v.name.includes("Natural")
+    );
+    if (natural.length > 0) return natural[0];
+
+    // Priority 3: Any zh-CN voice
+    const any = voices.filter((v) => v.lang.startsWith("zh-CN"));
+    if (any.length > 0) return any[0];
+
+    // Priority 4: Any Chinese voice
+    const anyChinese = voices.find((v) => v.lang.startsWith("zh"));
+    return anyChinese || null;
+  }
+
+  // English voices
   // Priority 1: Edge "Natural" voices (highest quality)
   const natural = voices.filter(
     (v) => v.name.includes("Natural") && v.lang.startsWith(langPrefix)
@@ -56,7 +80,7 @@ function ensureVoices(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
   const load = () => {
-    cachedVoices = { uk: findVoice("uk"), us: findVoice("us") };
+    cachedVoices = { uk: findVoice("uk"), us: findVoice("us"), zh: findVoice("zh") };
     voicesReady = true;
   };
 
