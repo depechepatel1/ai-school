@@ -32,7 +32,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
 
-  const objectPosition = fullWidth ? "center center" : "20% center";
+  const objectPosition = fullWidth ? "center center" : "40% center";
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
