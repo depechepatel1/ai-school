@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { SEMESTER_WEEKS } from "@/lib/semester";
 import { motion } from "framer-motion";
-import { Calendar, CheckCircle, ArrowRight } from "lucide-react";
+import { Calendar, CheckCircle, ArrowRight, FastForward } from "lucide-react";
 import PageShell from "@/components/PageShell";
 
 export default function WeekSelection() {
@@ -99,12 +99,21 @@ export default function WeekSelection() {
           })}
         </div>
 
-        {/* Last session indicator */}
+        {/* Last session indicator + skip link */}
         {lastWeek > 0 && (
-          <p className="text-[11px] text-white/40 mb-6 flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
-            Last session: Week {lastWeek}
-          </p>
+          <div className="flex flex-col items-center gap-2 mb-6">
+            <p className="text-[11px] text-white/40 flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+              Last session: Week {lastWeek}
+            </p>
+            <button
+              onClick={() => navigate("/student", { replace: true })}
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400/70 hover:text-blue-300 transition-colors"
+            >
+              <FastForward className="w-3 h-3" />
+              Continue Week {lastWeek}
+            </button>
+          </div>
         )}
 
         {/* Confirm Button */}
