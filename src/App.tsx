@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import StudentAnalysis from "./pages/StudentAnalysis";
 import StudentProfile from "./pages/StudentProfile";
 import DevNav from "@/components/DevNav";
+import GlobalOmniChat from "@/components/GlobalOmniChat";
 import AdminUploadVideos from "./pages/AdminUploadVideos";
 import WeekSelection from "./pages/WeekSelection";
 import IELTSPronunciation from "./pages/IELTSPronunciation";
@@ -82,6 +83,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
           <DevNav />
+          <GlobalOmniChat />
         </AuthProvider>
       </BrowserRouter>
       </LanguageProvider>
