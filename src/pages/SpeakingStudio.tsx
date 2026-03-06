@@ -379,19 +379,19 @@ export default function SpeakingStudio() {
             </div>
 
             {/* Right action bar — lower-right */}
-            <div className="absolute bottom-32 right-5 flex flex-col items-center gap-3 z-50 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-3.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-slide-in-right">
-              <button onClick={handlePlayModel} className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
-                {isPlayingModel ? <Loader2 className="w-7 h-7 animate-spin" /> : <Headphones className="w-7 h-7 group-hover:scale-110 transition-transform" />}
+            <div className="absolute bottom-32 right-5 flex flex-col items-center gap-1.5 z-50 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-2.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-slide-in-right">
+              <button onClick={handlePlayModel} className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
+                {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />}
               </button>
-              <div className="w-8 h-px bg-white/[0.06]" />
-              <button onClick={handleRecord} className={`relative w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecordingShadow ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecordingShadow ? "Stop" : "Record"}>
-                {isRecordingShadow ? <div className="w-7 h-7 bg-white rounded-sm animate-pulse" /> : <Mic className="w-9 h-9 text-white/80" />}
+              <div className="w-6 h-px bg-white/[0.06]" />
+              <button onClick={handleRecord} className={`relative w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${isRecordingShadow ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecordingShadow ? "Stop" : "Record"}>
+                {isRecordingShadow ? <div className="w-5 h-5 bg-white rounded-sm animate-pulse" /> : <Mic className="w-7 h-7 text-white/80" />}
               </button>
-              <div className="w-8 h-px bg-white/[0.06]" />
+              <div className="w-6 h-px bg-white/[0.06]" />
               <button
               onClick={lastRecordingUrl ? handleReplay : undefined}
               disabled={!lastRecordingUrl}
-              className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group ${
+              className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group ${
               !lastRecordingUrl ?
               "text-white/20 opacity-30 cursor-not-allowed" :
               isPlayingReplay ?
@@ -399,14 +399,12 @@ export default function SpeakingStudio() {
               "text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`
               }
               title={!lastRecordingUrl ? "No recording yet" : isPlayingReplay ? "Stop Replay" : "Replay Your Recording"}>
-
-                <Play className="w-7 h-7 ml-0.5 group-hover:scale-110 transition-transform" />
+                <Play className="w-5 h-5 ml-0.5 group-hover:scale-110 transition-transform" />
               </button>
-              
-              <div className="w-8 h-px bg-white/[0.06]" />
+              <div className="w-6 h-px bg-white/[0.06]" />
               {(practiceType === "pronunciation" || practiceType === "fluency") &&
-            <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-90 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
-                  <SkipForward className="w-7 h-7 group-hover:scale-110 transition-transform" />
+            <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-12 h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-90 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
+                  <SkipForward className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </button>
             }
             </div>
