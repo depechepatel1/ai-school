@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Volume2, VolumeX } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -24,6 +25,9 @@ interface VideoLoopStageProps {
   videoList?: string[];
   playIntro?: boolean;
   objectPosition?: string;
+  /** If provided, the audio toggle is rendered externally via a portal-like pattern */
+  onMuteStateChange?: (isMuted: boolean) => void;
+  externalMuteControl?: boolean;
 }
 
 export default function VideoLoopStage({
@@ -183,14 +187,17 @@ export default function VideoLoopStage({
         />
       )}
 
-      {/* Audio Toggle */}
-      <button
-        onClick={toggleAudio}
-        className="absolute bottom-8 left-8 z-30 p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
-        title={isMuted ? "Unmute Background" : "Mute Background"}
-      >
-        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-      </button>
+      {/* Audio Toggle — portaled to body to escape z-0 stacking context */}
+      {createPortal(
+        <button
+          onClick={toggleAudio}
+          className="fixed bottom-12 left-12 z-[100] p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
+          title={isMuted ? "Unmute Background" : "Mute Background"}
+        >
+          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>,
+        document.body
+      )}
     </>
   );
 }
