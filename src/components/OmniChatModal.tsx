@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, forwardRef, useCallback } from "react";
-import { X, Send, Mic, Loader2, MicOff } from "lucide-react";
+import { X, Send, Mic, Loader2, MicOff, Volume2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { speak, stopSpeaking, type Accent } from "@/lib/tts-provider";
 import NeuralLogo from "./NeuralLogo";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,8 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
     const [isLoading, setIsLoading] = useState(false);
     const [conversationId, setConversationId] = useState<string | null>(null);
     const [isListening, setIsListening] = useState(false);
+    const [sttLang, setSttLang] = useState<"en-US" | "zh-CN">("en-US");
+    const [speakingMsgIdx, setSpeakingMsgIdx] = useState<number | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const abortRef = useRef<AbortController | null>(null);
     const sttRef = useRef<STTHandle | null>(null);
@@ -56,12 +59,16 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
       init().catch(console.error);
     }, [isOpen, session?.user?.id]);
 
-    // Stop listening when modal closes
+    // Stop listening & TTS when modal closes
     useEffect(() => {
-      if (!isOpen && sttRef.current) {
-        sttRef.current.stop();
-        sttRef.current = null;
-        setIsListening(false);
+      if (!isOpen) {
+        if (sttRef.current) {
+          sttRef.current.stop();
+          sttRef.current = null;
+          setIsListening(false);
+        }
+        stopSpeaking();
+        setSpeakingMsgIdx(null);
       }
     }, [isOpen]);
 
@@ -79,7 +86,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
       }
 
       setIsListening(true);
-      sttRef.current = startListening("en-US", {
+      sttRef.current = startListening(sttLang, {
         onResult: (text) => {
           setInput((prev) => (prev + " " + text).trim());
         },
@@ -93,7 +100,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
           sttRef.current = null;
         },
       }, true);
-    }, [isListening]);
+    }, [isListening, sttLang]);
 
     const send = useCallback(async () => {
       // Stop voice if active
@@ -145,6 +152,11 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
               await insertMessage(conversationId, "assistant", assistantSoFar).catch(
                 console.error,
               );
+              // Auto-speak if user wrote in Chinese
+              const hasChinese = /[\u4e00-\u9fa5]/.test(text);
+              if (hasChinese) {
+                speak(assistantSoFar, "zh");
+              }
             }
           },
           signal: controller.signal,
@@ -204,6 +216,27 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 {m.role === "assistant" ? (
                   <div className="prose prose-invert prose-xs max-w-none [&_p]:m-0 [&_p]:leading-relaxed">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (speakingMsgIdx === i) {
+                          stopSpeaking();
+                          setSpeakingMsgIdx(null);
+                        } else {
+                          stopSpeaking();
+                          const hasChinese = /[\u4e00-\u9fa5]/.test(m.content);
+                          const accent: Accent = hasChinese ? "zh" : "uk";
+                          const handle = speak(m.content, accent, {
+                            onEnd: () => setSpeakingMsgIdx(null),
+                          });
+                          setSpeakingMsgIdx(i);
+                        }
+                      }}
+                      className={`mt-1 p-0.5 rounded hover:bg-white/10 transition-colors ${speakingMsgIdx === i ? "text-blue-400" : "text-white/30 hover:text-white/60"}`}
+                      title="Read aloud"
+                    >
+                      <Volume2 className="w-3 h-3" />
+                    </button>
                   </div>
                 ) : (
                   m.content
@@ -239,6 +272,17 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 disabled={isLoading}
                 className="flex-1 bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none focus:ring-0 mr-2 disabled:opacity-50"
               />
+              {/* Language toggle */}
+              <button
+                type="button"
+                onClick={() => setSttLang(prev => prev === "en-US" ? "zh-CN" : "en-US")}
+                className="flex items-center gap-0.5 px-1.5 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-[9px] font-bold tracking-wide hover:bg-white/[0.1] transition-all select-none shrink-0"
+                title={sttLang === "en-US" ? "切换到中文" : "Switch to English"}
+              >
+                <span className={sttLang === "en-US" ? "text-blue-300" : "text-gray-500"}>EN</span>
+                <span className="text-gray-600">/</span>
+                <span className={sttLang === "zh-CN" ? "text-blue-300" : "text-gray-500"}>中</span>
+              </button>
               {/* Voice toggle button — shown when input is empty and not loading */}
               {!input.trim() && !isLoading && (
                 <button
