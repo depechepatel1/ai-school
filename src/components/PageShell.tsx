@@ -32,7 +32,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
   const [devOpen, setDevOpen] = useState(false);
   const [devLoading, setDevLoading] = useState<string | null>(null);
 
-  const objectPosition = fullWidth ? "center center" : "30% center";
+  // Transform-based shift replaces object-position for auth screens
 
   const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
     setDevLoading(account.email);
@@ -60,29 +60,42 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
 
         {/* Background Stage */}
-        <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900">
+        <div
+          className="absolute inset-0 z-0 overflow-hidden bg-gray-900"
+          style={!fullWidth ? { transform: 'translateX(-15%)', width: '130%' } : undefined}
+        >
           {bgImage ? (
             <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <BackgroundStage
               videoList={loopVideos}
               playIntro={playIntroVideo}
-              objectPosition={objectPosition}
+              objectPosition="center center"
             />
           )}
-
         </div>
 
         {/* Compliance Footer */}
         {!hideFooter && (
-          <div className={`absolute bottom-0 left-0 z-20 pb-6 pt-12 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none ${fullWidth ? "right-0" : "right-[40%]"}`}>
-            <div className="flex flex-col items-center gap-2 pointer-events-auto">
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] text-gray-400 font-medium tracking-wide shadow-xl">
-                <ShieldCheck className="w-3 h-3 text-green-500" />
-                <span>Data Resides in Mainland China (Aliyun)</span>
+          fullWidth ? (
+            <div className="absolute bottom-0 left-0 right-0 z-20 pb-6 pt-12 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none">
+              <div className="flex flex-col items-center gap-2 pointer-events-auto">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] text-gray-400 font-medium tracking-wide shadow-xl">
+                  <ShieldCheck className="w-3 h-3 text-green-500" />
+                  <span>Data Resides in Mainland China (Aliyun)</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="absolute bottom-0 left-0 right-0 z-20 pb-6 px-6 pointer-events-none">
+              <div className="flex flex-col items-center gap-2 pointer-events-auto">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] text-gray-400 font-medium tracking-wide shadow-xl">
+                  <ShieldCheck className="w-3 h-3 text-green-500" />
+                  <span>Data Resides in Mainland China (Aliyun)</span>
+                </div>
+              </div>
+            </div>
+          )
         )}
 
         {/* Content Layer */}
@@ -92,7 +105,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
           </div>
         ) : (
           <div className="absolute inset-0 z-20 flex items-center justify-end pr-8 p-6">
-            <div className="w-full max-w-md px-6 py-8 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)] flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide">
+            <div className="w-full max-w-md px-6 py-8 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide">
               {children}
             </div>
           </div>
