@@ -199,6 +199,39 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_metadata: {
+        Row: {
+          course_type: string
+          file_path: string
+          id: string
+          is_active: boolean
+          module_type: string
+          uploaded_at: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          course_type: string
+          file_path: string
+          id?: string
+          is_active?: boolean
+          module_type: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          course_type?: string
+          file_path?: string
+          id?: string
+          is_active?: boolean
+          module_type?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -249,6 +282,45 @@ export type Database = {
           linked_at?: string
           parent_id?: string
           student_id?: string
+        }
+        Relationships: []
+      }
+      practice_time_log: {
+        Row: {
+          course_type: string
+          created_at: string
+          extended_time_seconds: number
+          id: string
+          module_type: string
+          required_time_seconds: number
+          session_date: string
+          student_id: string
+          total_time_seconds: number
+          week_number: number
+        }
+        Insert: {
+          course_type: string
+          created_at?: string
+          extended_time_seconds?: number
+          id?: string
+          module_type: string
+          required_time_seconds?: number
+          session_date?: string
+          student_id: string
+          total_time_seconds?: number
+          week_number?: number
+        }
+        Update: {
+          course_type?: string
+          created_at?: string
+          extended_time_seconds?: number
+          id?: string
+          module_type?: string
+          required_time_seconds?: number
+          session_date?: string
+          student_id?: string
+          total_time_seconds?: number
+          week_number?: number
         }
         Relationships: []
       }
@@ -342,6 +414,60 @@ export type Database = {
           updated_at?: string
           user_id?: string
           week_number?: number
+        }
+        Relationships: []
+      }
+      student_progress: {
+        Row: {
+          course_type: string
+          current_position: Json
+          id: string
+          last_accessed: string | null
+          module_type: string
+          student_id: string
+        }
+        Insert: {
+          course_type: string
+          current_position?: Json
+          id?: string
+          last_accessed?: string | null
+          module_type: string
+          student_id: string
+        }
+        Update: {
+          course_type?: string
+          current_position?: Json
+          id?: string
+          last_accessed?: string | null
+          module_type?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
+      timer_settings: {
+        Row: {
+          countdown_minutes: number
+          course_type: string
+          id: string
+          module_type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          countdown_minutes: number
+          course_type: string
+          id?: string
+          module_type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          countdown_minutes?: number
+          course_type?: string
+          id?: string
+          module_type?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
