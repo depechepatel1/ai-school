@@ -260,9 +260,9 @@ export default function SpeakingStudio() {
           <button onClick={() => navigate("/student")} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 backdrop-blur-2xl border border-white/10 text-white/60 hover:text-white hover:bg-black/70 hover:border-white/20 transition-all text-[11px] font-semibold tracking-wide group">
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
           </button>
-          {practiceMode === "homework" && courseWeek.courseType && (
-            <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl">
-              {courseWeek.courseType === "ielts" ? "IELTS" : "IGCSE"} · Homework · Speaking
+          {courseWeek.courseType && (
+            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl ${practiceMode === "homework" ? "bg-amber-500/20 border border-amber-500/30 text-amber-300" : "bg-white/[0.06] border border-white/10 text-white/50"}`}>
+              {courseWeek.courseType === "ielts" ? "IELTS" : "IGCSE"} · {practiceMode === "homework" ? "Homework" : "Free Practice"} · Speaking
             </span>
           )}
         </div>
