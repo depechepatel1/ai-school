@@ -1,17 +1,38 @@
 
 
-## Problem
+## Plan: Draggable Siri-style OmniMic Button
 
-The `OmniMicButton` currently calls `navigate("/speaking")`, taking the student away from the dashboard. It should instead open the `OmniChatModal` (which already exists with full streaming AI chat, voice input, and conversation persistence).
+### What changes
 
-## Plan
+**File: `src/components/GlobalOmniChat.tsx`**
 
-**File: `src/components/student/OmniMicButton.tsx`**
+1. **Draggable behavior** — Track pointer events (onPointerDown/Move/Up) to let the user drag the button anywhere on screen. Use a `position` state `{x, y}` with `translate` styling. Distinguish drag vs click by checking total movement distance (< 5px = click, otherwise drag). Persist position in component state only (resets on reload, which is fine).
 
-1. Replace the `navigate("/speaking")` call with an `onClick` that toggles a local `chatOpen` state.
-2. Import and render `OmniChatModal` inline, controlled by that state.
-3. Remove the `react-router-dom` import (no longer needed).
-4. Keep the teacher hint bubble and the pulsing mic button visuals unchanged.
+2. **Siri-style pulsing orb animation** — Replace the current solid blue circle + ping animation with:
+   - A radial gradient orb using soft purple/blue/pink tones (like Apple's Siri blob)
+   - Multiple layered `div`s with different scale/opacity keyframe animations at staggered speeds to create the organic, breathing glow effect
+   - CSS keyframes added inline or via Tailwind arbitrary values: slow scale pulse (2.5s), a counter-rotating outer glow (3s), and a soft color-shift gradient animation
+   - The Mic icon remains centered with a subtle glow
 
-**Result:** Tapping the OmniMic FAB opens the AI chat panel (Teacher Li) as a floating modal anchored to the button's position — no page navigation. The modal already handles streaming responses, voice input, markdown rendering, and conversation persistence.
+3. **OmniChatModal anchor** — The modal renders relative to the button's current dragged position (anchored above-left of the button).
+
+### CSS keyframes to add in `src/index.css`
+
+```css
+@keyframes siri-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes siri-breathe {
+  0%, 100% { transform: scale(0.95); }
+  50% { transform: scale(1.05); }
+}
+@keyframes siri-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+```
+
+### Visual result
+A soft, glowing orb with layered purple-blue-pink gradients that pulses and breathes like the iOS Siri widget. Draggable anywhere on screen. Tapping opens the AI chat modal.
 
