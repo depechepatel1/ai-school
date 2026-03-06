@@ -1,30 +1,36 @@
 
 
-## Plan: Bilingual Voice Input + Chinese TTS for OmniChat
+## The Problem
 
-### Overview
-Enable the OmniMic to accept both English and Chinese speech input, with automatic language detection via a toggle. When the AI responds to Chinese input, use a high-quality female Chinese Natural voice from Edge browser for TTS read-aloud.
+You're right to flag this. The current `PageShell` component hardcodes a fixed `1024x768` iPad-shaped frame centered on a dark background:
 
-### Changes
+```
+<div className="min-h-screen bg-neutral-900 flex items-center justify-center p-8">
+  <div className="relative w-[1024px] h-[768px] rounded-[3rem] border-8 ...">
+```
 
-**1. Extend TTS provider to support Chinese voices** (`src/lib/tts-provider.ts`)
-- Expand the `Accent` type to include `"zh"`: `type Accent = "uk" | "us" | "zh"`
-- Update `findVoice` to handle `"zh"` — map to `zh-CN` lang prefix, prioritize Edge Natural female voices (e.g., "Xiaoxiao", "Xiaoyi")
-- Update `cachedVoices` initialization to include `zh` key
+This means on any screen larger than 1024x768, there will be dead black space around the frame. On an actual iPad or tablet, it won't fill the screen either. It's a design mockup frame, not a production layout.
 
-**2. Add language toggle to OmniChatModal** (`src/components/OmniChatModal.tsx`)
-- Add a `sttLang` state: `"en-US" | "zh-CN"`, defaulting to `"en-US"`
-- Add a small EN/中 toggle button in the input bar (similar to existing `LanguageToggle` style) that switches `sttLang`
-- Pass `sttLang` to `startListening()` instead of hardcoded `"en-US"`
-- After receiving an assistant response, detect if the user's message was Chinese (simple heuristic: contains CJK characters) and if so, auto-speak the response using `speak(text, "zh")` from `tts-provider`
+## Plan: Make PageShell fill the viewport
 
-**3. Auto-speak assistant responses in Chinese** (`src/components/OmniChatModal.tsx`)
-- Import `speak, stopSpeaking` from `tts-provider`
-- In `onDone` callback of `streamChat`, if the user's message contained Chinese characters, call `speak(assistantSoFar, "zh")` to read the response aloud in the Chinese Natural voice
-- Add a small speaker icon on assistant messages to manually trigger TTS playback
+**File: `src/components/PageShell.tsx`**
 
-### Visual result
-- A small `EN/中` pill appears next to the mic button in the chat input bar
-- When set to 中, STT listens in Chinese; the AI response is automatically spoken aloud in a female Chinese Natural voice
-- When set to EN, behavior remains unchanged (English STT, no auto-speak)
+1. **Remove the iPad frame entirely** -- Replace the fixed-size centered container with a full-viewport layout:
+   - Outer wrapper: `min-h-screen w-full` (no padding, no centering)
+   - Inner container: `w-full h-screen` (no fixed dimensions, no rounded corners, no border/ring)
+   - Remove the decorative border, ring, and `rounded-[3rem]` that create the iPad bezel effect
+
+2. **Preserve all child layout logic** -- The `fullWidth` vs sidebar split, the background stage, compliance footer, and dev login panel all stay functionally identical, just now filling the full viewport instead of a fixed box.
+
+3. **Adjust border radii** -- Remove or reduce the inner `rounded-[2.5rem]` on the background stage since there's no bezel to inset from.
+
+### Result
+
+The app fills 100% of the browser window on desktop, and 100% of the screen on iPad/tablet. No wasted black canvas. The OmniMic button (portaled to `document.body`) will naturally sit over the actual content area since the content now IS the full viewport.
+
+### What stays the same
+- All page content, video backgrounds, left/right pillar layouts
+- Dev login panel positioning (top-left corner, now of the viewport)
+- GlobalOmniChat floating button (already portaled to body)
+- Compliance footer
 
