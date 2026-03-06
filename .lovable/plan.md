@@ -24,4 +24,3 @@ The looping video shows the teacher's head and shoulders -- the teacher's face i
 - Auth screens: glass card pinned right (~40% width), teacher's face centered in the remaining left 60%
 - Full-width screens: unchanged, video centered
 - Teacher's face is never obscured by UI
-
