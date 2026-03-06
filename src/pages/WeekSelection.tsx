@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
@@ -12,6 +12,12 @@ export default function WeekSelection() {
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
   const [picked, setPicked] = useState<number | null>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  const handlePick = (w: number) => {
+    setPicked(w);
+    setTimeout(() => confirmRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+  };
 
   // Pre-select last used week once loaded
   useEffect(() => {
@@ -67,7 +73,7 @@ export default function WeekSelection() {
                 key={w}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => setPicked(w)}
+                onClick={() => handlePick(w)}
                 className={`
                   relative flex flex-col items-center justify-center py-3.5 rounded-xl border transition-all duration-200
                   ${isSelected
@@ -118,6 +124,7 @@ export default function WeekSelection() {
 
         {/* Confirm Button */}
         <motion.button
+          ref={confirmRef}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleConfirm}
