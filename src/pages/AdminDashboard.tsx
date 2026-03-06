@@ -519,6 +519,16 @@ function UsersPanel() {
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const matchesSearch = !searchQuery || (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRole = roleFilter === "all" || u.role === roleFilter;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchQuery, roleFilter]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [searchQuery, roleFilter]);
   const handleRoleChange = async (userId: string, newRole: string) => {
     setBusy(true);
     try {
@@ -598,16 +608,6 @@ function UsersPanel() {
 
   const isSelf = (uid: string) => uid === currentUser?.id;
 
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      const matchesSearch = !searchQuery || (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRole = roleFilter === "all" || u.role === roleFilter;
-      return matchesSearch && matchesRole;
-    });
-  }, [users, searchQuery, roleFilter]);
-
-  // Reset page when filters change
-  useEffect(() => { setPage(1); }, [searchQuery, roleFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
   const pagedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
