@@ -13,7 +13,7 @@ export default function Index() {
       return;
     }
     if (!role) return;
-    const routes: Record<string, string> = { student: "/student", teacher: "/teacher", parent: "/parent" };
+    const routes: Record<string, string> = { student: "/select-week", teacher: "/teacher", parent: "/parent", admin: "/admin" };
     navigate(routes[role] || "/signup", { replace: true });
   }, [user, role, loading, navigate]);
 
