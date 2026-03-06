@@ -161,6 +161,19 @@
   50% { transform: scale(1.05) rotate(2deg); filter: drop-shadow(0 0 25px rgba(249, 115, 22, 0.7)); opacity: 1; }
 }
 
+@keyframes siri-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes siri-breathe {
+  0%, 100% { transform: scale(0.95); }
+  50% { transform: scale(1.05); }
+}
+@keyframes siri-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @layer utilities {
   .animate-countdown-pop {
     animation: countdown-pop 0.9s ease-out forwards;
