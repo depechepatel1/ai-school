@@ -1,78 +1,55 @@
 
 
-## Plan: Unified Transcript Bar + Auto-Punctuation (Provider-Swappable)
+## Phase 1: Database & Curriculum Storage Setup
 
-### Summary
+### Step 1.1 — Create `curriculums` Storage Bucket
 
-1. Show a full-width `LiveTranscriptBar` in **both** homework and independent modes, replacing the "You" chat bubble
-2. Auto-punctuate raw STT output using a lightweight AI call
-3. Route the punctuation call through a **provider abstraction** so it can be swapped from Lovable AI to Aliyun DashScope by changing a single flag
+Single migration to:
+- Create a new public bucket `curriculums`
+- Add storage RLS policies: authenticated read; admins/teachers write
 
-### Files
+### Step 1.2 — Create 4 Database Tables
 
-| File | Action |
-|------|--------|
-| `src/lib/punctuate.ts` | **Create** — provider-routed punctuation service |
-| `supabase/functions/punctuate/index.ts` | **Create** — edge function with provider switching |
-| `src/components/speaking/LiveTranscriptBar.tsx` | **Create** — transcript display component |
-| `src/hooks/useSpeakingTest.ts` | **Modify** — expose reactive `liveTranscript` / `liveInterim`, debounced punctuation |
-| `src/pages/SpeakingStudio.tsx` | **Modify** — render transcript bar in both modes, remove "You" bubble |
-| `src/lib/provider-config.ts` | **Modify** — add `punctuation` provider flag |
+All in one migration with RLS and seed data:
 
-### Detail
+**`curriculum_metadata`** — tracks active JSON files in the bucket
+- id (uuid PK), course_type (text), module_type (text), file_path (text), version (int default 1), uploaded_at (timestamptz), uploaded_by (uuid), is_active (boolean default true)
+- RLS: authenticated read; admin/teacher insert; admin update/delete
 
-**1. Provider config — add punctuation flag**
+**`student_progress`** — per-student resume position
+- id (uuid PK), student_id (uuid), course_type (text), module_type (text), current_position (jsonb default '{}'), last_accessed (timestamptz)
+- Unique on (student_id, course_type, module_type)
+- RLS: own data read/upsert; teachers/parents/admins can read
 
-```typescript
-export const PROVIDERS = {
-  // ...existing flags...
-  /** "lovable" = Lovable AI gateway, "aliyun" = DashScope qwen-turbo */
-  punctuation: "lovable" as "lovable" | "aliyun",
-};
-```
+**`practice_time_log`** — session duration tracking
+- id (uuid PK), student_id (uuid), course_type (text), module_type (text), session_date (date), required_time_seconds (int default 0), extended_time_seconds (int default 0), total_time_seconds (int default 0), week_number (int default 1), created_at (timestamptz)
+- RLS: own data read/insert; teachers/parents/admins can read
 
-**2. Edge function `supabase/functions/punctuate/index.ts`**
+**`timer_settings`** — admin-configurable countdown durations
+- id (uuid PK), course_type (text), module_type (text), countdown_minutes (int), updated_by (uuid), updated_at (timestamptz)
+- Unique on (course_type, module_type)
+- RLS: authenticated read; admin insert/update
+- Seeded with 6 rows:
 
-- Reads an env var `PUNCTUATION_PROVIDER` (default `"lovable"`)
-- If `"lovable"`: calls `https://ai.gateway.lovable.dev/v1/chat/completions` with `google/gemini-2.5-flash-lite`, using `LOVABLE_API_KEY`
-- If `"aliyun"`: calls `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` with `qwen-turbo`, using `DASHSCOPE_API_KEY`
-- Both use the identical OpenAI-compatible request shape, so the only differences are URL, API key, and model name
-- System prompt: *"Add correct punctuation and capitalisation to this spoken English text. Return only the corrected text."*
-- Non-streaming, returns `{ text: "punctuated result" }`
+| Course | Module | Minutes |
+|--------|--------|---------|
+| ielts | shadowing-pronunciation | 5 |
+| ielts | shadowing-fluency | 10 |
+| ielts | speaking | 12 |
+| igcse | shadowing-pronunciation | 5 |
+| igcse | shadowing-fluency | 10 |
+| igcse | speaking | 10 |
 
-**3. Client service `src/lib/punctuate.ts`**
+### File Mapping (for later upload steps)
 
-- Exports `punctuate(rawText: string): Promise<string>`
-- Calls the `punctuate` edge function via `supabase.functions.invoke`
-- Includes a debounce wrapper (`debouncedPunctuate`) that waits 800ms after last call before firing
+| Uploaded File | Bucket Path |
+|--------------|-------------|
+| Tongue_Twisters_Curriculum.txt | `shared/tongue-twisters.json` (also serves as `ielts/shadowing-pronunciation.json`) |
+| IELTS_APP_Shadowing_chunks-3.txt | `ielts/shadowing-fluency.json` |
+| master_Curiculum.json | `ielts/speaking-questions.json` |
+| IGCSE_Course_Shadowing_Chunks-3.txt | `igcse/shadowing-fluency.json` |
+| IGCSE_pronunciation_shadowing.txt | `igcse/shadowing-pronunciation.json` |
+| IGCSE_course_data.csv | `igcse/speaking-questions.json` (will convert to JSON) |
 
-**4. `LiveTranscriptBar` component**
-
-- Full-width, absolute positioned above bottom dock (`bottom-24`)
-- `ScrollArea` with `max-h-[6rem]` (~4 visible lines), `text-base leading-relaxed`
-- Shows finalised text in white, interim text appended in italic `text-white/50`
-- Auto-scrolls to bottom via ref + `useEffect`
-- Glassmorphism styling (`bg-black/50 backdrop-blur-2xl border border-white/10 rounded-2xl`)
-
-**5. `useSpeakingTest` hook changes**
-
-- Add `useState` for `liveTranscript` and `liveInterim` alongside existing refs
-- `onResult` callback: update both ref and state, trigger `debouncedPunctuate` which replaces `liveTranscript` with punctuated version
-- `onInterim` callback: update `liveInterim` state
-- `clearTranscript()` resets both
-- Return `liveTranscript`, `liveInterim`, `clearTranscript`
-
-**6. `SpeakingStudio.tsx` changes**
-
-- Remove the "You" chat bubble in **all** modes
-- Render `<LiveTranscriptBar>` above the bottom action bar in both homework and independent modes
-- Keep Teacher/Persona chat panel for independent mode
-
-### Provider swap path
-
-To switch to Aliyun DashScope later:
-1. Set backend secret `PUNCTUATION_PROVIDER=aliyun` and add `DASHSCOPE_API_KEY`
-2. Optionally update `provider-config.ts` flag for any client-side branching
-
-No other code changes needed — the edge function handles the routing internally.
+No code files change in this step — purely database/storage infrastructure.
 
