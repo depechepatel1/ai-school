@@ -1,29 +1,52 @@
 
+## Relocate Speaking Questions UI to Unobscure Teacher
 
-## Analysis
+### Problem
+The current center-top question box (lines 440-476 in SpeakingStudio.tsx) blocks the teacher's face, violating the teacher-focus design principle.
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Solution
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+**1. Move question text into LiveTranscriptBar**
+- Add `questionText` prop to `LiveTranscriptBar`
+- Display question in a header row above the transcript content with subtle styling (smaller text, different color accent)
+- Question appears at top of the 12rem transcript bar, transcript scrolls below it
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+**2. Create left-side floating panel**
+- Position: `absolute left-4 top-1/2 -translate-y-1/2` — vertically centered on left edge
+- Compact glassmorphism card containing:
+  - Week number badge + WeekSelector dropdown
+  - Question number indicator (Part 2 · Q1)
+  - "Next Question" button
+  - HomeworkInstructions collapsible (when in homework mode)
+- Max width ~200px to stay minimal
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+**3. Remove center question box**
+- Delete the `absolute top-6 left-1/2` div that currently renders the question
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+### Files to Change
 
----
+| File | Changes |
+|------|---------|
+| `src/components/speaking/LiveTranscriptBar.tsx` | Add `questionText` prop, render question header row above transcript |
+| `src/components/speaking/SpeakingLeftPanel.tsx` | **New** — floating left panel with week/question info, next button, homework tasks |
+| `src/pages/SpeakingStudio.tsx` | Remove center box (lines 440-476), add `SpeakingLeftPanel`, pass `questionText` to `LiveTranscriptBar` |
 
-## Changes -- `src/components/PageShell.tsx`
-
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
-
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
-
+### UI Layout
+```text
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  ┌────────┐                              [XP] [Right]   │
+│  │Week 6  │                                   [Buttons] │
+│  │Part 2  │         TEACHER VIDEO                       │
+│  │Q1      │                                             │
+│  │[Next]  │                                             │
+│  │[Tasks] │                                             │
+│  └────────┘                                             │
+│                                                         │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │ Q: Describe a place with trees you'd like to visit │││
+│  │─────────────────────────────────────────────────────││
+│  │ [Transcript text scrolls here...]                  │││
+│  └─────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────┘
+```
