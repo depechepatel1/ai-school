@@ -19,7 +19,7 @@ export default function LiveTranscriptBar({ transcript, interim, isRecording, qu
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.6)] animate-fade-in">
-      <ScrollArea className="h-[12rem]">
+      <ScrollArea className="h-[9rem]">
         <div className="px-5 py-3">
           {/* Question always displayed at top */}
           {questionText && (
