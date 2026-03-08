@@ -209,7 +209,7 @@ export default function AdminCurriculumUpload() {
         uploaded_by: user?.id ?? null,
       });
 
-      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${selectedCourse.toUpperCase()} ${selectedModule}` });
+      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}` });
       await loadMetadata();
     } catch (err) {
       toast({ title: "Upload failed", description: String(err), variant: "destructive" });
