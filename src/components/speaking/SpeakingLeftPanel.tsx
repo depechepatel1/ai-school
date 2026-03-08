@@ -1,6 +1,5 @@
 import { ChevronRight } from "lucide-react";
 import WeekSelector from "./WeekSelector";
-import HomeworkInstructions from "./HomeworkInstructions";
 
 interface SpeakingLeftPanelProps {
   weekNumber: number;
@@ -10,9 +9,6 @@ interface SpeakingLeftPanelProps {
   questionIndex: number;
   totalQuestions: number;
   onNextQuestion?: () => void;
-  showHomeworkTasks?: boolean;
-  shadowingWeek?: number;
-  userId?: string | null;
 }
 
 export default function SpeakingLeftPanel({
@@ -23,9 +19,6 @@ export default function SpeakingLeftPanel({
   questionIndex,
   totalQuestions,
   onNextQuestion,
-  showHomeworkTasks,
-  shadowingWeek,
-  userId,
 }: SpeakingLeftPanelProps) {
   return (
     <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[80] w-[200px] flex flex-col gap-3 animate-fade-in">
@@ -65,6 +58,7 @@ export default function SpeakingLeftPanel({
             <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </button>
         )}
+      </div>
     </div>
   );
 }

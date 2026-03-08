@@ -37,6 +37,7 @@ import { PART2_TOPIC } from "@/types/speaking";
 import WeekSelector from "@/components/speaking/WeekSelector";
 import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curriculum-storage";
 import SpeakingLeftPanel from "@/components/speaking/SpeakingLeftPanel";
+import HomeworkInstructions from "@/components/speaking/HomeworkInstructions";
 
 export default function SpeakingStudio() {
   const navigate = useNavigate();
