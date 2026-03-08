@@ -159,6 +159,8 @@ export default function AdminCurriculumUpload() {
     setUploading(true);
     try {
       const filePath = getFilePath(selectedCourse, selectedModule);
+      // Pronunciation is shared across courses
+      const effectiveCourse = selectedModule === "shadowing-pronunciation" ? "shared" : selectedCourse;
 
       // Read file content — convert .docx/.txt to pass through, .json directly
       let fileContent: string;
@@ -182,7 +184,7 @@ export default function AdminCurriculumUpload() {
       await supabase
         .from("curriculum_metadata")
         .update({ is_active: false })
-        .eq("course_type", selectedCourse)
+        .eq("course_type", effectiveCourse)
         .eq("module_type", selectedModule)
         .eq("is_active", true);
 
@@ -190,7 +192,7 @@ export default function AdminCurriculumUpload() {
       const { data: versionData } = await supabase
         .from("curriculum_metadata")
         .select("version")
-        .eq("course_type", selectedCourse)
+        .eq("course_type", effectiveCourse)
         .eq("module_type", selectedModule)
         .order("version", { ascending: false })
         .limit(1);
@@ -199,7 +201,7 @@ export default function AdminCurriculumUpload() {
 
       // Insert new metadata
       await supabase.from("curriculum_metadata").insert({
-        course_type: selectedCourse,
+        course_type: effectiveCourse,
         module_type: selectedModule,
         file_path: filePath,
         version: nextVersion,
@@ -207,7 +209,7 @@ export default function AdminCurriculumUpload() {
         uploaded_by: user?.id ?? null,
       });
 
-      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${selectedCourse.toUpperCase()} ${selectedModule}` });
+      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}` });
       await loadMetadata();
     } catch (err) {
       toast({ title: "Upload failed", description: String(err), variant: "destructive" });
