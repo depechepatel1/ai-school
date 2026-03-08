@@ -90,7 +90,7 @@ const TARGET_WORDS = 10;
  * Split plain text into chunks of ~8-12 words at natural boundaries.
  * Keeps Chinese annotations in parentheses attached to preceding words.
  */
-function chunkText(text: string): CurriculumChunk[] {
+export function chunkText(text: string): CurriculumChunk[] {
   if (!text) return [];
 
   // First split into sentences (keep delimiter attached)
