@@ -479,17 +479,19 @@ export default function SpeakingStudio() {
               questionText={speakingQuestions[currentQuestionIndex]?.text.split("?")[0] + "?" || undefined}
             />
 
-            {/* Bottom action bar — floats above transcript bar */}
-            <div className="absolute bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
-              <button onClick={handleRecord}
-            className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${test.isRecording ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}>
-                {test.isRecording ? <div className="w-4 h-4 bg-white rounded animate-pulse" /> : <Mic className="w-6 h-6 text-white" />}
-              </button>
-              {(test.testState.currentPart === "part1" || test.testState.currentPart === "part3") && test.isRecording &&
-            <button onClick={test.handleNextQuestion} className="p-2 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white transition-colors shadow-lg" title="Next Question">
-                  <ChevronRight className="w-5 h-5" />
+            {/* Mic button — right side, vertically centered in available space */}
+            <div className="absolute right-0 top-0 bottom-[12rem] w-[280px] flex items-center justify-center z-[310]">
+              <div className="flex items-center gap-3 p-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
+                <button onClick={handleRecord}
+                  className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${test.isRecording ? "bg-red-500 shadow-[0_0_40px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}>
+                  {test.isRecording ? <div className="w-6 h-6 bg-white rounded animate-pulse" /> : <Mic className="w-9 h-9 text-white" />}
                 </button>
-            }
+                {(test.testState.currentPart === "part1" || test.testState.currentPart === "part3") && test.isRecording &&
+                  <button onClick={test.handleNextQuestion} className="p-3 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white transition-colors shadow-lg" title="Next Question">
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                }
+              </div>
             </div>
           </>
         }
