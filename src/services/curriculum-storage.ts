@@ -36,42 +36,80 @@ export interface CurriculumWeek {
 
 export type CurriculumData = CurriculumWeek[];
 
-const cache = new Map<string, CurriculumData>();
+const cache = new Map<string, { data: CurriculumData; version: number }>();
+
+/** Clear cached curriculum so next fetch pulls fresh data. */
+export function clearCurriculumCache() {
+  cache.clear();
+}
 
 /**
  * Fetch and parse curriculum JSON for a given course type.
- * Tries storage bucket first, falls back to /data/ local files.
+ * 1. Query curriculum_metadata for active shadowing-fluency file_path
+ * 2. Fetch from 'curriculums' bucket using that path
+ * 3. Fall back to legacy 'curriculum' bucket
+ * 4. Fall back to local /data/ files
  */
 export async function fetchCurriculumJSON(
   courseType: "ielts" | "igcse"
 ): Promise<CurriculumData> {
-  const fileName = courseType === "ielts" ? "ielts-shadowing.json" : "igcse-shadowing.json";
+  const cacheKey = `${courseType}/shadowing-fluency`;
 
-  if (cache.has(fileName)) return cache.get(fileName)!;
+  // Check metadata for active version
+  const { data: metaRows } = await supabase
+    .from("curriculum_metadata")
+    .select("file_path, version")
+    .eq("course_type", courseType)
+    .eq("module_type", "shadowing-fluency")
+    .eq("is_active", true)
+    .limit(1);
 
-  // Try storage bucket first
-  const { data: urlData } = supabase.storage
-    .from("curriculum")
-    .getPublicUrl(fileName);
+  const meta = metaRows?.[0] ?? null;
+  const cachedVersion = cache.get(cacheKey)?.version ?? -1;
 
-  if (urlData?.publicUrl) {
-    try {
-      const res = await fetch(urlData.publicUrl);
-      if (res.ok) {
-        const json = await res.json() as CurriculumData;
-        cache.set(fileName, json);
-        return json;
-      }
-    } catch {
-      // fall through to local
-    }
+  // Return cache if version matches
+  if (meta && cachedVersion === meta.version) {
+    return cache.get(cacheKey)!.data;
   }
 
+  // Try 'curriculums' bucket with metadata path
+  if (meta?.file_path) {
+    try {
+      const { data: urlData } = supabase.storage
+        .from("curriculums")
+        .getPublicUrl(meta.file_path);
+      if (urlData?.publicUrl) {
+        const res = await fetch(`${urlData.publicUrl}?t=${Date.now()}`);
+        if (res.ok) {
+          const json = await res.json() as CurriculumData;
+          cache.set(cacheKey, { data: json, version: meta.version });
+          return json;
+        }
+      }
+    } catch { /* fall through */ }
+  }
+
+  // Fallback: legacy 'curriculum' bucket
+  const legacyName = courseType === "ielts" ? "ielts-shadowing.json" : "igcse-shadowing.json";
+  try {
+    const { data: urlData } = supabase.storage
+      .from("curriculum")
+      .getPublicUrl(legacyName);
+    if (urlData?.publicUrl) {
+      const res = await fetch(`${urlData.publicUrl}?t=${Date.now()}`);
+      if (res.ok) {
+        const json = await res.json() as CurriculumData;
+        cache.set(cacheKey, { data: json, version: meta?.version ?? 0 });
+        return json;
+      }
+    }
+  } catch { /* fall through */ }
+
   // Fallback: local public/data/
-  const res = await fetch(`/data/${fileName}`);
-  if (!res.ok) throw new Error(`Failed to load curriculum: ${fileName}`);
+  const res = await fetch(`/data/${legacyName}`);
+  if (!res.ok) throw new Error(`Failed to load curriculum: ${legacyName}`);
   const json = await res.json() as CurriculumData;
-  cache.set(fileName, json);
+  cache.set(cacheKey, { data: json, version: 0 });
   return json;
 }
 
