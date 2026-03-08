@@ -201,7 +201,7 @@ export default function AdminCurriculumUpload() {
 
       // Insert new metadata
       await supabase.from("curriculum_metadata").insert({
-        course_type: selectedCourse,
+        course_type: effectiveCourse,
         module_type: selectedModule,
         file_path: filePath,
         version: nextVersion,
