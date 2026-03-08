@@ -159,6 +159,8 @@ export default function AdminCurriculumUpload() {
     setUploading(true);
     try {
       const filePath = getFilePath(selectedCourse, selectedModule);
+      // Pronunciation is shared across courses
+      const effectiveCourse = selectedModule === "shadowing-pronunciation" ? "shared" : selectedCourse;
 
       // Read file content — convert .docx/.txt to pass through, .json directly
       let fileContent: string;
