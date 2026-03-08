@@ -80,20 +80,46 @@ function parseRawQuestionHtml(
   questionId: string
 ): CurriculumQuestion {
   const cleaned = stripHTML(html);
-  // Split at first newline — question before, answer after
-  const nlIdx = cleaned.indexOf("\n");
+  
+  // Find "You should say" section - everything after it until the model answer starts
+  const shouldSayIdx = cleaned.indexOf("You should say");
+  
   let questionText: string;
   let answerBody: string;
 
-  if (nlIdx !== -1) {
-    questionText = cleaned.slice(0, nlIdx).trim();
-    answerBody = cleaned.slice(nlIdx + 1).trim();
+  if (shouldSayIdx !== -1) {
+    // Question is everything before "You should say"
+    questionText = cleaned.slice(0, shouldSayIdx).trim();
+    
+    // Find where the model answer starts - look for patterns like:
+    // "And explain..." followed by actual answer content
+    // The "You should say" section typically ends with "And explain how/why/what..."
+    const afterShouldSay = cleaned.slice(shouldSayIdx);
+    
+    // Look for "And explain" as the last bullet point, then find content after it
+    const andExplainMatch = afterShouldSay.match(/And explain[^.]+\./i);
+    if (andExplainMatch) {
+      const endOfPrompts = afterShouldSay.indexOf(andExplainMatch[0]) + andExplainMatch[0].length;
+      answerBody = afterShouldSay.slice(endOfPrompts).trim();
+    } else {
+      // Fallback: look for first sentence that doesn't start with common prompt words
+      const sentences = afterShouldSay.split(/(?<=[.!?])\s+/);
+      const answerStartIdx = sentences.findIndex(s => 
+        !s.match(/^(You should say|What|When|Where|Why|Who|How|And explain)/i)
+      );
+      if (answerStartIdx > 0) {
+        answerBody = sentences.slice(answerStartIdx).join(" ").trim();
+      } else {
+        // No clear answer found - return empty chunks
+        answerBody = "";
+      }
+    }
   } else {
-    // No newline — try splitting at "You should say"
-    const shouldSayIdx = cleaned.indexOf("You should say");
-    if (shouldSayIdx !== -1) {
-      questionText = cleaned.slice(0, shouldSayIdx).trim();
-      answerBody = cleaned.slice(shouldSayIdx).trim();
+    // No "You should say" - check for newline separation
+    const nlIdx = cleaned.indexOf("\n");
+    if (nlIdx !== -1) {
+      questionText = cleaned.slice(0, nlIdx).trim();
+      answerBody = cleaned.slice(nlIdx + 1).trim();
     } else {
       questionText = cleaned;
       answerBody = "";
@@ -102,12 +128,6 @@ function parseRawQuestionHtml(
 
   // Strip "Q1: " prefix from part 3 questions
   questionText = questionText.replace(/^Q\d+:\s*/, "");
-  
-  // Extract only the first sentence for display (stop at "You should say" or first period)
-  const shouldSayInQuestion = questionText.indexOf("You should say");
-  if (shouldSayInQuestion !== -1) {
-    questionText = questionText.slice(0, shouldSayInQuestion).trim();
-  }
   
   // Remove trailing punctuation then ensure it ends cleanly
   questionText = questionText.replace(/[.?!,]+$/, "").trim();
