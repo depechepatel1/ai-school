@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
-  Mic, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2 } from
+  Mic, MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
 "lucide-react";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
