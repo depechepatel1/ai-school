@@ -332,14 +332,15 @@ export default function SpeakingStudio() {
               );
             })()}
             <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
-              {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
-                <p className="text-[13px] italic text-white/70 max-w-lg mx-auto mb-1.5 text-center line-clamp-2 leading-relaxed">
-                  Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
-                </p>
-              )}
               <div key={sentenceKey} className="mb-1 w-full text-center relative z-10 animate-fade-in">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
+              {/* Question text — directly below karaoke */}
+              {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
+                <p className="text-[11px] italic text-white/50 max-w-lg mx-auto mb-1 text-center line-clamp-1 leading-tight">
+                  Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
+                </p>
+              )}
               <div className="w-full max-w-3xl flex flex-col gap-2 mb-2">
                 {practiceType === "pronunciation" && curriculum.curriculumTotal > 0 &&
               <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
