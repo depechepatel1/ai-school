@@ -163,9 +163,13 @@ export default function AdminCurriculumUpload() {
       // Pronunciation is shared across courses
       const effectiveCourse = selectedModule === "shadowing-pronunciation" ? "shared" : selectedCourse;
 
-      // Read file content — convert .docx/.txt to pass through, .json directly
+      // Read file content — convert .csv to JSON, validate .json directly
       let fileContent: string;
-      if (file.name.endsWith(".json")) {
+      if (file.name.endsWith(".csv")) {
+        const csvText = await file.text();
+        const curriculumData = parseCSVToCurriculum(csvText);
+        fileContent = JSON.stringify(curriculumData, null, 2);
+      } else if (file.name.endsWith(".json")) {
         fileContent = await file.text();
         // Validate JSON
         JSON.parse(fileContent);
