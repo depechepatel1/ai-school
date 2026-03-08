@@ -198,7 +198,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         >
           {messages.length === 0 && (
             <div className="bg-white/5 rounded-2xl p-3 text-xs leading-relaxed text-gray-200 border border-white/5">
-              Hi, I'm Teacher Li — your AI English tutor. What would you like to practice?
+              Hi, I'm Teacher Li — your AI English tutor. What would you like to talk about?
             </div>
           )}
           {messages.map((m, i) => (
