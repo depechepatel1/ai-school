@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 import { Upload, FileText, CheckCircle, Download, Loader2, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
+import { parseCSVToCurriculum } from "@/services/csv-to-curriculum";
 
 interface MetadataRow {
   id: string;
