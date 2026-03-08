@@ -287,7 +287,7 @@ export default function AdminCurriculumUpload() {
             <>
               <FileText className="w-8 h-8 text-white/20 group-hover:text-white/40 transition-colors mb-2" />
               <p className="text-xs text-white/40 group-hover:text-white/60 transition-colors">
-                Click to upload <span className="font-semibold">.json</span>, <span className="font-semibold">.txt</span>, or <span className="font-semibold">.docx</span>
+                Click to upload <span className="font-semibold">.json</span>, <span className="font-semibold">.csv</span>, <span className="font-semibold">.txt</span>, or <span className="font-semibold">.docx</span>
               </p>
               <p className="text-[10px] text-white/25 mt-1">
                 Target: {getFilePath(selectedCourse, selectedModule)}
@@ -297,7 +297,7 @@ export default function AdminCurriculumUpload() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json,.txt,.docx"
+            accept=".json,.txt,.docx,.csv"
             onChange={handleUpload}
             className="hidden"
           />
