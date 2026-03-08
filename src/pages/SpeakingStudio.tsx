@@ -110,8 +110,8 @@ export default function SpeakingStudio() {
 
   // Sync shadowing curriculum chunk (fluency mode)
   useEffect(() => {
-    if (practiceType === "fluency" && shadowCurriculum.currentChunk) {
-      setRawText(shadowCurriculum.currentChunk.text);
+    if (practiceType === "fluency") {
+      setRawText(shadowCurriculum.currentChunk?.text ?? "");
     }
   }, [practiceType, shadowCurriculum.currentChunk]);
 
