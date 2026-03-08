@@ -137,6 +137,11 @@ export default function AdminCurriculumUpload() {
   const [selectedModule, setSelectedModule] = useState("shadowing-fluency");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Preview state for CSV files
+  const [previewData, setPreviewData] = useState<CurriculumData | null>(null);
+  const [previewFileName, setPreviewFileName] = useState("");
+  const [pendingContent, setPendingContent] = useState<string | null>(null);
+
   const loadMetadata = async () => {
     const { data } = await supabase
       .from("curriculum_metadata")
@@ -155,39 +160,19 @@ export default function AdminCurriculumUpload() {
     return `${course}/${moduleInfo?.path ?? `${module}.json`}`;
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  /** Commit content (JSON string) to storage + metadata. */
+  const commitUpload = useCallback(async (fileContent: string) => {
     setUploading(true);
     try {
       const filePath = getFilePath(selectedCourse, selectedModule);
-      // Pronunciation is shared across courses
       const effectiveCourse = selectedModule === "shadowing-pronunciation" ? "shared" : selectedCourse;
 
-      // Read file content — convert .csv to JSON, validate .json directly
-      let fileContent: string;
-      if (file.name.endsWith(".csv")) {
-        const csvText = await file.text();
-        const curriculumData = parseCSVToCurriculum(csvText);
-        fileContent = JSON.stringify(curriculumData, null, 2);
-      } else if (file.name.endsWith(".json")) {
-        fileContent = await file.text();
-        // Validate JSON
-        JSON.parse(fileContent);
-      } else {
-        fileContent = await file.text();
-      }
-
-      // Upload to storage bucket
       const blob = new Blob([fileContent], { type: "application/json" });
       const { error: uploadError } = await supabase.storage
         .from("curriculums")
         .upload(filePath, blob, { upsert: true });
-
       if (uploadError) throw uploadError;
 
-      // Deactivate previous active version
       await supabase
         .from("curriculum_metadata")
         .update({ is_active: false })
@@ -195,7 +180,6 @@ export default function AdminCurriculumUpload() {
         .eq("module_type", selectedModule)
         .eq("is_active", true);
 
-      // Get current max version
       const { data: versionData } = await supabase
         .from("curriculum_metadata")
         .select("version")
@@ -206,7 +190,6 @@ export default function AdminCurriculumUpload() {
 
       const nextVersion = (versionData?.[0]?.version ?? 0) + 1;
 
-      // Insert new metadata
       await supabase.from("curriculum_metadata").insert({
         course_type: effectiveCourse,
         module_type: selectedModule,
@@ -222,8 +205,48 @@ export default function AdminCurriculumUpload() {
       toast({ title: "Upload failed", description: String(err), variant: "destructive" });
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  }, [selectedCourse, selectedModule, user?.id]);
+
+  /** Handle file selection — CSV gets previewed, others upload directly. */
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    try {
+      if (file.name.endsWith(".csv")) {
+        // Parse and show preview
+        const csvText = await file.text();
+        const curriculumData = parseCSVToCurriculum(csvText);
+        const jsonContent = JSON.stringify(curriculumData, null, 2);
+        setPreviewData(curriculumData);
+        setPreviewFileName(file.name);
+        setPendingContent(jsonContent);
+      } else {
+        // JSON / txt / docx — upload directly
+        let fileContent = await file.text();
+        if (file.name.endsWith(".json")) JSON.parse(fileContent); // validate
+        await commitUpload(fileContent);
+      }
+    } catch (err) {
+      toast({ title: "File error", description: String(err), variant: "destructive" });
+    }
+  };
+
+  const handlePreviewConfirm = async () => {
+    if (pendingContent) {
+      await commitUpload(pendingContent);
+    }
+    setPreviewData(null);
+    setPendingContent(null);
+    setPreviewFileName("");
+  };
+
+  const handlePreviewCancel = () => {
+    setPreviewData(null);
+    setPendingContent(null);
+    setPreviewFileName("");
   };
 
   const handleDownloadGuide = () => {
