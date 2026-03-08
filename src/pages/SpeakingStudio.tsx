@@ -36,7 +36,7 @@ import { usePracticeTimer, type ActivityType, type PracticeMode } from "@/hooks/
 import { PART2_TOPIC } from "@/types/speaking";
 import WeekSelector from "@/components/speaking/WeekSelector";
 import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curriculum-storage";
-import HomeworkInstructions from "@/components/speaking/HomeworkInstructions";
+import SpeakingLeftPanel from "@/components/speaking/SpeakingLeftPanel";
 
 export default function SpeakingStudio() {
   const navigate = useNavigate();
@@ -436,52 +436,35 @@ export default function SpeakingStudio() {
               </div>
           }
 
-            {/* Speaking questions from curriculum */}
-            {speakingQuestions.length > 0 && test.testState.status === "idle" &&
-          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[80] max-w-lg w-full px-4">
-                <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
-                      Week {courseWeek.selectedWeek} Speaking · {(() => {
-                        const sid = speakingQuestions[currentQuestionIndex]?.sectionId;
-                        const sectionMap: Record<string, string> = {
-                          section_6: "Section 6", model_answer: "Section 6",
-                          part_2: "Part 2", part_3: "Part 3",
-                        };
-                        return sectionMap[sid] ?? sid ?? "";
-                      })()} · Q{currentQuestionIndex + 1}
-                    </span>
-                    {courseWeek.courseType &&
-                <WeekSelector selectedWeek={courseWeek.selectedWeek} onWeekChange={courseWeek.setSelectedWeek} courseType={courseWeek.courseType} />
-                }
-                  </div>
-                  <p className="text-sm text-white/90 leading-relaxed">{speakingQuestions[currentQuestionIndex]?.text.split("?")[0]}?</p>
-                  {speakingQuestions.length > 1 &&
-              <button
-                onClick={() => setCurrentQuestionIndex((i) => (i + 1) % speakingQuestions.length)}
-                className="mt-3 px-4 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                      Next Question
-                    </button>
-              }
-                  {courseWeek.courseType && practiceMode === "homework" &&
-                    <HomeworkInstructions
-                      courseType={courseWeek.courseType}
-                      selectedWeek={courseWeek.selectedWeek}
-                      shadowingWeek={courseWeek.shadowingWeek}
-                      userId={userId}
-                    />
-                  }
-                </div>
-              </div>
-          }
+            {/* Left side panel with week/question info */}
+            {speakingQuestions.length > 0 && test.testState.status === "idle" && courseWeek.courseType && (
+              <SpeakingLeftPanel
+                weekNumber={courseWeek.selectedWeek}
+                onWeekChange={courseWeek.setSelectedWeek}
+                courseType={courseWeek.courseType}
+                sectionLabel={(() => {
+                  const sid = speakingQuestions[currentQuestionIndex]?.sectionId;
+                  const sectionMap: Record<string, string> = {
+                    section_6: "Section 6", model_answer: "Section 6",
+                    part_2: "Part 2", part_3: "Part 3",
+                  };
+                  return sectionMap[sid] ?? sid ?? "Speaking";
+                })()}
+                questionIndex={currentQuestionIndex}
+                totalQuestions={speakingQuestions.length}
+                onNextQuestion={() => setCurrentQuestionIndex((i) => (i + 1) % speakingQuestions.length)}
+                showHomeworkTasks={practiceMode === "homework"}
+                shadowingWeek={courseWeek.shadowingWeek}
+                userId={userId}
+              />
+            )}
 
-            
-
-            {/* Live Transcript Bar — replaces old "You" bubble */}
+            {/* Live Transcript Bar — with question text header */}
             <LiveTranscriptBar
               transcript={test.liveTranscript}
               interim={test.liveInterim}
               isRecording={test.isRecording}
+              questionText={speakingQuestions[currentQuestionIndex]?.text.split("?")[0] + "?" || undefined}
             />
 
             {/* Bottom action bar — floats above transcript bar */}
