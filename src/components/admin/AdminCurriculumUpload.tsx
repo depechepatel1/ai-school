@@ -328,7 +328,7 @@ export default function AdminCurriculumUpload() {
             ref={fileInputRef}
             type="file"
             accept=".json,.txt,.docx,.csv"
-            onChange={handleUpload}
+            onChange={handleFileSelected}
             className="hidden"
           />
         </div>
