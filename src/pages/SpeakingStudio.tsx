@@ -480,7 +480,7 @@ export default function SpeakingStudio() {
             />
 
             {/* Mic button — right side, vertically centered */}
-            <div className="absolute right-24 top-1/2 -translate-y-1/2 z-[310] flex items-center justify-center">
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 z-[310] flex items-center justify-center">
               <div className="flex items-center gap-3 p-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
                 <button onClick={handleRecord}
                   className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${test.isRecording ? "bg-red-500 shadow-[0_0_40px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}>
