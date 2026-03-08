@@ -184,7 +184,7 @@ export default function AdminCurriculumUpload() {
       await supabase
         .from("curriculum_metadata")
         .update({ is_active: false })
-        .eq("course_type", selectedCourse)
+        .eq("course_type", effectiveCourse)
         .eq("module_type", selectedModule)
         .eq("is_active", true);
 
