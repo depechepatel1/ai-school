@@ -19,16 +19,16 @@ export default function LiveTranscriptBar({ transcript, interim, isRecording, qu
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.6)] animate-fade-in">
-      {/* Question header row */}
-      {questionText && (
-        <div className="px-5 py-2.5 border-b border-white/[0.06]">
-          <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-cyan-400/60 mr-2">Q:</span>
-          <span className="text-[13px] text-white/70 font-medium leading-relaxed">{questionText}</span>
-        </div>
-      )}
-      
-      <ScrollArea className={questionText ? "h-[9rem]" : "h-[12rem]"}>
+      <ScrollArea className="h-[12rem]">
         <div className="px-5 py-3">
+          {/* Question displayed inline at top of transcript */}
+          {questionText && (
+            <div className="mb-3 pb-2.5 border-b border-white/[0.06]">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-cyan-400/60 mr-2">Q:</span>
+              <span className="text-[13px] text-white/70 font-medium leading-relaxed">{questionText}</span>
+            </div>
+          )}
+          
           {hasContent ? (
             <p className="text-base leading-relaxed text-white/90 font-light">
               {transcript}
