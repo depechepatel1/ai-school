@@ -66,7 +66,7 @@ function parseCSV(csv: string): Record<string, string>[] {
 // ── HTML Stripping ─────────────────────────────────────────────
 
 /** Strip all HTML tags and decode common entities. */
-function stripHTML(html: string): string {
+export function stripHTML(html: string): string {
   return html
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<[^>]*>/g, "")
