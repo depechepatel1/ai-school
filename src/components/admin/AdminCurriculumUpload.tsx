@@ -192,7 +192,7 @@ export default function AdminCurriculumUpload() {
       const { data: versionData } = await supabase
         .from("curriculum_metadata")
         .select("version")
-        .eq("course_type", selectedCourse)
+        .eq("course_type", effectiveCourse)
         .eq("module_type", selectedModule)
         .order("version", { ascending: false })
         .limit(1);
