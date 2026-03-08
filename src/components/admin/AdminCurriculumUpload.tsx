@@ -383,6 +383,16 @@ export default function AdminCurriculumUpload() {
           </div>
         )}
       </div>
+
+      {/* CSV Preview Modal */}
+      {previewData && (
+        <CurriculumPreviewModal
+          data={previewData}
+          fileName={previewFileName}
+          onConfirm={handlePreviewConfirm}
+          onCancel={handlePreviewCancel}
+        />
+      )}
     </div>
   );
 }
