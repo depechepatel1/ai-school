@@ -1,29 +1,54 @@
 
 
-## Analysis
+## CSV Curriculum Upload Support
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Problem
+The IGCSE curriculum is maintained as a CSV file with 28 columns per row (one row per week). The app's curriculum system expects a specific JSON structure with chunked text. Currently there's no way to upload CSV and have it work.
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### Approach: Convert CSV to JSON at Upload Time
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+Rather than changing the entire fetch/render pipeline to understand CSV, we convert CSV to the existing JSON format during upload in `AdminCurriculumUpload.tsx`. This keeps all downstream code (fetching, chunking, rendering) unchanged.
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+### CSV Column Mapping
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+From the uploaded CSV, the relevant columns for the **shadowing-fluency** module are:
 
----
+| CSV Column | Maps To |
+|---|---|
+| `week_number` | `week_number` |
+| `warmup_questions` | `transcoded` section → `question_text` |
+| `transcoded_input` | `transcoded` section → chunks (auto-split) |
+| `circuit_prompt_intro` + `circuit_prompt_points` | `model_answer` section → `question_text` |
+| `model_answer` | `model_answer` section → chunks (auto-split) |
 
-## Changes -- `src/components/PageShell.tsx`
+### Auto-Chunking Logic
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+The `transcoded_input` and `model_answer` columns contain full HTML paragraphs. We need to split them into ~8-12 word chunks at natural boundaries:
+1. Strip HTML tags to get plain text
+2. Split on sentence boundaries (periods, commas at clause breaks)
+3. Merge short fragments, split long ones to stay in the 8-12 word range
+4. Number chunks sequentially
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+### Implementation
+
+**File: `src/services/csv-to-curriculum.ts`** (new)
+- `parseCSVToCurriculum(csvText: string): CurriculumData` function
+- CSV parser using simple split logic (the CSV uses standard quoting)
+- HTML tag stripper
+- Sentence-boundary chunker (split on `. `, `, ` at clause boundaries)
+- Returns the same `CurriculumData` structure the app already uses
+
+**File: `src/components/admin/AdminCurriculumUpload.tsx`** (edit)
+- In `handleUpload`, detect `.csv` extension
+- Call `parseCSVToCurriculum()` to convert to JSON
+- Upload the resulting JSON blob to storage (same as current flow)
+- Rest of the metadata/versioning logic stays identical
+
+### Chunk Splitting Strategy
+
+Split the HTML-rich text into chunks:
+1. Strip all HTML tags (`<span>`, `<strong>`, `<mark>`, etc.)
+2. Split on sentence endings (`. `) and clause boundaries (`, ` followed by a connector word)
+3. Target 8-12 words per chunk
+4. Keep Chinese annotations in parentheses attached to their preceding word
 
