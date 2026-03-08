@@ -89,18 +89,11 @@ function parseRawQuestionHtml(
     questionText = cleaned.slice(0, nlIdx).trim();
     answerBody = cleaned.slice(nlIdx + 1).trim();
   } else {
-    // No newline — try splitting at first period after "You should say"
+    // No newline — try splitting at "You should say"
     const shouldSayIdx = cleaned.indexOf("You should say");
     if (shouldSayIdx !== -1) {
-      // Find end of the prompt section
-      const afterPrompt = cleaned.indexOf(".", shouldSayIdx + 50);
-      if (afterPrompt !== -1) {
-        questionText = cleaned.slice(0, afterPrompt + 1).trim();
-        answerBody = cleaned.slice(afterPrompt + 1).trim();
-      } else {
-        questionText = cleaned;
-        answerBody = "";
-      }
+      questionText = cleaned.slice(0, shouldSayIdx).trim();
+      answerBody = cleaned.slice(shouldSayIdx).trim();
     } else {
       questionText = cleaned;
       answerBody = "";
@@ -109,6 +102,15 @@ function parseRawQuestionHtml(
 
   // Strip "Q1: " prefix from part 3 questions
   questionText = questionText.replace(/^Q\d+:\s*/, "");
+  
+  // Extract only the first sentence for display (stop at "You should say" or first period)
+  const shouldSayInQuestion = questionText.indexOf("You should say");
+  if (shouldSayInQuestion !== -1) {
+    questionText = questionText.slice(0, shouldSayInQuestion).trim();
+  }
+  
+  // Remove trailing punctuation then ensure it ends cleanly
+  questionText = questionText.replace(/[.?!,]+$/, "").trim();
 
   const chunks = answerBody ? chunkText(answerBody) : [];
 
