@@ -454,10 +454,21 @@ export default function SpeakingStudio() {
                 questionIndex={currentQuestionIndex}
                 totalQuestions={speakingQuestions.length}
                 onNextQuestion={() => setCurrentQuestionIndex((i) => (i + 1) % speakingQuestions.length)}
-                showHomeworkTasks={practiceMode === "homework"}
-                shadowingWeek={courseWeek.shadowingWeek}
-                userId={userId}
               />
+            )}
+
+            {/* Homework Tasks — right side */}
+            {practiceMode === "homework" && courseWeek.courseType && test.testState.status === "idle" && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[80] w-[200px] animate-fade-in">
+                <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
+                  <HomeworkInstructions
+                    courseType={courseWeek.courseType}
+                    selectedWeek={courseWeek.selectedWeek}
+                    shadowingWeek={courseWeek.shadowingWeek}
+                    userId={userId}
+                  />
+                </div>
+              </div>
             )}
 
             {/* Live Transcript Bar — with question text header */}
