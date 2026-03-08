@@ -6,8 +6,10 @@ export function useAudioCapture() {
   const replayAudioRef = useRef<HTMLAudioElement | null>(null);
   const [lastRecordingUrl, setLastRecordingUrl] = useState<string | null>(null);
   const [isPlayingReplay, setIsPlayingReplay] = useState(false);
+  const [micDenied, setMicDenied] = useState(false);
 
-  const startMediaRecorder = useCallback(async () => {
+  const startMediaRecorder = useCallback(async (): Promise<boolean> => {
+    setMicDenied(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
@@ -24,8 +26,11 @@ export function useAudioCapture() {
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
-    } catch {
-      // mic denied
+      return true;
+    } catch (err) {
+      console.warn("[Mic] Permission denied or error:", err);
+      setMicDenied(true);
+      return false;
     }
   }, []);
 
@@ -51,13 +56,16 @@ export function useAudioCapture() {
   }, [lastRecordingUrl, isPlayingReplay]);
 
   const clearRecording = useCallback(() => setLastRecordingUrl(null), []);
+  const clearMicDenied = useCallback(() => setMicDenied(false), []);
 
   return {
     lastRecordingUrl,
     isPlayingReplay,
+    micDenied,
     startMediaRecorder,
     stopMediaRecorder,
     handleReplay,
     clearRecording,
+    clearMicDenied,
   };
 }
