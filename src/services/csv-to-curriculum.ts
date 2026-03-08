@@ -66,7 +66,7 @@ function parseCSV(csv: string): Record<string, string>[] {
 // ── HTML Stripping ─────────────────────────────────────────────
 
 /** Strip all HTML tags and decode common entities. */
-function stripHTML(html: string): string {
+export function stripHTML(html: string): string {
   return html
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<[^>]*>/g, "")
@@ -90,7 +90,7 @@ const TARGET_WORDS = 10;
  * Split plain text into chunks of ~8-12 words at natural boundaries.
  * Keeps Chinese annotations in parentheses attached to preceding words.
  */
-function chunkText(text: string): CurriculumChunk[] {
+export function chunkText(text: string): CurriculumChunk[] {
   if (!text) return [];
 
   // First split into sentences (keep delimiter attached)

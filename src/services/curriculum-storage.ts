@@ -5,6 +5,7 @@
  * Falls back to local public/data/ files if storage is unavailable.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { stripHTML, chunkText } from "./csv-to-curriculum";
 
 export interface CurriculumChunk {
   chunk_number: number;
@@ -41,6 +42,126 @@ const cache = new Map<string, { data: CurriculumData; version: number }>();
 /** Clear cached curriculum so next fetch pulls fresh data. */
 export function clearCurriculumCache() {
   cache.clear();
+}
+
+// ── Raw IELTS format normalization ─────────────────────────────
+
+interface RawQuestion {
+  html: string;
+  spider_diagram_hints?: string[];
+  ore_hints?: string[];
+}
+
+interface RawWeek {
+  week: number;
+  theme?: string;
+  topic?: string;
+  lesson_1_part_2?: Record<string, RawQuestion>;
+  lesson_2_part_3?: Record<string, RawQuestion>;
+  [key: string]: unknown;
+}
+
+/**
+ * Detect whether the fetched JSON is in the "raw IELTS" format
+ * (has `week` instead of `week_number`, has `lesson_1_part_2` keys).
+ */
+function isRawIELTSFormat(json: unknown[]): json is RawWeek[] {
+  if (!json.length) return false;
+  const first = json[0] as Record<string, unknown>;
+  return typeof first.week === "number" && !("week_number" in first);
+}
+
+/**
+ * Parse a raw question html field into question_text + chunked answer.
+ * Format: "Question text here.\nAnswer body text here..."
+ */
+function parseRawQuestionHtml(
+  html: string,
+  questionId: string
+): CurriculumQuestion {
+  const cleaned = stripHTML(html);
+  // Split at first newline — question before, answer after
+  const nlIdx = cleaned.indexOf("\n");
+  let questionText: string;
+  let answerBody: string;
+
+  if (nlIdx !== -1) {
+    questionText = cleaned.slice(0, nlIdx).trim();
+    answerBody = cleaned.slice(nlIdx + 1).trim();
+  } else {
+    // No newline — try splitting at first period after "You should say"
+    const shouldSayIdx = cleaned.indexOf("You should say");
+    if (shouldSayIdx !== -1) {
+      // Find end of the prompt section
+      const afterPrompt = cleaned.indexOf(".", shouldSayIdx + 50);
+      if (afterPrompt !== -1) {
+        questionText = cleaned.slice(0, afterPrompt + 1).trim();
+        answerBody = cleaned.slice(afterPrompt + 1).trim();
+      } else {
+        questionText = cleaned;
+        answerBody = "";
+      }
+    } else {
+      questionText = cleaned;
+      answerBody = "";
+    }
+  }
+
+  // Strip "Q1: " prefix from part 3 questions
+  questionText = questionText.replace(/^Q\d+:\s*/, "");
+
+  const chunks = answerBody ? chunkText(answerBody) : [];
+
+  return {
+    question_id: questionId,
+    question_text: questionText,
+    answer_id: questionId.replace("q", "a"),
+    chunks,
+  };
+}
+
+/**
+ * Convert raw IELTS JSON format into normalized CurriculumData.
+ */
+function normalizeRawCurriculum(raw: RawWeek[]): CurriculumData {
+  return raw
+    .filter((w) => typeof w.week === "number")
+    .map((w) => {
+      const sections: CurriculumSection[] = [];
+
+      // lesson_1_part_2 → section "part_2"
+      if (w.lesson_1_part_2) {
+        const questions: CurriculumQuestion[] = [];
+        const keys = Object.keys(w.lesson_1_part_2).sort();
+        keys.forEach((key, idx) => {
+          const rawQ = w.lesson_1_part_2![key];
+          if (rawQ?.html) {
+            questions.push(parseRawQuestionHtml(rawQ.html, `q${idx + 1}`));
+          }
+        });
+        if (questions.length) {
+          sections.push({ section_id: "part_2", questions });
+        }
+      }
+
+      // lesson_2_part_3 → section "part_3"
+      if (w.lesson_2_part_3) {
+        const questions: CurriculumQuestion[] = [];
+        const keys = Object.keys(w.lesson_2_part_3).sort();
+        keys.forEach((key, idx) => {
+          const rawQ = w.lesson_2_part_3![key];
+          if (rawQ?.html) {
+            questions.push(parseRawQuestionHtml(rawQ.html, `q${idx + 1}`));
+          }
+        });
+        if (questions.length) {
+          sections.push({ section_id: "part_3", questions });
+        }
+      }
+
+      return { week_number: w.week, sections };
+    })
+    .sort((a, b) => a.week_number - b.week_number);
 }
 
 /**
@@ -81,9 +202,14 @@ export async function fetchCurriculumJSON(
       if (urlData?.publicUrl) {
         const res = await fetch(`${urlData.publicUrl}?t=${Date.now()}`);
         if (res.ok) {
-          const json = await res.json() as CurriculumData;
-          cache.set(cacheKey, { data: json, version: meta.version });
-          return json;
+          let json = await res.json();
+          // Normalize raw IELTS format if detected
+          if (Array.isArray(json) && isRawIELTSFormat(json)) {
+            json = normalizeRawCurriculum(json);
+          }
+          const data = json as CurriculumData;
+          cache.set(cacheKey, { data, version: meta.version });
+          return data;
         }
       }
     } catch { /* fall through */ }
@@ -98,9 +224,13 @@ export async function fetchCurriculumJSON(
     if (urlData?.publicUrl) {
       const res = await fetch(`${urlData.publicUrl}?t=${Date.now()}`);
       if (res.ok) {
-        const json = await res.json() as CurriculumData;
-        cache.set(cacheKey, { data: json, version: meta?.version ?? 0 });
-        return json;
+        let json = await res.json();
+        if (Array.isArray(json) && isRawIELTSFormat(json)) {
+          json = normalizeRawCurriculum(json);
+        }
+        const data = json as CurriculumData;
+        cache.set(cacheKey, { data, version: meta?.version ?? 0 });
+        return data;
       }
     }
   } catch { /* fall through */ }
