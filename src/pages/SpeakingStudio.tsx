@@ -36,7 +36,7 @@ import { usePracticeTimer, type ActivityType, type PracticeMode } from "@/hooks/
 import { PART2_TOPIC } from "@/types/speaking";
 import WeekSelector from "@/components/speaking/WeekSelector";
 import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curriculum-storage";
-import HomeworkInstructions from "@/components/speaking/HomeworkInstructions";
+import SpeakingLeftPanel from "@/components/speaking/SpeakingLeftPanel";
 
 export default function SpeakingStudio() {
   const navigate = useNavigate();
