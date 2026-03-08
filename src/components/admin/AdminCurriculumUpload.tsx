@@ -297,7 +297,7 @@ export default function AdminCurriculumUpload() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json,.txt,.docx"
+            accept=".json,.txt,.docx,.csv"
             onChange={handleUpload}
             className="hidden"
           />
