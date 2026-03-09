@@ -719,6 +719,7 @@ export default function PronunciationVisualizer({
   sentenceKey,
   onAutoStop,
   onPitchContour,
+  measuredDurationMs,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dimsRef = useRef({ w: 0, h: 0 });
