@@ -65,7 +65,7 @@ export default function SpeakingStudio() {
 
   // ── Hooks ──
   const { xp, level, addXP } = useXP();
-  const { lastRecordingUrl, isPlayingReplay, micDenied, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording, clearMicDenied } = useAudioCapture();
+  const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording, clearMicDenied } = useAudioCapture();
   const curriculum = useCurriculum(userId, "pronunciation");
   const test = useSpeakingTest({ accent: accentLower });
   const courseWeek = useCourseWeek(userId);
