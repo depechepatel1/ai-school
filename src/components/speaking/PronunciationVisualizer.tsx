@@ -780,6 +780,7 @@ export default function PronunciationVisualizer({
           onPitchContour={onPitchContour}
           renderRef={liveRenderRef}
           dims={dimsRef}
+          measuredDurationMs={measuredDurationMs}
         />
       </div>
     </div>
