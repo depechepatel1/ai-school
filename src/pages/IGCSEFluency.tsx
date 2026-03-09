@@ -32,6 +32,7 @@ export default function IGCSEFluency() {
   // Force igcse course type for curriculum loading
   const shadowCurriculum = useShadowingCurriculum("igcse", courseWeek.shadowingWeek);
   const timerSettings = useTimerSettings("igcse", "shadowing-fluency");
+  const fluencyTimings = useFluencyTimings("igcse");
 
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
