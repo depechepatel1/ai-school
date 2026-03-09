@@ -270,7 +270,7 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
-  const handleMeasureAll = async () => {
+  const handleMeasureAll = async (force = false) => {
     if (isMeasuring) return;
     setIsMeasuring(true);
     clearTimingsCache();
@@ -294,20 +294,20 @@ export default function AdminCurriculumUpload() {
     ];
 
     try {
-      // Check which files already exist
-      const pending: typeof jobs = [];
-      for (const job of jobs) {
-        const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
-        if (data?.publicUrl) {
-          try {
-            const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
-            if (res.ok) {
-              // File exists, skip
-              continue;
-            }
-          } catch { /* treat fetch error as missing */ }
+      let pending = jobs;
+
+      if (!force) {
+        pending = [];
+        for (const job of jobs) {
+          const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
+          if (data?.publicUrl) {
+            try {
+              const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
+              if (res.ok) continue;
+            } catch { /* treat fetch error as missing */ }
+          }
+          pending.push(job);
         }
-        pending.push(job);
       }
 
       if (pending.length === 0) {
@@ -317,7 +317,7 @@ export default function AdminCurriculumUpload() {
           setMeasureLabel(job.label);
           await job.run();
         }
-        toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} missing timing file(s).` });
+        toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} timing file(s).` });
       }
     } catch (err) {
       toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
