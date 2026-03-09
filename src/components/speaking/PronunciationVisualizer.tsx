@@ -371,6 +371,7 @@ function LiveInputCanvas({
     s.speechDetected = false;
     s.calibrationSamples = [];
     s.calibrated = false;
+    s.visualEndStart = null;
     ctx2d.clearRect(0, 0, w, h);
     cachedFillGradRef.current = null;
 
