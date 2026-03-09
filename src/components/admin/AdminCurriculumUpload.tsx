@@ -352,6 +352,25 @@ export default function AdminCurriculumUpload() {
           <Download className="w-3.5 h-3.5" />
           Download AI Formatting Guide
         </button>
+
+        {/* TTS Timing Measurement */}
+        <button
+          onClick={handleMeasureAll}
+          disabled={isMeasuring}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/25 text-amber-300 text-[11px] font-bold hover:bg-amber-500/25 transition-all w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isMeasuring ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {measureLabel} — {measureProgress.current}/{measureProgress.total} chunks
+            </>
+          ) : (
+            <>
+              <Timer className="w-3.5 h-3.5" />
+              Measure All TTS Timings
+            </>
+          )}
+        </button>
       </div>
 
       {/* Active Versions Table */}
