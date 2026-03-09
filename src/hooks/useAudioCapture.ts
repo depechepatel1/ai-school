@@ -68,6 +68,7 @@ export function useAudioCapture() {
     lastRecordingUrl,
     isPlayingReplay,
     micDenied,
+    activeStream,
     startMediaRecorder,
     stopMediaRecorder,
     handleReplay,

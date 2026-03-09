@@ -233,9 +233,14 @@ export default function IGCSEPronunciation() {
             <button onClick={handlePlayModel} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
               {isPlayingModel ? <Loader2 className="w-6 h-6 animate-spin" /> : <Headphones className="w-6 h-6" />}
             </button>
-            <button onClick={handleRecord} className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecording ? "Stop" : "Record"}>
-              {isRecording ? <div className="w-6 h-6 bg-white rounded-sm animate-pulse" /> : <Mic className="w-8 h-8 text-white/80" />}
-            </button>
+            <MicRecordButton
+              isRecording={isRecording}
+              micDenied={micDenied}
+              onToggle={handleRecord}
+              stream={activeStream}
+              size="lg"
+              shape="rounded"
+            />
             <button
               onClick={lastRecordingUrl ? handleReplay : undefined}
               disabled={!lastRecordingUrl}
