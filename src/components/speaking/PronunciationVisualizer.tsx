@@ -259,6 +259,8 @@ interface LiveState {
   calibrationSamples: number[]; // Noise floor calibration
   calibrated: boolean;
   stopped: boolean;
+  // Visual end auto-stop
+  visualEndStart: number | null; // When line reached end of visualizer
 }
 
 function LiveInputCanvas({
