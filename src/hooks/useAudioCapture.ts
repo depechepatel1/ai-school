@@ -14,6 +14,8 @@ export function useAudioCapture() {
     setMicDenied(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      setActiveStream(stream);
       audioChunksRef.current = [];
       const recorder = new MediaRecorder(stream);
       recorder.ondataavailable = (e) => {
@@ -21,6 +23,8 @@ export function useAudioCapture() {
       };
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setActiveStream(null);
         if (audioChunksRef.current.length > 0) {
           const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           setLastRecordingUrl(URL.createObjectURL(blob));
