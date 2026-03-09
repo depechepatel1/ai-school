@@ -264,6 +264,7 @@ export default function IELTSFluency() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={() => {}}
+                  measuredDurationMs={fluencyTimings.getDuration(currentText)}
                 />
               </div>
             </div>

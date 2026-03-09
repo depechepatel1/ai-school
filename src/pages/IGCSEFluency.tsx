@@ -249,6 +249,7 @@ export default function IGCSEFluency() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={() => {}}
+                  measuredDurationMs={fluencyTimings.getDuration(currentText)}
                 />
               </div>
             </div>

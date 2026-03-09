@@ -236,6 +236,7 @@ export default function IELTSPronunciation() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={handlePitchContour}
+                  measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")}
                 />
               </div>
             </div>

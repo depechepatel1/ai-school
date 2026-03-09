@@ -223,6 +223,7 @@ export default function IGCSEPronunciation() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={() => {}}
+                  measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")}
                 />
               </div>
             </div>
