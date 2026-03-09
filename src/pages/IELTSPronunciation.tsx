@@ -32,6 +32,7 @@ export default function IELTSPronunciation() {
   const courseWeek = useCourseWeek(userId);
   const progress = useStudentProgress({ userId, courseType: "ielts", moduleType: "tongue-twisters" });
   const timerSettings = useTimerSettings("ielts", "shadowing-pronunciation");
+  const pronunciationTimings = usePronunciationTimings();
 
   const [twisters, setTwisters] = useState<TongueTwister[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
