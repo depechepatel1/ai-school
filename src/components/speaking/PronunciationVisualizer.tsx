@@ -323,6 +323,7 @@ function LiveInputCanvas({
     s.speechDetected = false;
     s.calibrationSamples = [];
     s.calibrated = false;
+    s.visualEndStart = null;
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx2d = canvas.getContext("2d", { desynchronized: true });
