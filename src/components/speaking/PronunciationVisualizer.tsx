@@ -558,7 +558,7 @@ function LiveInputCanvas({
           targetY = Math.max(PAD, Math.min(ch - PAD, targetY));
           s.smoothY = targetY;
 
-          const x = Math.min(cw, (elapsed / maxDur) * cw * 1.2); // 20% faster progression
+          const x = Math.min(cw, (elapsed / maxDur) * cw * 1.44); // 44% faster progression (20% increase from 1.2)
 
           // Mismatch detection
           const estIdx = Math.min(totalSyl - 1, Math.floor((x / cw) * totalSyl));
