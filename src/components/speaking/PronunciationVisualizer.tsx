@@ -259,6 +259,8 @@ interface LiveState {
   calibrationSamples: number[]; // Noise floor calibration
   calibrated: boolean;
   stopped: boolean;
+  // Visual end auto-stop
+  visualEndStart: number | null; // When line reached end of visualizer
 }
 
 function LiveInputCanvas({
@@ -297,6 +299,7 @@ function LiveInputCanvas({
     calibrationSamples: [],
     calibrated: false,
     stopped: false,
+    visualEndStart: null,
   });
   const onAutoStopRef = useRef(onAutoStop);
   const onPitchContourRef = useRef(onPitchContour);
@@ -320,6 +323,7 @@ function LiveInputCanvas({
     s.speechDetected = false;
     s.calibrationSamples = [];
     s.calibrated = false;
+    s.visualEndStart = null;
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx2d = canvas.getContext("2d", { desynchronized: true });
@@ -367,6 +371,7 @@ function LiveInputCanvas({
     s.speechDetected = false;
     s.calibrationSamples = [];
     s.calibrated = false;
+    s.visualEndStart = null;
     ctx2d.clearRect(0, 0, w, h);
     cachedFillGradRef.current = null;
 
@@ -575,6 +580,18 @@ function LiveInputCanvas({
             const high = allSyl[estIdx].pitch === 2;
             if (high && normAmp < 0.2) mismatch = true;
             if (!high && normAmp > 0.8) mismatch = true;
+          }
+
+          // Auto-stop: 1s delay when visualizer line reaches end
+          if (onAutoStopRef.current && x >= cw) {
+            if (!s.visualEndStart) s.visualEndStart = Date.now();
+            if (Date.now() - s.visualEndStart > 1000) {
+              onAutoStopRef.current();
+              return;
+            }
+          } else if (x < cw) {
+            // Reset if line moves back (shouldn't happen, but safety)
+            s.visualEndStart = null;
           }
 
           // Fix 2: Write to ring buffer
