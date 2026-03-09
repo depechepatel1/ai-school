@@ -40,7 +40,7 @@ export default function IGCSEPronunciation() {
   const [sentenceKey, setSentenceKey] = useState(0);
 
   const ttsHandleRef = useRef<TTSHandle | null>(null);
-  const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
+  const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
 
   const isAudioActive = isRecording || isPlayingModel;
 
