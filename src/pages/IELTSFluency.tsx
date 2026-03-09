@@ -32,7 +32,7 @@ export default function IELTSFluency() {
   const courseWeek = useCourseWeek(userId);
   const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
   const timerSettings = useTimerSettings("ielts", "shadowing-fluency");
-
+  const fluencyTimings = useFluencyTimings("ielts");
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [targetProgress, setTargetProgress] = useState(0);
