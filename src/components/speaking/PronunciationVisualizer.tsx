@@ -541,21 +541,8 @@ function LiveInputCanvas({
           s.smoothCentroid = s.smoothCentroid * 0.65 + rawCentroid * 0.35; // faster centroid tracking
           s.ampHistory.push(s.smoothAmp);
 
-          // Auto-stop: 1s silence AFTER speech detected
-          const speechThreshold = s.noiseFloor * 3.5;
-          if (onAutoStopRef.current && s.calibrated) {
-            if (rms > speechThreshold) {
-              s.speechDetected = true;
-              s.silenceStart = null; // reset silence timer on speech
-            } else if (s.speechDetected) {
-              // Only start silence countdown after speech was detected
-              if (!s.silenceStart) s.silenceStart = Date.now();
-              if (Date.now() - s.silenceStart > 2000) {
-                onAutoStopRef.current();
-                return;
-              }
-            }
-          }
+          // Silence-based auto-stop removed for shadowing screens.
+          // Recording stops only when the visualizer line reaches the end (see below).
 
           // Y mapping — line flows top→bottom, stress pulls it back UP
           // Quiet/no speech → line drifts downward; loud/stressed → line rises
