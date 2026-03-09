@@ -40,7 +40,7 @@ export default function FloatingInfoPanel({ course, weekNumber, questionType, qu
       {questionText && (
         <>
           <div className="w-full h-px bg-white/[0.06] my-3" />
-          <p className="text-[12px] text-white/70 leading-relaxed italic">
+          <p className="text-[12px] text-white/70 leading-relaxed italic line-clamp-4">
             Q: {questionText}
           </p>
         </>
