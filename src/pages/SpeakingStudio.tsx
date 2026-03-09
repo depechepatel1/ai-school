@@ -32,6 +32,7 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
+import { useFluencyTimings, usePronunciationTimings } from "@/hooks/useTTSTimings";
 import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { usePracticeTimer, type ActivityType, type PracticeMode } from "@/hooks/usePracticeTimer";
 import { PART2_TOPIC } from "@/types/speaking";
