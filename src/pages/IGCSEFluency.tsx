@@ -206,7 +206,7 @@ export default function IGCSEFluency() {
             weekNumber={courseWeek.shadowingWeek}
             questionType={sectionLabel}
             questionNumber={questionId}
-            questionText={shadowCurriculum.currentQuestionText?.split("?")[0] + "?"}
+            questionText={shadowCurriculum.currentQuestionText ?? ""}
           />
         </div>
 
