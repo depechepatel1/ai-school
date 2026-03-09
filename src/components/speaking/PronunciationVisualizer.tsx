@@ -557,6 +557,18 @@ function LiveInputCanvas({
             }
           }
 
+          // Auto-stop: 1s delay when visualizer line reaches end
+          if (onAutoStopRef.current && x >= cw) {
+            if (!s.visualEndStart) s.visualEndStart = Date.now();
+            if (Date.now() - s.visualEndStart > 1000) {
+              onAutoStopRef.current();
+              return;
+            }
+          } else if (x < cw) {
+            // Reset if line moves back (shouldn't happen, but safety)
+            s.visualEndStart = null;
+          }
+
           // Y mapping — line flows top→bottom, stress pulls it back UP
           // Quiet/no speech → line drifts downward; loud/stressed → line rises
           const drawableRange = ch - PAD * 2;
