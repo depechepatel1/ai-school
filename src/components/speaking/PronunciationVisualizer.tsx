@@ -273,6 +273,7 @@ function LiveInputCanvas({
   onPitchContour,
   renderRef,
   dims,
+  measuredDurationMs,
 }: {
   isRecording: boolean;
   prosodyData: WordData[];
@@ -281,6 +282,7 @@ function LiveInputCanvas({
   onPitchContour?: (contour: number[]) => void;
   renderRef: React.MutableRefObject<(() => void) | null>;
   dims: React.MutableRefObject<{ w: number; h: number }>;
+  measuredDurationMs?: number | null;
 }) {
   const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
