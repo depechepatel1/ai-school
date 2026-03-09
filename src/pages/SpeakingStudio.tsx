@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import {
   Mic, MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
 "lucide-react";
+import MicRecordButton from "@/components/speaking/MicRecordButton";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadVoices, preloadAccent, type Accent } from "@/lib/tts-provider";
@@ -65,7 +66,7 @@ export default function SpeakingStudio() {
 
   // ── Hooks ──
   const { xp, level, addXP } = useXP();
-  const { lastRecordingUrl, isPlayingReplay, micDenied, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording, clearMicDenied } = useAudioCapture();
+  const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording, clearMicDenied } = useAudioCapture();
   const curriculum = useCurriculum(userId, "pronunciation");
   const test = useSpeakingTest({ accent: accentLower });
   const courseWeek = useCourseWeek(userId);
@@ -385,9 +386,14 @@ export default function SpeakingStudio() {
               <button onClick={handlePlayModel} className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
                 {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />}
               </button>
-              <button onClick={handleRecord} className={`relative w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${isRecordingShadow ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecordingShadow ? "Stop" : "Record"}>
-                {isRecordingShadow ? <div className="w-5 h-5 bg-white rounded-sm animate-pulse" /> : <Mic className="w-7 h-7 text-white/80" />}
-              </button>
+              <MicRecordButton
+                isRecording={isRecordingShadow}
+                micDenied={micDenied}
+                onToggle={handleRecord}
+                stream={activeStream}
+                size="md"
+                shape="rounded"
+              />
               <button
                 onClick={lastRecordingUrl ? handleReplay : undefined}
                 disabled={!lastRecordingUrl}
@@ -483,20 +489,15 @@ export default function SpeakingStudio() {
             {/* Mic button — right side, vertically centered */}
             <div className="absolute right-6 top-1/2 -translate-y-1/2 z-[310] flex items-center justify-center">
               <div className="flex items-center gap-3 p-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
-                <div className="relative">
-                  {/* Mic status indicator */}
-                  <div className={`absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-black/20 flex items-center justify-center transition-all z-10 ${
-                    micDenied ? "bg-red-500" : test.isRecording ? "bg-green-500 animate-pulse" : "bg-white/20"
-                  }`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      micDenied ? "bg-red-200" : test.isRecording ? "bg-green-200" : "bg-white/40"
-                    }`} />
-                  </div>
-                  <button onClick={handleRecord}
-                    className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${test.isRecording ? "bg-red-500 shadow-[0_0_40px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}>
-                    {test.isRecording ? <div className="w-6 h-6 bg-white rounded animate-pulse" /> : <Mic className="w-9 h-9 text-white" />}
-                  </button>
-                </div>
+                <MicRecordButton
+                  isRecording={test.isRecording}
+                  micDenied={micDenied}
+                  onToggle={handleRecord}
+                  stream={activeStream}
+                  size="xl"
+                  shape="circle"
+                  idleClassName="bg-white/10 border border-white/20 hover:bg-white/20"
+                />
                 {(test.testState.currentPart === "part1" || test.testState.currentPart === "part3") && test.isRecording &&
                   <button onClick={test.handleNextQuestion} className="p-3 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white transition-colors shadow-lg" title="Next Question">
                     <ChevronRight className="w-6 h-6" />

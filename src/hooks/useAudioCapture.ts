@@ -4,14 +4,18 @@ export function useAudioCapture() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const replayAudioRef = useRef<HTMLAudioElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [lastRecordingUrl, setLastRecordingUrl] = useState<string | null>(null);
   const [isPlayingReplay, setIsPlayingReplay] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
 
   const startMediaRecorder = useCallback(async (): Promise<boolean> => {
     setMicDenied(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      setActiveStream(stream);
       audioChunksRef.current = [];
       const recorder = new MediaRecorder(stream);
       recorder.ondataavailable = (e) => {
@@ -19,6 +23,8 @@ export function useAudioCapture() {
       };
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setActiveStream(null);
         if (audioChunksRef.current.length > 0) {
           const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           setLastRecordingUrl(URL.createObjectURL(blob));
@@ -62,6 +68,7 @@ export function useAudioCapture() {
     lastRecordingUrl,
     isPlayingReplay,
     micDenied,
+    activeStream,
     startMediaRecorder,
     stopMediaRecorder,
     handleReplay,

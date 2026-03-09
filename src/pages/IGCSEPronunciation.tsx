@@ -19,7 +19,8 @@ import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
-import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Mic, Play, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
+import MicRecordButton from "@/components/speaking/MicRecordButton";
 
 export default function IGCSEPronunciation() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function IGCSEPronunciation() {
   const [sentenceKey, setSentenceKey] = useState(0);
 
   const ttsHandleRef = useRef<TTSHandle | null>(null);
-  const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
+  const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
 
   const isAudioActive = isRecording || isPlayingModel;
 
@@ -232,9 +233,14 @@ export default function IGCSEPronunciation() {
             <button onClick={handlePlayModel} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
               {isPlayingModel ? <Loader2 className="w-6 h-6 animate-spin" /> : <Headphones className="w-6 h-6" />}
             </button>
-            <button onClick={handleRecord} className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecording ? "Stop" : "Record"}>
-              {isRecording ? <div className="w-6 h-6 bg-white rounded-sm animate-pulse" /> : <Mic className="w-8 h-8 text-white/80" />}
-            </button>
+            <MicRecordButton
+              isRecording={isRecording}
+              micDenied={micDenied}
+              onToggle={handleRecord}
+              stream={activeStream}
+              size="lg"
+              shape="rounded"
+            />
             <button
               onClick={lastRecordingUrl ? handleReplay : undefined}
               disabled={!lastRecordingUrl}
