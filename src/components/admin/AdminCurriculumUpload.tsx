@@ -270,7 +270,40 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
+  const handleMeasureAll = async () => {
+    if (isMeasuring) return;
+    setIsMeasuring(true);
+    clearTimingsCache();
+
+    try {
+      // 1. IELTS fluency
+      setMeasureLabel("IELTS Fluency");
+      await generateAndUploadFluencyTimings("ielts", "uk", (c, t) =>
+        setMeasureProgress({ current: c, total: t })
+      );
+
+      // 2. IGCSE fluency
+      setMeasureLabel("IGCSE Fluency");
+      await generateAndUploadFluencyTimings("igcse", "uk", (c, t) =>
+        setMeasureProgress({ current: c, total: t })
+      );
+
+      // 3. Shared pronunciation
+      setMeasureLabel("Pronunciation");
+      await generateAndUploadPronunciationTimings("uk", (c, t) =>
+        setMeasureProgress({ current: c, total: t })
+      );
+
+      toast({ title: "TTS Timings Complete", description: "All curriculum timings have been measured and saved." });
+    } catch (err) {
+      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+    } finally {
+      setIsMeasuring(false);
+      setMeasureProgress({ current: 0, total: 0 });
+      setMeasureLabel("");
+    }
+  };
+
     return (
       <div className="flex items-center justify-center py-8">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
