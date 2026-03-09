@@ -19,7 +19,8 @@ import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
-import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Mic, Play, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
+import MicRecordButton from "@/components/speaking/MicRecordButton";
 
 export default function IGCSEPronunciation() {
   const navigate = useNavigate();
