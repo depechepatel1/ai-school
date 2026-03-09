@@ -32,6 +32,7 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
+import { useFluencyTimings, usePronunciationTimings } from "@/hooks/useTTSTimings";
 import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { usePracticeTimer, type ActivityType, type PracticeMode } from "@/hooks/usePracticeTimer";
 import { PART2_TOPIC } from "@/types/speaking";
@@ -71,6 +72,8 @@ export default function SpeakingStudio() {
   const test = useSpeakingTest({ accent: accentLower });
   const courseWeek = useCourseWeek(userId);
   const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
+  const fluencyTimings = useFluencyTimings(courseWeek.courseType as "ielts" | "igcse" | null);
+  const pronunciationTimings = usePronunciationTimings();
   const [speakingQuestions, setSpeakingQuestions] = useState<SpeakingQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
@@ -363,7 +366,8 @@ export default function SpeakingStudio() {
                     targetProgress={targetProgress}
                     sentenceKey={sentenceKey}
                     onAutoStop={stopShadowRecording}
-                    onPitchContour={handlePitchContour} />
+                    onPitchContour={handlePitchContour}
+                    measuredDurationMs={practiceType === "fluency" ? fluencyTimings.getDuration(rawText) : pronunciationTimings.getDuration(rawText)} />
 
                   </div>
                 </div>

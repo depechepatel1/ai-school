@@ -22,6 +22,8 @@ interface Props {
   sentenceKey: number;
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
+  /** Pre-measured TTS duration in ms. When provided, overrides heuristic timing. */
+  measuredDurationMs?: number | null;
 }
 
 /* ── Constants ── */
@@ -271,6 +273,7 @@ function LiveInputCanvas({
   onPitchContour,
   renderRef,
   dims,
+  measuredDurationMs,
 }: {
   isRecording: boolean;
   prosodyData: WordData[];
@@ -279,6 +282,7 @@ function LiveInputCanvas({
   onPitchContour?: (contour: number[]) => void;
   renderRef: React.MutableRefObject<(() => void) | null>;
   dims: React.MutableRefObject<{ w: number; h: number }>;
+  measuredDurationMs?: number | null;
 }) {
   const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -378,31 +382,38 @@ function LiveInputCanvas({
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
     
-    // Dynamic speed based on sentence complexity:
-    // - Short sentences (<6 syl): faster (1.6x) - simpler content
-    // - Medium sentences (6-15 syl): standard (1.44x)
-    // - Long sentences (16-25 syl): slower (1.25x) - more time to process
-    // - Very long sentences (25+ syl): slowest (1.1x)
-    // Also factor in difficulty: high-stress syllables indicate emphasis points
-    const stressedCount = allSyl.filter(s => s.stress === 2).length;
-    const stressRatio = totalSyl > 0 ? stressedCount / totalSyl : 0;
-    // More stressed syllables = harder = slightly slower
-    const difficultyPenalty = stressRatio * 0.15;
+    // Use pre-measured duration if available, otherwise heuristic
+    const hasMeasured = typeof measuredDurationMs === 'number' && measuredDurationMs > 0;
     
     let speedMultiplier: number;
-    if (totalSyl < 6) {
-      speedMultiplier = 1.6 - difficultyPenalty;
-    } else if (totalSyl <= 15) {
-      speedMultiplier = 1.44 - difficultyPenalty;
-    } else if (totalSyl <= 25) {
-      speedMultiplier = 1.25 - difficultyPenalty;
-    } else {
-      speedMultiplier = 1.1 - difficultyPenalty;
-    }
-    // Clamp to reasonable bounds
-    speedMultiplier = Math.max(0.9, Math.min(1.8, speedMultiplier));
+    let maxDur: number;
     
-    const maxDur = Math.max(4000, totalSyl * 400);
+    if (hasMeasured) {
+      // Exact timing from TTS measurement — no heuristic needed
+      maxDur = measuredDurationMs;
+      speedMultiplier = 1.0;
+    } else {
+      // Dynamic speed based on sentence complexity:
+      // - Short sentences (<6 syl): faster (1.6x) - simpler content
+      // - Medium sentences (6-15 syl): standard (1.44x)
+      // - Long sentences (16-25 syl): slower (1.25x) - more time to process
+      // - Very long sentences (25+ syl): slowest (1.1x)
+      const stressedCount = allSyl.filter(s => s.stress === 2).length;
+      const stressRatio = totalSyl > 0 ? stressedCount / totalSyl : 0;
+      const difficultyPenalty = stressRatio * 0.15;
+      
+      if (totalSyl < 6) {
+        speedMultiplier = 1.6 - difficultyPenalty;
+      } else if (totalSyl <= 15) {
+        speedMultiplier = 1.44 - difficultyPenalty;
+      } else if (totalSyl <= 25) {
+        speedMultiplier = 1.25 - difficultyPenalty;
+      } else {
+        speedMultiplier = 1.1 - difficultyPenalty;
+      }
+      speedMultiplier = Math.max(0.9, Math.min(1.8, speedMultiplier));
+      maxDur = Math.max(4000, totalSyl * 400);
+    }
 
     // Draw from ring buffer: continuous green base line + red overlay for mismatch
     const drawLine = (cw: number, ch: number) => {
@@ -708,6 +719,7 @@ export default function PronunciationVisualizer({
   sentenceKey,
   onAutoStop,
   onPitchContour,
+  measuredDurationMs,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dimsRef = useRef({ w: 0, h: 0 });
@@ -768,6 +780,7 @@ export default function PronunciationVisualizer({
           onPitchContour={onPitchContour}
           renderRef={liveRenderRef}
           dims={dimsRef}
+          measuredDurationMs={measuredDurationMs}
         />
       </div>
     </div>

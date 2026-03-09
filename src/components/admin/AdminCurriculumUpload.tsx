@@ -6,11 +6,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
-import { Upload, FileText, CheckCircle, Download, Loader2 } from "lucide-react";
+import { Upload, FileText, CheckCircle, Download, Loader2, Timer } from "lucide-react";
 import { format } from "date-fns";
 import { parseCSVToCurriculum } from "@/services/csv-to-curriculum";
 import type { CurriculumData } from "@/services/curriculum-storage";
 import CurriculumPreviewModal from "./CurriculumPreviewModal";
+import {
+  generateAndUploadFluencyTimings,
+  generateAndUploadPronunciationTimings,
+  generateAndUploadFluencyTimingsFromData,
+  clearTimingsCache,
+} from "@/services/tts-timings-storage";
 
 interface MetadataRow {
   id: string;
@@ -142,6 +148,11 @@ export default function AdminCurriculumUpload() {
   const [previewFileName, setPreviewFileName] = useState("");
   const [pendingContent, setPendingContent] = useState<string | null>(null);
 
+  // TTS Measurement state
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
+  const [measureLabel, setMeasureLabel] = useState("");
+
   const loadMetadata = async () => {
     const { data } = await supabase
       .from("curriculum_metadata")
@@ -259,6 +270,40 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
+  const handleMeasureAll = async () => {
+    if (isMeasuring) return;
+    setIsMeasuring(true);
+    clearTimingsCache();
+
+    try {
+      // 1. IELTS fluency
+      setMeasureLabel("IELTS Fluency");
+      await generateAndUploadFluencyTimings("ielts", "uk", (c, t) =>
+        setMeasureProgress({ current: c, total: t })
+      );
+
+      // 2. IGCSE fluency
+      setMeasureLabel("IGCSE Fluency");
+      await generateAndUploadFluencyTimings("igcse", "uk", (c, t) =>
+        setMeasureProgress({ current: c, total: t })
+      );
+
+      // 3. Shared pronunciation
+      setMeasureLabel("Pronunciation");
+      await generateAndUploadPronunciationTimings("uk", (c, t) =>
+        setMeasureProgress({ current: c, total: t })
+      );
+
+      toast({ title: "TTS Timings Complete", description: "All curriculum timings have been measured and saved." });
+    } catch (err) {
+      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+    } finally {
+      setIsMeasuring(false);
+      setMeasureProgress({ current: 0, total: 0 });
+      setMeasureLabel("");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -340,6 +385,25 @@ export default function AdminCurriculumUpload() {
         >
           <Download className="w-3.5 h-3.5" />
           Download AI Formatting Guide
+        </button>
+
+        {/* TTS Timing Measurement */}
+        <button
+          onClick={handleMeasureAll}
+          disabled={isMeasuring}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/25 text-amber-300 text-[11px] font-bold hover:bg-amber-500/25 transition-all w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isMeasuring ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {measureLabel} — {measureProgress.current}/{measureProgress.total} chunks
+            </>
+          ) : (
+            <>
+              <Timer className="w-3.5 h-3.5" />
+              Measure All TTS Timings
+            </>
+          )}
         </button>
       </div>
 

@@ -15,6 +15,7 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchTongueTwisters, type TongueTwister } from "@/services/tongue-twisters";
 import { speak, stopSpeaking, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
+import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
@@ -31,6 +32,7 @@ export default function IELTSPronunciation() {
   const courseWeek = useCourseWeek(userId);
   const progress = useStudentProgress({ userId, courseType: "ielts", moduleType: "tongue-twisters" });
   const timerSettings = useTimerSettings("ielts", "shadowing-pronunciation");
+  const pronunciationTimings = usePronunciationTimings();
 
   const [twisters, setTwisters] = useState<TongueTwister[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -234,6 +236,7 @@ export default function IELTSPronunciation() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={handlePitchContour}
+                  measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")}
                 />
               </div>
             </div>

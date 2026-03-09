@@ -15,6 +15,7 @@ import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { speak, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
+import { useFluencyTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
@@ -31,6 +32,7 @@ export default function IGCSEFluency() {
   // Force igcse course type for curriculum loading
   const shadowCurriculum = useShadowingCurriculum("igcse", courseWeek.shadowingWeek);
   const timerSettings = useTimerSettings("igcse", "shadowing-fluency");
+  const fluencyTimings = useFluencyTimings("igcse");
 
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
@@ -247,6 +249,7 @@ export default function IGCSEFluency() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={() => {}}
+                  measuredDurationMs={fluencyTimings.getDuration(currentText)}
                 />
               </div>
             </div>

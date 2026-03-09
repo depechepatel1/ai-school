@@ -15,6 +15,7 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchTongueTwisters, type TongueTwister } from "@/services/tongue-twisters";
 import { speak, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
+import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
@@ -29,6 +30,7 @@ export default function IGCSEPronunciation() {
   const courseWeek = useCourseWeek(userId);
   const progress = useStudentProgress({ userId, courseType: "igcse", moduleType: "tongue-twisters" });
   const timerSettings = useTimerSettings("igcse", "shadowing-pronunciation");
+  const pronunciationTimings = usePronunciationTimings();
 
   const [twisters, setTwisters] = useState<TongueTwister[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -221,6 +223,7 @@ export default function IGCSEPronunciation() {
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
                   onPitchContour={() => {}}
+                  measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")}
                 />
               </div>
             </div>
