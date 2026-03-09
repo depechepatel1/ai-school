@@ -72,6 +72,8 @@ export default function SpeakingStudio() {
   const test = useSpeakingTest({ accent: accentLower });
   const courseWeek = useCourseWeek(userId);
   const shadowCurriculum = useShadowingCurriculum(courseWeek.courseType, courseWeek.shadowingWeek);
+  const fluencyTimings = useFluencyTimings(courseWeek.courseType as "ielts" | "igcse" | null);
+  const pronunciationTimings = usePronunciationTimings();
   const [speakingQuestions, setSpeakingQuestions] = useState<SpeakingQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
