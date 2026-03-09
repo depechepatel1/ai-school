@@ -22,6 +22,8 @@ interface Props {
   sentenceKey: number;
   onAutoStop?: () => void;
   onPitchContour?: (contour: number[]) => void;
+  /** Pre-measured TTS duration in ms. When provided, overrides heuristic timing. */
+  measuredDurationMs?: number | null;
 }
 
 /* ── Constants ── */
