@@ -299,6 +299,7 @@ function LiveInputCanvas({
     calibrationSamples: [],
     calibrated: false,
     stopped: false,
+    visualEndStart: null,
   });
   const onAutoStopRef = useRef(onAutoStop);
   const onPitchContourRef = useRef(onPitchContour);
