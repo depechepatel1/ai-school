@@ -582,6 +582,18 @@ function LiveInputCanvas({
             if (!high && normAmp > 0.8) mismatch = true;
           }
 
+          // Auto-stop: 1s delay when visualizer line reaches end
+          if (onAutoStopRef.current && x >= cw) {
+            if (!s.visualEndStart) s.visualEndStart = Date.now();
+            if (Date.now() - s.visualEndStart > 1000) {
+              onAutoStopRef.current();
+              return;
+            }
+          } else if (x < cw) {
+            // Reset if line moves back (shouldn't happen, but safety)
+            s.visualEndStart = null;
+          }
+
           // Fix 2: Write to ring buffer
           const wi = s.ringIdx * RING_STRIDE;
           s.ringBuf[wi] = x;
