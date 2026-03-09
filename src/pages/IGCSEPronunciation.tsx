@@ -15,6 +15,7 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchTongueTwisters, type TongueTwister } from "@/services/tongue-twisters";
 import { speak, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
+import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
