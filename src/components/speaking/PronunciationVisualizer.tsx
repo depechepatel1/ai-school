@@ -377,7 +377,32 @@ function LiveInputCanvas({
 
     const allSyl = prosodyData.flatMap((d) => d.syllables);
     const totalSyl = allSyl.length;
-    const maxDur = Math.max(4000, totalSyl * 400); // 20% faster
+    
+    // Dynamic speed based on sentence complexity:
+    // - Short sentences (<6 syl): faster (1.6x) - simpler content
+    // - Medium sentences (6-15 syl): standard (1.44x)
+    // - Long sentences (16-25 syl): slower (1.25x) - more time to process
+    // - Very long sentences (25+ syl): slowest (1.1x)
+    // Also factor in difficulty: high-stress syllables indicate emphasis points
+    const stressedCount = allSyl.filter(s => s.stress === 2).length;
+    const stressRatio = totalSyl > 0 ? stressedCount / totalSyl : 0;
+    // More stressed syllables = harder = slightly slower
+    const difficultyPenalty = stressRatio * 0.15;
+    
+    let speedMultiplier: number;
+    if (totalSyl < 6) {
+      speedMultiplier = 1.6 - difficultyPenalty;
+    } else if (totalSyl <= 15) {
+      speedMultiplier = 1.44 - difficultyPenalty;
+    } else if (totalSyl <= 25) {
+      speedMultiplier = 1.25 - difficultyPenalty;
+    } else {
+      speedMultiplier = 1.1 - difficultyPenalty;
+    }
+    // Clamp to reasonable bounds
+    speedMultiplier = Math.max(0.9, Math.min(1.8, speedMultiplier));
+    
+    const maxDur = Math.max(4000, totalSyl * 400);
 
     // Draw from ring buffer: continuous green base line + red overlay for mismatch
     const drawLine = (cw: number, ch: number) => {
