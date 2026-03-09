@@ -412,23 +412,33 @@ export default function AdminCurriculumUpload() {
         </button>
 
         {/* TTS Timing Measurement */}
-        <button
-          onClick={handleMeasureAll}
-          disabled={isMeasuring}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/25 text-amber-300 text-[11px] font-bold hover:bg-amber-500/25 transition-all w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isMeasuring ? (
-            <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              {measureLabel} — {measureProgress.current}/{measureProgress.total} chunks
-            </>
-          ) : (
-            <>
-              <Timer className="w-3.5 h-3.5" />
-              Measure All TTS Timings
-            </>
-          )}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => handleMeasureAll(false)}
+            disabled={isMeasuring}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/25 text-amber-300 text-[11px] font-bold hover:bg-amber-500/25 transition-all justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isMeasuring ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {measureLabel} — {measureProgress.current}/{measureProgress.total}
+              </>
+            ) : (
+              <>
+                <Timer className="w-3.5 h-3.5" />
+                Measure Missing
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => handleMeasureAll(true)}
+            disabled={isMeasuring}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/15 border border-red-400/25 text-red-300 text-[11px] font-bold hover:bg-red-500/25 transition-all justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Timer className="w-3.5 h-3.5" />
+            Force Re-measure All
+          </button>
+        </div>
       </div>
 
       {/* Active Versions Table */}
