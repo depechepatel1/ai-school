@@ -275,26 +275,50 @@ export default function AdminCurriculumUpload() {
     setIsMeasuring(true);
     clearTimingsCache();
 
+    const jobs: { label: string; run: () => Promise<void>; path: string }[] = [
+      {
+        label: "IELTS Fluency",
+        path: "ielts/timings-shadowing-fluency.json",
+        run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      },
+      {
+        label: "IGCSE Fluency",
+        path: "igcse/timings-shadowing-fluency.json",
+        run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      },
+      {
+        label: "Pronunciation",
+        path: "shared/timings-shadowing-pronunciation.json",
+        run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      },
+    ];
+
     try {
-      // 1. IELTS fluency
-      setMeasureLabel("IELTS Fluency");
-      await generateAndUploadFluencyTimings("ielts", "uk", (c, t) =>
-        setMeasureProgress({ current: c, total: t })
-      );
+      // Check which files already exist
+      const pending: typeof jobs = [];
+      for (const job of jobs) {
+        const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
+        if (data?.publicUrl) {
+          try {
+            const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
+            if (res.ok) {
+              // File exists, skip
+              continue;
+            }
+          } catch { /* treat fetch error as missing */ }
+        }
+        pending.push(job);
+      }
 
-      // 2. IGCSE fluency
-      setMeasureLabel("IGCSE Fluency");
-      await generateAndUploadFluencyTimings("igcse", "uk", (c, t) =>
-        setMeasureProgress({ current: c, total: t })
-      );
-
-      // 3. Shared pronunciation
-      setMeasureLabel("Pronunciation");
-      await generateAndUploadPronunciationTimings("uk", (c, t) =>
-        setMeasureProgress({ current: c, total: t })
-      );
-
-      toast({ title: "TTS Timings Complete", description: "All curriculum timings have been measured and saved." });
+      if (pending.length === 0) {
+        toast({ title: "All timings already exist", description: "No missing timing files to measure." });
+      } else {
+        for (const job of pending) {
+          setMeasureLabel(job.label);
+          await job.run();
+        }
+        toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} missing timing file(s).` });
+      }
     } catch (err) {
       toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
     } finally {
