@@ -550,7 +550,7 @@ function LiveInputCanvas({
             } else if (s.speechDetected) {
               // Only start silence countdown after speech was detected
               if (!s.silenceStart) s.silenceStart = Date.now();
-              if (Date.now() - s.silenceStart > 1000) {
+              if (Date.now() - s.silenceStart > 2000) {
                 onAutoStopRef.current();
                 return;
               }
