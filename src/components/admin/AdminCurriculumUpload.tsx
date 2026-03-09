@@ -148,6 +148,11 @@ export default function AdminCurriculumUpload() {
   const [previewFileName, setPreviewFileName] = useState("");
   const [pendingContent, setPendingContent] = useState<string | null>(null);
 
+  // TTS Measurement state
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
+  const [measureLabel, setMeasureLabel] = useState("");
+
   const loadMetadata = async () => {
     const { data } = await supabase
       .from("curriculum_metadata")
