@@ -216,7 +216,7 @@ export default function IGCSESpeaking() {
             weekNumber={courseWeek.selectedWeek}
             questionType="Speaking"
             questionNumber="Q1"
-            questionText={currentQuestion?.text?.split("?")[0] + "?"}
+            questionText={currentQuestion?.text ?? ""}
           />
 
           <div className="mt-3 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-4 py-3 max-w-xs">

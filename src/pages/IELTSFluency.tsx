@@ -219,7 +219,7 @@ export default function IELTSFluency() {
             weekNumber={courseWeek.shadowingWeek}
             questionType={sectionLabel}
             questionNumber={questionId}
-            questionText={shadowCurriculum.currentQuestionText?.split("?")[0] + "?"}
+            questionText={shadowCurriculum.currentQuestionText ?? ""}
           />
         </div>
 
@@ -237,7 +237,7 @@ export default function IELTSFluency() {
           {/* Question text above karaoke */}
           {shadowCurriculum.currentQuestionText && (
             <p className="text-[13px] italic text-white/70 max-w-lg mx-auto mb-1.5 text-center line-clamp-2 leading-relaxed">
-              Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
+              Q: {shadowCurriculum.currentQuestionText}
             </p>
           )}
 

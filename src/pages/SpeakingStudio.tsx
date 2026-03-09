@@ -339,7 +339,7 @@ export default function SpeakingStudio() {
               {/* Question text — directly below karaoke */}
               {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
                 <p className="text-sm italic text-white max-w-lg mx-auto mb-1 text-center line-clamp-1 leading-tight">
-                  Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
+                  Q: {shadowCurriculum.currentQuestionText}
                 </p>
               )}
               <div className="w-full max-w-3xl flex flex-col gap-2 mb-2">
@@ -483,7 +483,7 @@ export default function SpeakingStudio() {
               transcript={test.liveTranscript}
               interim={test.liveInterim}
               isRecording={test.isRecording}
-              questionText={speakingQuestions[currentQuestionIndex]?.text.split("?")[0] + "?" || undefined}
+              questionText={speakingQuestions[currentQuestionIndex]?.text || undefined}
             />
 
             {/* Mic button — right side, vertically centered */}

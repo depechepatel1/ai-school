@@ -232,7 +232,7 @@ export default function IELTSSpeaking() {
             weekNumber={courseWeek.selectedWeek}
             questionType={sectionLabel}
             questionNumber={`Q${currentQIndex + 1}`}
-            questionText={currentQuestion?.text?.split("?")[0] + "?"}
+            questionText={currentQuestion?.text ?? ""}
           />
 
           {/* Encouragement tips */}
