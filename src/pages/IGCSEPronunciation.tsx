@@ -30,6 +30,7 @@ export default function IGCSEPronunciation() {
   const courseWeek = useCourseWeek(userId);
   const progress = useStudentProgress({ userId, courseType: "igcse", moduleType: "tongue-twisters" });
   const timerSettings = useTimerSettings("igcse", "shadowing-pronunciation");
+  const pronunciationTimings = usePronunciationTimings();
 
   const [twisters, setTwisters] = useState<TongueTwister[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
