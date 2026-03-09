@@ -366,7 +366,8 @@ export default function SpeakingStudio() {
                     targetProgress={targetProgress}
                     sentenceKey={sentenceKey}
                     onAutoStop={stopShadowRecording}
-                    onPitchContour={handlePitchContour} />
+                    onPitchContour={handlePitchContour}
+                    measuredDurationMs={practiceType === "fluency" ? fluencyTimings.getDuration(rawText) : pronunciationTimings.getDuration(rawText)} />
 
                   </div>
                 </div>
