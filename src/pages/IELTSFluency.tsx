@@ -236,9 +236,9 @@ export default function IELTSFluency() {
         <div className="absolute bottom-0 left-0 right-0 pb-6 pt-12 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
           {/* Question text above karaoke */}
           {shadowCurriculum.currentQuestionText && (
-            <p className="text-[13px] italic text-white/70 max-w-lg mx-auto mb-1.5 text-center line-clamp-2 leading-relaxed">
-              Q: {shadowCurriculum.currentQuestionText}
-            </p>
+             <p className="text-[13px] italic text-white/70 max-w-2xl mx-auto mb-1.5 text-center line-clamp-3 leading-relaxed">
+               Q: {shadowCurriculum.currentQuestionText}
+             </p>
           )}
 
           {/* Karaoke text */}
