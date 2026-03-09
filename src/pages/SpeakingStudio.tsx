@@ -337,7 +337,7 @@ export default function SpeakingStudio() {
               </div>
               {/* Question text — directly below karaoke */}
               {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
-                <p className="text-[11px] italic text-white/50 max-w-lg mx-auto mb-1 text-center line-clamp-1 leading-tight">
+                <p className="text-sm italic text-white max-w-lg mx-auto mb-1 text-center line-clamp-1 leading-tight">
                   Q: {shadowCurriculum.currentQuestionText.split("?")[0]}?
                 </p>
               )}
