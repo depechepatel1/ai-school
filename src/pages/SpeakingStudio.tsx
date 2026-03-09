@@ -483,7 +483,7 @@ export default function SpeakingStudio() {
               transcript={test.liveTranscript}
               interim={test.liveInterim}
               isRecording={test.isRecording}
-              questionText={speakingQuestions[currentQuestionIndex]?.text.split("?")[0] + "?" || undefined}
+              questionText={speakingQuestions[currentQuestionIndex]?.text || undefined}
             />
 
             {/* Mic button — right side, vertically centered */}
