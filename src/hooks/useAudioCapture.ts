@@ -4,9 +4,11 @@ export function useAudioCapture() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const replayAudioRef = useRef<HTMLAudioElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [lastRecordingUrl, setLastRecordingUrl] = useState<string | null>(null);
   const [isPlayingReplay, setIsPlayingReplay] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
 
   const startMediaRecorder = useCallback(async (): Promise<boolean> => {
     setMicDenied(false);
