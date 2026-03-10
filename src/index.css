@@ -127,6 +127,13 @@
   }
 }
 
+@media (min-width: 1600px) {
+  .auth-video-scale {
+    transform: scale(1.25);
+    transform-origin: 20% 45%;
+  }
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

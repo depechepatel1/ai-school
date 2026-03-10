@@ -168,7 +168,7 @@ export default function VideoLoopStage({
           const v = e.currentTarget;
           console.error("[VideoPlayer] A error:", v.error?.code, v.error?.message, "src:", v.src);
         }}
-        className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "A" ? "z-[2]" : "z-[1]"}`}
+        className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "A" ? "z-[2]" : "z-[1]"} ${scaleClass ?? ""}`}
         style={{ objectPosition }}
       />
 
@@ -185,7 +185,7 @@ export default function VideoLoopStage({
             const v = e.currentTarget;
             console.error("[VideoPlayer] B error:", v.error?.code, v.error?.message, "src:", v.src);
           }}
-          className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "B" ? "z-[2]" : "z-[1]"}`}
+          className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "B" ? "z-[2]" : "z-[1]"} ${scaleClass ?? ""}`}
           style={{ objectPosition }}
         />
       )}

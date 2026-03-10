@@ -6,6 +6,7 @@ interface BackgroundStageProps {
   videoList?: string[];
   playIntro?: boolean;
   objectPosition?: string;
+  scaleClass?: string;
 }
 
 export default function BackgroundStage(props: BackgroundStageProps) {
