@@ -494,6 +494,15 @@ export default function AdminCurriculumUpload() {
             <Timer className="w-3 h-3" />
             Force All
           </button>
+          {isMeasuring && (
+            <button
+              onClick={cancelMeasurement}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/20 border border-red-400/30 text-red-300 text-[10px] font-bold hover:bg-red-500/35 transition-all animate-pulse"
+            >
+              <XCircle className="w-3 h-3" />
+              Cancel
+            </button>
+          )}
           {TIMING_JOBS.map((job, idx) => (
             <button
               key={job.path}
