@@ -295,10 +295,10 @@ export default function AdminCurriculumUpload() {
         setPreviewFileName(file.name);
         setPendingContent(jsonContent);
       } else {
-        // JSON / txt / docx — upload directly
+        // JSON / txt — read, validate, and normalise into single JSON
         let fileContent = await file.text();
-        if (file.name.endsWith(".json")) JSON.parse(fileContent); // validate
-        await commitUpload(fileContent);
+        const normalised = normaliseCurriculumText(fileContent, selectedModule);
+        await commitUpload(normalised);
       }
     } catch (err) {
       toast({ title: "File error", description: String(err), variant: "destructive" });
