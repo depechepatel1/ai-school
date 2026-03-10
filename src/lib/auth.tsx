@@ -52,6 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         loadRole(session.user.id);
+        preloadVoices();
+        preloadAccent("uk");
+        preloadAccent("us");
       }
       setLoading(false);
     });
