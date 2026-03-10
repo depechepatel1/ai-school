@@ -28,6 +28,8 @@ interface VideoLoopStageProps {
   /** If provided, the audio toggle is rendered externally via a portal-like pattern */
   onMuteStateChange?: (isMuted: boolean) => void;
   externalMuteControl?: boolean;
+  /** CSS class applied to video elements (e.g. for responsive scaling) */
+  scaleClass?: string;
 }
 
 export default function VideoLoopStage({
