@@ -220,7 +220,14 @@ export default function AdminCurriculumUpload() {
         uploaded_by: user?.id ?? null,
       });
 
-      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}` });
+      // Auto-invalidate the corresponding timing file so "Measure Missing" picks it up
+      const timingPath = getTimingPath(filePath);
+      if (timingPath) {
+        await supabase.storage.from("curriculums").remove([timingPath]);
+        console.log(`Deleted stale timing file: ${timingPath}`);
+      }
+
+      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();
     } catch (err) {
       toast({ title: "Upload failed", description: String(err), variant: "destructive" });
