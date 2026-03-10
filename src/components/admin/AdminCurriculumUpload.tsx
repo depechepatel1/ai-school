@@ -296,17 +296,17 @@ export default function AdminCurriculumUpload() {
     {
       label: "IELTS Fluency",
       path: "ielts/timings-shadowing-fluency.json",
-      run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
       label: "IGCSE Fluency",
       path: "igcse/timings-shadowing-fluency.json",
-      run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
       label: "Pronunciation",
       path: "shared/timings-shadowing-pronunciation.json",
-      run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
   ];
 
