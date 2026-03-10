@@ -79,10 +79,9 @@ function findVoiceForAccent(accent: Accent): SpeechSynthesisVoice | null {
  * Measure durations for all provided text chunks sequentially.
  * Returns a MeasurementResult with timing data.
  */
-const BATCH_SIZE = 15;
-const BATCH_REST_MS = 2000;
+const BATCH_SIZE = 10;
+const BATCH_REST_MS = 3000;
 const INTER_UTTERANCE_MS = 500;
-const KEEPALIVE_INTERVAL_MS = 10000;
 
 export async function measureAllChunkDurations(
   chunks: string[],
@@ -108,18 +107,7 @@ export async function measureAllChunkDurations(
   const timings: Record<string, number> = {};
   const uniqueChunks = [...new Set(chunks)];
 
-  // Keepalive: prevent engine idle timeout by pinging every 10s
-  const keepalive = setInterval(() => {
-    try {
-      speechSynthesis.pause();
-      speechSynthesis.resume();
-    } catch {
-      // ignore
-    }
-  }, KEEPALIVE_INTERVAL_MS);
-
   try {
-    // Process in batches
     for (let batchStart = 0; batchStart < uniqueChunks.length; batchStart += BATCH_SIZE) {
       if (cancelSignal?.current) {
         speechSynthesis.cancel();
@@ -127,6 +115,12 @@ export async function measureAllChunkDurations(
       }
 
       const batchEnd = Math.min(batchStart + BATCH_SIZE, uniqueChunks.length);
+
+      // Warm up the engine before each batch
+      speechSynthesis.cancel();
+      await new Promise((r) => setTimeout(r, 200));
+      await measureSingle(" ", voice, 1, 3000);
+      await new Promise((r) => setTimeout(r, 300));
 
       for (let i = batchStart; i < batchEnd; i++) {
         if (cancelSignal?.current) {
@@ -137,18 +131,16 @@ export async function measureAllChunkDurations(
         const text = uniqueChunks[i];
         onProgress?.(i + 1, uniqueChunks.length);
 
-        // Inter-utterance delay
         if (i > batchStart) {
           await new Promise((r) => setTimeout(r, INTER_UTTERANCE_MS));
         }
 
-        // Cancel any lingering speech
         speechSynthesis.cancel();
         await new Promise((r) => setTimeout(r, 50));
 
         let duration = await measureSingle(text, voice, rate);
 
-        // Retry once if it timed out (engine likely hung)
+        // Retry once if it timed out
         if (duration >= 15000) {
           speechSynthesis.cancel();
           await new Promise((r) => setTimeout(r, 1000));
@@ -158,14 +150,13 @@ export async function measureAllChunkDurations(
         timings[text] = duration;
       }
 
-      // Batch rest: reset engine and pause before next batch
+      // Batch rest
       if (batchStart + BATCH_SIZE < uniqueChunks.length && !cancelSignal?.current) {
         speechSynthesis.cancel();
         await new Promise((r) => setTimeout(r, BATCH_REST_MS));
       }
     }
   } finally {
-    clearInterval(keepalive);
     speechSynthesis.cancel();
   }
 
