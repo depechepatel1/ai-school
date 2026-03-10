@@ -57,12 +57,12 @@ export default function AdminDashboard() {
       {/* Full-width glassmorphic overlay */}
       <div className="absolute inset-4 z-10 flex flex-col rounded-[2rem] bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
-        <div className="relative z-10 flex-1 flex flex-col p-6 overflow-hidden">
+        <div className="relative z-10 flex-1 flex flex-col p-6 min-h-0 overflow-hidden">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
-            className="flex-1 flex flex-col"
+            className="flex-1 flex flex-col min-h-0"
           >
             {/* Header */}
             <motion.div variants={fadeUp} className="flex items-center justify-between mb-5">
