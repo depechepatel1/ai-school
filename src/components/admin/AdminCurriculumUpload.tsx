@@ -155,6 +155,9 @@ export default function AdminCurriculumUpload() {
   const [measureLabel, setMeasureLabel] = useState("");
   const cancelRef = useRef(false);
 
+  // Timing file status: null = loading, true = exists, false = missing/stale
+  const [timingStatus, setTimingStatus] = useState<Record<string, boolean | null>>({});
+
   const cancelMeasurement = () => {
     cancelRef.current = true;
   };
