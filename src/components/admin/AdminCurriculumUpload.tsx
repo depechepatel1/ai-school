@@ -332,17 +332,17 @@ export default function AdminCurriculumUpload() {
 
   const TIMING_JOBS: { label: string; run: () => Promise<void>; path: string }[] = [
     {
-      label: "IELTS Fluency",
+      label: "Time IELTS Fluency",
       path: "ielts/timings-shadowing-fluency.json",
       run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
-      label: "IGCSE Fluency",
+      label: "Time IGCSE Fluency",
       path: "igcse/timings-shadowing-fluency.json",
       run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
-      label: "Pronunciation",
+      label: "Time Pronunciation",
       path: "shared/timings-shadowing-pronunciation.json",
       run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
@@ -522,7 +522,7 @@ export default function AdminCurriculumUpload() {
             ) : (
               <>
                 <Timer className="w-3 h-3" />
-                Measure Missing
+                Time Missing
               </>
             )}
           </button>
@@ -532,7 +532,7 @@ export default function AdminCurriculumUpload() {
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-400/15 text-red-300 text-[10px] font-bold hover:bg-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Timer className="w-3 h-3" />
-            Force All
+            Re-time All
           </button>
           {isMeasuring && (
             <button

@@ -34,22 +34,6 @@ export async function fetchPronunciationItems(): Promise<PronunciationItem[]> {
     } catch { /* fall through */ }
   }
 
-  // Try curriculum bucket
-  const { data: urlData2 } = supabase.storage
-    .from("curriculum")
-    .getPublicUrl("tongue-twisters.json");
-
-  if (urlData2?.publicUrl) {
-    try {
-      const res = await fetch(`${urlData2.publicUrl}?t=${Date.now()}`);
-      if (res.ok) {
-        const data = await res.json();
-        cache = data;
-        return data;
-      }
-    } catch { /* fall through */ }
-  }
-
   // Fallback: local
   const res = await fetch("/data/tongue-twisters.json");
   if (!res.ok) throw new Error("Failed to load pronunciation items");
