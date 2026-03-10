@@ -125,7 +125,8 @@ export async function generateAndUploadFluencyTimings(
  */
 export async function generateAndUploadPronunciationTimings(
   accent: Accent = "uk",
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
+  cancelSignal?: { current: boolean }
 ): Promise<MeasurementResult> {
   const twisters = await fetchTongueTwisters();
   const texts = twisters.map((t) => t.text);
@@ -134,11 +135,11 @@ export async function generateAndUploadPronunciationTimings(
     throw new Error("No tongue twisters found");
   }
 
-  const result = await measureAllChunkDurations(texts, accent, 0.8, onProgress);
-  await uploadTimings(PRONUNCIATION_TIMINGS_PATH, result);
-
-  // Update cache
-  timingsCache.set(PRONUNCIATION_TIMINGS_PATH, result.timings);
+  const result = await measureAllChunkDurations(texts, accent, 0.8, onProgress, cancelSignal);
+  if (!cancelSignal?.current) {
+    await uploadTimings(PRONUNCIATION_TIMINGS_PATH, result);
+    timingsCache.set(PRONUNCIATION_TIMINGS_PATH, result.timings);
+  }
 
   return result;
 }
