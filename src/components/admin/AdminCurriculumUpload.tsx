@@ -337,7 +337,7 @@ export default function AdminCurriculumUpload() {
       run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
-      label: "IGCSE Fluency",
+      label: "Time IGCSE Fluency",
       path: "igcse/timings-shadowing-fluency.json",
       run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
