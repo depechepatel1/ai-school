@@ -93,13 +93,20 @@ ensureVoices();
 
 function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSHandle {
   if (!("speechSynthesis" in window)) {
+    console.warn("[TTS] speechSynthesis not available");
     return { stop: () => {}, finished: Promise.resolve() };
   }
 
-  // Only cancel if something is actively playing — avoids cold-restart delay
-  if (speechSynthesis.speaking || speechSynthesis.pending) {
-    speechSynthesis.cancel();
+  if (!text || text.trim().length === 0) {
+    console.warn("[TTS] Empty text, skipping");
+    return { stop: () => {}, finished: Promise.resolve() };
   }
+
+  // Always cancel before speaking — Chrome/Edge bug: cancel() right before
+  // speak() can silently swallow the utterance. We work around this by
+  // deferring speak() with a microtask when cancel was needed.
+  const needsCancel = speechSynthesis.speaking || speechSynthesis.pending;
+  speechSynthesis.cancel();
 
   if (!voicesReady) ensureVoices();
   const voice = cachedVoices[accent] || findVoice(accent);
@@ -115,7 +122,8 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       opts.onEnd?.();
       resolve();
     };
-    utterance.onerror = () => {
+    utterance.onerror = (e) => {
+      console.warn("[TTS] utterance error:", (e as any).error || e);
       opts.onEnd?.();
       resolve();
     };
@@ -129,7 +137,18 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
 
   if (opts.onStart) utterance.onstart = opts.onStart;
 
-  speechSynthesis.speak(utterance);
+  // Chrome/Edge bug workaround: after cancel(), defer speak() slightly
+  // so the engine fully resets before accepting a new utterance.
+  const doSpeak = () => {
+    console.log("[TTS] Speaking:", text.substring(0, 50), "| voice:", voice?.name ?? "default");
+    speechSynthesis.speak(utterance);
+  };
+
+  if (needsCancel) {
+    setTimeout(doSpeak, 50);
+  } else {
+    doSpeak();
+  }
 
   return {
     stop: () => speechSynthesis.cancel(),
