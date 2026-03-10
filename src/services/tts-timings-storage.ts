@@ -6,7 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { measureAllChunkDurations, type MeasurementResult } from "@/lib/tts-measure";
 import { fetchCurriculumJSON, getWeekShadowingChunks, type CurriculumData } from "./curriculum-storage";
-import { fetchTongueTwisters } from "./tongue-twisters";
+import { fetchPronunciationItems } from "./pronunciation-shadowing";
 import type { Accent } from "@/lib/tts-provider";
 
 // In-memory cache
@@ -128,7 +128,7 @@ export async function generateAndUploadPronunciationTimings(
   onProgress?: (current: number, total: number) => void,
   cancelSignal?: { current: boolean }
 ): Promise<MeasurementResult> {
-  const twisters = await fetchTongueTwisters();
+  const twisters = await fetchPronunciationItems();
   const texts = twisters.map((t) => t.text);
 
   if (texts.length === 0) {

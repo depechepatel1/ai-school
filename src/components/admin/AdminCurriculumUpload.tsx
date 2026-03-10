@@ -17,7 +17,7 @@ import {
   generateAndUploadFluencyTimingsFromData,
   clearTimingsCache,
 } from "@/services/tts-timings-storage";
-import { clearTongueTwistersCache } from "@/services/tongue-twisters";
+import { clearPronunciationCache } from "@/services/pronunciation-shadowing";
 
 interface MetadataRow {
   id: string;
@@ -235,7 +235,7 @@ export default function AdminCurriculumUpload() {
 
       // Clear in-memory caches so fresh data is fetched
       clearTimingsCache();
-      clearTongueTwistersCache();
+      clearPronunciationCache();
 
       toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();

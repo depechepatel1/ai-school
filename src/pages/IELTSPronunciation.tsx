@@ -12,7 +12,7 @@ import { useStudentProgress } from "@/hooks/useStudentProgress";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
 import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
-import { fetchTongueTwisters, type TongueTwister } from "@/services/tongue-twisters";
+import { fetchPronunciationItems, type PronunciationItem } from "@/services/pronunciation-shadowing";
 import { speak, stopSpeaking, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { usePronunciationTimings } from "@/hooks/useTTSTimings";
@@ -34,7 +34,7 @@ export default function IELTSPronunciation() {
   const timerSettings = useTimerSettings("ielts", "shadowing-pronunciation");
   const pronunciationTimings = usePronunciationTimings();
 
-  const [twisters, setTwisters] = useState<TongueTwister[]>([]);
+  const [twisters, setTwisters] = useState<PronunciationItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
@@ -59,7 +59,7 @@ export default function IELTSPronunciation() {
 
   // Load tongue twisters
   useEffect(() => {
-    fetchTongueTwisters()
+    fetchPronunciationItems()
       .then(setTwisters)
       .catch(console.error);
     preloadVoices();

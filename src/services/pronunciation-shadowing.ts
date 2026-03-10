@@ -1,21 +1,21 @@
 /**
- * Fetch tongue twisters from the curriculums bucket or local fallback.
+ * Fetch pronunciation shadowing items from the curriculums bucket or local fallback.
  */
 import { supabase } from "@/integrations/supabase/client";
 
-export interface TongueTwister {
+export interface PronunciationItem {
   id: number;
   text: string;
   difficulty: number;
 }
 
-let cache: TongueTwister[] | null = null;
+let cache: PronunciationItem[] | null = null;
 
-export function clearTongueTwistersCache(): void {
+export function clearPronunciationCache(): void {
   cache = null;
 }
 
-export async function fetchTongueTwisters(): Promise<TongueTwister[]> {
+export async function fetchPronunciationItems(): Promise<PronunciationItem[]> {
   if (cache) return cache;
 
   // Try storage bucket first
@@ -52,7 +52,7 @@ export async function fetchTongueTwisters(): Promise<TongueTwister[]> {
 
   // Fallback: local
   const res = await fetch("/data/tongue-twisters.json");
-  if (!res.ok) throw new Error("Failed to load tongue twisters");
+  if (!res.ok) throw new Error("Failed to load pronunciation items");
   const data = await res.json();
   cache = data;
   return data;
