@@ -152,6 +152,11 @@ export default function AdminCurriculumUpload() {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
   const [measureLabel, setMeasureLabel] = useState("");
+  const cancelRef = useRef(false);
+
+  const cancelMeasurement = () => {
+    cancelRef.current = true;
+  };
 
   const loadMetadata = async () => {
     const { data } = await supabase
