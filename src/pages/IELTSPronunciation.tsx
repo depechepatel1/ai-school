@@ -59,7 +59,7 @@ export default function IELTSPronunciation() {
 
   // Load tongue twisters
   useEffect(() => {
-    fetchTongueTwisters()
+    fetchPronunciationItems()
       .then(setTwisters)
       .catch(console.error);
     preloadVoices();

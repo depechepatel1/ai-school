@@ -128,7 +128,7 @@ export async function generateAndUploadPronunciationTimings(
   onProgress?: (current: number, total: number) => void,
   cancelSignal?: { current: boolean }
 ): Promise<MeasurementResult> {
-  const twisters = await fetchTongueTwisters();
+  const twisters = await fetchPronunciationItems();
   const texts = twisters.map((t) => t.text);
 
   if (texts.length === 0) {

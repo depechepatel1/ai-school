@@ -235,7 +235,7 @@ export default function AdminCurriculumUpload() {
 
       // Clear in-memory caches so fresh data is fetched
       clearTimingsCache();
-      clearTongueTwistersCache();
+      clearPronunciationCache();
 
       toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();
