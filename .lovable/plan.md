@@ -1,29 +1,39 @@
 
 
-## Analysis
+## Fix: TTS Timing Crashes During 300-Chunk Pronunciation Measurement
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Problem
+The browser page refreshes/crashes before all 300 pronunciation chunks are timed. Even on Edge (which has better speech synthesis stability than Chrome), processing 300 utterances continuously overwhelms the speech engine.
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### Root Cause
+The current code processes all chunks in a tight loop with only 200ms between utterances. Edge's speech engine accumulates internal state and eventually crashes or becomes unresponsive, causing the page to reload.
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+### Solution — Batch Processing with Engine Reset
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+Changes to **`src/lib/tts-measure.ts`**:
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+1. **Batch chunks into groups of 15** — after each batch, cancel the speech engine and wait 2 seconds for it to fully reset
+2. **Increase inter-utterance delay** from 200ms to 500ms
+3. **Add a keepalive interval** — call `speechSynthesis.pause()` then `speechSynthesis.resume()` every 10 seconds to prevent the engine's internal idle timeout from killing it mid-utterance
+4. **Retry on timeout** — if a single utterance returns the timeout value (meaning the engine hung), retry it once after a 1-second reset pause
 
----
+### Technical Detail
 
-## Changes -- `src/components/PageShell.tsx`
+```text
+Current flow:
+  chunk1 → 200ms → chunk2 → 200ms → chunk3 → ... → chunk300
+  (engine crashes around chunk 40-80)
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+New flow:
+  [batch 1: chunks 1-15] → 500ms gaps → 2s REST + engine reset
+  [batch 2: chunks 16-30] → 500ms gaps → 2s REST + engine reset
+  ...
+  [batch 20: chunks 286-300] → done
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+  + keepalive ping every 10s throughout
+  + single retry if any utterance times out
+```
+
+### File Changes
+- **`src/lib/tts-measure.ts`** — restructure `measureAllChunkDurations` with batch loop, keepalive interval, retry logic, and longer delays
 
