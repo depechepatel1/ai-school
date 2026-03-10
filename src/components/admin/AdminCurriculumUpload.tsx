@@ -522,7 +522,7 @@ export default function AdminCurriculumUpload() {
             ) : (
               <>
                 <Timer className="w-3 h-3" />
-                Measure Missing
+                Time Missing
               </>
             )}
           </button>
