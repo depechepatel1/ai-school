@@ -171,6 +171,16 @@ export default function AdminCurriculumUpload() {
     return `${course}/${moduleInfo?.path ?? `${module}.json`}`;
   };
 
+  /** Map a curriculum file path to its corresponding timing file path. */
+  const getTimingPath = (filePath: string): string | null => {
+    const map: Record<string, string> = {
+      "ielts/shadowing-fluency.json": "ielts/timings-shadowing-fluency.json",
+      "igcse/shadowing-fluency.json": "igcse/timings-shadowing-fluency.json",
+      "shared/tongue-twisters.json": "shared/timings-shadowing-pronunciation.json",
+    };
+    return map[filePath] ?? null;
+  };
+
   /** Commit content (JSON string) to storage + metadata. */
   const commitUpload = useCallback(async (fileContent: string) => {
     setUploading(true);
@@ -210,7 +220,14 @@ export default function AdminCurriculumUpload() {
         uploaded_by: user?.id ?? null,
       });
 
-      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}` });
+      // Auto-invalidate the corresponding timing file so "Measure Missing" picks it up
+      const timingPath = getTimingPath(filePath);
+      if (timingPath) {
+        await supabase.storage.from("curriculums").remove([timingPath]);
+        console.log(`Deleted stale timing file: ${timingPath}`);
+      }
+
+      toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();
     } catch (err) {
       toast({ title: "Upload failed", description: String(err), variant: "destructive" });
@@ -270,28 +287,49 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
+  const TIMING_JOBS: { label: string; run: () => Promise<void>; path: string }[] = [
+    {
+      label: "IELTS Fluency",
+      path: "ielts/timings-shadowing-fluency.json",
+      run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+    },
+    {
+      label: "IGCSE Fluency",
+      path: "igcse/timings-shadowing-fluency.json",
+      run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+    },
+    {
+      label: "Pronunciation",
+      path: "shared/timings-shadowing-pronunciation.json",
+      run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+    },
+  ];
+
+  const handleMeasureSingle = async (jobIndex: number) => {
+    if (isMeasuring) return;
+    const job = TIMING_JOBS[jobIndex];
+    if (!job) return;
+    setIsMeasuring(true);
+    clearTimingsCache();
+    setMeasureLabel(job.label);
+    try {
+      await job.run();
+      toast({ title: "TTS Timing Complete", description: `Re-measured ${job.label}.` });
+    } catch (err) {
+      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+    } finally {
+      setIsMeasuring(false);
+      setMeasureProgress({ current: 0, total: 0 });
+      setMeasureLabel("");
+    }
+  };
+
   const handleMeasureAll = async (force = false) => {
     if (isMeasuring) return;
     setIsMeasuring(true);
     clearTimingsCache();
 
-    const jobs: { label: string; run: () => Promise<void>; path: string }[] = [
-      {
-        label: "IELTS Fluency",
-        path: "ielts/timings-shadowing-fluency.json",
-        run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
-      },
-      {
-        label: "IGCSE Fluency",
-        path: "igcse/timings-shadowing-fluency.json",
-        run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
-      },
-      {
-        label: "Pronunciation",
-        path: "shared/timings-shadowing-pronunciation.json",
-        run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
-      },
-    ];
+    const jobs = TIMING_JOBS;
 
     try {
       let pending = jobs;
@@ -438,6 +476,23 @@ export default function AdminCurriculumUpload() {
             <Timer className="w-3.5 h-3.5" />
             Force Re-measure All
           </button>
+        </div>
+
+        {/* Individual Re-measure Buttons */}
+        <div className="space-y-1.5">
+          <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40">Re-measure Individual</label>
+          {TIMING_JOBS.map((job, idx) => (
+            <button
+              key={job.path}
+              onClick={() => handleMeasureSingle(idx)}
+              disabled={isMeasuring}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[11px] text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Timer className="w-3 h-3 text-amber-400/60" />
+              <span className="flex-1 text-left">{job.label}</span>
+              <span className="text-[9px] text-white/30">Re-measure →</span>
+            </button>
+          ))}
         </div>
       </div>
 
