@@ -375,62 +375,48 @@ export default function AdminCurriculumUpload() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Upload Section */}
-      <div className="space-y-4">
+    <div className="space-y-4">
+      {/* Upload Section — compact */}
+      <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Upload className="w-4 h-4 text-amber-400" />
           <h2 className="text-sm font-bold text-white/90">Upload New Curriculum</h2>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {/* Course selector */}
-          <div>
-            <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1.5">Course</label>
+        {/* Course + Module + Upload button in one row */}
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all"
+              className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-2.5 py-1.5 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all"
             >
               {COURSE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>
               ))}
             </select>
           </div>
-
-          {/* Module selector */}
-          <div>
-            <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1.5">Module</label>
+          <div className="flex-1">
+            <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Module</label>
             <select
               value={selectedModule}
               onChange={(e) => setSelectedModule(e.target.value)}
-              className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all"
+              className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-2.5 py-1.5 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all"
             >
               {MODULE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>
               ))}
             </select>
           </div>
-        </div>
-
-        {/* File upload area */}
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          className="relative flex flex-col items-center justify-center py-8 rounded-xl border-2 border-dashed border-white/[0.10] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.18] transition-all cursor-pointer group"
-        >
-          {uploading ? (
-            <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
-          ) : (
-            <>
-              <FileText className="w-8 h-8 text-white/20 group-hover:text-white/40 transition-colors mb-2" />
-              <p className="text-xs text-white/40 group-hover:text-white/60 transition-colors">
-                Click to upload <span className="font-semibold">.json</span>, <span className="font-semibold">.csv</span>, <span className="font-semibold">.txt</span>, or <span className="font-semibold">.docx</span>
-              </p>
-              <p className="text-[10px] text-white/25 mt-1">
-                Target: {getFilePath(selectedCourse, selectedModule)}
-              </p>
-            </>
-          )}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-400/30 text-amber-200 text-[11px] font-bold hover:bg-amber-500/30 transition-all whitespace-nowrap disabled:opacity-50"
+          >
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {uploading ? "Uploading…" : "Upload"}
+          </button>
           <input
             ref={fileInputRef}
             type="file"
@@ -439,31 +425,32 @@ export default function AdminCurriculumUpload() {
             className="hidden"
           />
         </div>
+        <p className="text-[9px] text-white/25">
+          Target: {getFilePath(selectedCourse, selectedModule)} · Accepts .json, .csv, .txt, .docx
+        </p>
 
-        {/* AI Formatting Guide Download */}
-        <button
-          onClick={handleDownloadGuide}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/15 border border-indigo-400/25 text-indigo-300 text-[11px] font-bold hover:bg-indigo-500/25 transition-all w-full justify-center"
-        >
-          <Download className="w-3.5 h-3.5" />
-          Download AI Formatting Guide
-        </button>
-
-        {/* TTS Timing Measurement */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Action buttons — single compact row */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            onClick={handleDownloadGuide}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-400/20 text-indigo-300 text-[10px] font-bold hover:bg-indigo-500/25 transition-all"
+          >
+            <Download className="w-3 h-3" />
+            AI Guide
+          </button>
           <button
             onClick={() => handleMeasureAll(false)}
             disabled={isMeasuring}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/25 text-amber-300 text-[11px] font-bold hover:bg-amber-500/25 transition-all justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-400/20 text-amber-300 text-[10px] font-bold hover:bg-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isMeasuring ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                {measureLabel} — {measureProgress.current}/{measureProgress.total}
+                <Loader2 className="w-3 h-3 animate-spin" />
+                {measureLabel} {measureProgress.current}/{measureProgress.total}
               </>
             ) : (
               <>
-                <Timer className="w-3.5 h-3.5" />
+                <Timer className="w-3 h-3" />
                 Measure Missing
               </>
             )}
@@ -471,26 +458,20 @@ export default function AdminCurriculumUpload() {
           <button
             onClick={() => handleMeasureAll(true)}
             disabled={isMeasuring}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/15 border border-red-400/25 text-red-300 text-[11px] font-bold hover:bg-red-500/25 transition-all justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-400/15 text-red-300 text-[10px] font-bold hover:bg-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Timer className="w-3.5 h-3.5" />
-            Force Re-measure All
+            <Timer className="w-3 h-3" />
+            Force All
           </button>
-        </div>
-
-        {/* Individual Re-measure Buttons */}
-        <div className="space-y-1.5">
-          <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40">Re-measure Individual</label>
           {TIMING_JOBS.map((job, idx) => (
             <button
               key={job.path}
               onClick={() => handleMeasureSingle(idx)}
               disabled={isMeasuring}
-              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[11px] text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] text-white/50 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Timer className="w-3 h-3 text-amber-400/60" />
-              <span className="flex-1 text-left">{job.label}</span>
-              <span className="text-[9px] text-white/30">Re-measure →</span>
+              <Timer className="w-2.5 h-2.5" />
+              {job.label}
             </button>
           ))}
         </div>
