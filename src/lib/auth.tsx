@@ -37,6 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         setTimeout(() => loadRole(session.user.id), 0);
+        // Warm up TTS voices early so first play is instant
+        preloadVoices();
+        preloadAccent("uk");
+        preloadAccent("us");
       } else {
         setRole(null);
       }
