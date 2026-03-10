@@ -68,6 +68,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               videoList={loopVideos}
               playIntro={playIntroVideo}
               objectPosition={fullWidth ? "center center" : "20% 45%"}
+              scaleClass={fullWidth ? undefined : "auth-video-scale"}
             />
           )}
         </div>

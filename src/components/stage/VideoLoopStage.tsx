@@ -28,12 +28,15 @@ interface VideoLoopStageProps {
   /** If provided, the audio toggle is rendered externally via a portal-like pattern */
   onMuteStateChange?: (isMuted: boolean) => void;
   externalMuteControl?: boolean;
+  /** CSS class applied to video elements (e.g. for responsive scaling) */
+  scaleClass?: string;
 }
 
 export default function VideoLoopStage({
   videoList: videoListProp,
   playIntro = false,
   objectPosition = "center center",
+  scaleClass,
 }: VideoLoopStageProps) {
   const videoList = videoListProp && videoListProp.length > 0 ? videoListProp : VIDEO_LOOP_STACK;
   const shouldLoop = videoList.length === 1;
@@ -146,7 +149,7 @@ export default function VideoLoopStage({
           src={VIDEO_INTRO}
           playsInline
           onEnded={handleIntroEnd}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"} ${scaleClass ?? ""}`}
           style={{ objectPosition }}
         />
       )}
@@ -165,7 +168,7 @@ export default function VideoLoopStage({
           const v = e.currentTarget;
           console.error("[VideoPlayer] A error:", v.error?.code, v.error?.message, "src:", v.src);
         }}
-        className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "A" ? "z-[2]" : "z-[1]"}`}
+        className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "A" ? "z-[2]" : "z-[1]"} ${scaleClass ?? ""}`}
         style={{ objectPosition }}
       />
 
@@ -182,7 +185,7 @@ export default function VideoLoopStage({
             const v = e.currentTarget;
             console.error("[VideoPlayer] B error:", v.error?.code, v.error?.message, "src:", v.src);
           }}
-          className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "B" ? "z-[2]" : "z-[1]"}`}
+          className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "B" ? "z-[2]" : "z-[1]"} ${scaleClass ?? ""}`}
           style={{ objectPosition }}
         />
       )}
