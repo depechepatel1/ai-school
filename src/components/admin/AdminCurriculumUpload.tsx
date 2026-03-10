@@ -17,6 +17,7 @@ import {
   generateAndUploadFluencyTimingsFromData,
   clearTimingsCache,
 } from "@/services/tts-timings-storage";
+import { clearTongueTwistersCache } from "@/services/tongue-twisters";
 
 interface MetadataRow {
   id: string;
@@ -231,6 +232,10 @@ export default function AdminCurriculumUpload() {
         await supabase.storage.from("curriculums").remove([timingPath]);
         console.log(`Deleted stale timing file: ${timingPath}`);
       }
+
+      // Clear in-memory caches so fresh data is fetched
+      clearTimingsCache();
+      clearTongueTwistersCache();
 
       toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();
