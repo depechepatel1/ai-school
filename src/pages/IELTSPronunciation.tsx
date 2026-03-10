@@ -168,8 +168,8 @@ export default function IELTSPronunciation() {
     );
   }
 
-  const difficultyLabel = currentTwister?.difficulty === 3 ? "Hard" : currentTwister?.difficulty === 2 ? "Medium" : "Easy";
-  const difficultyColor = currentTwister?.difficulty === 3 ? "text-red-400" : currentTwister?.difficulty === 2 ? "text-amber-400" : "text-emerald-400";
+  const moduleLabel = currentTwister?.target_sound ?? `Module ${currentTwister?.module ?? "?"}`;
+  const moduleColor = "text-sky-400";
 
   return (
     <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
@@ -205,8 +205,8 @@ export default function IELTSPronunciation() {
             <span className="text-lg font-bold text-white/90">{currentIndex + 1}</span>
             <span className="text-white/30 text-sm font-medium"> / {twisters.length}</span>
             <div className="mt-1">
-              <span className={`text-[9px] font-bold uppercase tracking-wider ${difficultyColor}`}>
-                {difficultyLabel}
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${moduleColor}`}>
+                {moduleLabel}
               </span>
             </div>
           </div>
