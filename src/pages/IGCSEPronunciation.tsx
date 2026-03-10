@@ -157,8 +157,8 @@ export default function IGCSEPronunciation() {
     );
   }
 
-  const difficultyLabel = currentTwister?.difficulty === 3 ? "Hard" : currentTwister?.difficulty === 2 ? "Medium" : "Easy";
-  const difficultyColor = currentTwister?.difficulty === 3 ? "text-red-400" : currentTwister?.difficulty === 2 ? "text-amber-400" : "text-emerald-400";
+  const moduleLabel = currentTwister?.target_sound ?? `Module ${currentTwister?.module ?? "?"}`;
+  const moduleColor = "text-sky-400";
 
   return (
     <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
