@@ -287,12 +287,49 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
+  const TIMING_JOBS: { label: string; run: () => Promise<void>; path: string }[] = [
+    {
+      label: "IELTS Fluency",
+      path: "ielts/timings-shadowing-fluency.json",
+      run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+    },
+    {
+      label: "IGCSE Fluency",
+      path: "igcse/timings-shadowing-fluency.json",
+      run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+    },
+    {
+      label: "Pronunciation",
+      path: "shared/timings-shadowing-pronunciation.json",
+      run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+    },
+  ];
+
+  const handleMeasureSingle = async (jobIndex: number) => {
+    if (isMeasuring) return;
+    const job = TIMING_JOBS[jobIndex];
+    if (!job) return;
+    setIsMeasuring(true);
+    clearTimingsCache();
+    setMeasureLabel(job.label);
+    try {
+      await job.run();
+      toast({ title: "TTS Timing Complete", description: `Re-measured ${job.label}.` });
+    } catch (err) {
+      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+    } finally {
+      setIsMeasuring(false);
+      setMeasureProgress({ current: 0, total: 0 });
+      setMeasureLabel("");
+    }
+  };
+
   const handleMeasureAll = async (force = false) => {
     if (isMeasuring) return;
     setIsMeasuring(true);
     clearTimingsCache();
 
-    const jobs: { label: string; run: () => Promise<void>; path: string }[] = [
+    const jobs = TIMING_JOBS;
       {
         label: "IELTS Fluency",
         path: "ielts/timings-shadowing-fluency.json",
