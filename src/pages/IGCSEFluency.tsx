@@ -56,7 +56,7 @@ export default function IGCSEFluency() {
     isAudioActive,
   });
 
-  useEffect(() => { preloadVoices(); preloadAccent("uk"); }, []);
+  
 
   const currentText = shadowCurriculum.currentChunk?.text ?? "";
   useEffect(() => {

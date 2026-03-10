@@ -62,8 +62,6 @@ export default function IELTSPronunciation() {
     fetchPronunciationItems()
       .then(setTwisters)
       .catch(console.error);
-    preloadVoices();
-    preloadAccent("uk");
   }, []);
 
   // Resume from saved progress

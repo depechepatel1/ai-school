@@ -57,8 +57,6 @@ export default function IGCSEPronunciation() {
 
   useEffect(() => {
     fetchPronunciationItems().then(setTwisters).catch(console.error);
-    preloadVoices();
-    preloadAccent("uk");
   }, []);
 
   useEffect(() => {

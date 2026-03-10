@@ -55,7 +55,7 @@ export default function IELTSFluency() {
     isAudioActive,
   });
 
-  useEffect(() => { preloadVoices(); preloadAccent("uk"); }, []);
+  
 
   // Sync prosody when chunk changes
   const currentText = shadowCurriculum.currentChunk?.text ?? "";

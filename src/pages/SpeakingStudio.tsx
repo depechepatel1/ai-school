@@ -103,7 +103,6 @@ export default function SpeakingStudio() {
     setActiveWordIndex(-1);
     setSentenceKey((k) => k + 1);
   }, [rawText]);
-  useEffect(() => {preloadVoices();preloadAccent(accentLower);}, []);
   useEffect(() => {preloadAccent(accentLower);}, [accentLower]);
 
   // Sync curriculum sentence (pronunciation mode)
