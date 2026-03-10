@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
-import { Upload, FileText, CheckCircle, Download, Loader2, Timer, XCircle } from "lucide-react";
+import { Upload, FileText, CheckCircle, Download, Loader2, Timer, XCircle, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { parseCSVToCurriculum } from "@/services/csv-to-curriculum";
 import type { CurriculumData } from "@/services/curriculum-storage";
@@ -155,6 +155,9 @@ export default function AdminCurriculumUpload() {
   const [measureLabel, setMeasureLabel] = useState("");
   const cancelRef = useRef(false);
 
+  // Timing file status: null = loading, true = exists, false = missing/stale
+  const [timingStatus, setTimingStatus] = useState<Record<string, boolean | null>>({});
+
   const cancelMeasurement = () => {
     cancelRef.current = true;
   };
@@ -169,7 +172,36 @@ export default function AdminCurriculumUpload() {
     setLoading(false);
   };
 
-  useEffect(() => { loadMetadata(); }, []);
+  const TIMING_PATHS = [
+    "ielts/timings-shadowing-fluency.json",
+    "igcse/timings-shadowing-fluency.json",
+    "shared/timings-shadowing-pronunciation.json",
+  ];
+
+  const checkTimingStatus = useCallback(async () => {
+    const status: Record<string, boolean | null> = {};
+    for (const p of TIMING_PATHS) status[p] = null;
+    setTimingStatus({ ...status });
+
+    await Promise.all(
+      TIMING_PATHS.map(async (path) => {
+        const { data } = supabase.storage.from("curriculums").getPublicUrl(path);
+        if (!data?.publicUrl) {
+          status[path] = false;
+          return;
+        }
+        try {
+          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
+          status[path] = res.ok;
+        } catch {
+          status[path] = false;
+        }
+      })
+    );
+    setTimingStatus({ ...status });
+  }, []);
+
+  useEffect(() => { loadMetadata(); checkTimingStatus(); }, []);
 
   const getFilePath = (course: string, module: string) => {
     if (module === "shadowing-pronunciation") return "shared/tongue-twisters.json";
@@ -239,6 +271,7 @@ export default function AdminCurriculumUpload() {
 
       toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();
+      await checkTimingStatus();
     } catch (err) {
       toast({ title: "Upload failed", description: String(err), variant: "destructive" });
     } finally {
@@ -339,6 +372,7 @@ export default function AdminCurriculumUpload() {
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
+      checkTimingStatus();
     }
   };
 
@@ -390,6 +424,7 @@ export default function AdminCurriculumUpload() {
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
+      checkTimingStatus();
     }
   };
 
@@ -508,17 +543,32 @@ export default function AdminCurriculumUpload() {
               Cancel
             </button>
           )}
-          {TIMING_JOBS.map((job, idx) => (
-            <button
-              key={job.path}
-              onClick={() => handleMeasureSingle(idx)}
-              disabled={isMeasuring}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] text-white/50 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Timer className="w-2.5 h-2.5" />
-              Re-time {job.label}
-            </button>
-          ))}
+          {TIMING_JOBS.map((job, idx) => {
+            const status = timingStatus[job.path];
+            return (
+              <button
+                key={job.path}
+                onClick={() => handleMeasureSingle(idx)}
+                disabled={isMeasuring}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                  status === false
+                    ? "bg-red-500/10 border border-red-400/20 text-red-300 hover:bg-red-500/20"
+                    : status === true
+                    ? "bg-emerald-500/10 border border-emerald-400/20 text-emerald-300 hover:bg-emerald-500/20"
+                    : "bg-white/[0.03] border border-white/[0.06] text-white/50 hover:bg-white/[0.06] hover:text-white/80"
+                }`}
+              >
+                {status === false ? (
+                  <AlertTriangle className="w-2.5 h-2.5" />
+                ) : status === true ? (
+                  <CheckCircle className="w-2.5 h-2.5" />
+                ) : (
+                  <Timer className="w-2.5 h-2.5" />
+                )}
+                {job.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
