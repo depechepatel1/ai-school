@@ -511,7 +511,7 @@ export default function AdminCurriculumUpload() {
               className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] text-white/50 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Timer className="w-2.5 h-2.5" />
-              {job.label}
+              Re-time {job.label}
             </button>
           ))}
         </div>
