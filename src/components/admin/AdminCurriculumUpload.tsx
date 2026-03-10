@@ -543,17 +543,32 @@ export default function AdminCurriculumUpload() {
               Cancel
             </button>
           )}
-          {TIMING_JOBS.map((job, idx) => (
-            <button
-              key={job.path}
-              onClick={() => handleMeasureSingle(idx)}
-              disabled={isMeasuring}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] text-white/50 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Timer className="w-2.5 h-2.5" />
-              Re-time {job.label}
-            </button>
-          ))}
+          {TIMING_JOBS.map((job, idx) => {
+            const status = timingStatus[job.path];
+            return (
+              <button
+                key={job.path}
+                onClick={() => handleMeasureSingle(idx)}
+                disabled={isMeasuring}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                  status === false
+                    ? "bg-red-500/10 border border-red-400/20 text-red-300 hover:bg-red-500/20"
+                    : status === true
+                    ? "bg-emerald-500/10 border border-emerald-400/20 text-emerald-300 hover:bg-emerald-500/20"
+                    : "bg-white/[0.03] border border-white/[0.06] text-white/50 hover:bg-white/[0.06] hover:text-white/80"
+                }`}
+              >
+                {status === false ? (
+                  <AlertTriangle className="w-2.5 h-2.5" />
+                ) : status === true ? (
+                  <CheckCircle className="w-2.5 h-2.5" />
+                ) : (
+                  <Timer className="w-2.5 h-2.5" />
+                )}
+                {job.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
