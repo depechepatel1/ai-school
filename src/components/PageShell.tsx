@@ -60,17 +60,14 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
 
         {/* Background Stage */}
-        <div
-          className="absolute inset-0 z-0 overflow-hidden bg-gray-900"
-          style={!fullWidth ? { transform: 'translateX(-20%)', width: '120%' } : undefined}
-        >
+        <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900">
           {bgImage ? (
             <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <BackgroundStage
               videoList={loopVideos}
               playIntro={playIntroVideo}
-              objectPosition="center center"
+              objectPosition={fullWidth ? "center center" : "30% 45%"}
             />
           )}
         </div>
