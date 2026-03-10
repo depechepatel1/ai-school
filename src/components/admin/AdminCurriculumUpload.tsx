@@ -330,22 +330,6 @@ export default function AdminCurriculumUpload() {
     clearTimingsCache();
 
     const jobs = TIMING_JOBS;
-      {
-        label: "IELTS Fluency",
-        path: "ielts/timings-shadowing-fluency.json",
-        run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
-      },
-      {
-        label: "IGCSE Fluency",
-        path: "igcse/timings-shadowing-fluency.json",
-        run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
-      },
-      {
-        label: "Pronunciation",
-        path: "shared/timings-shadowing-pronunciation.json",
-        run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
-      },
-    ];
 
     try {
       let pending = jobs;
