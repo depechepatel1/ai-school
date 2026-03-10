@@ -13,7 +13,7 @@ import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
 import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
-import { speak, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
+import { speak, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { useFluencyTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
@@ -56,7 +56,7 @@ export default function IGCSEFluency() {
     isAudioActive,
   });
 
-  useEffect(() => { preloadVoices(); preloadAccent("uk"); }, []);
+  
 
   const currentText = shadowCurriculum.currentChunk?.text ?? "";
   useEffect(() => {

@@ -13,7 +13,7 @@ import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
 import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
-import { speak, stopSpeaking, preloadVoices, preloadAccent, type TTSHandle } from "@/lib/tts-provider";
+import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { useFluencyTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
@@ -55,7 +55,7 @@ export default function IELTSFluency() {
     isAudioActive,
   });
 
-  useEffect(() => { preloadVoices(); preloadAccent("uk"); }, []);
+  
 
   // Sync prosody when chunk changes
   const currentText = shadowCurriculum.currentChunk?.text ?? "";
