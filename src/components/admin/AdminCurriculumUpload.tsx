@@ -172,7 +172,36 @@ export default function AdminCurriculumUpload() {
     setLoading(false);
   };
 
-  useEffect(() => { loadMetadata(); }, []);
+  const TIMING_PATHS = [
+    "ielts/timings-shadowing-fluency.json",
+    "igcse/timings-shadowing-fluency.json",
+    "shared/timings-shadowing-pronunciation.json",
+  ];
+
+  const checkTimingStatus = useCallback(async () => {
+    const status: Record<string, boolean | null> = {};
+    for (const p of TIMING_PATHS) status[p] = null;
+    setTimingStatus({ ...status });
+
+    await Promise.all(
+      TIMING_PATHS.map(async (path) => {
+        const { data } = supabase.storage.from("curriculums").getPublicUrl(path);
+        if (!data?.publicUrl) {
+          status[path] = false;
+          return;
+        }
+        try {
+          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
+          status[path] = res.ok;
+        } catch {
+          status[path] = false;
+        }
+      })
+    );
+    setTimingStatus({ ...status });
+  }, []);
+
+  useEffect(() => { loadMetadata(); checkTimingStatus(); }, []);
 
   const getFilePath = (course: string, module: string) => {
     if (module === "shadowing-pronunciation") return "shared/tongue-twisters.json";
