@@ -171,6 +171,16 @@ export default function AdminCurriculumUpload() {
     return `${course}/${moduleInfo?.path ?? `${module}.json`}`;
   };
 
+  /** Map a curriculum file path to its corresponding timing file path. */
+  const getTimingPath = (filePath: string): string | null => {
+    const map: Record<string, string> = {
+      "ielts/shadowing-fluency.json": "ielts/timings-shadowing-fluency.json",
+      "igcse/shadowing-fluency.json": "igcse/timings-shadowing-fluency.json",
+      "shared/tongue-twisters.json": "shared/timings-shadowing-pronunciation.json",
+    };
+    return map[filePath] ?? null;
+  };
+
   /** Commit content (JSON string) to storage + metadata. */
   const commitUpload = useCallback(async (fileContent: string) => {
     setUploading(true);
