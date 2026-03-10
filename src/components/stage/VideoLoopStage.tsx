@@ -149,7 +149,7 @@ export default function VideoLoopStage({
           src={VIDEO_INTRO}
           playsInline
           onEnded={handleIntroEnd}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"} ${scaleClass ?? ""}`}
           style={{ objectPosition }}
         />
       )}
