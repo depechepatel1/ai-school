@@ -83,7 +83,8 @@ export async function measureAllChunkDurations(
   chunks: string[],
   accent: Accent = "uk",
   rate = 0.8,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
+  cancelSignal?: { current: boolean }
 ): Promise<MeasurementResult> {
   if (!("speechSynthesis" in window)) {
     throw new Error("SpeechSynthesis API not available in this browser");
@@ -103,6 +104,11 @@ export async function measureAllChunkDurations(
   const uniqueChunks = [...new Set(chunks)]; // deduplicate
 
   for (let i = 0; i < uniqueChunks.length; i++) {
+    if (cancelSignal?.current) {
+      speechSynthesis.cancel();
+      break;
+    }
+
     const text = uniqueChunks[i];
     onProgress?.(i + 1, uniqueChunks.length);
 

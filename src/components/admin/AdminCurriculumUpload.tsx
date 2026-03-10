@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
-import { Upload, FileText, CheckCircle, Download, Loader2, Timer } from "lucide-react";
+import { Upload, FileText, CheckCircle, Download, Loader2, Timer, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { parseCSVToCurriculum } from "@/services/csv-to-curriculum";
 import type { CurriculumData } from "@/services/curriculum-storage";
@@ -152,6 +152,11 @@ export default function AdminCurriculumUpload() {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
   const [measureLabel, setMeasureLabel] = useState("");
+  const cancelRef = useRef(false);
+
+  const cancelMeasurement = () => {
+    cancelRef.current = true;
+  };
 
   const loadMetadata = async () => {
     const { data } = await supabase
@@ -291,17 +296,17 @@ export default function AdminCurriculumUpload() {
     {
       label: "IELTS Fluency",
       path: "ielts/timings-shadowing-fluency.json",
-      run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
       label: "IGCSE Fluency",
       path: "igcse/timings-shadowing-fluency.json",
-      run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
       label: "Pronunciation",
       path: "shared/timings-shadowing-pronunciation.json",
-      run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t })).then(() => {}),
+      run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
   ];
 
@@ -310,14 +315,22 @@ export default function AdminCurriculumUpload() {
     const job = TIMING_JOBS[jobIndex];
     if (!job) return;
     setIsMeasuring(true);
+    cancelRef.current = false;
     clearTimingsCache();
     setMeasureLabel(job.label);
     try {
       await job.run();
-      toast({ title: "TTS Timing Complete", description: `Re-measured ${job.label}.` });
+      if (cancelRef.current) {
+        toast({ title: "Measurement cancelled", description: `Stopped during ${job.label}.` });
+      } else {
+        toast({ title: "TTS Timing Complete", description: `Re-measured ${job.label}.` });
+      }
     } catch (err) {
-      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      if (!cancelRef.current) {
+        toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      }
     } finally {
+      cancelRef.current = false;
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
@@ -327,6 +340,7 @@ export default function AdminCurriculumUpload() {
   const handleMeasureAll = async (force = false) => {
     if (isMeasuring) return;
     setIsMeasuring(true);
+    cancelRef.current = false;
     clearTimingsCache();
 
     const jobs = TIMING_JOBS;
@@ -352,14 +366,22 @@ export default function AdminCurriculumUpload() {
         toast({ title: "All timings already exist", description: "No missing timing files to measure." });
       } else {
         for (const job of pending) {
+          if (cancelRef.current) break;
           setMeasureLabel(job.label);
           await job.run();
         }
-        toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} timing file(s).` });
+        if (cancelRef.current) {
+          toast({ title: "Measurement cancelled", description: "Stopped by user." });
+        } else {
+          toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} timing file(s).` });
+        }
       }
     } catch (err) {
-      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      if (!cancelRef.current) {
+        toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      }
     } finally {
+      cancelRef.current = false;
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
@@ -472,6 +494,15 @@ export default function AdminCurriculumUpload() {
             <Timer className="w-3 h-3" />
             Force All
           </button>
+          {isMeasuring && (
+            <button
+              onClick={cancelMeasurement}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/20 border border-red-400/30 text-red-300 text-[10px] font-bold hover:bg-red-500/35 transition-all animate-pulse"
+            >
+              <XCircle className="w-3 h-3" />
+              Cancel
+            </button>
+          )}
           {TIMING_JOBS.map((job, idx) => (
             <button
               key={job.path}
