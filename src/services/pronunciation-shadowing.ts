@@ -22,11 +22,9 @@ export function clearPronunciationCache(): void {
 }
 
 /**
- * Normalise raw JSON from the bucket into PronunciationItem[].
- * Handles both legacy flat array and the { curriculum: [...] } wrapper.
+ * Normalise a single parsed JSON object/array into PronunciationItem[].
  */
-function normalise(raw: unknown): PronunciationItem[] {
-  // Unwrap { curriculum: [...] } wrapper if present
+function normaliseOne(raw: unknown): PronunciationItem[] {
   let arr: unknown[] | null = null;
 
   if (Array.isArray(raw)) {
@@ -44,11 +42,45 @@ function normalise(raw: unknown): PronunciationItem[] {
 
   return arr.map((item: any, idx: number) => ({
     id: item.id ?? idx + 1,
-    // New format uses "sentence", old format uses "text"
     text: item.sentence ?? item.text ?? "",
     module: item.module,
     target_sound: item.target_sound,
   }));
+}
+
+/**
+ * Parse response text that may contain one or more concatenated JSON objects.
+ * e.g. `{ "curriculum": [...] }{ "curriculum": [...] }`
+ */
+function parseAndNormalise(text: string): PronunciationItem[] {
+  // First try: standard JSON parse
+  try {
+    const parsed = JSON.parse(text);
+    const items = normaliseOne(parsed);
+    if (items.length > 0) return items;
+  } catch {
+    // May be concatenated JSON objects — split and merge
+  }
+
+  // Split on `}{` boundary (handles concatenated JSON blobs)
+  const allItems: PronunciationItem[] = [];
+  const chunks = text.split(/\}\s*\{/).map((chunk, i, arr) => {
+    if (i === 0) return chunk + "}";
+    if (i === arr.length - 1) return "{" + chunk;
+    return "{" + chunk + "}";
+  });
+
+  for (const chunk of chunks) {
+    try {
+      const parsed = JSON.parse(chunk);
+      allItems.push(...normaliseOne(parsed));
+    } catch {
+      console.warn("[pronunciation] Skipping unparseable chunk");
+    }
+  }
+
+  // Re-assign sequential IDs to avoid duplicates
+  return allItems.map((item, idx) => ({ ...item, id: idx + 1 }));
 }
 
 export async function fetchPronunciationItems(): Promise<PronunciationItem[]> {
@@ -63,14 +95,17 @@ export async function fetchPronunciationItems(): Promise<PronunciationItem[]> {
     try {
       const res = await fetch(`${urlData.publicUrl}?t=${Date.now()}`);
       if (res.ok) {
-        const raw = await res.json();
-        const items = normalise(raw);
+        const text = await res.text();
+        const items = parseAndNormalise(text);
         if (items.length > 0) {
+          console.log(`[pronunciation] Loaded ${items.length} items from storage`);
           cache = items;
           return items;
         }
       }
-    } catch { /* fall through */ }
+    } catch (err) {
+      console.error("[pronunciation] Fetch error:", err);
+    }
   }
 
   throw new Error(
