@@ -315,14 +315,22 @@ export default function AdminCurriculumUpload() {
     const job = TIMING_JOBS[jobIndex];
     if (!job) return;
     setIsMeasuring(true);
+    cancelRef.current = false;
     clearTimingsCache();
     setMeasureLabel(job.label);
     try {
       await job.run();
-      toast({ title: "TTS Timing Complete", description: `Re-measured ${job.label}.` });
+      if (cancelRef.current) {
+        toast({ title: "Measurement cancelled", description: `Stopped during ${job.label}.` });
+      } else {
+        toast({ title: "TTS Timing Complete", description: `Re-measured ${job.label}.` });
+      }
     } catch (err) {
-      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      if (!cancelRef.current) {
+        toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      }
     } finally {
+      cancelRef.current = false;
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
@@ -332,6 +340,7 @@ export default function AdminCurriculumUpload() {
   const handleMeasureAll = async (force = false) => {
     if (isMeasuring) return;
     setIsMeasuring(true);
+    cancelRef.current = false;
     clearTimingsCache();
 
     const jobs = TIMING_JOBS;
@@ -357,14 +366,22 @@ export default function AdminCurriculumUpload() {
         toast({ title: "All timings already exist", description: "No missing timing files to measure." });
       } else {
         for (const job of pending) {
+          if (cancelRef.current) break;
           setMeasureLabel(job.label);
           await job.run();
         }
-        toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} timing file(s).` });
+        if (cancelRef.current) {
+          toast({ title: "Measurement cancelled", description: "Stopped by user." });
+        } else {
+          toast({ title: "TTS Timings Complete", description: `Measured ${pending.length} timing file(s).` });
+        }
       }
     } catch (err) {
-      toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      if (!cancelRef.current) {
+        toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
+      }
     } finally {
+      cancelRef.current = false;
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
