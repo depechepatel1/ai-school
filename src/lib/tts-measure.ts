@@ -94,37 +94,51 @@ export async function measureAllChunkDurations(
     throw new Error("SpeechSynthesis API not available in this browser");
   }
 
+  console.log("[TTS-MEASURE] Starting measurement:", { totalChunks: chunks.length, accent, rate, batchSize: BATCH_SIZE });
+
   // Ensure voices are loaded
   const voices = speechSynthesis.getVoices();
+  console.log("[TTS-MEASURE] Voices available:", voices.length);
   if (voices.length === 0) {
+    console.log("[TTS-MEASURE] Waiting for voices to load...");
     await new Promise<void>((resolve) => {
       speechSynthesis.addEventListener("voiceschanged", () => resolve(), { once: true });
       setTimeout(resolve, 3000);
     });
+    console.log("[TTS-MEASURE] Voices after wait:", speechSynthesis.getVoices().length);
   }
 
   const voice = findVoiceForAccent(accent);
+  console.log("[TTS-MEASURE] Selected voice:", voice?.name ?? "null", voice?.lang ?? "");
   const timings: Record<string, number> = {};
   const uniqueChunks = [...new Set(chunks)];
+  console.log("[TTS-MEASURE] Unique chunks to measure:", uniqueChunks.length);
 
   try {
     for (let batchStart = 0; batchStart < uniqueChunks.length; batchStart += BATCH_SIZE) {
       if (cancelSignal?.current) {
         speechSynthesis.cancel();
+        console.log("[TTS-MEASURE] Cancelled before batch", batchStart / BATCH_SIZE + 1);
         break;
       }
 
+      const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(uniqueChunks.length / BATCH_SIZE);
       const batchEnd = Math.min(batchStart + BATCH_SIZE, uniqueChunks.length);
+      console.log(`[TTS-MEASURE] === Batch ${batchNum}/${totalBatches} (items ${batchStart + 1}-${batchEnd}) ===`);
 
       // Warm up the engine before each batch
       speechSynthesis.cancel();
       await new Promise((r) => setTimeout(r, 200));
-      await measureSingle(" ", voice, 1, 3000);
+      console.log("[TTS-MEASURE] Warm-up speak...");
+      await measureSingle(".", voice, 1, 3000);
       await new Promise((r) => setTimeout(r, 300));
+      console.log("[TTS-MEASURE] Warm-up done, starting items");
 
       for (let i = batchStart; i < batchEnd; i++) {
         if (cancelSignal?.current) {
           speechSynthesis.cancel();
+          console.log("[TTS-MEASURE] Cancelled at item", i);
           break;
         }
 
@@ -138,26 +152,32 @@ export async function measureAllChunkDurations(
         speechSynthesis.cancel();
         await new Promise((r) => setTimeout(r, 50));
 
+        console.log(`[TTS-MEASURE] Item ${i + 1}/${uniqueChunks.length}: "${text.substring(0, 40)}..."`);
         let duration = await measureSingle(text, voice, rate);
 
         // Retry once if it timed out
         if (duration >= 15000) {
+          console.warn(`[TTS-MEASURE] Timeout on item ${i + 1}, retrying...`);
           speechSynthesis.cancel();
           await new Promise((r) => setTimeout(r, 1000));
           duration = await measureSingle(text, voice, rate);
+          console.log(`[TTS-MEASURE] Retry result: ${duration}ms`);
         }
 
         timings[text] = duration;
+        console.log(`[TTS-MEASURE] Item ${i + 1} done: ${duration}ms`);
       }
 
       // Batch rest
       if (batchStart + BATCH_SIZE < uniqueChunks.length && !cancelSignal?.current) {
+        console.log(`[TTS-MEASURE] Batch ${batchNum} done, resting ${BATCH_REST_MS}ms...`);
         speechSynthesis.cancel();
         await new Promise((r) => setTimeout(r, BATCH_REST_MS));
       }
     }
   } finally {
     speechSynthesis.cancel();
+    console.log("[TTS-MEASURE] Finished. Total measured:", Object.keys(timings).length);
   }
 
   return {
