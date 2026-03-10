@@ -372,6 +372,7 @@ export default function AdminCurriculumUpload() {
       setIsMeasuring(false);
       setMeasureProgress({ current: 0, total: 0 });
       setMeasureLabel("");
+      checkTimingStatus();
     }
   };
 
