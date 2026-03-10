@@ -36,6 +36,7 @@ export default function VideoLoopStage({
   videoList: videoListProp,
   playIntro = false,
   objectPosition = "center center",
+  scaleClass,
 }: VideoLoopStageProps) {
   const videoList = videoListProp && videoListProp.length > 0 ? videoListProp : VIDEO_LOOP_STACK;
   const shouldLoop = videoList.length === 1;
