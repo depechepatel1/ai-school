@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
@@ -25,6 +26,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Load
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 
 export default function IGCSEPronunciation() {
+  usePageTitle("IGCSE Pronunciation");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;

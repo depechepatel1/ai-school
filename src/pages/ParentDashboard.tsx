@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { motion } from "framer-motion";
 import { LogOut, Users, BarChart3, Clock, ChevronRight, Heart } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
@@ -12,6 +13,7 @@ const fadeUp = {
 };
 
 export default function ParentDashboard() {
+  usePageTitle("Parent Dashboard");
   const { signOut } = useAuth();
   const { t } = useLanguage();
 

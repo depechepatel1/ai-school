@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
@@ -26,6 +27,7 @@ import { useRef } from "react";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 
 export default function IELTSPronunciation() {
+  usePageTitle("IELTS Pronunciation");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;

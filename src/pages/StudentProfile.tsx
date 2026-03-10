@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { ArrowLeft, Camera, User, Check, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
@@ -12,6 +13,7 @@ import { useEffect } from "react";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export default function StudentProfile() {
+  usePageTitle("Profile");
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);

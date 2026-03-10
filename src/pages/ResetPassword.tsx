@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
@@ -15,6 +16,7 @@ const fadeUp = {
 };
 
 export default function ResetPassword() {
+  usePageTitle("Reset Password");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { updatePassword } = useAuth();

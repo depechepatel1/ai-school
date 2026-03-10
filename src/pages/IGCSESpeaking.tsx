@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
@@ -32,6 +33,7 @@ const SPEAKING_SYSTEM_PROMPT = `You are a professional IGCSE English Speaking Ex
 Keep responses concise and encouraging. Focus on complex sentences, transition phrases, and vocabulary usage.`;
 
 export default function IGCSESpeaking() {
+  usePageTitle("IGCSE Speaking");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;

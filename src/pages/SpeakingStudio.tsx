@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import {
   Mic, MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
 "lucide-react";
@@ -42,6 +43,7 @@ import SpeakingLeftPanel from "@/components/speaking/SpeakingLeftPanel";
 import HomeworkInstructions from "@/components/speaking/HomeworkInstructions";
 
 export default function SpeakingStudio() {
+  usePageTitle("Speaking Studio");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -242,7 +244,7 @@ export default function SpeakingStudio() {
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         {/* Back button + course badge */}
         <div className="absolute top-4 left-4 z-[300] flex items-center gap-2">
-          <button onClick={() => navigate("/student")} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 backdrop-blur-2xl border border-white/10 text-white/60 hover:text-white hover:bg-black/70 hover:border-white/20 transition-all text-[11px] font-semibold tracking-wide group">
+          <button onClick={() => navigate("/student")} aria-label="Go back to student dashboard" className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 backdrop-blur-2xl border border-white/10 text-white/60 hover:text-white hover:bg-black/70 hover:border-white/20 transition-all text-[11px] font-semibold tracking-wide group">
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
           </button>
           {courseWeek.courseType && (
@@ -253,17 +255,19 @@ export default function SpeakingStudio() {
         </div>
 
         {/* Top Bar */}
-        <div className="absolute top-16 left-0 right-0 px-3 z-50 flex justify-between items-start">
+        <div className="absolute top-16 left-0 right-0 px-2 sm:px-3 z-50 flex justify-between items-start">
           <div className="gap-2.5 ml-2 flex flex-col animate-fade-in">
             {/* Practice Mode toggle */}
             
             {test.testState.status === "idle" &&
               <div className="flex p-1 gap-1 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                 <button onClick={() => setMode("shadowing")}
+                  aria-pressed={mode === "shadowing"}
                   className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "shadowing" ? "bg-cyan-500/90 text-black shadow-[0_2px_12px_rgba(6,182,212,0.4)]" : "text-white/35 hover:text-white/60"}`}>
                   Shadowing
                 </button>
                 <button onClick={() => {setMode("speaking");if (courseWeek.courseType === "ielts") test.setShowTestConfig(true);}}
+                  aria-pressed={mode === "speaking"}
                   className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${mode === "speaking" ? "bg-purple-500/90 text-white shadow-[0_2px_12px_rgba(168,85,247,0.4)]" : "text-white/35 hover:text-white/60"}`}>
                   Speaking
                 </button>
@@ -334,7 +338,7 @@ export default function SpeakingStudio() {
                 </div>
               );
             })()}
-            <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-4 sm:px-12 md:px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
               <div key={sentenceKey} className="mb-1 w-full text-center relative z-10 animate-fade-in">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
@@ -375,7 +379,7 @@ export default function SpeakingStudio() {
 
             {/* Right action bar — lower-right to avoid face */}
             {/* Accent toggle — floats above action bar */}
-            <div className="absolute top-[18%] right-5 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
+            <div className="absolute top-[18%] right-2 sm:right-5 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl p-1 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
               <button onClick={() => setAccent("UK")} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 ${accent === "UK" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"}`}>
                 <UKFlag /><span className="text-[9px] font-semibold">UK</span>
               </button>
@@ -385,8 +389,8 @@ export default function SpeakingStudio() {
             </div>
 
             {/* Right action bar — vertically centered */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-5 flex flex-col items-center gap-1.5 z-50 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-2.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-slide-in-right">
-              <button onClick={handlePlayModel} className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model">
+            <div className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-5 flex flex-col items-center gap-1.5 z-50 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-1.5 sm:p-2.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] animate-slide-in-right">
+              <button onClick={handlePlayModel} className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-150 group active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "text-white/40 hover:text-white hover:bg-white/[0.06]"}`} title="Hear Teacher Model" aria-label={isPlayingModel ? "Stop model playback" : "Play teacher model"}>
                 {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />}
               </button>
               <MicRecordButton
@@ -407,11 +411,12 @@ export default function SpeakingStudio() {
                   "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" :
                   "text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`
                 }
-                title={!lastRecordingUrl ? "No recording yet" : isPlayingReplay ? "Stop Replay" : "Replay Your Recording"}>
+                title={!lastRecordingUrl ? "No recording yet" : isPlayingReplay ? "Stop Replay" : "Replay Your Recording"}
+                aria-label={!lastRecordingUrl ? "No recording to replay" : isPlayingReplay ? "Stop replay" : "Replay your recording"}>
                 <Play className="w-5 h-5 ml-0.5 group-hover:scale-110 transition-transform" />
               </button>
               {(practiceType === "pronunciation" || practiceType === "fluency") &&
-                <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-12 h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-90 transition-all duration-300 group disabled:opacity-30" title="Next Sentence">
+                <button onClick={handleNextSentence} disabled={curriculum.curriculumLoading || shadowCurriculum.loading} className="relative w-12 h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-90 transition-all duration-300 group disabled:opacity-30" title="Next Sentence" aria-label="Next sentence">
                   <SkipForward className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </button>
               }
@@ -469,7 +474,7 @@ export default function SpeakingStudio() {
 
             {/* Homework Tasks — right side */}
             {practiceMode === "homework" && courseWeek.courseType && test.testState.status === "idle" && (
-              <div className="absolute right-4 top-28 z-[320] w-[200px] animate-fade-in">
+              <div className="absolute right-2 sm:right-4 top-28 z-[320] w-[160px] sm:w-[200px] animate-fade-in">
                 <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
                   <HomeworkInstructions
                     courseType={courseWeek.courseType}
@@ -490,7 +495,7 @@ export default function SpeakingStudio() {
             />
 
             {/* Mic button — right side, vertically centered */}
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 z-[310] flex items-center justify-center">
+            <div className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[310] flex items-center justify-center">
               <div className="flex items-center gap-3 p-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
                 <MicRecordButton
                   isRecording={test.isRecording}

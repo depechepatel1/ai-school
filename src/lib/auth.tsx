@@ -81,6 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) throw error;
+    // Ensure the role is persisted in user_roles table
+    if (data.user && selectedRole !== "admin") {
+      try {
+        await insertUserRole(data.user.id, selectedRole);
+      } catch (roleErr) {
+        console.error("Failed to insert user role:", roleErr);
+      }
+    }
   };
 
   const signIn = async (email: string, password: string) => {

@@ -9,6 +9,7 @@ import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -16,6 +17,7 @@ const fadeUp = {
 };
 
 export default function Login() {
+  usePageTitle("Sign In");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);

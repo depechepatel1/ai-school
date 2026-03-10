@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList, Film, Timer, Upload } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
@@ -21,7 +22,15 @@ const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
 const ROLES = ["student", "teacher", "parent", "admin"] as const;
 
+const ALLOWED_ADMIN_ACTIONS = new Set([
+  "list_users", "update_role", "delete_user", "disable_user", "enable_user",
+  "list_classes", "delete_class", "get_stats",
+]);
+
 async function adminAction(action: string, params: Record<string, any>) {
+  if (!ALLOWED_ADMIN_ACTIONS.has(action)) {
+    throw new Error(`Unknown admin action: ${action}`);
+  }
   const { data, error } = await supabase.functions.invoke("admin-manage-users", {
     body: { action, ...params },
   });
@@ -38,6 +47,7 @@ const fadeUp = {
 };
 
 export default function AdminDashboard() {
+  usePageTitle("Admin Dashboard");
   const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("analytics");
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 
 import LeftPillar from "@/components/student/LeftPillar";
@@ -10,6 +11,7 @@ import ScheduleModal from "@/components/student/ScheduleModal";
 
 
 export default function StudentPractice() {
+  usePageTitle("Practice");
   const { signOut } = useAuth();
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);

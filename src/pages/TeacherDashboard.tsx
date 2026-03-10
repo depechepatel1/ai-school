@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
@@ -28,6 +29,7 @@ const fadeUp = {
 };
 
 export default function TeacherDashboard() {
+  usePageTitle("Teacher Dashboard");
   const { signOut } = useAuth();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [newClassName, setNewClassName] = useState("");

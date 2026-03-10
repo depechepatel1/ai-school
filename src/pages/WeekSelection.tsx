@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { SEMESTER_WEEKS } from "@/lib/semester";
 import { motion } from "framer-motion";
@@ -8,6 +9,7 @@ import { Calendar, CheckCircle, ArrowRight, FastForward } from "lucide-react";
 import PageShell from "@/components/PageShell";
 
 export default function WeekSelection() {
+  usePageTitle("Select Week");
   const { user } = useAuth();
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);

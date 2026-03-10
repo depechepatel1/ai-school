@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
@@ -26,6 +27,7 @@ import { analyzeContour } from "@/lib/speech-analysis-provider";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function IELTSFluency() {
+  usePageTitle("IELTS Fluency");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;

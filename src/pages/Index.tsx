@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function Index() {
+  usePageTitle();
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
 

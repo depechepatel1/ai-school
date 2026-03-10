@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Check, Upload, Film, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const VIDEO_SLOTS: VideoSlot[] = [
 type UploadStatus = "idle" | "uploading" | "done" | "error";
 
 export default function AdminUploadVideos() {
+  usePageTitle("Upload Videos");
   const [statuses, setStatuses] = useState<Record<string, UploadStatus>>(
     Object.fromEntries(VIDEO_SLOTS.map((s) => [s.path, "idle"]))
   );
