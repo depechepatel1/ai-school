@@ -40,6 +40,58 @@ const MODULE_OPTIONS = [
   { value: "speaking", label: "Speaking Questions", path: "speaking-questions.json" },
 ];
 
+/**
+ * Parse potentially malformed text (concatenated JSON objects, or plain JSON)
+ * into a single valid JSON string ready for storage upload.
+ */
+function normaliseCurriculumText(raw: string, moduleType: string): string {
+  const trimmed = raw.trim();
+
+  // 1. Try standard JSON parse first
+  try {
+    const parsed = JSON.parse(trimmed);
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    // Not valid JSON — try to salvage concatenated objects
+  }
+
+  // 2. Split on }{ boundary (handles concatenated JSON blobs)
+  const chunks = trimmed.split(/\}\s*\{/).map((chunk, i, arr) => {
+    if (arr.length === 1) return chunk;
+    if (i === 0) return chunk + "}";
+    if (i === arr.length - 1) return "{" + chunk;
+    return "{" + chunk + "}";
+  });
+
+  const allItems: unknown[] = [];
+  for (const chunk of chunks) {
+    try {
+      const parsed = JSON.parse(chunk);
+      if (Array.isArray(parsed)) {
+        allItems.push(...parsed);
+      } else if (parsed?.curriculum && Array.isArray(parsed.curriculum)) {
+        allItems.push(...parsed.curriculum);
+      } else {
+        allItems.push(parsed);
+      }
+    } catch {
+      throw new Error("File contains invalid JSON that could not be parsed. Please check the file format.");
+    }
+  }
+
+  if (allItems.length === 0) {
+    throw new Error("No curriculum items found in the uploaded file.");
+  }
+
+  const withIds = allItems.map((item: any, idx) => ({ ...item, id: idx + 1 }));
+
+  if (moduleType === "shadowing-pronunciation") {
+    return JSON.stringify({ curriculum: withIds }, null, 2);
+  }
+
+  return JSON.stringify(withIds, null, 2);
+}
+
 const FORMATTING_GUIDE = `=== AI CURRICULUM FORMATTING GUIDE ===
 
 Paste this entire prompt into an AI chat tool (ChatGPT, Claude, etc.) along with your raw curriculum content. The AI will reformat it into the JSON format our app needs.
@@ -295,10 +347,10 @@ export default function AdminCurriculumUpload() {
         setPreviewFileName(file.name);
         setPendingContent(jsonContent);
       } else {
-        // JSON / txt / docx — upload directly
+        // JSON / txt — read, validate, and normalise into single JSON
         let fileContent = await file.text();
-        if (file.name.endsWith(".json")) JSON.parse(fileContent); // validate
-        await commitUpload(fileContent);
+        const normalised = normaliseCurriculumText(fileContent, selectedModule);
+        await commitUpload(normalised);
       }
     } catch (err) {
       toast({ title: "File error", description: String(err), variant: "destructive" });
