@@ -342,7 +342,7 @@ export default function AdminCurriculumUpload() {
       run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
     {
-      label: "Pronunciation",
+      label: "Time Pronunciation",
       path: "shared/timings-shadowing-pronunciation.json",
       run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
