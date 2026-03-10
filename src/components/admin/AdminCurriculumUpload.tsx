@@ -233,6 +233,10 @@ export default function AdminCurriculumUpload() {
         console.log(`Deleted stale timing file: ${timingPath}`);
       }
 
+      // Clear in-memory caches so fresh data is fetched
+      clearTimingsCache();
+      clearTongueTwistersCache();
+
       toast({ title: "Curriculum uploaded", description: `v${nextVersion} is now active for ${effectiveCourse.toUpperCase()} ${selectedModule}. Timing file invalidated.` });
       await loadMetadata();
     } catch (err) {
