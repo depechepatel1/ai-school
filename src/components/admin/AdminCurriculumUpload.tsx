@@ -493,6 +493,23 @@ export default function AdminCurriculumUpload() {
             Force Re-measure All
           </button>
         </div>
+
+        {/* Individual Re-measure Buttons */}
+        <div className="space-y-1.5">
+          <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40">Re-measure Individual</label>
+          {TIMING_JOBS.map((job, idx) => (
+            <button
+              key={job.path}
+              onClick={() => handleMeasureSingle(idx)}
+              disabled={isMeasuring}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[11px] text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Timer className="w-3 h-3 text-amber-400/60" />
+              <span className="flex-1 text-left">{job.label}</span>
+              <span className="text-[9px] text-white/30">Re-measure →</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Active Versions Table */}
