@@ -45,7 +45,7 @@ const App = () => {
     VIDEO_URLS.forEach((url) => {
       const link = document.createElement("link");
       link.rel = "prefetch";
-      link.as = "video";
+      link.as = url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? "image" : "video";
       link.href = url;
       document.head.appendChild(link);
     });

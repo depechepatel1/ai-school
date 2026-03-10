@@ -122,6 +122,8 @@ function createUtterance(
   return utterance;
 }
 
+const MAX_TTS_RETRIES = 5;
+
 function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSHandle {
   if (!("speechSynthesis" in window)) {
     console.warn("[TTS] speechSynthesis not available");
@@ -134,10 +136,18 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
   }
 
   let cancelled = false;
+  let retryCount = 0;
 
   const finished = new Promise<void>((resolve) => {
     const attemptSpeak = (voiceIndex: number) => {
       if (cancelled) { resolve(); return; }
+
+      if (retryCount >= MAX_TTS_RETRIES) {
+        console.error("[TTS] Max retries reached for accent:", accent);
+        opts.onEnd?.();
+        resolve();
+        return;
+      }
 
       // Cancel any previous speech
       speechSynthesis.cancel();
@@ -173,12 +183,12 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
             refreshVoiceCache();
           }
 
+          retryCount++;
           const nextIndex = voiceIndex + 1;
           const remaining = (cachedVoices[accent] ?? []).length;
-          if (nextIndex < remaining + voiceIndex + 1) {
-            console.log(`[TTS] Retrying with next voice (attempt ${nextIndex + 1})...`);
-            // Small delay before retry to let engine reset
-            setTimeout(() => attemptSpeak(0), 100);
+          if (nextIndex < remaining) {
+            console.log(`[TTS] Retrying with next voice (attempt ${retryCount})...`);
+            setTimeout(() => attemptSpeak(nextIndex), 100);
           } else {
             console.error("[TTS] No more voices to try");
             opts.onEnd?.();

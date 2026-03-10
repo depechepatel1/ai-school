@@ -10,13 +10,15 @@ import { VIDEO_LOOP_STACK } from "@/components/stage/VideoLoopStage";
 
 export { VIDEO_LOOP_STACK as VIDEO_1_STACK };
 
-const DEV_ACCOUNTS = [
+const IS_DEV = import.meta.env.DEV;
+
+const DEV_ACCOUNTS = IS_DEV ? [
   { role: "student", email: "dev-igcse@test.com", password: "devtest123", icon: GraduationCap, label: "IGCSE Student", color: "from-blue-500 to-cyan-500", redirect: "/student" },
   { role: "student", email: "dev-ielts@test.com", password: "devtest123", icon: GraduationCap, label: "IELTS Student", color: "from-indigo-500 to-blue-500", redirect: "/student" },
   { role: "teacher", email: "dev-teacher@test.com", password: "devtest123", icon: BookOpen, label: "Teacher", color: "from-emerald-500 to-green-500", redirect: "/teacher" },
   { role: "parent", email: "dev-parent@test.com", password: "devtest123", icon: Heart, label: "Parent", color: "from-rose-500 to-pink-500", redirect: "/parent" },
   { role: "admin", email: "dev-admin@test.com", password: "devtest123", icon: Shield, label: "Administrator", color: "from-amber-500 to-orange-500", redirect: "/admin" },
-];
+] : [];
 
 interface PageShellProps {
   children: React.ReactNode;
@@ -109,8 +111,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
           </div>
         )}
 
-        {/* Dev Login Panel */}
-        <div className="absolute top-4 left-4 z-50">
+        {/* Dev Login Panel — only in development */}
+        {IS_DEV && <div className="absolute top-4 left-4 z-50">
           <button
             onClick={() => setDevOpen(!devOpen)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-yellow-400/60 text-[9px] font-bold uppercase tracking-wider hover:bg-yellow-500/20 hover:text-yellow-300 transition-all"
@@ -150,7 +152,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </div>}
       </div>
     </div>
   );

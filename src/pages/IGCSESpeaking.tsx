@@ -129,11 +129,13 @@ export default function IGCSESpeaking() {
       const userMsg = `Question: "${currentQuestion.text}"\n\nStudent's answer: "${transcript}"\n\nPlease provide a follow-up question and brief feedback.`;
       const response = await chat(history, userMsg);
       setAiResponse(response);
-      setConversationHistory([
+      // Keep only last 10 turns to avoid unbounded growth and token limits
+      const updatedHistory = [
         ...conversationHistory,
-        { role: "user", content: transcript },
-        { role: "assistant", content: response },
-      ]);
+        { role: "user" as const, content: transcript },
+        { role: "assistant" as const, content: response },
+      ];
+      setConversationHistory(updatedHistory.slice(-20));
     } catch (err) {
       console.error("AI feedback error:", err);
       setAiResponse("Great effort! Try to incorporate more complex sentences and transition phrases in your next attempt.");

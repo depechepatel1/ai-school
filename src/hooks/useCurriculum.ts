@@ -28,8 +28,16 @@ export function useCurriculum(userId: string | null, practiceType: "pronunciatio
         setCurrentTopic(items[startIdx].topic);
         return items[startIdx].sentence;
       } else if (offset > 0) {
-        // End of curriculum reached — wrap around to beginning
-        return await loadCurriculumPage(0);
+        // End of curriculum reached — wrap around to beginning (non-recursive)
+        const firstItems = await fetchCurriculumPage("pronunciation", 0, 5);
+        if (firstItems.length > 0) {
+          setCurriculumItems(firstItems);
+          setCurriculumOffset(0);
+          setCurrentItemIndex(0);
+          setGlobalSentenceIndex(0);
+          setCurrentTopic(firstItems[0].topic);
+          return firstItems[0].sentence;
+        }
       }
     } catch (err) {
       console.error("Failed to load curriculum:", err);

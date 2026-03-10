@@ -50,15 +50,19 @@ export default function TeacherDashboard() {
     setIsCreating(true);
     try {
       const userId = await getCurrentUserId();
-      if (!userId) return;
+      if (!userId) {
+        setIsCreating(false);
+        return;
+      }
       await createClassWithCourse(newClassName.trim(), userId, newCourseType);
       setNewClassName("");
       loadClasses();
       toast({ title: t("teacher.classCreated") });
     } catch (err: any) {
       toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
+    } finally {
+      setIsCreating(false);
     }
-    setIsCreating(false);
   };
 
   const copyCode = (code: string) => {

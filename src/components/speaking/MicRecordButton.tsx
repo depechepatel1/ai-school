@@ -58,15 +58,21 @@ export default function MicRecordButton({
       const buf = new Uint8Array(analyser.frequencyBinCount);
 
       let active = true;
+      let lastUpdate = 0;
+      const THROTTLE_MS = 67; // ~15fps is sufficient for level bars
       const tick = () => {
         if (!active) return;
-        analyser.getByteFrequencyData(buf);
-        const step = Math.floor(buf.length / BAR_COUNT);
-        setLevels(Array.from({ length: BAR_COUNT }, (_, i) => {
-          let sum = 0;
-          for (let j = 0; j < step; j++) sum += buf[i * step + j];
-          return Math.min(1, (sum / step) / 160);
-        }));
+        const now = performance.now();
+        if (now - lastUpdate >= THROTTLE_MS) {
+          lastUpdate = now;
+          analyser.getByteFrequencyData(buf);
+          const step = Math.floor(buf.length / BAR_COUNT);
+          setLevels(Array.from({ length: BAR_COUNT }, (_, i) => {
+            let sum = 0;
+            for (let j = 0; j < step; j++) sum += buf[i * step + j];
+            return Math.min(1, (sum / step) / 160);
+          }));
+        }
         rafRef.current = requestAnimationFrame(tick);
       };
 

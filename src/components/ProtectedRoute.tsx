@@ -19,9 +19,15 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   if (!user) return <Navigate to="/login" replace />;
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    const redirectMap: Record<string, string> = { student: "/student", teacher: "/teacher", parent: "/parent", admin: "/admin" };
-    return <Navigate to={redirectMap[role] || "/login"} replace />;
+  if (allowedRoles) {
+    if (!role) {
+      // Role not yet loaded or missing — redirect to login
+      return <Navigate to="/login" replace />;
+    }
+    if (!allowedRoles.includes(role)) {
+      const redirectMap: Record<string, string> = { student: "/student", teacher: "/teacher", parent: "/parent", admin: "/admin" };
+      return <Navigate to={redirectMap[role] || "/login"} replace />;
+    }
   }
 
   return <>{children}</>;

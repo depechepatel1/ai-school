@@ -157,13 +157,9 @@ export default function IELTSFluency() {
     while (firstIdx > 0 && shadowCurriculum.chunks[firstIdx - 1]?.question_text === currentQ) {
       firstIdx--;
     }
-    // Reset to first chunk — we can't set index directly, so use resetToFirst and then advance
-    // Simpler: just go to next answer
+    shadowCurriculum.goToIndex(firstIdx);
     setShowEndPopup(false);
-    // Navigate backwards by finding first chunk of current answer
-    // Using resetToFirst won't work if not at start. Let's just advance to next.
-    shadowCurriculum.resetToFirst();
-    setShowEndPopup(false);
+    clearRecording();
   };
 
   const handleNextAnswer = () => {

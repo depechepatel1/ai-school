@@ -43,6 +43,8 @@ function browserListen(
   recognition.interimResults = true;
 
   let stopped = false;
+  let restartAttempts = 0;
+  const MAX_RESTART_ATTEMPTS = 5;
 
   recognition.onresult = (event: any) => {
     let finalText = "";
@@ -54,21 +56,34 @@ function browserListen(
         interimText += event.results[i][0].transcript;
       }
     }
-    if (finalText) callbacks.onResult?.(finalText);
+    if (finalText) {
+      restartAttempts = 0; // Reset on successful result
+      callbacks.onResult?.(finalText);
+    }
     if (interimText) callbacks.onInterim?.(interimText);
   };
 
   recognition.onerror = (event: any) => {
     callbacks.onError?.(event.error);
+    if (event.error === "not-allowed" || event.error === "not-supported") {
+      stopped = true; // Don't try to restart on permission errors
+    }
   };
 
   recognition.onend = () => {
     if (!stopped) {
-      // Auto-restart for continuous mode
+      restartAttempts++;
+      if (restartAttempts > MAX_RESTART_ATTEMPTS) {
+        console.warn("[STT] Max restart attempts reached, stopping.");
+        callbacks.onEnd?.();
+        return;
+      }
+      // Auto-restart with exponential backoff
+      const delay = Math.min(500 * Math.pow(2, restartAttempts - 1), 5000);
       try {
         setTimeout(() => {
           if (!stopped) recognition.start();
-        }, 500);
+        }, delay);
       } catch {}
     } else {
       callbacks.onEnd?.();

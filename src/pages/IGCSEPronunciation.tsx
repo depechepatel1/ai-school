@@ -14,6 +14,7 @@ import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchPronunciationItems, type PronunciationItem } from "@/services/pronunciation-shadowing";
 import { speak, type TTSHandle } from "@/lib/tts-provider";
+import { analyzeContour } from "@/lib/speech-analysis-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
@@ -147,6 +148,13 @@ export default function IGCSEPronunciation() {
     stopMediaRecorder();
   }, [stopMediaRecorder]);
 
+  const handlePitchContour = useCallback((contour: number[]) => {
+    if (contour.length > 0 && currentTwister) {
+      const result = analyzeContour(contour, currentTwister.text);
+      progress.savePosition({ index: currentIndex, score: result.overallScore });
+    }
+  }, [currentTwister, currentIndex, progress]);
+
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -220,7 +228,7 @@ export default function IGCSEPronunciation() {
                   targetProgress={targetProgress}
                   sentenceKey={sentenceKey}
                   onAutoStop={stopRecordingCb}
-                  onPitchContour={() => {}}
+                  onPitchContour={handlePitchContour}
                   measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")}
                 />
               </div>

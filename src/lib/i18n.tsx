@@ -112,15 +112,22 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
+function safeGetItem(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function safeSetItem(key: string, value: string): void {
+  try { localStorage.setItem(key, value); } catch {}
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const stored = localStorage.getItem("app-lang");
+    const stored = safeGetItem("app-lang");
     return (stored === "en" || stored === "zh") ? stored : "en";
   });
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("app-lang", l);
+    safeSetItem("app-lang", l);
   };
 
   const t = (key: string): string => {

@@ -65,8 +65,8 @@ export async function streamChat({
         const content = parsed.choices?.[0]?.delta?.content as string | undefined;
         if (content) onDelta(content);
       } catch {
-        buffer = line + "\n" + buffer;
-        break;
+        // Malformed JSON line — skip it to avoid infinite loop
+        console.warn("[chat-stream] Skipping malformed SSE data:", json.substring(0, 100));
       }
     }
   }

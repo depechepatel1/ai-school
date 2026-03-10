@@ -21,7 +21,13 @@ export default function GlobalOmniChat() {
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
     d.moved = Math.max(d.moved, Math.abs(dx) + Math.abs(dy));
-    setPos({ x: d.origX + dx, y: d.origY + dy });
+    // Clamp position so button stays within viewport
+    const maxX = window.innerWidth - 100;
+    const maxY = window.innerHeight - 100;
+    setPos({
+      x: Math.max(-maxX, Math.min(maxX, d.origX + dx)),
+      y: Math.max(-maxY, Math.min(maxY, d.origY + dy)),
+    });
   }, []);
 
   const onPointerUp = useCallback(() => {

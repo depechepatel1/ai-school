@@ -5,9 +5,10 @@ interface BottomDockProps {
   setShowHomeworkModal: (show: boolean) => void;
   setCalendarOpen: (open: boolean) => void;
   onSettings: () => void;
+  hasHomework?: boolean;
 }
 
-export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSettings }: BottomDockProps) {
+export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSettings, hasHomework = false }: BottomDockProps) {
   const navigate = useNavigate();
 
   return (
@@ -16,7 +17,7 @@ export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSe
         <button onClick={() => setShowHomeworkModal(true)} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
           <div className="relative">
             <BookOpen className="w-5 h-5 text-blue-400 group-hover:-translate-y-1 transition-transform" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_5px_red]" />
+            {hasHomework && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_5px_red]" />}
           </div>
           <span className="text-[9px] uppercase font-bold text-white group-hover:text-blue-200">Homework</span>
         </button>

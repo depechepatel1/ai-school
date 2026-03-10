@@ -35,6 +35,8 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const isRecordingRef = useRef(false);
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
+  const messagesRef = useRef(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Debounced punctuation — updates liveTranscript with punctuated text
   const debouncedPunctuate = useMemo(
@@ -79,9 +81,10 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const triggerAIQuestion = useCallback(async () => {
     setIsAiThinking(true);
     try {
+      const currentMessages = messagesRef.current;
       const history: ChatMessage[] = [
         { role: "system", content: SYSTEM_PROMPT },
-        ...messages.map((m) => ({
+        ...currentMessages.map((m) => ({
           role: (m.role === "teacher" ? "assistant" : "user") as "system" | "user" | "assistant",
           content: m.text,
         })),
@@ -96,7 +99,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
       setMessages((prev) => [...prev, { role: "teacher", text: fallback }]);
       speakTeacherText(fallback);
     }
-  }, [messages, speakTeacherText]);
+  }, [speakTeacherText]);
 
   // ── Transition helpers ──
   const startTransition = useCallback((part: TestPart, duration: number, index?: number) => {

@@ -155,8 +155,11 @@ export default function IELTSPronunciation() {
   }, [stopMediaRecorder]);
 
   const handlePitchContour = useCallback((contour: number[]) => {
-    // Optional: could score pronunciation here
-  }, []);
+    if (contour.length > 0 && currentTwister) {
+      const result = analyzeContour(contour, currentTwister.text);
+      progress.savePosition({ index: currentIndex, score: result.overallScore });
+    }
+  }, [currentTwister, currentIndex, progress]);
 
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (

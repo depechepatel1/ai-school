@@ -150,8 +150,14 @@ export default function IGCSEFluency() {
   };
 
   const handleRepeatAnswer = () => {
+    const currentQ = shadowCurriculum.currentChunk?.question_text;
+    let firstIdx = shadowCurriculum.currentIndex;
+    while (firstIdx > 0 && shadowCurriculum.chunks[firstIdx - 1]?.question_text === currentQ) {
+      firstIdx--;
+    }
+    shadowCurriculum.goToIndex(firstIdx);
     setShowEndPopup(false);
-    shadowCurriculum.resetToFirst();
+    clearRecording();
   };
 
   const handleNextAnswer = () => {
