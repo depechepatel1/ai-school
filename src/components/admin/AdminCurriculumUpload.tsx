@@ -17,7 +17,7 @@ import {
   generateAndUploadFluencyTimingsFromData,
   clearTimingsCache,
 } from "@/services/tts-timings-storage";
-import { clearTongueTwistersCache } from "@/services/tongue-twisters";
+import { clearPronunciationCache } from "@/services/pronunciation-shadowing";
 
 interface MetadataRow {
   id: string;
