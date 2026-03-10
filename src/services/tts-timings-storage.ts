@@ -101,7 +101,8 @@ function extractFluencyChunks(data: CurriculumData): string[] {
 export async function generateAndUploadFluencyTimings(
   courseType: "ielts" | "igcse",
   accent: Accent = "uk",
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
+  cancelSignal?: { current: boolean }
 ): Promise<MeasurementResult> {
   const data = await fetchCurriculumJSON(courseType);
   const chunks = extractFluencyChunks(data);
@@ -110,11 +111,11 @@ export async function generateAndUploadFluencyTimings(
     throw new Error(`No chunks found for ${courseType} fluency curriculum`);
   }
 
-  const result = await measureAllChunkDurations(chunks, accent, 0.8, onProgress);
-  await uploadTimings(getFluencyTimingsPath(courseType), result);
-
-  // Update cache
-  timingsCache.set(getFluencyTimingsPath(courseType), result.timings);
+  const result = await measureAllChunkDurations(chunks, accent, 0.8, onProgress, cancelSignal);
+  if (!cancelSignal?.current) {
+    await uploadTimings(getFluencyTimingsPath(courseType), result);
+    timingsCache.set(getFluencyTimingsPath(courseType), result.timings);
+  }
 
   return result;
 }
