@@ -332,7 +332,7 @@ export default function AdminCurriculumUpload() {
 
   const TIMING_JOBS: { label: string; run: () => Promise<void>; path: string }[] = [
     {
-      label: "IELTS Fluency",
+      label: "Time IELTS Fluency",
       path: "ielts/timings-shadowing-fluency.json",
       run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}),
     },
