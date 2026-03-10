@@ -1,29 +1,34 @@
 
 
-## Analysis
+## Revised Plan: Minimize upscaling by using full video width
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Problem with current approach
+The `translateX(-20%)` + `width: 120%` approach physically shifts the video container, wasting 20% of the video's native pixels off-screen to the left. This forces the browser to stretch the remaining visible portion, and on large screens the video runs out of pixels on the right — causing the black band.
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### Better approach: `object-fit: cover` + `object-position`
+Instead of moving the container, keep it at full viewport size (`inset-0`) and let `object-position` control which part of the video is the anchor point. The video element already has `object-fit: cover` applied in `VideoLoopStage.tsx`, which means:
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+- The browser uses **100% of the video's native pixels**
+- It only scales up the minimum amount needed to fill the viewport (on a 16:9 monitor viewing a 16:9 video, scaling is essentially zero)
+- `object-position: 30% 45%` shifts the crop anchor left and slightly up, so the teacher appears left-of-center and their head isn't clipped
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+### Changes in `src/components/PageShell.tsx`
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+**1. Remove the transform/width style** from the background container (line ~65):
+```tsx
+// Before:
+style={!fullWidth ? { transform: 'translateX(-20%)', width: '120%' } : undefined}
+// After:
+// Remove the style prop entirely (or set to undefined)
+```
 
----
+**2. Update `objectPosition` prop** on BackgroundStage (line ~72):
+```tsx
+objectPosition={fullWidth ? "center center" : "30% 45%"}
+```
 
-## Changes -- `src/components/PageShell.tsx`
+- `30%` horizontal — teacher shifts left (uses all native pixels, just changes the crop anchor)
+- `45%` vertical — slightly above center to preserve the teacher's head on taller viewports
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
-
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+No other files change. `VideoLoopStage.tsx` already applies `object-cover` and passes `objectPosition` through via the `style` prop on all `<video>` elements. The vertical value can be fine-tuned after visual testing.
 
