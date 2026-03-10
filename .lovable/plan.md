@@ -1,29 +1,17 @@
 
 
-## Analysis
+## Align Karaoke Text Width to Visualizer Box
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+The ProsodyVisualizer (karaoke text) currently uses `max-w-3xl mx-auto` with `flex-wrap justify-center` and `px-8` padding — it centers words in a cluster. The visualizer box below also uses `max-w-3xl` with `px-8` internal padding. The text needs to stretch edge-to-edge to match the visualizer's drawing area.
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### Change
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+**`src/components/speaking/ProsodyVisualizer.tsx`** — Update the container from centered flex-wrap to full-width justified layout:
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+- Change `max-w-3xl` → `w-full max-w-3xl` (already has both, keep)
+- Change `justify-center` → `justify-between` so words spread across the full width
+- Keep `px-8` to match the visualizer box's `px-8` internal padding
+- This ensures syllable peaks/valleys in text align horizontally with the canvas peaks/valleys
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
-
----
-
-## Changes -- `src/components/PageShell.tsx`
-
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
-
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+This single-file change applies to all 5 screens (IELTS/IGCSE Pronunciation, IELTS/IGCSE Fluency, SpeakingStudio) since they all use the same component.
 
