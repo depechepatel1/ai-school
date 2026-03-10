@@ -205,8 +205,8 @@ export default function IELTSPronunciation() {
             <span className="text-lg font-bold text-white/90">{currentIndex + 1}</span>
             <span className="text-white/30 text-sm font-medium"> / {twisters.length}</span>
             <div className="mt-1">
-              <span className={`text-[9px] font-bold uppercase tracking-wider ${difficultyColor}`}>
-                {difficultyLabel}
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${moduleColor}`}>
+                {moduleLabel}
               </span>
             </div>
           </div>
