@@ -79,6 +79,11 @@ function findVoiceForAccent(accent: Accent): SpeechSynthesisVoice | null {
  * Measure durations for all provided text chunks sequentially.
  * Returns a MeasurementResult with timing data.
  */
+const BATCH_SIZE = 15;
+const BATCH_REST_MS = 2000;
+const INTER_UTTERANCE_MS = 500;
+const KEEPALIVE_INTERVAL_MS = 10000;
+
 export async function measureAllChunkDurations(
   chunks: string[],
   accent: Accent = "uk",
@@ -95,34 +100,73 @@ export async function measureAllChunkDurations(
   if (voices.length === 0) {
     await new Promise<void>((resolve) => {
       speechSynthesis.addEventListener("voiceschanged", () => resolve(), { once: true });
-      setTimeout(resolve, 3000); // fallback timeout
+      setTimeout(resolve, 3000);
     });
   }
 
   const voice = findVoiceForAccent(accent);
   const timings: Record<string, number> = {};
-  const uniqueChunks = [...new Set(chunks)]; // deduplicate
+  const uniqueChunks = [...new Set(chunks)];
 
-  for (let i = 0; i < uniqueChunks.length; i++) {
-    if (cancelSignal?.current) {
-      speechSynthesis.cancel();
-      break;
+  // Keepalive: prevent engine idle timeout by pinging every 10s
+  const keepalive = setInterval(() => {
+    try {
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+    } catch {
+      // ignore
     }
+  }, KEEPALIVE_INTERVAL_MS);
 
-    const text = uniqueChunks[i];
-    onProgress?.(i + 1, uniqueChunks.length);
+  try {
+    // Process in batches
+    for (let batchStart = 0; batchStart < uniqueChunks.length; batchStart += BATCH_SIZE) {
+      if (cancelSignal?.current) {
+        speechSynthesis.cancel();
+        break;
+      }
 
-    // Small delay between utterances to prevent engine congestion
-    if (i > 0) {
-      await new Promise((r) => setTimeout(r, 200));
+      const batchEnd = Math.min(batchStart + BATCH_SIZE, uniqueChunks.length);
+
+      for (let i = batchStart; i < batchEnd; i++) {
+        if (cancelSignal?.current) {
+          speechSynthesis.cancel();
+          break;
+        }
+
+        const text = uniqueChunks[i];
+        onProgress?.(i + 1, uniqueChunks.length);
+
+        // Inter-utterance delay
+        if (i > batchStart) {
+          await new Promise((r) => setTimeout(r, INTER_UTTERANCE_MS));
+        }
+
+        // Cancel any lingering speech
+        speechSynthesis.cancel();
+        await new Promise((r) => setTimeout(r, 50));
+
+        let duration = await measureSingle(text, voice, rate);
+
+        // Retry once if it timed out (engine likely hung)
+        if (duration >= 15000) {
+          speechSynthesis.cancel();
+          await new Promise((r) => setTimeout(r, 1000));
+          duration = await measureSingle(text, voice, rate);
+        }
+
+        timings[text] = duration;
+      }
+
+      // Batch rest: reset engine and pause before next batch
+      if (batchStart + BATCH_SIZE < uniqueChunks.length && !cancelSignal?.current) {
+        speechSynthesis.cancel();
+        await new Promise((r) => setTimeout(r, BATCH_REST_MS));
+      }
     }
-
-    // Cancel any lingering speech
+  } finally {
+    clearInterval(keepalive);
     speechSynthesis.cancel();
-    await new Promise((r) => setTimeout(r, 50));
-
-    const duration = await measureSingle(text, voice, rate);
-    timings[text] = duration;
   }
 
   return {
