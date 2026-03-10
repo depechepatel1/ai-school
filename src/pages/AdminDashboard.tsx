@@ -106,7 +106,7 @@ export default function AdminDashboard() {
             </motion.div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="flex-1 min-h-0 overflow-y-auto">
               {activeTab === "analytics" && <AnalyticsPanel />}
               {activeTab === "users" && <UsersPanel />}
               {activeTab === "classes" && <ClassesPanel />}
