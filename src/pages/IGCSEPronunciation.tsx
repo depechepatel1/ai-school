@@ -32,7 +32,7 @@ export default function IGCSEPronunciation() {
   const timerSettings = useTimerSettings("igcse", "shadowing-pronunciation");
   const pronunciationTimings = usePronunciationTimings();
 
-  const [twisters, setTwisters] = useState<TongueTwister[]>([]);
+  const [twisters, setTwisters] = useState<PronunciationItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
