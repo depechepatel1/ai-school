@@ -2,7 +2,7 @@
  * TTS Provider Abstraction
  *
  * Unified speak() interface that picks the right engine based on provider-config.
- * Currently: browser SpeechSynthesis with Edge Natural voice priority.
+ * Currently: browser SpeechSynthesis with automatic fallback from cloud to local voices.
  * Future:    Aliyun DashScope TTS via edge function.
  */
 import { PROVIDERS } from "./provider-config";
@@ -26,53 +26,60 @@ export interface TTSOptions {
   onEnd?: () => void;
 }
 
-// ── Browser (Edge Natural) implementation ──────────────────────
+// ── Voice selection ───────────────────────────────────────────
 
-let cachedVoices: Record<string, SpeechSynthesisVoice | null> = {};
+/** Track which voices have failed with synthesis-failed so we don't retry them */
+const failedVoiceNames = new Set<string>();
+
+let cachedVoices: Record<string, SpeechSynthesisVoice[]> = {};
 let voicesReady = false;
 
-function findVoice(accent: Accent): SpeechSynthesisVoice | null {
-  const langPrefix = accent === "uk" ? "en-GB" : accent === "us" ? "en-US" : "zh-CN";
+/**
+ * Find all candidate voices for an accent, ordered by priority.
+ * Excludes voices known to have failed.
+ */
+function findVoices(accent: Accent): SpeechSynthesisVoice[] {
   const voices = speechSynthesis.getVoices();
-  if (voices.length === 0) return null;
+  if (voices.length === 0) return [];
+
+  const candidates: SpeechSynthesisVoice[] = [];
 
   if (accent === "zh") {
-    // Priority 1: Edge Natural female Chinese voices (Xiaoxiao, Xiaoyi)
-    const naturalFemale = voices.filter(
-      (v) => v.lang.startsWith("zh-CN") && v.name.includes("Natural") &&
-        (v.name.includes("Xiaoxiao") || v.name.includes("Xiaoyi") || !v.name.includes("Yun"))
-    );
-    if (naturalFemale.length > 0) return naturalFemale[0];
+    // Chinese voice priority
+    const zhVoices = voices.filter((v) => v.lang.startsWith("zh"));
+    // Natural local > Natural online > any zh-CN > any zh
+    const naturalLocal = zhVoices.filter((v) => v.name.includes("Natural") && !v.name.includes("Online"));
+    const naturalOnline = zhVoices.filter((v) => v.name.includes("Natural") && v.name.includes("Online"));
+    const other = zhVoices.filter((v) => !v.name.includes("Natural"));
+    candidates.push(...naturalLocal, ...naturalOnline, ...other);
+  } else {
+    const langPrefix = accent === "uk" ? "en-GB" : "en-US";
 
-    // Priority 2: Any Natural zh-CN voice
-    const natural = voices.filter(
-      (v) => v.lang.startsWith("zh-CN") && v.name.includes("Natural")
-    );
-    if (natural.length > 0) return natural[0];
+    // Priority tiers for English:
+    // 1. Local Natural voices (offline, high quality)
+    // 2. Online Natural voices (cloud, may fail in iframes)
+    // 3. Any voice matching the accent
+    // 4. Any English voice
+    const accentVoices = voices.filter((v) => v.lang.startsWith(langPrefix));
+    const naturalLocal = accentVoices.filter((v) => v.name.includes("Natural") && !v.name.includes("Online"));
+    const naturalOnline = accentVoices.filter((v) => v.name.includes("Natural") && v.name.includes("Online"));
+    const otherAccent = accentVoices.filter((v) => !v.name.includes("Natural"));
 
-    // Priority 3: Any zh-CN voice
-    const any = voices.filter((v) => v.lang.startsWith("zh-CN"));
-    if (any.length > 0) return any[0];
+    // Fallback: any English voice not matching primary accent
+    const otherEn = voices.filter((v) => v.lang.startsWith("en") && !v.lang.startsWith(langPrefix));
 
-    // Priority 4: Any Chinese voice
-    const anyChinese = voices.find((v) => v.lang.startsWith("zh"));
-    return anyChinese || null;
+    candidates.push(...naturalLocal, ...naturalOnline, ...otherAccent, ...otherEn);
   }
 
-  // English voices
-  // Priority 1: Edge "Natural" voices (highest quality)
-  const natural = voices.filter(
-    (v) => v.name.includes("Natural") && v.lang.startsWith(langPrefix)
-  );
-  if (natural.length > 0) return natural[0];
+  // Filter out voices that have previously failed
+  const viable = candidates.filter((v) => !failedVoiceNames.has(v.name));
+  // If all are failed, try them all again (reset)
+  return viable.length > 0 ? viable : candidates;
+}
 
-  // Priority 2: Any voice matching the accent
-  const match = voices.filter((v) => v.lang.startsWith(langPrefix));
-  if (match.length > 0) return match[0];
-
-  // Priority 3: Any English voice
-  const anyEn = voices.find((v) => v.lang.startsWith("en"));
-  return anyEn || voices[0];
+function getBestVoice(accent: Accent): SpeechSynthesisVoice | null {
+  const list = cachedVoices[accent] ?? findVoices(accent);
+  return list.length > 0 ? list[0] : null;
 }
 
 function ensureVoices(): void {
@@ -80,16 +87,40 @@ function ensureVoices(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
   const load = () => {
-    cachedVoices = { uk: findVoice("uk"), us: findVoice("us"), zh: findVoice("zh") };
+    cachedVoices = { uk: findVoices("uk"), us: findVoices("us"), zh: findVoices("zh") };
     voicesReady = true;
+    console.log("[TTS] Voices loaded:", {
+      uk: cachedVoices.uk?.map((v) => v.name).slice(0, 3),
+      us: cachedVoices.us?.map((v) => v.name).slice(0, 3),
+    });
   };
 
   speechSynthesis.addEventListener("voiceschanged", load);
   load(); // try immediately
 }
 
+/** Refresh cached voices after a failure (re-sort with failed voices deprioritized) */
+function refreshVoiceCache(): void {
+  cachedVoices = { uk: findVoices("uk"), us: findVoices("us"), zh: findVoices("zh") };
+}
+
 // Init on module load
 ensureVoices();
+
+// ── Browser speak with auto-retry ─────────────────────────────
+
+function createUtterance(
+  text: string,
+  voice: SpeechSynthesisVoice | null,
+  opts: TTSOptions
+): SpeechSynthesisUtterance {
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (voice) utterance.voice = voice;
+  utterance.rate = opts.rate ?? 0.9;
+  utterance.pitch = opts.pitch ?? 1;
+  utterance.volume = 1;
+  return utterance;
+}
 
 function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSHandle {
   if (!("speechSynthesis" in window)) {
@@ -102,56 +133,88 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
     return { stop: () => {}, finished: Promise.resolve() };
   }
 
-  // Always cancel before speaking — Chrome/Edge bug: cancel() right before
-  // speak() can silently swallow the utterance. We work around this by
-  // deferring speak() with a microtask when cancel was needed.
-  const needsCancel = speechSynthesis.speaking || speechSynthesis.pending;
-  speechSynthesis.cancel();
-
-  if (!voicesReady) ensureVoices();
-  const voice = cachedVoices[accent] || findVoice(accent);
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  if (voice) utterance.voice = voice;
-  utterance.rate = opts.rate ?? 0.9;
-  utterance.pitch = opts.pitch ?? 1;
-  utterance.volume = 1;
+  let cancelled = false;
 
   const finished = new Promise<void>((resolve) => {
-    utterance.onend = () => {
-      opts.onEnd?.();
-      resolve();
+    const attemptSpeak = (voiceIndex: number) => {
+      if (cancelled) { resolve(); return; }
+
+      // Cancel any previous speech
+      speechSynthesis.cancel();
+
+      if (!voicesReady) ensureVoices();
+      const voiceList = cachedVoices[accent] ?? findVoices(accent);
+      const voice = voiceIndex < voiceList.length ? voiceList[voiceIndex] : null;
+
+      if (!voice && voiceIndex > 0) {
+        // Exhausted all voices
+        console.error("[TTS] All voices failed for accent:", accent);
+        opts.onEnd?.();
+        resolve();
+        return;
+      }
+
+      const utterance = createUtterance(text, voice, opts);
+
+      utterance.onend = () => {
+        opts.onEnd?.();
+        resolve();
+      };
+
+      utterance.onerror = (e) => {
+        const errorType = (e as any).error || "unknown";
+        const voiceName = voice?.name ?? "default";
+        console.warn(`[TTS] Voice "${voiceName}" failed with: ${errorType}`);
+
+        if (errorType === "synthesis-failed" || errorType === "network") {
+          // Mark this voice as failed and try next one
+          if (voice) {
+            failedVoiceNames.add(voice.name);
+            refreshVoiceCache();
+          }
+
+          const nextIndex = voiceIndex + 1;
+          const remaining = (cachedVoices[accent] ?? []).length;
+          if (nextIndex < remaining + voiceIndex + 1) {
+            console.log(`[TTS] Retrying with next voice (attempt ${nextIndex + 1})...`);
+            // Small delay before retry to let engine reset
+            setTimeout(() => attemptSpeak(0), 100);
+          } else {
+            console.error("[TTS] No more voices to try");
+            opts.onEnd?.();
+            resolve();
+          }
+        } else {
+          // Non-retryable error (e.g. "canceled")
+          opts.onEnd?.();
+          resolve();
+        }
+      };
+
+      if (opts.onBoundary) {
+        utterance.onboundary = (e: SpeechSynthesisEvent) => {
+          if (e.name === "word") opts.onBoundary!(e.charIndex);
+        };
+      }
+
+      if (opts.onStart) utterance.onstart = opts.onStart;
+
+      // Defer speak slightly after cancel to avoid Chrome/Edge swallowing bug
+      setTimeout(() => {
+        if (cancelled) { resolve(); return; }
+        console.log("[TTS] Speaking:", text.substring(0, 50), "| voice:", voice?.name ?? "default");
+        speechSynthesis.speak(utterance);
+      }, 60);
     };
-    utterance.onerror = (e) => {
-      console.warn("[TTS] utterance error:", (e as any).error || e);
-      opts.onEnd?.();
-      resolve();
-    };
+
+    attemptSpeak(0);
   });
 
-  if (opts.onBoundary) {
-    utterance.onboundary = (e: SpeechSynthesisEvent) => {
-      if (e.name === "word") opts.onBoundary!(e.charIndex);
-    };
-  }
-
-  if (opts.onStart) utterance.onstart = opts.onStart;
-
-  // Chrome/Edge bug workaround: after cancel(), defer speak() slightly
-  // so the engine fully resets before accepting a new utterance.
-  const doSpeak = () => {
-    console.log("[TTS] Speaking:", text.substring(0, 50), "| voice:", voice?.name ?? "default");
-    speechSynthesis.speak(utterance);
-  };
-
-  if (needsCancel) {
-    setTimeout(doSpeak, 50);
-  } else {
-    doSpeak();
-  }
-
   return {
-    stop: () => speechSynthesis.cancel(),
+    stop: () => {
+      cancelled = true;
+      speechSynthesis.cancel();
+    },
     finished,
   };
 }
@@ -159,8 +222,6 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
 // ── Aliyun DashScope placeholder ───────────────────────────────
 
 function aliyunSpeak(_text: string, _accent: Accent, _opts: TTSOptions = {}): TTSHandle {
-  // TODO: Implement when Aliyun DashScope API key is available.
-  // Will call a backend function that returns audio, then play via HTMLAudioElement.
   console.warn("[TTS] Aliyun provider not yet implemented, falling back to browser.");
   return browserSpeak(_text, _accent, _opts);
 }
@@ -185,13 +246,21 @@ export function stopSpeaking(): void {
 export function preloadVoices(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   ensureVoices();
-  // Speak a non-empty silent utterance to prime the neural engine
-  // (empty strings are often skipped entirely by the speech engine)
+  // Use a local voice for warmup to avoid cloud voice failures
+  const voice = getBestVoice("uk") ?? getBestVoice("us");
+  if (!voice) return;
   const warmup = new SpeechSynthesisUtterance(".");
-  warmup.volume = 0.01; // near-silent but not zero (some engines skip volume=0)
+  warmup.volume = 0.01;
   warmup.rate = 10;
-  const voice = cachedVoices["uk"] || cachedVoices["us"];
-  if (voice) warmup.voice = voice;
+  warmup.voice = voice;
+  warmup.onerror = (e) => {
+    const name = voice.name;
+    console.warn(`[TTS] Warmup failed for "${name}":`, (e as any).error);
+    if ((e as any).error === "synthesis-failed") {
+      failedVoiceNames.add(name);
+      refreshVoiceCache();
+    }
+  };
   speechSynthesis.speak(warmup);
 }
 
@@ -199,19 +268,26 @@ export function preloadVoices(): void {
 export function preloadAccent(accent: Accent): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   ensureVoices();
-  const voice = cachedVoices[accent] || findVoice(accent);
+  const voice = getBestVoice(accent);
   if (!voice) return;
   const warmup = new SpeechSynthesisUtterance(".");
   warmup.voice = voice;
   warmup.volume = 0.01;
   warmup.rate = 10;
+  warmup.onerror = (e) => {
+    console.warn(`[TTS] Accent warmup failed for "${voice.name}":`, (e as any).error);
+    if ((e as any).error === "synthesis-failed") {
+      failedVoiceNames.add(voice.name);
+      refreshVoiceCache();
+    }
+  };
   speechSynthesis.speak(warmup);
 }
 
 /** Get the name of the active voice for an accent (useful for UI badges) */
 export function getActiveVoiceName(accent: Accent): string {
   if (!voicesReady) ensureVoices();
-  const voice = cachedVoices[accent] || findVoice(accent);
+  const voice = getBestVoice(accent);
   return voice?.name || "System Default";
 }
 
