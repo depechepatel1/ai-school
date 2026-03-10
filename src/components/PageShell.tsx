@@ -67,7 +67,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             <BackgroundStage
               videoList={loopVideos}
               playIntro={playIntroVideo}
-              objectPosition={fullWidth ? "center center" : "30% 45%"}
+              objectPosition={fullWidth ? "center center" : "20% 45%"}
             />
           )}
         </div>
