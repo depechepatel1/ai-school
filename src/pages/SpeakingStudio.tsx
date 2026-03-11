@@ -8,7 +8,7 @@ import {
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
-import { speak, stopSpeaking, preloadAccent, type Accent } from "@/lib/tts-provider";
+import { speak, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 
 
