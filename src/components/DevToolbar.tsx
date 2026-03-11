@@ -1,4 +1,5 @@
-import { useState, forwardRef } from "react";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Code, LogOut, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,9 +30,11 @@ const PAGES = [
   { path: "/parent", label: "Parent Dashboard" },
 ];
 
-const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
+export default function DevToolbar() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignIn = async (account: typeof ACCOUNTS[0]) => {
     setLoading(account.email);
@@ -41,7 +44,6 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
         password: account.password,
       });
       if (!error) {
-        // Redirect based on role
         const roleRedirects: Record<string, string> = {
           "dev-igcse@test.com": "/select-week",
           "dev-ielts@test.com": "/select-week",
@@ -49,7 +51,7 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
           "dev-parent@test.com": "/parent",
           "dev-admin@test.com": "/admin",
         };
-        window.location.href = roleRedirects[account.email] ?? "/";
+        navigate(roleRedirects[account.email] ?? "/");
       }
     } catch (e) {
       console.error("Dev sign-in failed:", e);
@@ -60,18 +62,13 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
-
-  const handleNav = (path: string) => {
-    window.location.href = path;
+    navigate("/login");
   };
 
   return (
-    <div ref={ref} className="fixed bottom-4 left-4 z-[9999]">
+    <div className="fixed bottom-4 left-4 z-[9999]">
       {open && (
         <div className="mb-2 w-56 max-h-[70vh] overflow-y-auto rounded-xl bg-gray-950 border border-gray-800 shadow-2xl text-xs">
-          {/* Header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-800">
             <span className="text-gray-400 font-bold uppercase tracking-widest text-[9px]">Dev Toolbar</span>
             <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-white">
@@ -79,7 +76,6 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
             </button>
           </div>
 
-          {/* Quick Sign-In */}
           <div className="p-2 border-b border-gray-800">
             <p className="text-gray-500 font-semibold uppercase tracking-wider text-[8px] mb-1.5 px-1">Quick Sign-In</p>
             <div className="space-y-1">
@@ -96,16 +92,15 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           </div>
 
-          {/* Page Links */}
           <div className="p-2 border-b border-gray-800">
             <p className="text-gray-500 font-semibold uppercase tracking-wider text-[8px] mb-1.5 px-1">Pages</p>
             <div className="space-y-0.5">
               {PAGES.map((p) => (
                 <button
                   key={p.path}
-                  onClick={() => handleNav(p.path)}
+                  onClick={() => { navigate(p.path); setOpen(false); }}
                   className={`w-full text-left px-2.5 py-1 rounded-md font-medium transition ${
-                    window.location.pathname === p.path
+                    location.pathname === p.path
                       ? "bg-gray-700 text-white"
                       : "text-gray-400 hover:text-white hover:bg-gray-800"
                   }`}
@@ -117,7 +112,6 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           </div>
 
-          {/* Sign Out */}
           <div className="p-2">
             <button
               onClick={handleSignOut}
@@ -139,8 +133,4 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
       </button>
     </div>
   );
-});
-
-DevToolbar.displayName = "DevToolbar";
-
-export default DevToolbar;
+}
