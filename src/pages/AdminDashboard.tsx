@@ -507,12 +507,7 @@ function UsersPanel() {
   const [bulkConfirm, setBulkConfirm] = useState<{ action: "role" | "delete"; role?: string } | null>(null);
 
   const loadUsers = useCallback(async () => {
-    const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-    const { data: profiles } = await supabase.from("profiles").select("id, display_name, avatar_url, created_at");
-    const merged = (profiles ?? []).map((p) => ({
-      ...p,
-      role: roles?.find((r) => r.user_id === p.id)?.role ?? "unknown",
-    }));
+    const merged = await fetchAllUserRolesAndProfiles();
     setUsers(merged);
     setLoading(false);
   }, []);
