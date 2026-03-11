@@ -29,7 +29,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "signup.alreadyHaveAccount": { en: "Already have an account?", zh: "已有账户？" },
   "signup.signIn": { en: "Sign in", zh: "登录" },
   "signup.created": { en: "Account created!", zh: "账户已创建！" },
-  "signup.verifyEmail": { en: "Please check your email to verify your account.", zh: "请查看邮箱验证您的账户。" },
+  "signup.verifyEmail": { en: "Account created! You can sign in now.", zh: "账户已创建！您现在可以登录了。" },
   "signup.failed": { en: "Signup failed", zh: "注册失败" },
   "signup.minorMode": { en: "Minor mode / Under 14", zh: "未成年人模式 / 不满14周岁" },
 

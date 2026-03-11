@@ -6,6 +6,7 @@
  * Timer: 10-minute countdown from timer_settings (igcse/shadowing-fluency).
  */
 import { useState, useEffect, useCallback, useRef } from "react";
+import PracticeSummaryOverlay from "@/components/student/PracticeSummaryOverlay";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
@@ -40,6 +41,8 @@ export default function IGCSEFluency() {
   const [isPlayingModel, setIsPlayingModel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [sentenceKey, setSentenceKey] = useState(0);
+  const [showSummary, setShowSummary] = useState(false);
+  const summaryShownRef = useRef(false);
   const [showEndPopup, setShowEndPopup] = useState(false);
 
   const ttsHandleRef = useRef<TTSHandle | null>(null);
@@ -166,6 +169,13 @@ export default function IGCSEFluency() {
     clearRecording();
   };
 
+  useEffect(() => {
+    if (practiceTimer.isComplete && !summaryShownRef.current) {
+      summaryShownRef.current = true;
+      setShowSummary(true);
+    }
+  }, [practiceTimer.isComplete]);
+
   if (courseWeek.loading || shadowCurriculum.loading || timerSettings.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -179,7 +189,7 @@ export default function IGCSEFluency() {
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         {/* Back + badge */}
         <div className="absolute top-4 left-4 z-[300] flex items-center gap-2">
-          <button onClick={() => navigate("/speaking")} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 backdrop-blur-2xl border border-white/10 text-white/60 hover:text-white hover:bg-black/70 hover:border-white/20 transition-all text-[11px] font-semibold tracking-wide group">
+          <button onClick={() => navigate("/student")} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 backdrop-blur-2xl border border-white/10 text-white/60 hover:text-white hover:bg-black/70 hover:border-white/20 transition-all text-[11px] font-semibold tracking-wide group">
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
           </button>
           <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl bg-teal-500/20 border border-teal-500/30 text-teal-300">
@@ -303,6 +313,13 @@ export default function IGCSEFluency() {
             </motion.div>
           )}
         </AnimatePresence>
+        <PracticeSummaryOverlay
+          visible={showSummary}
+          activeSeconds={practiceTimer.activeSeconds}
+          targetSeconds={practiceTimer.targetSeconds}
+          activityLabel="Fluency (Shadowing)"
+          onDismiss={() => setShowSummary(false)}
+        />
       </div>
     </PageShell>
   );
