@@ -43,44 +43,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let initialSessionHandled = false;
-    console.log("[Auth] useEffect init, loading=true");
+
+    // Safety: if neither callback resolves in 5s, force loading=false
+    const timeout = setTimeout(() => {
+      console.warn("[Auth] Timeout — forcing loading=false");
+      setLoading(false);
+      setRoleLoading(false);
+    }, 5000);
+
+    const finish = () => clearTimeout(timeout);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("[Auth] onAuthStateChange:", event, !!session);
-      if (event === "INITIAL_SESSION") {
-        initialSessionHandled = true;
-      }
+      if (event === "INITIAL_SESSION") initialSessionHandled = true;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        // Don't block loading on role fetch — set loading false first
+        setLoading(false);
+        finish();
         await loadRole(session.user.id);
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
       } else {
         setRole(null);
+        setLoading(false);
+        finish();
       }
-      console.log("[Auth] setting loading=false from onAuthStateChange");
-      setLoading(false);
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log("[Auth] getSession resolved, initialSessionHandled=", initialSessionHandled, "session=", !!session);
       if (initialSessionHandled) return;
       initialSessionHandled = true;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        setLoading(false);
+        finish();
         await loadRole(session.user.id);
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
+      } else {
+        setLoading(false);
+        finish();
       }
-      console.log("[Auth] setting loading=false from getSession");
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); finish(); };
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string, selectedRole: AppRole) => {
