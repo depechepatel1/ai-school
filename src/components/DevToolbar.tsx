@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Code, LogOut, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,7 +29,7 @@ const PAGES = [
   { path: "/parent", label: "Parent Dashboard" },
 ];
 
-export default function DevToolbar() {
+const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -68,7 +68,7 @@ export default function DevToolbar() {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-[9999]">
+    <div ref={ref} className="fixed bottom-4 left-4 z-[9999]">
       {open && (
         <div className="mb-2 w-56 max-h-[70vh] overflow-y-auto rounded-xl bg-gray-950 border border-gray-800 shadow-2xl text-xs">
           {/* Header */}
@@ -139,4 +139,8 @@ export default function DevToolbar() {
       </button>
     </div>
   );
-}
+});
+
+DevToolbar.displayName = "DevToolbar";
+
+export default DevToolbar;
