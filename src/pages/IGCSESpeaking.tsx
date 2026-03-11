@@ -267,12 +267,12 @@ export default function IGCSESpeaking() {
 
         {/* Main question display */}
         {!showPostAnswer && currentQuestion && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-8">
-            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-3xl p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-300/60 block mb-3">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-4 sm:px-8">
+            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-300/60 block mb-2 sm:mb-3">
                 Speaking · Question 1
               </span>
-              <p className="text-lg font-semibold text-white/90 leading-relaxed">
+              <p className="text-base sm:text-lg font-semibold text-white/90 leading-relaxed">
                 {currentQuestion.text}
               </p>
             </div>
