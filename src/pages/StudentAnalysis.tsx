@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { ArrowLeft, BarChart3, Zap, Trophy, Crown, Medal, Clock, TrendingUp, Award } from "lucide-react";
