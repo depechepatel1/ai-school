@@ -41,9 +41,8 @@ function fmtHM(s: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function ProgressRing({ data, color, label }: { data: ActivityData; color: string; label: string }) {
-  const size = 120;
-  const stroke = 8;
+function ProgressRing({ data, color, label, size = 120 }: { data: ActivityData; color: string; label: string; size?: number }) {
+  const stroke = size >= 100 ? 8 : 6;
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const pct = data.pct;
@@ -51,7 +50,7 @@ function ProgressRing({ data, color, label }: { data: ActivityData; color: strin
   const isOvertime = data.overtime > 0;
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-1.5 sm:gap-2">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="white" strokeOpacity={0.08} strokeWidth={stroke} />
@@ -64,16 +63,16 @@ function ProgressRing({ data, color, label }: { data: ActivityData; color: strin
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-white">{Math.round(pct * 100)}%</span>
+          <span className={`${size >= 100 ? 'text-2xl' : 'text-lg'} font-bold text-white`}>{Math.round(pct * 100)}%</span>
           {isOvertime && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+            <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
               +{fmt(data.overtime)}
             </span>
           )}
         </div>
       </div>
-      <span className="text-xs font-bold uppercase tracking-wider text-white/70">{label}</span>
-      <span className="text-[11px] text-white/40 font-medium">{fmt(data.seconds)} / {fmt(data.target)}</span>
+      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/70">{label}</span>
+      <span className="text-[10px] sm:text-[11px] text-white/40 font-medium">{fmt(data.seconds)} / {fmt(data.target)}</span>
     </div>
   );
 }
