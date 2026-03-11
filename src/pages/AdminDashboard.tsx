@@ -171,17 +171,12 @@ function AnalyticsPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data: logData } = await supabase
-        .from("student_practice_logs")
-        .select("user_id, activity_type, course_type, week_number, active_seconds, created_at")
-        .order("created_at", { ascending: true });
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("id, created_at");
-
-      setAllLogs(logData ?? []);
-      setProfiles(profileData ?? []);
+      const [logData, profileData] = await Promise.all([
+        fetchAllPracticeLogs(),
+        fetchAllProfiles(),
+      ]);
+      setAllLogs(logData);
+      setProfiles(profileData);
       setLoading(false);
     })();
   }, []);
