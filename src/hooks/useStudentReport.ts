@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getWeekNumber, getWeekDateRange, SCHOOL_DAYS_PER_WEEK, TIME_TARGETS } from "@/lib/semester";
+import { getWeekNumber, getWeekDateRange } from "@/lib/semester";
 
 export interface WeeklyReport {
   /** Homework seconds per module this week */
