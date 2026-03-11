@@ -1,6 +1,6 @@
+import { forwardRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Code } from "lucide-react";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,7 +25,7 @@ const routes = [
   { path: "/admin", label: "Admin", role: "admin" },
 ];
 
-export default function DevNav() {
+const DevNav = forwardRef<HTMLDivElement>(function DevNav(_props, _ref) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -108,4 +108,6 @@ export default function DevNav() {
       </button>
     </div>
   );
-}
+});
+
+export default DevNav;
