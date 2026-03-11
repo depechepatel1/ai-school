@@ -31,12 +31,7 @@ async function adminAction(action: string, params: Record<string, any>) {
   if (!ALLOWED_ADMIN_ACTIONS.has(action)) {
     throw new Error(`Unknown admin action: ${action}`);
   }
-  const { data, error } = await supabase.functions.invoke("admin-manage-users", {
-    body: { action, ...params },
-  });
-  if (error) throw error;
-  if (data?.error) throw new Error(data.error);
-  return data;
+  return invokeAdminAction(action, params);
 }
 
 type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
