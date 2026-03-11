@@ -1151,8 +1151,8 @@ function ClassesPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("classes").select("*").order("created_at", { ascending: false });
-      setClasses(data ?? []);
+      const data = await fetchAllClasses();
+      setClasses(data);
       setLoading(false);
     })();
   }, []);
