@@ -100,9 +100,9 @@ const App = () => { // rebuild trigger
           </Routes>
           </Suspense>
           <Suspense fallback={null}>
-            <DevNav />
             <GlobalOmniChat />
           </Suspense>
+          {import.meta.env.DEV && <DevToolbar />}
         </AuthProvider>
       </BrowserRouter>
       </LanguageProvider>
