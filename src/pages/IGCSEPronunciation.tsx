@@ -148,7 +148,13 @@ export default function IGCSEPronunciation() {
   const stopRecordingCb = useCallback(() => {
     setIsRecording(false);
     stopMediaRecorder();
-  }, [stopMediaRecorder]);
+  // Show summary when timer target is reached
+  useEffect(() => {
+    if (practiceTimer.isComplete && !summaryShownRef.current) {
+      summaryShownRef.current = true;
+      setShowSummary(true);
+    }
+  }, [practiceTimer.isComplete]);
 
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (
