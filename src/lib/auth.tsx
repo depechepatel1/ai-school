@@ -26,14 +26,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   const loadRole = async (userId: string) => {
+    setRoleLoading(true);
     try {
       const role = await fetchUserRole(userId);
       setRole((role as AppRole) ?? null);
     } catch (err) {
       console.error("Failed to load user role:", err);
       setRole(null);
+    } finally {
+      setRoleLoading(false);
     }
   };
 
