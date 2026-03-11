@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { LogOut, Users, ChevronRight, Heart, Clock, Trash2, Loader2, UserPlus, BookOpen, Mic, Volume2 } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
