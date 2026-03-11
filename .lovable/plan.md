@@ -8,7 +8,7 @@
 | 3 | Responsive layout for StudentAnalysis page | ✅ done |
 | 4 | AdminDashboard — refactor direct Supabase imports to service layer | ✅ done |
 | 5 | Build real streak tracking system from student_practice_logs | ✅ done |
-| 6 | Replace sample tasks with real assignment system (DB + UI) | ⬚ todo |
+| 6 | Replace sample tasks with real assignment system (DB + UI) | ✅ done |
 | 7 | Parent Dashboard "Link Child" — real implementation | ⬚ todo |
 | 8 | Empty state handling across all list views | ⬚ todo |
 
