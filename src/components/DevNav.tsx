@@ -25,7 +25,7 @@ const routes = [
   { path: "/admin", label: "Admin", role: "admin" },
 ];
 
-export default function DevNav() {
+const DevNav = forwardRef<HTMLDivElement>(function DevNav(_props, _ref) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
