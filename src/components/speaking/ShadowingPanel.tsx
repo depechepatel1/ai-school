@@ -30,7 +30,7 @@ interface ShadowingPanelProps {
   onPitchContour: (contour: number[]) => void;
   measuredDurationMs: number | undefined;
   // Fluency-specific
-  courseType: string | null;
+  courseType: "ielts" | "igcse" | null;
   selectedWeek: number;
   onWeekChange: (w: number) => void;
   shadowingWeek: number;

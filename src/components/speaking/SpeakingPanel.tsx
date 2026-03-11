@@ -25,7 +25,7 @@ interface SpeakingPanelProps {
   liveInterim: string;
   speakingQuestions: SpeakingQuestion[];
   currentQuestionIndex: number;
-  courseType: string | null;
+  courseType: "ielts" | "igcse" | null;
   selectedWeek: number;
   shadowingWeek: number;
   userId: string | null;
