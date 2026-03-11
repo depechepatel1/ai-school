@@ -5,6 +5,7 @@
  * Uses timer_settings for countdown (igcse/shadowing-pronunciation).
  */
 import { useState, useEffect, useCallback, useRef } from "react";
+import PracticeSummaryOverlay from "@/components/student/PracticeSummaryOverlay";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
