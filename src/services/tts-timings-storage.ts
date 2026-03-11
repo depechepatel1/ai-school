@@ -5,7 +5,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { measureAllChunkDurations, type MeasurementResult } from "@/lib/tts-measure";
-import { fetchCurriculumJSON, getWeekShadowingChunks, type CurriculumData } from "./curriculum-storage";
+import { fetchCurriculumJSON, type CurriculumData } from "./curriculum-storage";
 import { fetchPronunciationItems } from "./pronunciation-shadowing";
 import type { Accent } from "@/lib/tts-provider";
 

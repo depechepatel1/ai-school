@@ -23,7 +23,7 @@ import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, Headphones, Mic, Play, Loader2, RotateCcw, SkipForward, Rewind } from "lucide-react";
-import { analyzeContour } from "@/lib/speech-analysis-provider";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function IELTSFluency() {

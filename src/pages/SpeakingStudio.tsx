@@ -19,8 +19,6 @@ import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import XPWidget from "@/components/speaking/XPWidget";
 import StreakWidget from "@/components/speaking/StreakWidget";
 import CountdownOverlay from "@/components/speaking/CountdownOverlay";
-import PersonaSelector from "@/components/speaking/PersonaSelector";
-import ExaminerConfig from "@/components/speaking/ExaminerConfig";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import SaveSessionModal from "@/components/speaking/SaveSessionModal";

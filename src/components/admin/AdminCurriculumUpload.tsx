@@ -14,7 +14,7 @@ import CurriculumPreviewModal from "./CurriculumPreviewModal";
 import {
   generateAndUploadFluencyTimings,
   generateAndUploadPronunciationTimings,
-  generateAndUploadFluencyTimingsFromData,
+  
   clearTimingsCache,
 } from "@/services/tts-timings-storage";
 import { clearPronunciationCache } from "@/services/pronunciation-shadowing";

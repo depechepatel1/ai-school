@@ -83,7 +83,6 @@ export function useStudentReport(
       // Leaderboard rank
       let leaderboardRank = 0;
       try {
-        const now = new Date();
         const wkRange = getWeekDateRange(currentWeek);
         const { data: lb } = await supabase.rpc("get_class_leaderboard", {
           _range_start: wkRange.start.toISOString(),
