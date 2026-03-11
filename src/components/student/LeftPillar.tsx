@@ -1,6 +1,6 @@
 import {
   ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
-  Book, PenTool, Headphones, Edit, CloudDownload, User,
+  Book, PenTool, Headphones, Edit, CloudDownload,
 } from "lucide-react";
 import StudentMessagesTab from "./StudentMessagesTab";
 
