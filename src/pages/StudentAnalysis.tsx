@@ -90,6 +90,14 @@ export default function StudentAnalysis() {
   const navigate = useNavigate();
   const weekNum = getWeekNumber();
 
+  // Responsive ring size
+  const [ringSize, setRingSize] = useState(window.innerWidth < 640 ? 80 : 120);
+  useEffect(() => {
+    const onResize = () => setRingSize(window.innerWidth < 640 ? 80 : 120);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const { rangeStart, rangeEnd } = useMemo(() => {
     const now = new Date();
     if (period === "daily") {
