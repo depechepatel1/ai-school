@@ -12,6 +12,7 @@ interface LeftPillarProps {
   setTeacherHint: (hint: string | null) => void;
   displayName?: string;
   avatarUrl?: string | null;
+  inDrawer?: boolean;
 }
 
 /* ── tiny progress ring (SVG) ── */
@@ -70,12 +71,16 @@ function MicroProgress({ pct, color }: { pct: number; color: string }) {
 
 export default function LeftPillar({
   onShowSkills, showSkills, activeTab, setActiveTab, setTeacherHint,
-  displayName = "Student", avatarUrl,
+  displayName = "Student", avatarUrl, inDrawer = false,
 }: LeftPillarProps) {
   const initials = displayName.charAt(0).toUpperCase();
 
+  const wrapperClass = inDrawer
+    ? "w-full flex flex-col gap-4"
+    : "absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20";
+
   return (
-    <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
+    <div className={wrapperClass}>
       {/* Profile Card — dynamic data */}
       <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 flex items-center gap-4 shadow-lg cursor-pointer hover:bg-black/60 transition-colors relative z-50" onClick={onShowSkills}>
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-[2px] flex-shrink-0">
@@ -108,7 +113,7 @@ export default function LeftPillar({
       </div>
 
       {/* Tasks / Messages Panel */}
-      <div className="flex-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
+      <div className={`flex-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden z-10 ${inDrawer ? 'min-h-[400px]' : 'min-h-0'}`}>
         {/* ── Sliding pill tab bar ── */}
         <div className="relative flex bg-white/[0.04] rounded-full p-0.5 mb-1">
           {/* sliding pill */}

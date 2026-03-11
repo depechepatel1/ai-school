@@ -3,7 +3,7 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | Responsive layout for Student Dashboard | ⬚ todo |
+| 1 | Responsive layout for Student Dashboard | ✅ done |
 | 2 | Responsive layout for Speaking Studio pages | ⬚ todo |
 | 3 | Responsive layout for StudentAnalysis page | ⬚ todo |
 | 4 | AdminDashboard — refactor direct Supabase imports to service layer | ⬚ todo |
