@@ -336,7 +336,7 @@ export default function SpeakingStudio() {
                 </div>
               );
             })()}
-            <div className="absolute bottom-0 left-0 right-0 pb-4 pt-8 px-4 sm:px-12 md:px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 pb-3 sm:pb-4 pt-6 sm:pt-8 px-3 sm:px-12 md:px-24 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
               <div key={sentenceKey} className="mb-1 w-full text-center relative z-10 animate-fade-in">
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
