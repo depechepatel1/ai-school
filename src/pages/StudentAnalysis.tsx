@@ -319,7 +319,7 @@ function ClassLeaderboardPanel({ entries, loading, currentUserId }: { entries: a
 /* ── Extended Practice Leaderboard ────────────── */
 function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries: any[]; loading: boolean; currentUserId?: string }) {
   if (loading) return <div className="text-white/30 text-[11px] text-center py-4 animate-pulse">Loading…</div>;
-  if (entries.length === 0) return <div className="text-white/30 text-[11px] text-center py-4">No extended practice data</div>;
+  if (entries.length === 0) return <EmptyState icon={<Zap className="w-5 h-5" />} title="No extended practice data" description="Go beyond homework targets to appear here" className="py-6" />;
 
   const maxSeconds = Math.max(...entries.map((e) => e.extended_seconds), 1);
 

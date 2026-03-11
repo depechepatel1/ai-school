@@ -184,7 +184,13 @@ export default function LeftPillar({
               {loading ? (
                 <div className="text-center text-[10px] text-white/30 py-8">Loading tasks…</div>
               ) : tasks.length === 0 ? (
-                <div className="text-center text-[10px] text-white/30 py-8">No homework assigned yet</div>
+                <div className="flex flex-col items-center py-8 gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                  </div>
+                  <p className="text-[10px] text-white/30">No homework assigned yet</p>
+                  <p className="text-[9px] text-white/20 max-w-[180px] text-center leading-relaxed">Join a class to receive weekly practice tasks</p>
+                </div>
               ) : (
                 tasks.map((task) => <TaskCard key={task.id} task={task} />)
               )}
