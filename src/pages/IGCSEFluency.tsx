@@ -6,6 +6,7 @@
  * Timer: 10-minute countdown from timer_settings (igcse/shadowing-fluency).
  */
 import { useState, useEffect, useCallback, useRef } from "react";
+import PracticeSummaryOverlay from "@/components/student/PracticeSummaryOverlay";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
