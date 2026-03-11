@@ -1,16 +1,8 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ShieldCheck, Code, GraduationCap, BookOpen, Heart, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { getSafeErrorMessage } from "@/lib/safe-error";
+import { ShieldCheck } from "lucide-react";
 import BackgroundStage from "@/components/stage/BackgroundStage";
 import { VIDEO_LOOP_STACK } from "@/components/stage/VideoLoopStage";
 
 export { VIDEO_LOOP_STACK as VIDEO_1_STACK };
-
-const IS_DEV = import.meta.env.DEV;
 
 const DEV_ACCOUNTS = IS_DEV ? [
   { role: "student", email: "dev-igcse@test.com", password: "devtest123", icon: GraduationCap, label: "IGCSE Student", color: "from-blue-500 to-cyan-500", redirect: "/student" },
