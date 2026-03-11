@@ -283,3 +283,57 @@ export async function fetchTodayPracticeLogs(userId: string, practiceMode?: "hom
   if (error) throw error;
   return data ?? [];
 }
+
+// ── Admin Helpers ─────────────────────────────────────────────
+
+export async function invokeAdminAction(action: string, params: Record<string, any>) {
+  const { data, error } = await supabase.functions.invoke("admin-manage-users", {
+    body: { action, ...params },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function fetchAllPracticeLogs() {
+  const { data, error } = await supabase
+    .from("student_practice_logs")
+    .select("user_id, activity_type, course_type, week_number, active_seconds, created_at")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchAllProfiles() {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, created_at");
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchAllUserRolesAndProfiles() {
+  const { data: roles, error: rolesErr } = await supabase
+    .from("user_roles")
+    .select("user_id, role");
+  if (rolesErr) throw rolesErr;
+
+  const { data: profiles, error: profErr } = await supabase
+    .from("profiles")
+    .select("id, display_name, avatar_url, created_at");
+  if (profErr) throw profErr;
+
+  return (profiles ?? []).map((p) => ({
+    ...p,
+    role: roles?.find((r) => r.user_id === p.id)?.role ?? "unknown",
+  }));
+}
+
+export async function fetchAllClasses() {
+  const { data, error } = await supabase
+    .from("classes")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
