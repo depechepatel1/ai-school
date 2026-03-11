@@ -6,12 +6,29 @@ import { SEMESTER_WEEKS } from "@/lib/semester";
 import { motion } from "framer-motion";
 import { Calendar, CheckCircle, ArrowRight, FastForward } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import { fetchCurriculum, type CurriculumData } from "@/services/curriculum-storage";
+
+/** Extract a short topic label per week from the curriculum data */
+function getWeekTopics(data: CurriculumData): Record<number, string> {
+  const topics: Record<number, string> = {};
+  for (const week of data) {
+    const firstSection = week.sections?.[0];
+    const firstQ = firstSection?.questions?.[0];
+    if (firstQ?.question_text) {
+      // Truncate at first '?' or limit to ~25 chars
+      const raw = firstQ.question_text.split("?")[0].trim();
+      topics[week.week_number] = raw.length > 28 ? raw.slice(0, 25) + "…" : raw;
+    }
+  }
+  return topics;
+}
 
 export default function WeekSelection() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
   const [picked, setPicked] = useState<number | null>(null);
+  const [weekTopics, setWeekTopics] = useState<Record<number, string>>({});
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   const handlePick = (w: number) => {
@@ -25,6 +42,14 @@ export default function WeekSelection() {
       setPicked(courseWeek.selectedWeek);
     }
   }, [courseWeek.loading, courseWeek.selectedWeek, picked]);
+
+  // Fetch curriculum topics
+  useEffect(() => {
+    if (!courseWeek.courseType) return;
+    fetchCurriculum(courseWeek.courseType, "shadowing")
+      .then((data) => setWeekTopics(getWeekTopics(data)))
+      .catch(console.error);
+  }, [courseWeek.courseType]);
 
   const handleConfirm = async () => {
     if (picked === null) return;
@@ -67,6 +92,7 @@ export default function WeekSelection() {
           {Array.from({ length: SEMESTER_WEEKS }, (_, i) => i + 1).map((w) => {
             const isSelected = w === picked;
             const isLast = w === lastWeek;
+            const topic = weekTopics[w];
 
             return (
               <motion.button
@@ -81,13 +107,20 @@ export default function WeekSelection() {
                     : "bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15]"
                   }
                 `}
+                title={topic || `Week ${w}`}
               >
                 <span className={`text-lg font-bold tabular-nums ${isSelected ? "text-blue-200" : "text-white/70"}`}>
                   {w}
                 </span>
-                <span className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isSelected ? "text-blue-300/80" : "text-white/30"}`}>
-                  Week
-                </span>
+                {topic ? (
+                  <span className={`text-[7px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-blue-300/70" : "text-white/25"}`}>
+                    {topic.length > 12 ? topic.slice(0, 10) + "…" : topic}
+                  </span>
+                ) : (
+                  <span className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isSelected ? "text-blue-300/80" : "text-white/30"}`}>
+                    Week
+                  </span>
+                )}
                 {isLast && !isSelected && (
                   <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-500/80 flex items-center justify-center">
                     <CheckCircle className="w-2.5 h-2.5 text-white" />
@@ -104,6 +137,18 @@ export default function WeekSelection() {
             );
           })}
         </div>
+
+        {/* Selected week topic preview */}
+        {picked && weekTopics[picked] && (
+          <motion.p
+            key={picked}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-xs text-white/40 mb-4 text-center"
+          >
+            Week {picked}: <span className="text-white/60 font-medium">{weekTopics[picked]}</span>
+          </motion.p>
+        )}
 
         {/* Last session indicator + skip link */}
         {lastWeek > 0 && (
