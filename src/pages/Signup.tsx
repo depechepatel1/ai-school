@@ -20,7 +20,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
 };
 
-const LEGAL_VIDEO = "https://res.cloudinary.com/daujjfaqg/video/upload/Subtle_Background_Animation_Generation_brjkvo.mp4";
+
 
 /* ── Inline legal content components ── */
 

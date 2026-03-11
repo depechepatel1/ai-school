@@ -14,7 +14,7 @@ import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
 import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
-import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
+import { speak, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { useFluencyTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
@@ -23,7 +23,7 @@ import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, Headphones, Mic, Play, Loader2, RotateCcw, SkipForward, Rewind } from "lucide-react";
-import { analyzeContour } from "@/lib/speech-analysis-provider";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function IELTSFluency() {

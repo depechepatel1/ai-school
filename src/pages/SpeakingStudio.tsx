@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import {
-  Mic, MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
+  MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
 "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
-import { speak, stopSpeaking, preloadAccent, type Accent } from "@/lib/tts-provider";
+import { speak, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 
 
@@ -19,8 +19,6 @@ import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import XPWidget from "@/components/speaking/XPWidget";
 import StreakWidget from "@/components/speaking/StreakWidget";
 import CountdownOverlay from "@/components/speaking/CountdownOverlay";
-import PersonaSelector from "@/components/speaking/PersonaSelector";
-import ExaminerConfig from "@/components/speaking/ExaminerConfig";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import SaveSessionModal from "@/components/speaking/SaveSessionModal";

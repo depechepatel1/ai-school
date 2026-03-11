@@ -29,9 +29,6 @@ export interface AnalyticsPeriodData {
   breakdown: { label: string; shadowing: number; pronunciation: number; speaking: number }[];
 }
 
-function makeEmpty(target: number): ActivityData {
-  return { seconds: 0, target, pct: 0, overtime: 0 };
-}
 
 function buildActivityData(seconds: number, target: number): ActivityData {
   const pct = target > 0 ? Math.min(seconds / target, 1) : 0;
