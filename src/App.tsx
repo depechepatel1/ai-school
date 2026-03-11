@@ -54,7 +54,7 @@ const INTRO_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/intro.mp4`;
 const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4`;
 const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO, ANALYSIS_VIDEO, "/images/dashboard-bg.jpg"];
 
-const App = () => {
+const App = () => { // rebuild trigger
   useEffect(() => {
     VIDEO_URLS.forEach((url) => {
       const link = document.createElement("link");
