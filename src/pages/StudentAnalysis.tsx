@@ -5,6 +5,7 @@ import { ArrowLeft, BarChart3, Zap, Trophy, Crown, Medal, Clock, TrendingUp, Awa
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import PageShell from "@/components/PageShell";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useAnalyticsData, type Period, type ActivityData } from "@/hooks/useAnalyticsData";
