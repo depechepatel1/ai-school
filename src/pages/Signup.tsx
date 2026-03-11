@@ -186,7 +186,7 @@ export default function Signup() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, selectedRole);
-      toast({ title: t("signup.created"), description: t("signup.verifyEmail") });
+      toast({ title: t("signup.created"), description: "You can now sign in with your credentials." });
       navigate("/login");
     } catch (err: any) {
       toast({ title: t("signup.failed"), description: getSafeErrorMessage(err), variant: "destructive" });

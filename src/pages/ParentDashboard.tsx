@@ -6,6 +6,7 @@ import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
+import { toast } from "@/hooks/use-toast";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -53,7 +54,10 @@ export default function ParentDashboard() {
           <p className="text-[11px] text-gray-500 max-w-[240px] mx-auto leading-relaxed">
             {t("parent.linkDesc")}
           </p>
-          <button className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-400/20 text-xs font-semibold text-blue-300 hover:bg-blue-500/25 transition-all">
+          <button
+            onClick={() => toast({ title: "Coming Soon", description: "Student linking will be available in the next update." })}
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-400/20 text-xs font-semibold text-blue-300 hover:bg-blue-500/25 transition-all"
+          >
             {t("parent.linkButton")}
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
