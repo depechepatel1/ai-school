@@ -336,6 +336,8 @@ export async function fetchAllClasses() {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
 export async function fetchUserPracticeLogs(userId: string) {
   const { data, error } = await supabase
     .from("student_practice_logs")
