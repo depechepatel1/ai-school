@@ -4,7 +4,6 @@ import { VIDEO_LOOP_STACK } from "@/components/stage/VideoLoopStage";
 
 export { VIDEO_LOOP_STACK as VIDEO_1_STACK };
 
-
 interface PageShellProps {
   children: React.ReactNode;
   playIntroVideo?: boolean;
@@ -17,7 +16,6 @@ interface PageShellProps {
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
-      {/* Full Viewport Container */}
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
 
         {/* Background Stage */}
@@ -69,3 +67,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             </div>
           </div>
         )}
+
+      </div>
+    </div>
+  );
+}
