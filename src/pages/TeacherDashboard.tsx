@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
@@ -29,7 +28,6 @@ const fadeUp = {
 };
 
 export default function TeacherDashboard() {
-  usePageTitle("Teacher Dashboard");
   const { signOut } = useAuth();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [newClassName, setNewClassName] = useState("");
@@ -44,10 +42,7 @@ export default function TeacherDashboard() {
     try {
       const data = await fetchClasses();
       setClasses(data);
-    } catch (err: any) {
-      console.error("Failed to load classes:", err);
-      toast({ title: t("common.error"), description: "Could not load classes. Please try again.", variant: "destructive" });
-    }
+    } catch {}
   };
 
   const handleCreateClass = async () => {
@@ -55,19 +50,15 @@ export default function TeacherDashboard() {
     setIsCreating(true);
     try {
       const userId = await getCurrentUserId();
-      if (!userId) {
-        setIsCreating(false);
-        return;
-      }
+      if (!userId) return;
       await createClassWithCourse(newClassName.trim(), userId, newCourseType);
       setNewClassName("");
       loadClasses();
       toast({ title: t("teacher.classCreated") });
     } catch (err: any) {
       toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
-    } finally {
-      setIsCreating(false);
     }
+    setIsCreating(false);
   };
 
   const copyCode = (code: string) => {

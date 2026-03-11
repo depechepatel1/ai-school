@@ -11,7 +11,6 @@ interface AuthContextType {
   user: User | null;
   role: AppRole | null;
   loading: boolean;
-  roleLoading: boolean;
   signUp: (email: string, password: string, displayName: string, role: AppRole) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -26,71 +25,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
-  const [roleLoading, setRoleLoading] = useState(true);
 
   const loadRole = async (userId: string) => {
-    setRoleLoading(true);
-    try {
-      const role = await fetchUserRole(userId);
-      setRole((role as AppRole) ?? null);
-    } catch (err) {
-      console.error("Failed to load user role:", err);
-      setRole(null);
-    } finally {
-      setRoleLoading(false);
-    }
+    const role = await fetchUserRole(userId);
+    setRole((role as AppRole) ?? null);
   };
 
   useEffect(() => {
-    let initialSessionHandled = false;
-
-    // Safety: if neither callback resolves in 5s, force loading=false
-    const timeout = setTimeout(() => {
-      console.warn("[Auth] Timeout — forcing loading=false");
-      setLoading(false);
-      setRoleLoading(false);
-    }, 5000);
-
-    const finish = () => clearTimeout(timeout);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "INITIAL_SESSION") initialSessionHandled = true;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Don't block loading on role fetch — set loading false first
-        setLoading(false);
-        finish();
-        await loadRole(session.user.id);
+        setTimeout(() => loadRole(session.user.id), 0);
+        // Warm up TTS voices early so first play is instant
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
       } else {
         setRole(null);
-        setLoading(false);
-        finish();
       }
+      setLoading(false);
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (initialSessionHandled) return;
-      initialSessionHandled = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setLoading(false);
-        finish();
-        await loadRole(session.user.id);
+        loadRole(session.user.id);
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
-      } else {
-        setLoading(false);
-        finish();
       }
+      setLoading(false);
     });
 
-    return () => { subscription.unsubscribe(); finish(); };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string, selectedRole: AppRole) => {
@@ -103,14 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) throw error;
-    // Ensure the role is persisted in user_roles table
-    if (data.user && selectedRole !== "admin") {
-      try {
-        await insertUserRole(data.user.id, selectedRole);
-      } catch (roleErr) {
-        console.error("Failed to insert user role:", roleErr);
-      }
-    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -120,11 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    setSession(null);
-    setUser(null);
-    setRole(null);
-    setRoleLoading(false);
-    sessionStorage.removeItem("intro_video_played");
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
@@ -142,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, role, loading, roleLoading, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ session, user, role, loading, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

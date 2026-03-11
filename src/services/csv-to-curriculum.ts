@@ -84,7 +84,7 @@ export function stripHTML(html: string): string {
 
 const MIN_WORDS = 6;
 const MAX_WORDS = 14;
-
+const TARGET_WORDS = 10;
 
 /**
  * Split plain text into chunks of ~8-12 words at natural boundaries.

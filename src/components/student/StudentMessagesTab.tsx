@@ -158,12 +158,9 @@ export default function StudentMessagesTab() {
     <div className="space-y-1.5">
       {loading && <p className="text-center text-[10px] text-white/30 py-6">Loading…</p>}
       {!loading && conversations.length === 0 && (
-        <div className="flex flex-col items-center py-10 gap-2">
-          <div className="w-11 h-11 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-white/20" />
-          </div>
-          <p className="text-[11px] font-semibold text-white/30">No conversations yet</p>
-          <p className="text-[9px] text-white/20 max-w-[200px] text-center leading-relaxed">Start a conversation with the AI tutor to see your chat history here</p>
+        <div className="text-center py-6">
+          <MessageSquare className="w-4 h-4 text-white/20 mx-auto mb-1.5" />
+          <p className="text-[10px] text-white/30">No conversations yet</p>
         </div>
       )}
       {conversations.map((c, i) => (

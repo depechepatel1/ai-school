@@ -7,14 +7,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
 import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchPronunciationItems, type PronunciationItem } from "@/services/pronunciation-shadowing";
-import { speak, type TTSHandle } from "@/lib/tts-provider";
+import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
@@ -27,7 +26,6 @@ import { useRef } from "react";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
 
 export default function IELTSPronunciation() {
-  usePageTitle("IELTS Pronunciation");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -60,14 +58,10 @@ export default function IELTSPronunciation() {
   });
 
   // Load tongue twisters
-  const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     fetchPronunciationItems()
       .then(setTwisters)
-      .catch((err) => {
-        console.error(err);
-        setLoadError("Failed to load pronunciation items. Please try again.");
-      });
+      .catch(console.error);
   }, []);
 
   // Resume from saved progress
@@ -161,22 +155,8 @@ export default function IELTSPronunciation() {
   }, [stopMediaRecorder]);
 
   const handlePitchContour = useCallback((contour: number[]) => {
-    if (contour.length > 0 && currentTwister) {
-      const result = analyzeContour(contour, currentTwister.text);
-      progress.savePosition({ index: currentIndex, score: result.overallScore });
-    }
-  }, [currentTwister, currentIndex, progress]);
-
-  if (loadError) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center space-y-3">
-          <p className="text-sm text-destructive">{loadError}</p>
-          <button onClick={() => { setLoadError(null); fetchPronunciationItems().then(setTwisters).catch(() => setLoadError("Failed to load. Please try again.")); }} className="text-xs text-primary underline">Retry</button>
-        </div>
-      </div>
-    );
-  }
+    // Optional: could score pronunciation here
+  }, []);
 
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (
@@ -231,20 +211,20 @@ export default function IELTSPronunciation() {
         </div>
 
         {/* Main content — center */}
-        <div className="absolute bottom-0 left-0 right-0 pb-3 sm:pb-6 pt-6 sm:pt-12 px-3 sm:px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 pb-6 pt-12 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
           {/* Karaoke text */}
-          <div key={sentenceKey} className="mb-2 sm:mb-3 w-full text-center relative z-10 animate-fade-in">
+          <div key={sentenceKey} className="mb-3 w-full text-center relative z-10 animate-fade-in">
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
           {/* Visualizer */}
-          <div className="w-full max-w-3xl mb-2 sm:mb-4">
-            <div onClick={handlePlayModel} className="relative h-14 sm:h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
+          <div className="w-full max-w-3xl mb-4">
+            <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
               <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
                 <span className="text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
                 <span className="text-[9px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
               </div>
-              <div className="absolute inset-0 px-4 sm:px-8 py-2">
+              <div className="absolute inset-0 px-8 py-2">
                 <PronunciationVisualizer
                   isRecording={isRecording}
                   isPlayingModel={isPlayingModel}
@@ -261,13 +241,13 @@ export default function IELTSPronunciation() {
           </div>
 
           {/* Navigation + Action buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            <button onClick={handlePrev} className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Previous">
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="flex items-center gap-3">
+            <button onClick={handlePrev} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Previous">
+              <ChevronLeft className="w-5 h-5" />
             </button>
 
-            <button onClick={handlePlayModel} className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
-              {isPlayingModel ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : <Headphones className="w-5 h-5 sm:w-6 sm:h-6" />}
+            <button onClick={handlePlayModel} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
+              {isPlayingModel ? <Loader2 className="w-6 h-6 animate-spin" /> : <Headphones className="w-6 h-6" />}
             </button>
 
             <MicRecordButton
@@ -282,18 +262,18 @@ export default function IELTSPronunciation() {
             <button
               onClick={lastRecordingUrl ? handleReplay : undefined}
               disabled={!lastRecordingUrl}
-              className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`}
+              className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`}
               title="Replay"
             >
-              <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5" />
+              <Play className="w-6 h-6 ml-0.5" />
             </button>
 
-            <button onClick={handleRepeat} className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Repeat">
-              <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
+            <button onClick={handleRepeat} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Repeat">
+              <RotateCcw className="w-5 h-5" />
             </button>
 
-            <button onClick={handleNext} className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Next">
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            <button onClick={handleNext} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Next">
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>

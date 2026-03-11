@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
@@ -20,7 +19,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
 };
 
-
+const LEGAL_VIDEO = "https://res.cloudinary.com/daujjfaqg/video/upload/Subtle_Background_Animation_Generation_brjkvo.mp4";
 
 /* ── Inline legal content components ── */
 
@@ -158,7 +157,6 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
 /* ── Main Signup page ── */
 
 export default function Signup() {
-  usePageTitle("Sign Up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -186,11 +184,8 @@ export default function Signup() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, selectedRole);
-      toast({ title: t("signup.created"), description: "Welcome! Redirecting…" });
-      // With auto-confirm enabled, the auth state change will fire automatically
-      // Navigate to role-appropriate page
-      const roleRoutes: Record<string, string> = { student: "/select-week", teacher: "/teacher", parent: "/parent" };
-      navigate(roleRoutes[selectedRole] || "/", { replace: true });
+      toast({ title: t("signup.created"), description: t("signup.verifyEmail") });
+      navigate("/login");
     } catch (err: any) {
       toast({ title: t("signup.failed"), description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
@@ -334,8 +329,8 @@ export default function Signup() {
               <Link to="/login" className="text-blue-400 hover:underline">{t("signup.signIn")}</Link>
             </p>
             <div className="pt-2 border-t border-white/[0.04] space-y-0.5">
-              <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026000001号</p>
-              <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026000001号A</p>
+              <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+              <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
             </div>
           </div>
         </motion.form>

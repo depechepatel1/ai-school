@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getWeekNumber, getWeekDateRange } from "@/lib/semester";
+import { getWeekNumber, getWeekDateRange, SCHOOL_DAYS_PER_WEEK, TIME_TARGETS } from "@/lib/semester";
 
 export interface WeeklyReport {
   /** Homework seconds per module this week */
@@ -83,6 +83,7 @@ export function useStudentReport(
       // Leaderboard rank
       let leaderboardRank = 0;
       try {
+        const now = new Date();
         const wkRange = getWeekDateRange(currentWeek);
         const { data: lb } = await supabase.rpc("get_class_leaderboard", {
           _range_start: wkRange.start.toISOString(),

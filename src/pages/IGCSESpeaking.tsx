@@ -9,7 +9,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useShadowingCurriculum } from "@/hooks/useShadowingCurriculum";
 import { useTimerSettings } from "@/hooks/useTimerSettings";
@@ -18,7 +17,6 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curriculum-storage";
 import { chat, type ChatMessage } from "@/services/ai";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
-import { Square } from "lucide-react";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
@@ -34,7 +32,6 @@ const SPEAKING_SYSTEM_PROMPT = `You are a professional IGCSE English Speaking Ex
 Keep responses concise and encouraging. Focus on complex sentences, transition phrases, and vocabulary usage.`;
 
 export default function IGCSESpeaking() {
-  usePageTitle("IGCSE Speaking");
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -87,18 +84,6 @@ export default function IGCSESpeaking() {
 
   const currentQuestion = questions[currentQIndex];
 
-  const handleSilencePause = useCallback(() => {
-    setIsPaused(true);
-    sttHandleRef.current?.pause();
-    practiceTimer.pause();
-  }, [practiceTimer]);
-
-  const handleResume = useCallback(() => {
-    setIsPaused(false);
-    sttHandleRef.current?.resume();
-    practiceTimer.resume();
-  }, [practiceTimer]);
-
   const startRecording = async () => {
     setIsRecording(true);
     setIsPaused(false);
@@ -121,9 +106,6 @@ export default function IGCSESpeaking() {
         setLiveInterim(text);
       },
       onError: () => setIsRecording(false),
-    }, true, {
-      inactivityMs: 10000,
-      onInactivity: handleSilencePause,
     });
   };
 
@@ -147,13 +129,11 @@ export default function IGCSESpeaking() {
       const userMsg = `Question: "${currentQuestion.text}"\n\nStudent's answer: "${transcript}"\n\nPlease provide a follow-up question and brief feedback.`;
       const response = await chat(history, userMsg);
       setAiResponse(response);
-      // Keep only last 10 turns to avoid unbounded growth and token limits
-      const updatedHistory = [
+      setConversationHistory([
         ...conversationHistory,
-        { role: "user" as const, content: transcript },
-        { role: "assistant" as const, content: response },
-      ];
-      setConversationHistory(updatedHistory.slice(-20));
+        { role: "user", content: transcript },
+        { role: "assistant", content: response },
+      ]);
     } catch (err) {
       console.error("AI feedback error:", err);
       setAiResponse("Great effort! Try to incorporate more complex sentences and transition phrases in your next attempt.");
@@ -164,24 +144,17 @@ export default function IGCSESpeaking() {
   };
 
   const handleToggleRecording = () => {
-    if (isRecording && isPaused) {
-      handleResume();
-    } else if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  };
-
-  const handleFullStop = () => {
-    stopRecording();
+    if (isRecording) stopRecording();
+    else startRecording();
   };
 
   const handleTogglePause = () => {
     if (isPaused) {
-      handleResume();
+      setIsPaused(false);
+      practiceTimer.resume();
     } else {
-      handleSilencePause();
+      setIsPaused(true);
+      practiceTimer.pause();
     }
   };
 
@@ -215,7 +188,7 @@ export default function IGCSESpeaking() {
         </div>
 
         {/* DO NOT READ reminder */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300] hidden sm:block">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300]">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 backdrop-blur-2xl">
             <AlertTriangle className="w-4 h-4 text-red-400" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-red-300">Do Not Read Your Answers</span>
@@ -236,8 +209,8 @@ export default function IGCSESpeaking() {
           )}
         </div>
 
-        {/* Floating Info Panel (hidden on small landscape) */}
-        <div className="absolute top-32 left-4 z-50 hidden sm:block">
+        {/* Floating Info Panel */}
+        <div className="absolute top-32 left-4 z-50">
           <FloatingInfoPanel
             course="IGCSE"
             weekNumber={courseWeek.selectedWeek}
@@ -267,12 +240,12 @@ export default function IGCSESpeaking() {
 
         {/* Main question display */}
         {!showPostAnswer && currentQuestion && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-4 sm:px-8">
-            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-300/60 block mb-2 sm:mb-3">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-8">
+            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-3xl p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-300/60 block mb-3">
                 Speaking · Question 1
               </span>
-              <p className="text-base sm:text-lg font-semibold text-white/90 leading-relaxed">
+              <p className="text-lg font-semibold text-white/90 leading-relaxed">
                 {currentQuestion.text}
               </p>
             </div>
@@ -284,49 +257,16 @@ export default function IGCSESpeaking() {
           transcript={liveTranscript}
           interim={liveInterim}
           isRecording={isRecording}
-          isPaused={isPaused}
         />
 
         {/* Recording controls */}
-        <div className="absolute bottom-[9rem] sm:bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex flex-col items-center gap-2">
-          <div className="flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
-            <button
-              onClick={handleToggleRecording}
-              className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
-                isRecording && isPaused
-                  ? "bg-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.6)] scale-110"
-                  : isRecording
-                  ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110"
-                  : "bg-white/10 border border-white/20 hover:bg-white/20"
-              }`}
-            >
-              {isRecording && isPaused ? (
-                <Mic className="w-7 h-7 text-white" />
-              ) : isRecording ? (
-                <div className="w-5 h-5 bg-white rounded animate-pulse" />
-              ) : (
-                <Mic className="w-7 h-7 text-white" />
-              )}
-            </button>
-
-            {/* Stop button visible when paused */}
-            {isRecording && isPaused && (
-              <button
-                onClick={handleFullStop}
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/20 border border-red-500/30 hover:bg-red-500/40 transition-all"
-                title="Stop recording"
-              >
-                <Square className="w-4 h-4 text-red-300 fill-red-300" />
-              </button>
-            )}
-          </div>
-
-          {/* Resume label when paused */}
-          {isRecording && isPaused && (
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-300/80 animate-pulse">
-              Tap to Resume
-            </span>
-          )}
+        <div className="absolute bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
+          <button
+            onClick={handleToggleRecording}
+            className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}
+          >
+            {isRecording ? <div className="w-5 h-5 bg-white rounded animate-pulse" /> : <Mic className="w-7 h-7 text-white" />}
+          </button>
         </div>
 
         {/* AI Response + Post-answer popup */}
@@ -336,7 +276,7 @@ export default function IGCSESpeaking() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-20 sm:bottom-32 right-3 sm:right-6 z-[400] w-[260px] sm:w-[340px]"
+              className="absolute bottom-32 right-6 z-[400] w-[340px]"
             >
               <div className="bg-black/80 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_-5px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-2 mb-3">

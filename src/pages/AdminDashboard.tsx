@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList, Film, Timer, Upload } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
-import { invokeAdminAction, fetchAllPracticeLogs, fetchAllProfiles, fetchAllUserRolesAndProfiles, fetchAllClasses, fetchUserPracticeLogs, fetchRecentPracticeLogs, fetchRecentConversations, fetchAuditLogs, fetchProfilesByIds } from "@/services/db";
+import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
 import { toast } from "@/hooks/use-toast";
@@ -22,16 +21,13 @@ const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
 const ROLES = ["student", "teacher", "parent", "admin"] as const;
 
-const ALLOWED_ADMIN_ACTIONS = new Set([
-  "list_users", "update_role", "delete_user", "disable_user", "enable_user",
-  "list_classes", "delete_class", "get_stats",
-]);
-
 async function adminAction(action: string, params: Record<string, any>) {
-  if (!ALLOWED_ADMIN_ACTIONS.has(action)) {
-    throw new Error(`Unknown admin action: ${action}`);
-  }
-  return invokeAdminAction(action, params);
+  const { data, error } = await supabase.functions.invoke("admin-manage-users", {
+    body: { action, ...params },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data;
 }
 
 type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
@@ -42,7 +38,6 @@ const fadeUp = {
 };
 
 export default function AdminDashboard() {
-  usePageTitle("Admin Dashboard");
   const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("analytics");
 
@@ -112,14 +107,14 @@ export default function AdminDashboard() {
 
             {/* Content */}
             <div className="flex-1 min-h-0 overflow-y-auto">
-              {activeTab === "analytics" && <div><AnalyticsPanel /></div>}
-              {activeTab === "users" && <div><UsersPanel /></div>}
-              {activeTab === "classes" && <div><ClassesPanel /></div>}
-              {activeTab === "practice" && <div><PracticePanel /></div>}
-              {activeTab === "conversations" && <div><ConversationsPanel /></div>}
-              {activeTab === "audit" && <div><AuditPanel /></div>}
-              {activeTab === "timers" && <div><AdminTimerSettings /></div>}
-              {activeTab === "curriculum" && <div><AdminCurriculumUpload /></div>}
+              {activeTab === "analytics" && <AnalyticsPanel />}
+              {activeTab === "users" && <UsersPanel />}
+              {activeTab === "classes" && <ClassesPanel />}
+              {activeTab === "practice" && <PracticePanel />}
+              {activeTab === "conversations" && <ConversationsPanel />}
+              {activeTab === "audit" && <AuditPanel />}
+              {activeTab === "timers" && <AdminTimerSettings />}
+              {activeTab === "curriculum" && <AdminCurriculumUpload />}
             </div>
           </motion.div>
         </div>
@@ -171,19 +166,18 @@ function AnalyticsPanel() {
 
   useEffect(() => {
     (async () => {
-      try {
-        const [logData, profileData] = await Promise.all([
-          fetchAllPracticeLogs(),
-          fetchAllProfiles(),
-        ]);
-        setAllLogs(logData);
-        setProfiles(profileData);
-      } catch (err) {
-        console.error("Failed to load analytics data:", err);
-        toast({ title: "Analytics Error", description: "Failed to load practice data. Some charts may be empty.", variant: "destructive" });
-      } finally {
-        setLoading(false);
-      }
+      const { data: logData } = await supabase
+        .from("student_practice_logs")
+        .select("user_id, activity_type, course_type, week_number, active_seconds, created_at")
+        .order("created_at", { ascending: true });
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id, created_at");
+
+      setAllLogs(logData ?? []);
+      setProfiles(profileData ?? []);
+      setLoading(false);
     })();
   }, []);
 
@@ -513,7 +507,12 @@ function UsersPanel() {
   const [bulkConfirm, setBulkConfirm] = useState<{ action: "role" | "delete"; role?: string } | null>(null);
 
   const loadUsers = useCallback(async () => {
-    const merged = await fetchAllUserRolesAndProfiles();
+    const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+    const { data: profiles } = await supabase.from("profiles").select("id, display_name, avatar_url, created_at");
+    const merged = (profiles ?? []).map((p) => ({
+      ...p,
+      role: roles?.find((r) => r.user_id === p.id)?.role ?? "unknown",
+    }));
     setUsers(merged);
     setLoading(false);
   }, []);
@@ -869,8 +868,12 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
 
   useEffect(() => {
     (async () => {
-      const data = await fetchUserPracticeLogs(user.id);
-      setLogs(data);
+      const { data } = await supabase
+        .from("student_practice_logs")
+        .select("activity_type, course_type, week_number, active_seconds, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+      setLogs(data ?? []);
       setLoading(false);
     })();
   }, [user.id]);
@@ -1153,8 +1156,8 @@ function ClassesPanel() {
 
   useEffect(() => {
     (async () => {
-      const data = await fetchAllClasses();
-      setClasses(data);
+      const { data } = await supabase.from("classes").select("*").order("created_at", { ascending: false });
+      setClasses(data ?? []);
       setLoading(false);
     })();
   }, []);
@@ -1266,8 +1269,12 @@ function PracticePanel() {
 
   useEffect(() => {
     (async () => {
-      const data = await fetchRecentPracticeLogs(50);
-      setLogs(data);
+      const { data } = await supabase
+        .from("student_practice_logs")
+        .select("id, user_id, activity_type, course_type, week_number, active_seconds, created_at")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      setLogs(data ?? []);
       setLoading(false);
     })();
   }, []);
@@ -1300,8 +1307,12 @@ function ConversationsPanel() {
 
   useEffect(() => {
     (async () => {
-      const data = await fetchRecentConversations(50);
-      setConvos(data);
+      const { data } = await supabase
+        .from("conversations")
+        .select("id, user_id, title, created_at")
+        .order("updated_at", { ascending: false })
+        .limit(50);
+      setConvos(data ?? []);
       setLoading(false);
     })();
   }, []);
@@ -1344,7 +1355,13 @@ function AuditPanel() {
 
   useEffect(() => {
     (async () => {
-      const entries = await fetchAuditLogs(500);
+      const { data: auditData } = await supabase
+        .from("admin_audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      const entries = auditData ?? [];
       setLogs(entries);
 
       const ids = new Set<string>();
@@ -1354,9 +1371,13 @@ function AuditPanel() {
       }
 
       if (ids.size > 0) {
-        const profileData = await fetchProfilesByIds(Array.from(ids));
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", Array.from(ids));
+
         const map: Record<string, string> = {};
-        for (const p of profileData) {
+        for (const p of profileData ?? []) {
           map[p.id] = p.display_name || "Unknown";
         }
         setProfiles(map);

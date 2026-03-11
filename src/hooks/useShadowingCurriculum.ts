@@ -51,10 +51,6 @@ export function useShadowingCurriculum(
     setCurrentIndex(0);
   }, []);
 
-  const goToIndex = useCallback((idx: number) => {
-    if (idx >= 0 && idx < chunks.length) setCurrentIndex(idx);
-  }, [chunks.length]);
-
   return {
     chunks,
     currentChunk,
@@ -63,7 +59,6 @@ export function useShadowingCurriculum(
     loading,
     nextChunk,
     resetToFirst,
-    goToIndex,
     curriculumData,
     currentQuestionText: currentChunk?.question_text ?? null,
     currentSectionId: currentChunk?.section_id ?? null,

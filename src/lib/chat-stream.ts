@@ -7,10 +7,6 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deepseek-chat`;
 
-// Client-side rate limiting: max 1 request per 2 seconds
-let lastChatRequestTime = 0;
-const MIN_INTERVAL_MS = 2000;
-
 export async function streamChat({
   messages,
   token,
@@ -24,12 +20,6 @@ export async function streamChat({
   onDone: () => void;
   signal?: AbortSignal;
 }) {
-  const now = Date.now();
-  if (now - lastChatRequestTime < MIN_INTERVAL_MS) {
-    throw new Error("Please wait a moment before sending another message.");
-  }
-  lastChatRequestTime = now;
-
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
@@ -75,8 +65,8 @@ export async function streamChat({
         const content = parsed.choices?.[0]?.delta?.content as string | undefined;
         if (content) onDelta(content);
       } catch {
-        // Malformed JSON line — skip it to avoid infinite loop
-        console.warn("[chat-stream] Skipping malformed SSE data:", json.substring(0, 100));
+        buffer = line + "\n" + buffer;
+        break;
       }
     }
   }

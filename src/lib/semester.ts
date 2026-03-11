@@ -6,8 +6,7 @@ const MS_PER_DAY = 86_400_000;
 const MS_PER_WEEK = 7 * MS_PER_DAY;
 
 function startDate(): Date {
-  // Use China Standard Time (UTC+8) as the canonical timezone
-  return new Date(`${SEMESTER_START}T00:00:00+08:00`);
+  return new Date(`${SEMESTER_START}T00:00:00`);
 }
 
 /** Returns 1-based week number (clamped to 1..SEMESTER_WEEKS). 0 if before semester. */

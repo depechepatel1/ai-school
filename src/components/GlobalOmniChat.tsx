@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback, forwardRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Mic } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/lib/auth";
 import OmniChatModal from "@/components/OmniChatModal";
 
-const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props, _ref) {
+export default function GlobalOmniChat() {
   const { session } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -21,13 +21,7 @@ const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
     d.moved = Math.max(d.moved, Math.abs(dx) + Math.abs(dy));
-    // Clamp position so button stays within viewport
-    const maxX = window.innerWidth - 100;
-    const maxY = window.innerHeight - 100;
-    setPos({
-      x: Math.max(-maxX, Math.min(maxX, d.origX + dx)),
-      y: Math.max(-maxY, Math.min(maxY, d.origY + dy)),
-    });
+    setPos({ x: d.origX + dx, y: d.origY + dy });
   }, []);
 
   const onPointerUp = useCallback(() => {
@@ -36,7 +30,7 @@ const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props
     if (d.moved < 5) setChatOpen(prev => !prev);
   }, []);
 
-  if (!session && !import.meta.env.DEV) return null;
+  if (!session) return null;
 
   return createPortal(
     <div
@@ -66,6 +60,4 @@ const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props
     </div>,
     document.body
   );
-});
-
-export default GlobalOmniChat;
+}

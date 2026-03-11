@@ -1,4 +1,4 @@
-
+import type { WordData } from "@/lib/prosody";
 
 // ── Domain Types ──────────────────────────────────────────────
 

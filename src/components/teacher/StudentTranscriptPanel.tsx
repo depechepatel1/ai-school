@@ -58,22 +58,18 @@ export default function StudentTranscriptPanel({ studentId, studentName, onBack 
   useEffect(() => {
     const load = async () => {
       setLoadingConvos(true);
-      const convosRes = await supabase
-        .from("conversations")
-        .select("id, title, created_at, updated_at")
-        .eq("user_id", studentId)
-        .order("updated_at", { ascending: false });
-      const convoIds = (convosRes.data ?? []).map((c) => c.id);
-      setConversations(convosRes.data ?? []);
-      if (convoIds.length > 0) {
-        const notesRes = await supabase
+      const [convosRes, notesRes] = await Promise.all([
+        supabase
+          .from("conversations")
+          .select("id, title, created_at, updated_at")
+          .eq("user_id", studentId)
+          .order("updated_at", { ascending: false }),
+        supabase
           .from("conversation_notes")
-          .select("conversation_id")
-          .in("conversation_id", convoIds);
-        setNotedConvoIds(new Set((notesRes.data ?? []).map((n) => n.conversation_id)));
-      } else {
-        setNotedConvoIds(new Set());
-      }
+          .select("conversation_id"),
+      ]);
+      setConversations(convosRes.data ?? []);
+      setNotedConvoIds(new Set((notesRes.data ?? []).map((n) => n.conversation_id)));
       setLoadingConvos(false);
     };
     load();

@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,46 +6,32 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
-import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import NetworkStatus from "@/components/NetworkStatus";
-import DevToolbar from "@/components/DevToolbar";
-
-// Eagerly load landing + auth pages (first paint)
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import StudentPractice from "./pages/StudentPractice";
+import SpeakingStudio from "./pages/SpeakingStudio";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import ParentDashboard from "./pages/ParentDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
-
-// Lazy-load everything else for smaller initial bundle
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const StudentPractice = lazy(() => import("./pages/StudentPractice"));
-const SpeakingStudio = lazy(() => import("./pages/SpeakingStudio"));
-const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
-const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const StudentAnalysis = lazy(() => import("./pages/StudentAnalysis"));
-const StudentProfile = lazy(() => import("./pages/StudentProfile"));
-const AdminUploadVideos = lazy(() => import("./pages/AdminUploadVideos"));
-const WeekSelection = lazy(() => import("./pages/WeekSelection"));
-const IELTSPronunciation = lazy(() => import("./pages/IELTSPronunciation"));
-const IELTSFluency = lazy(() => import("./pages/IELTSFluency"));
-const IELTSSpeaking = lazy(() => import("./pages/IELTSSpeaking"));
-const IGCSEPronunciation = lazy(() => import("./pages/IGCSEPronunciation"));
-const IGCSEFluency = lazy(() => import("./pages/IGCSEFluency"));
-const IGCSESpeaking = lazy(() => import("./pages/IGCSESpeaking"));
-const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
+import StudentAnalysis from "./pages/StudentAnalysis";
+import StudentProfile from "./pages/StudentProfile";
+import DevNav from "@/components/DevNav";
+import GlobalOmniChat from "@/components/GlobalOmniChat";
+import AdminUploadVideos from "./pages/AdminUploadVideos";
+import WeekSelection from "./pages/WeekSelection";
+import IELTSPronunciation from "./pages/IELTSPronunciation";
+import IELTSFluency from "./pages/IELTSFluency";
+import IELTSSpeaking from "./pages/IELTSSpeaking";
+import IGCSEPronunciation from "./pages/IGCSEPronunciation";
+import IGCSEFluency from "./pages/IGCSEFluency";
+import IGCSESpeaking from "./pages/IGCSESpeaking";
 
 const queryClient = new QueryClient();
-
-function PageLoader() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
 
 import { VIDEO_1_STACK } from "@/components/PageShell";
 
@@ -54,33 +40,25 @@ const INTRO_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/intro.mp4`;
 const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis-bg.mp4`;
 const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO, ANALYSIS_VIDEO, "/images/dashboard-bg.jpg"];
 
-const App = () => { // rebuild trigger
+const App = () => {
   useEffect(() => {
     VIDEO_URLS.forEach((url) => {
       const link = document.createElement("link");
       link.rel = "prefetch";
-      link.as = url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? "image" : "video";
+      link.as = "video";
       link.href = url;
       document.head.appendChild(link);
     });
   }, []);
 
   return (
-  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <LanguageProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter>
         <AuthProvider>
-          <NetworkStatus />
-          {import.meta.env.DEV && (
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 z-[9999] px-3 py-0.5 bg-destructive text-destructive-foreground text-xs font-mono tracking-widest rounded-b-md opacity-80 pointer-events-none select-none">
-              DEV MODE — AUTH BYPASSED
-            </div>
-          )}
-          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
@@ -104,17 +82,13 @@ const App = () => { // rebuild trigger
             <Route path="/admin/upload-videos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUploadVideos /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          </Suspense>
-          <Suspense fallback={null}>
-            <GlobalOmniChat />
-          </Suspense>
-          {import.meta.env.DEV && <DevToolbar />}
+          <DevNav />
+          <GlobalOmniChat />
         </AuthProvider>
       </BrowserRouter>
       </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
-  </ErrorBoundary>
   );
 };
 

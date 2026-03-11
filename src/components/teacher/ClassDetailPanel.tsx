@@ -55,7 +55,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
   const [viewingTranscript, setViewingTranscript] = useState<{ id: string; name: string } | null>(null);
-  const { } = useLanguage();
+  const { t } = useLanguage();
 
   const currentWeek = getWeekNumber();
   const viewWeek = Math.max(1, currentWeek + weekOffset);

@@ -56,17 +56,32 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
     if (!userId) return;
 
     try {
-      await supabase
+      const { data: existing } = await supabase
         .from("student_progress")
-        .upsert({
-          student_id: userId,
-          course_type: courseType,
-          module_type: moduleType,
-          current_position: newPosition as any,
-          last_accessed: new Date().toISOString(),
-        }, {
-          onConflict: "student_id,course_type,module_type",
-        });
+        .select("id")
+        .eq("student_id", userId)
+        .eq("course_type", courseType)
+        .eq("module_type", moduleType)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from("student_progress")
+          .update({
+            current_position: newPosition as any,
+            last_accessed: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase
+          .from("student_progress")
+          .insert({
+            student_id: userId,
+            course_type: courseType,
+            module_type: moduleType,
+            current_position: newPosition as any,
+          });
+      }
     } catch (err) {
       console.error("useStudentProgress save error:", err);
     }

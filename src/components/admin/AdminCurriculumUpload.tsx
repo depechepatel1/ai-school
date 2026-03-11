@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
-import { Upload, CheckCircle, Download, Loader2, Timer, XCircle, AlertTriangle } from "lucide-react";
+import { Upload, FileText, CheckCircle, Download, Loader2, Timer, XCircle, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { parseCSVToCurriculum } from "@/services/csv-to-curriculum";
 import type { CurriculumData } from "@/services/curriculum-storage";
@@ -14,7 +14,7 @@ import CurriculumPreviewModal from "./CurriculumPreviewModal";
 import {
   generateAndUploadFluencyTimings,
   generateAndUploadPronunciationTimings,
-  
+  generateAndUploadFluencyTimingsFromData,
   clearTimingsCache,
 } from "@/services/tts-timings-storage";
 import { clearPronunciationCache } from "@/services/pronunciation-shadowing";

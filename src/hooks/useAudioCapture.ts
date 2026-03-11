@@ -1,23 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 
 export function useAudioCapture() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const replayAudioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const prevUrlRef = useRef<string | null>(null);
   const [lastRecordingUrl, setLastRecordingUrl] = useState<string | null>(null);
-
-  // Revoke previous object URL when a new one is created, and on unmount
-  useEffect(() => {
-    if (prevUrlRef.current && prevUrlRef.current !== lastRecordingUrl) {
-      URL.revokeObjectURL(prevUrlRef.current);
-    }
-    prevUrlRef.current = lastRecordingUrl;
-    return () => {
-      if (lastRecordingUrl) URL.revokeObjectURL(lastRecordingUrl);
-    };
-  }, [lastRecordingUrl]);
   const [isPlayingReplay, setIsPlayingReplay] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
@@ -46,12 +34,6 @@ export function useAudioCapture() {
       mediaRecorderRef.current = recorder;
       return true;
     } catch (err) {
-      // Clean up stream if getUserMedia succeeded but MediaRecorder failed
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
-        setActiveStream(null);
-      }
       console.warn("[Mic] Permission denied or error:", err);
       setMicDenied(true);
       return false;

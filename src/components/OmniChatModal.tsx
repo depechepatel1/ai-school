@@ -226,7 +226,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                           stopSpeaking();
                           const hasChinese = /[\u4e00-\u9fa5]/.test(m.content);
                           const accent: Accent = hasChinese ? "zh" : "uk";
-                          speak(m.content, accent, {
+                          const handle = speak(m.content, accent, {
                             onEnd: () => setSpeakingMsgIdx(null),
                           });
                           setSpeakingMsgIdx(i);

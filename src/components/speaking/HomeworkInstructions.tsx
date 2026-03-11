@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, BookOpen, Check } from "lucide-react";
-import { fetchTodayPracticeLogs } from "@/services/db";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   courseType: "ielts" | "igcse";
@@ -44,7 +44,14 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
     if (!userId || !open) return;
 
     const load = async () => {
-      const data = await fetchTodayPracticeLogs(userId, "homework");
+      const { data } = await supabase
+        .from("student_practice_logs")
+        .select("activity_type, active_seconds, target_seconds")
+        .eq("user_id", userId)
+        .eq("week_number", selectedWeek)
+        .eq("practice_mode", "homework");
+
+      if (!data) return;
 
       // Aggregate by activity_type (may have multiple daily logs)
       const agg: Record<string, TaskProgress> = {};

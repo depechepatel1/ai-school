@@ -1,16 +1,14 @@
 import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pause } from "lucide-react";
 
 interface LiveTranscriptBarProps {
   transcript: string;
   interim: string;
   isRecording: boolean;
   questionText?: string;
-  isPaused?: boolean;
 }
 
-export default function LiveTranscriptBar({ transcript, interim, isRecording, questionText, isPaused }: LiveTranscriptBarProps) {
+export default function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: LiveTranscriptBarProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -20,16 +18,7 @@ export default function LiveTranscriptBar({ transcript, interim, isRecording, qu
   const hasContent = transcript.trim().length > 0 || interim.trim().length > 0;
 
   return (
-    <div aria-live="polite" role="log" aria-label="Live transcript" className="absolute bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.6)] animate-fade-in">
-      {/* Paused banner */}
-      {isPaused && (
-        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-500/15 border-b border-amber-500/20">
-          <Pause className="w-3.5 h-3.5 text-amber-400" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-amber-300">
-            Paused — No speech detected
-          </span>
-        </div>
-      )}
+    <div className="absolute bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.6)] animate-fade-in">
       <ScrollArea className="h-[9rem]">
         <div className="px-5 py-3">
           {/* Question always displayed at top */}
@@ -48,7 +37,7 @@ export default function LiveTranscriptBar({ transcript, interim, isRecording, qu
               )}
             </p>
           )}
-          {isRecording && !isPaused && !hasContent && (
+          {isRecording && !hasContent && (
             <p className="text-sm text-white/20 italic mt-2">Listening…</p>
           )}
           <div ref={bottomRef} />

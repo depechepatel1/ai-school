@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 type Lang = "en" | "zh";
 
@@ -85,18 +85,8 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // Parent
   "parent.linkTitle": { en: "Link Your Child's Account", zh: "关联孩子的账户" },
-  "parent.linkDesc": { en: "Enter your child's email address to link their account and track their learning progress.", zh: "输入孩子的邮箱以关联账户并跟踪学习进度。" },
+  "parent.linkDesc": { en: "Enter your child's student code to link their account and track their learning progress.", zh: "输入孩子的学生码以关联账户并跟踪学习进度。" },
   "parent.linkButton": { en: "Link Account", zh: "关联账户" },
-  "parent.linkPlaceholder": { en: "child@example.com", zh: "child@example.com" },
-  "parent.linking": { en: "Linking...", zh: "关联中..." },
-  "parent.linked": { en: "Child linked!", zh: "已关联孩子！" },
-  "parent.noChildren": { en: "No children linked yet", zh: "尚未关联孩子" },
-  "parent.noChildrenDesc": { en: "Link your child's student account to view their progress", zh: "关联孩子的学生账户以查看进度" },
-  "parent.practiceThisWeek": { en: "Practice this week", zh: "本周练习" },
-  "parent.sessions": { en: "sessions", zh: "次练习" },
-  "parent.lastActive": { en: "Last active", zh: "最近活跃" },
-  "parent.unlink": { en: "Unlink", zh: "取消关联" },
-  "parent.unlinkConfirm": { en: "Remove this child from your account?", zh: "确定要取消关联这个孩子吗？" },
   "parent.progressOverview": { en: "Progress Overview", zh: "进度概览" },
   "parent.progressDesc": { en: "View learning stats, scores, and improvement trends", zh: "查看学习统计、分数和进步趋势" },
   "parent.recentActivity": { en: "Recent Activity", zh: "最近活动" },
@@ -122,32 +112,23 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-function safeGetItem(key: string): string | null {
-  try { return localStorage.getItem(key); } catch { return null; }
-}
-function safeSetItem(key: string, value: string): void {
-  try { localStorage.setItem(key, value); } catch {}
-}
-
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const stored = safeGetItem("app-lang");
+    const stored = localStorage.getItem("app-lang");
     return (stored === "en" || stored === "zh") ? stored : "en";
   });
 
-  const setLang = useCallback((l: Lang) => {
+  const setLang = (l: Lang) => {
     setLangState(l);
-    safeSetItem("app-lang", l);
-  }, []);
+    localStorage.setItem("app-lang", l);
+  };
 
-  const t = useCallback((key: string): string => {
+  const t = (key: string): string => {
     return translations[key]?.[lang] ?? key;
-  }, [lang]);
-
-  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
+  };
 
   return (
-    <LanguageContext.Provider value={value}>
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
       {children}
     </LanguageContext.Provider>
   );

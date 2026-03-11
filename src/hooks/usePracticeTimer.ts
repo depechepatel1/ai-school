@@ -93,16 +93,6 @@ export function usePracticeTimer({
   // Create/load log entry when activity starts
   useEffect(() => {
     if (!userId || !courseType) return;
-
-    // Save current log before switching activity
-    if (logIdRef.current && activeSecondsRef.current > 0) {
-      supabase
-        .from("student_practice_logs")
-        .update({ active_seconds: activeSecondsRef.current })
-        .eq("id", logIdRef.current)
-        .then(() => {});
-    }
-
     logIdRef.current = null;
 
     // Try to find today's existing log for this activity
@@ -126,7 +116,6 @@ export function usePracticeTimer({
         logIdRef.current = existing.id;
         setActiveSeconds(existing.active_seconds);
       } else {
-        // Only create new log if we don't already have one for this combo today
         const { data: newLog } = await supabase
           .from("student_practice_logs")
           .insert({

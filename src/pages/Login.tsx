@@ -4,12 +4,11 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { LogIn, ArrowRight } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
-import { usePageTitle } from "@/hooks/usePageTitle";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -17,7 +16,6 @@ const fadeUp = {
 };
 
 export default function Login() {
-  usePageTitle("Sign In");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -133,8 +131,8 @@ export default function Login() {
 
         {/* ICP Footer */}
         <motion.div variants={fadeUp} className="mt-auto pt-6 text-center space-y-0.5">
-          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026000001号</p>
-          <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026000001号A</p>
+          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+          <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
         </motion.div>
       </motion.div>
     </PageShell>

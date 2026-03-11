@@ -1,11 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { ArrowLeft, BarChart3, Zap, Trophy, Crown, Medal, Clock, TrendingUp, Award } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import PageShell from "@/components/PageShell";
-import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useAnalyticsData, type Period, type ActivityData } from "@/hooks/useAnalyticsData";
@@ -42,8 +40,9 @@ function fmtHM(s: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function ProgressRing({ data, color, label, size = 120 }: { data: ActivityData; color: string; label: string; size?: number }) {
-  const stroke = size >= 100 ? 8 : 6;
+function ProgressRing({ data, color, label }: { data: ActivityData; color: string; label: string }) {
+  const size = 120;
+  const stroke = 8;
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const pct = data.pct;
@@ -51,7 +50,7 @@ function ProgressRing({ data, color, label, size = 120 }: { data: ActivityData; 
   const isOvertime = data.overtime > 0;
 
   return (
-    <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+    <div className="flex flex-col items-center gap-2">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="white" strokeOpacity={0.08} strokeWidth={stroke} />
@@ -64,16 +63,16 @@ function ProgressRing({ data, color, label, size = 120 }: { data: ActivityData; 
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`${size >= 100 ? 'text-2xl' : 'text-lg'} font-bold text-white`}>{Math.round(pct * 100)}%</span>
+          <span className="text-2xl font-bold text-white">{Math.round(pct * 100)}%</span>
           {isOvertime && (
-            <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
               +{fmt(data.overtime)}
             </span>
           )}
         </div>
       </div>
-      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/70">{label}</span>
-      <span className="text-[10px] sm:text-[11px] text-white/40 font-medium">{fmt(data.seconds)} / {fmt(data.target)}</span>
+      <span className="text-xs font-bold uppercase tracking-wider text-white/70">{label}</span>
+      <span className="text-[11px] text-white/40 font-medium">{fmt(data.seconds)} / {fmt(data.target)}</span>
     </div>
   );
 }
@@ -81,7 +80,6 @@ function ProgressRing({ data, color, label, size = 120 }: { data: ActivityData; 
 type RightPanel = "class" | "extended" | "report";
 
 export default function StudentAnalysis() {
-  usePageTitle("Analytics");
   const { user } = useAuth();
   const { courseType } = useCourseWeek(user?.id ?? null);
   const [period, setPeriod] = useState<Period>("daily");
@@ -89,14 +87,6 @@ export default function StudentAnalysis() {
   const { data, loading } = useAnalyticsData(user?.id ?? null, courseType, period);
   const navigate = useNavigate();
   const weekNum = getWeekNumber();
-
-  // Responsive ring size
-  const [ringSize, setRingSize] = useState(window.innerWidth < 640 ? 80 : 120);
-  useEffect(() => {
-    const onResize = () => setRingSize(window.innerWidth < 640 ? 80 : 120);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
 
   const { rangeStart, rangeEnd } = useMemo(() => {
     const now = new Date();
@@ -130,12 +120,12 @@ export default function StudentAnalysis() {
 
   return (
     <PageShell fullWidth loopVideos={[ANALYSIS_VIDEO]} hideFooter>
-        <div className="absolute inset-2 sm:inset-4 z-10 flex items-center justify-center">
-        <div className="relative w-full h-full sm:max-w-[960px] sm:max-h-[700px] rounded-2xl sm:rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
+      <div className="absolute inset-4 z-10 flex items-center justify-center">
+        <div className="relative w-full h-full max-w-[960px] max-h-[700px] rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-2 sm:pb-3">
+          <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-3">
             <button onClick={() => navigate("/student")} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Back</span>
@@ -157,7 +147,7 @@ export default function StudentAnalysis() {
           </div>
 
           {/* Period tabs */}
-          <div className="relative z-10 flex items-center gap-1 px-4 sm:px-6 pb-3 sm:pb-4 overflow-x-auto scrollbar-hide">
+          <div className="relative z-10 flex items-center gap-1 px-6 pb-4">
             {PERIODS.map((p) => (
               <button
                 key={p.key}
@@ -179,9 +169,9 @@ export default function StudentAnalysis() {
           </div>
 
           {/* Content — two columns */}
-          <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 px-4 sm:px-6 pb-4 overflow-hidden">
+          <div className="relative z-10 flex-1 flex gap-4 px-6 pb-4 overflow-hidden">
             {/* Left: Analytics */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-5 overflow-y-auto min-h-0">
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 overflow-y-auto">
               {loading || !data ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white/40 text-sm animate-pulse">
                   Loading analytics…
@@ -196,7 +186,7 @@ export default function StudentAnalysis() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className="flex flex-col items-center gap-5 w-full"
                   >
-                    <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
+                    <div className="flex items-center justify-center gap-8">
                       {ACTIVITIES.map((a, i) => (
                         <motion.div
                           key={a.key}
@@ -204,7 +194,7 @@ export default function StudentAnalysis() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
                         >
-                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={ringSize} />
+                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} />
                         </motion.div>
                       ))}
                     </div>
@@ -251,7 +241,7 @@ export default function StudentAnalysis() {
             </div>
 
             {/* Right panel */}
-            <div className="w-full md:w-[240px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden max-h-[300px] md:max-h-none">
+            <div className="w-[240px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
               {/* Right panel tabs */}
               <div className="flex border-b border-white/10">
                 {rightTabs.map((t) => (
@@ -292,7 +282,7 @@ export default function StudentAnalysis() {
 /* ── Class Leaderboard Panel ───────────────────── */
 function ClassLeaderboardPanel({ entries, loading, currentUserId }: { entries: any[]; loading: boolean; currentUserId?: string }) {
   if (loading) return <div className="text-white/30 text-[11px] text-center py-4 animate-pulse">Loading…</div>;
-  if (entries.length === 0) return <EmptyState icon={<Trophy className="w-5 h-5" />} title="No class data" description="Practice to see your class ranking" className="py-6" />;
+  if (entries.length === 0) return <div className="text-white/30 text-[11px] text-center py-4">No class data</div>;
 
   return (
     <div className="px-2 py-2 space-y-1">
@@ -327,7 +317,7 @@ function ClassLeaderboardPanel({ entries, loading, currentUserId }: { entries: a
 /* ── Extended Practice Leaderboard ────────────── */
 function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries: any[]; loading: boolean; currentUserId?: string }) {
   if (loading) return <div className="text-white/30 text-[11px] text-center py-4 animate-pulse">Loading…</div>;
-  if (entries.length === 0) return <EmptyState icon={<Zap className="w-5 h-5" />} title="No extended practice data" description="Go beyond homework targets to appear here" className="py-6" />;
+  if (entries.length === 0) return <div className="text-white/30 text-[11px] text-center py-4">No extended practice data</div>;
 
   const maxSeconds = Math.max(...entries.map((e) => e.extended_seconds), 1);
 
