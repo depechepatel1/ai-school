@@ -34,7 +34,6 @@ const IELTSSpeaking = lazy(() => import("./pages/IELTSSpeaking"));
 const IGCSEPronunciation = lazy(() => import("./pages/IGCSEPronunciation"));
 const IGCSEFluency = lazy(() => import("./pages/IGCSEFluency"));
 const IGCSESpeaking = lazy(() => import("./pages/IGCSESpeaking"));
-const DevNav = lazy(() => import("@/components/DevNav"));
 const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
 
 const queryClient = new QueryClient();
