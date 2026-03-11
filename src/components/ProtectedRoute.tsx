@@ -7,9 +7,10 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, roleLoading } = useAuth();
 
-  if (loading) {
+  // Still loading auth session or role — show spinner, don't redirect
+  if (loading || roleLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -21,7 +22,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   if (allowedRoles) {
     if (!role) {
-      // Role not yet loaded or missing — redirect to login
+      // Role loaded but is null — user has no assigned role
       return <Navigate to="/login" replace />;
     }
     if (!allowedRoles.includes(role)) {
