@@ -45,11 +45,21 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       });
       if (error) {
         toast({ title: "Dev Login Failed", description: getSafeErrorMessage(error), variant: "destructive" });
-      } else {
-        setDevOpen(false);
-        // Navigate — ProtectedRoute now shows spinner while role loads
-        navigate(account.redirect);
+        return;
       }
+      setDevOpen(false);
+      // Wait for onAuthStateChange to propagate session to React state
+      await new Promise<void>((resolve) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+          if (event === "SIGNED_IN") {
+            subscription.unsubscribe();
+            resolve();
+          }
+        });
+        // Safety timeout
+        setTimeout(() => { subscription.unsubscribe(); resolve(); }, 3000);
+      });
+      navigate(account.redirect);
     } catch (err: any) {
       toast({ title: "Dev Login Failed", description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
