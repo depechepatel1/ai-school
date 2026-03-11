@@ -38,7 +38,7 @@ export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSi
           <User className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white/50" />
           <span className="text-[9px] uppercase font-bold group-hover:text-white/80">Profile</span>
         </button>
-        <button onClick={onSignOut} aria-label="Sign Out" className="min-h-[44px] min-w-[44px] text-gray-400 hover:text-red-400 flex flex-col items-center gap-1 group">
+        <button onClick={handleSignOut} aria-label="Sign Out" className="min-h-[44px] min-w-[44px] text-gray-400 hover:text-red-400 flex flex-col items-center gap-1 group">
           <LogOut className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-gray-500" />
           <span className="text-[9px] uppercase font-bold group-hover:text-red-300">Sign Out</span>
         </button>
