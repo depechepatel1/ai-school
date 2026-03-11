@@ -18,6 +18,7 @@ export default function StudentPractice() {
   usePageTitle("Practice");
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const { streak, restDays } = useStreak(user?.id ?? null);
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
