@@ -23,6 +23,7 @@ import ExaminerConfig from "@/components/speaking/ExaminerConfig";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import SaveSessionModal from "@/components/speaking/SaveSessionModal";
+import SessionFeedbackCard from "@/components/speaking/SessionFeedbackCard";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 import { UKFlag, USFlag } from "@/components/speaking/FlagIcons";
 
