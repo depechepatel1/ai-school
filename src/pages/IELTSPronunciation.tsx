@@ -24,7 +24,6 @@ import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
-import { analyzeContour } from "@/lib/speech-analysis-provider";
 
 export default function IELTSPronunciation() {
   const navigate = useNavigate();
