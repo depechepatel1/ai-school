@@ -42,14 +42,27 @@ export default function DevNav() {
     try {
       const creds = DEV_CREDENTIALS[route.role];
       if (creds) {
-        await supabase.auth.signInWithPassword({
+        // Sign in and wait for the auth state to propagate
+        const { error } = await supabase.auth.signInWithPassword({
           email: creds.email,
           password: creds.password,
         });
+        if (!error) {
+          // Wait for onAuthStateChange to fire and update context
+          await new Promise<void>((resolve) => {
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+              if (session?.user) {
+                subscription.unsubscribe();
+                resolve();
+              }
+            });
+            // Safety timeout
+            setTimeout(() => { subscription.unsubscribe(); resolve(); }, 2000);
+          });
+        }
       }
       navigate(route.path);
     } catch {
-      // navigate anyway
       navigate(route.path);
     } finally {
       setLoading(false);
