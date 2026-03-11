@@ -9,6 +9,10 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (import.meta.env.DEV) {
+      navigate("/student", { replace: true });
+      return;
+    }
     if (loading || roleLoading) return;
     if (!user) {
       navigate("/signup", { replace: true });
