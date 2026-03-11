@@ -1,29 +1,42 @@
 
 
-## Analysis
+## Remaining Unaddressed Audit Issues — Sequenced Task Plan
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
-
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
-
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
-
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
-
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+Here are the issues from the audit that were **not addressed** in the previous fix round, organized in priority order. I'll create a managed task queue so you can say "next" to proceed through each one.
 
 ---
 
-## Changes -- `src/components/PageShell.tsx`
+### Task Queue (in execution order)
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+**1. Responsive layout for Student Dashboard**
+The LeftPillar and RightPillar use `absolute` positioning with fixed `w-[280px]`. On viewports below ~700px they overlap the center content. Fix: hide pillars on small screens or convert to a mobile-friendly stacked layout with a toggle/drawer.
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+**2. Responsive layout for Speaking Studio pages**
+`CueCard`, `FreehandNotePad`, and `SpeakingLeftPanel` all use absolute positioning with fixed widths. These need mobile breakpoints or drawer alternatives.
+
+**3. Responsive layout for StudentAnalysis page**
+The analytics page uses fixed-size `ProgressRing` (120px) and multi-column grid that doesn't collapse well on mobile. Needs responsive grid adjustments.
+
+**4. AdminDashboard direct Supabase imports**
+`AdminDashboard.tsx` imports `supabase` client directly (line 9) instead of going through `src/services/db.ts`. Should be refactored to use the service layer for consistency and maintainability.
+
+**5. Build real streak tracking system**
+RightPillar currently shows "— Day Streak" and "— Days Off". Need to compute actual consecutive practice days from `student_practice_logs` table and display real counts.
+
+**6. Replace sample tasks with real task/assignment system**
+LeftPillar shows hardcoded "Sample Tasks". Need a `student_tasks` or `assignments` table that teachers can populate, and query it dynamically.
+
+**7. Parent Dashboard "Link Child" — real implementation**
+Currently shows a "Coming Soon" toast. Needs a `parent_student_links` table and a flow where parents enter a child's student code/email to link accounts.
+
+**8. Empty state handling across all list views**
+Teacher class lists, admin user lists, leaderboards, and message tabs lack proper empty-state UI when no data exists. Add friendly empty states with guidance text.
+
+---
+
+### How It Works
+
+When you say **"next"** (or "go", "continue", etc.), I will implement the next task in the queue, mark it done, and wait for your prompt to proceed to the following one. This gives you control to review each change before moving on.
+
+Ready when you are — say **"next"** to start with Task 1 (Responsive Student Dashboard).
 
