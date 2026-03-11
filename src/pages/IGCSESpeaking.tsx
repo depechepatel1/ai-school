@@ -215,7 +215,7 @@ export default function IGCSESpeaking() {
         </div>
 
         {/* DO NOT READ reminder */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300]">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300] hidden sm:block">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 backdrop-blur-2xl">
             <AlertTriangle className="w-4 h-4 text-red-400" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-red-300">Do Not Read Your Answers</span>
@@ -236,8 +236,8 @@ export default function IGCSESpeaking() {
           )}
         </div>
 
-        {/* Floating Info Panel */}
-        <div className="absolute top-32 left-4 z-50">
+        {/* Floating Info Panel (hidden on small landscape) */}
+        <div className="absolute top-32 left-4 z-50 hidden sm:block">
           <FloatingInfoPanel
             course="IGCSE"
             weekNumber={courseWeek.selectedWeek}
@@ -267,12 +267,12 @@ export default function IGCSESpeaking() {
 
         {/* Main question display */}
         {!showPostAnswer && currentQuestion && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-8">
-            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-3xl p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-300/60 block mb-3">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-4 sm:px-8">
+            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-300/60 block mb-2 sm:mb-3">
                 Speaking · Question 1
               </span>
-              <p className="text-lg font-semibold text-white/90 leading-relaxed">
+              <p className="text-base sm:text-lg font-semibold text-white/90 leading-relaxed">
                 {currentQuestion.text}
               </p>
             </div>
@@ -288,7 +288,7 @@ export default function IGCSESpeaking() {
         />
 
         {/* Recording controls */}
-        <div className="absolute bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex flex-col items-center gap-2">
+        <div className="absolute bottom-[9rem] sm:bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex flex-col items-center gap-2">
           <div className="flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
             <button
               onClick={handleToggleRecording}
@@ -336,7 +336,7 @@ export default function IGCSESpeaking() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-32 right-6 z-[400] w-[340px]"
+              className="absolute bottom-20 sm:bottom-32 right-3 sm:right-6 z-[400] w-[260px] sm:w-[340px]"
             >
               <div className="bg-black/80 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_-5px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-2 mb-3">
