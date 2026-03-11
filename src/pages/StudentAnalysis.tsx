@@ -148,7 +148,7 @@ export default function StudentAnalysis() {
           </div>
 
           {/* Period tabs */}
-          <div className="relative z-10 flex items-center gap-1 px-6 pb-4">
+          <div className="relative z-10 flex items-center gap-1 px-4 sm:px-6 pb-3 sm:pb-4 overflow-x-auto scrollbar-hide">
             {PERIODS.map((p) => (
               <button
                 key={p.key}
