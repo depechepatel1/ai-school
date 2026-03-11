@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Code, LogOut, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
