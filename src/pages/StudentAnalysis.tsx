@@ -284,7 +284,7 @@ export default function StudentAnalysis() {
 /* ── Class Leaderboard Panel ───────────────────── */
 function ClassLeaderboardPanel({ entries, loading, currentUserId }: { entries: any[]; loading: boolean; currentUserId?: string }) {
   if (loading) return <div className="text-white/30 text-[11px] text-center py-4 animate-pulse">Loading…</div>;
-  if (entries.length === 0) return <div className="text-white/30 text-[11px] text-center py-4">No class data</div>;
+  if (entries.length === 0) return <EmptyState icon={<Trophy className="w-5 h-5" />} title="No class data" description="Practice to see your class ranking" className="py-6" />;
 
   return (
     <div className="px-2 py-2 space-y-1">
