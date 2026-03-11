@@ -3,11 +3,19 @@ import { Snowflake } from "lucide-react";
 import FlickeringFire from "./FlickeringFire";
 import SatelliteWidget from "./SatelliteWidget";
 
-export default function RightPillar() {
+interface RightPillarProps {
+  inDrawer?: boolean;
+}
+
+export default function RightPillar({ inDrawer = false }: RightPillarProps) {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
+  const wrapperClass = inDrawer
+    ? "w-full flex flex-col gap-4"
+    : "absolute top-0 right-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20";
+
   return (
-    <div className="absolute top-0 right-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
+    <div className={wrapperClass}>
       {/* Streak Card */}
       <div className="relative group-container">
         <div className="absolute inset-0 rounded-2xl overflow-hidden bg-black/60 border border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all hover:shadow-[0_0_40px_rgba(59,130,246,0.4)] hover:border-white/30">
@@ -42,7 +50,7 @@ export default function RightPillar() {
       </div>
 
       {/* Satellite Widget */}
-      <div className="flex-1 flex items-center justify-center relative overflow-visible mt-4 -translate-x-8">
+      <div className={`flex-1 flex items-center justify-center relative overflow-visible mt-4 ${inDrawer ? '' : '-translate-x-8'}`}>
         <SatelliteWidget onNavigate={() => {}} />
       </div>
     </div>
