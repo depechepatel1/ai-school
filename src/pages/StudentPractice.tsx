@@ -46,6 +46,7 @@ export default function StudentPractice() {
       setTeacherHint={setTeacherHint}
       displayName={displayName}
       avatarUrl={avatarUrl}
+      userId={user?.id}
     />
   );
 
