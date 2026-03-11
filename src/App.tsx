@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NetworkStatus from "@/components/NetworkStatus";
+import DevToolbar from "@/components/DevToolbar";
 
 // Eagerly load landing + auth pages (first paint)
 import Index from "./pages/Index";
@@ -34,7 +35,6 @@ const IELTSSpeaking = lazy(() => import("./pages/IELTSSpeaking"));
 const IGCSEPronunciation = lazy(() => import("./pages/IGCSEPronunciation"));
 const IGCSEFluency = lazy(() => import("./pages/IGCSEFluency"));
 const IGCSESpeaking = lazy(() => import("./pages/IGCSESpeaking"));
-const DevNav = lazy(() => import("@/components/DevNav"));
 const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
 
 const queryClient = new QueryClient();
@@ -101,9 +101,9 @@ const App = () => { // rebuild trigger
           </Routes>
           </Suspense>
           <Suspense fallback={null}>
-            <DevNav />
             <GlobalOmniChat />
           </Suspense>
+          {import.meta.env.DEV && <DevToolbar />}
         </AuthProvider>
       </BrowserRouter>
       </LanguageProvider>
