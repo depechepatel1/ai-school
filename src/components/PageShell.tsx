@@ -46,17 +46,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       if (error) {
         toast({ title: "Dev Login Failed", description: getSafeErrorMessage(error), variant: "destructive" });
       } else {
-        // Wait for auth state to propagate before navigating
-        await new Promise<void>((resolve) => {
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user) {
-              subscription.unsubscribe();
-              resolve();
-            }
-          });
-          setTimeout(() => { subscription.unsubscribe(); resolve(); }, 2000);
-        });
         setDevOpen(false);
+        // Navigate — ProtectedRoute now shows spinner while role loads
         navigate(account.redirect);
       }
     } catch (err: any) {

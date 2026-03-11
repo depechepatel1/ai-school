@@ -11,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   role: AppRole | null;
   loading: boolean;
+  roleLoading: boolean;
   signUp: (email: string, password: string, displayName: string, role: AppRole) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -25,14 +26,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   const loadRole = async (userId: string) => {
+    setRoleLoading(true);
     try {
       const role = await fetchUserRole(userId);
       setRole((role as AppRole) ?? null);
     } catch (err) {
       console.error("Failed to load user role:", err);
       setRole(null);
+    } finally {
+      setRoleLoading(false);
     }
   };
 
@@ -115,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, role, loading, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ session, user, role, loading, roleLoading, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
