@@ -122,7 +122,7 @@ export default function ParentDashboard() {
   };
 
   return (
-    <PageShell hideFooter>
+    <PageShell fullWidth hideFooter>
       <motion.div
         initial="hidden"
         animate="visible"
