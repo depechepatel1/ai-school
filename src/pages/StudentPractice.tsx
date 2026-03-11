@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useStreak } from "@/hooks/useStreak";
 import { fetchProfile } from "@/services/db";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 
@@ -17,6 +18,7 @@ export default function StudentPractice() {
   usePageTitle("Practice");
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const { streak, restDays } = useStreak(user?.id ?? null);
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -47,7 +49,7 @@ export default function StudentPractice() {
     />
   );
 
-  const rightPillarContent = <RightPillar />;
+  const rightPillarContent = <RightPillar streak={streak} restDays={restDays} />;
 
   return (
     <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
@@ -92,7 +94,7 @@ export default function StudentPractice() {
               <SheetContent side="right" className="w-[300px] p-0 bg-black/95 border-white/10 overflow-y-auto">
                 <div className="relative w-full h-full pt-2">
                   <div className="relative w-full p-4 flex flex-col gap-4">
-                    <RightPillar inDrawer />
+                    <RightPillar inDrawer streak={streak} restDays={restDays} />
                   </div>
                 </div>
               </SheetContent>

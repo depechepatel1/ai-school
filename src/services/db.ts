@@ -386,3 +386,80 @@ export async function fetchProfilesByIds(ids: string[]) {
   if (error) throw error;
   return data ?? [];
 }
+
+// ── Streak Tracking ───────────────────────────────────────────
+
+/**
+ * Fetches distinct practice dates for a user (descending),
+ * then computes the current consecutive-day streak and
+ * rest days this week (days with no practice, Mon-Sun).
+ */
+export async function fetchStreakData(userId: string): Promise<{ streak: number; restDays: number }> {
+  // Get distinct dates the user practiced, ordered descending
+  const { data, error } = await supabase
+    .from("student_practice_logs")
+    .select("created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  if (!data || data.length === 0) return { streak: 0, restDays: 7 };
+
+  // Extract unique date strings (YYYY-MM-DD) in user's local timezone
+  const uniqueDates = Array.from(
+    new Set(data.map((r) => {
+      const d = new Date(r.created_at);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }))
+  ).sort((a, b) => b.localeCompare(a)); // descending
+
+  // Compute streak: count consecutive days starting from today or yesterday
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  let streak = 0;
+  // Start from today; if no practice today, check if yesterday starts the streak
+  let checkDate = new Date(today);
+  if (uniqueDates[0] !== todayStr) {
+    // Allow streak to continue if last practice was yesterday
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+    if (uniqueDates[0] !== yesterdayStr) {
+      // Streak is broken
+      return { streak: 0, restDays: computeRestDays(uniqueDates) };
+    }
+    checkDate = yesterday;
+  }
+
+  for (let i = 0; i < 365; i++) {
+    const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, "0")}-${String(checkDate.getDate()).padStart(2, "0")}`;
+    if (uniqueDates.includes(dateStr)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return { streak, restDays: computeRestDays(uniqueDates) };
+}
+
+/** Count days this week (Mon-Sun) without practice */
+function computeRestDays(practiceDates: string[]): number {
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+
+  let rest = 0;
+  for (let i = 0; i <= mondayOffset; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if (!practiceDates.includes(ds)) rest++;
+  }
+  return rest;
+}

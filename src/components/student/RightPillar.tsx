@@ -5,9 +5,11 @@ import SatelliteWidget from "./SatelliteWidget";
 
 interface RightPillarProps {
   inDrawer?: boolean;
+  streak?: number;
+  restDays?: number;
 }
 
-export default function RightPillar({ inDrawer = false }: RightPillarProps) {
+export default function RightPillar({ inDrawer = false, streak = 0, restDays = 0 }: RightPillarProps) {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   const wrapperClass = inDrawer
@@ -27,7 +29,9 @@ export default function RightPillar({ inDrawer = false }: RightPillarProps) {
             <div className="group-hover/fire:scale-110 transition-transform duration-300 group-active/fire:scale-95">
               <FlickeringFire />
             </div>
-            <span className="text-xs font-bold text-orange-100 drop-shadow-[0_0_5px_rgba(249,115,22,0.5)] mt-1">— Day Streak</span>
+            <span className="text-xs font-bold text-orange-100 drop-shadow-[0_0_5px_rgba(249,115,22,0.5)] mt-1">
+              {streak} Day Streak
+            </span>
             {activeTooltip === 'fire' && (
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max bg-orange-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-fade-in-up z-50">
                 🔥 Practice daily to build your streak!
@@ -39,10 +43,12 @@ export default function RightPillar({ inDrawer = false }: RightPillarProps) {
             <div className="relative drop-shadow-[0_0_12px_rgba(34,211,238,0.9)] group-hover/ice:scale-110 transition-transform duration-300 group-active/ice:scale-95">
               <Snowflake className="w-10 h-10 text-cyan-400 mb-1 group-hover/ice:rotate-12 transition-transform" />
             </div>
-            <span className="text-xs font-bold text-cyan-100 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">— Days Off</span>
+            <span className="text-xs font-bold text-cyan-100 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
+              {restDays} Days Off
+            </span>
             {activeTooltip === 'ice' && (
               <div className="absolute top-full right-0 mt-2 w-32 bg-black/90 border border-cyan-500/30 rounded-lg p-2 text-[9px] text-cyan-100 z-50 animate-fade-in-up">
-                Weekly rest days. Practice to track your rest balance.
+                Rest days this week. Practice to keep your streak going!
               </div>
             )}
           </div>
