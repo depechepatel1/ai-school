@@ -60,10 +60,14 @@ export default function IELTSPronunciation() {
   });
 
   // Load tongue twisters
+  const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     fetchPronunciationItems()
       .then(setTwisters)
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setLoadError("Failed to load pronunciation items. Please try again.");
+      });
   }, []);
 
   // Resume from saved progress
