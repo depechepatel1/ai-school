@@ -43,23 +43,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let initialSessionHandled = false;
+    console.log("[Auth] useEffect init, loading=true");
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[Auth] onAuthStateChange:", event, !!session);
+      if (event === "INITIAL_SESSION") {
+        initialSessionHandled = true;
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         await loadRole(session.user.id);
-        // Warm up TTS voices early so first play is instant
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
       } else {
         setRole(null);
       }
+      console.log("[Auth] setting loading=false from onAuthStateChange");
       setLoading(false);
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log("[Auth] getSession resolved, initialSessionHandled=", initialSessionHandled, "session=", !!session);
       if (initialSessionHandled) return;
       initialSessionHandled = true;
       setSession(session);
@@ -70,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         preloadAccent("uk");
         preloadAccent("us");
       }
+      console.log("[Auth] setting loading=false from getSession");
       setLoading(false);
     });
 
