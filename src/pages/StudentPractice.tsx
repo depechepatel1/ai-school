@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -31,7 +32,10 @@ export default function StudentPractice() {
   const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   useEffect(() => {
     if (!user?.id) return;
-    fetchProfile(user.id).then(setProfile).catch(console.error);
+    fetchProfile(user.id).then(setProfile).catch((err) => {
+      console.error("Failed to load profile:", err);
+      toast({ title: "Failed to load profile", description: "Please try refreshing the page.", variant: "destructive" });
+    });
   }, [user?.id]);
 
   const displayName = profile?.display_name ?? user?.email?.split("@")[0] ?? "Student";
