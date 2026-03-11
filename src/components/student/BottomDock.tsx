@@ -11,6 +11,11 @@ interface BottomDockProps {
 export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSignOut, hasHomework = false }: BottomDockProps) {
   const navigate = useNavigate();
 
+  const handleSignOut = async () => {
+    await onSignOut();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div role="navigation" aria-label="Main navigation" className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-[480px] flex justify-center">
       <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-full px-4 md:px-6 py-3 flex items-center justify-between gap-3 md:gap-6 shadow-2xl hover:border-white/20 transition-colors">
