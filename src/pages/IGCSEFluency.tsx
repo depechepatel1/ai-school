@@ -210,7 +210,7 @@ export default function IGCSEFluency() {
         </div>
 
         {/* Floating Info Panel */}
-        <div className="absolute top-32 left-4 z-50">
+        <div className="absolute top-32 left-4 z-50 hidden sm:block">
           <FloatingInfoPanel
             course="IGCSE"
             weekNumber={courseWeek.shadowingWeek}
