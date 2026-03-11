@@ -212,7 +212,7 @@ export default function IELTSFluency() {
         </div>
 
         {/* Floating Info Panel — left side */}
-        <div className="absolute top-32 left-4 z-50">
+        <div className="absolute top-32 left-4 z-50 hidden sm:block">
           <FloatingInfoPanel
             course="IELTS"
             weekNumber={courseWeek.shadowingWeek}
