@@ -87,6 +87,18 @@ export default function IGCSESpeaking() {
 
   const currentQuestion = questions[currentQIndex];
 
+  const handleSilencePause = useCallback(() => {
+    setIsPaused(true);
+    sttHandleRef.current?.pause();
+    practiceTimer.pause();
+  }, [practiceTimer]);
+
+  const handleResume = useCallback(() => {
+    setIsPaused(false);
+    sttHandleRef.current?.resume();
+    practiceTimer.resume();
+  }, [practiceTimer]);
+
   const startRecording = async () => {
     setIsRecording(true);
     setIsPaused(false);
@@ -109,6 +121,9 @@ export default function IGCSESpeaking() {
         setLiveInterim(text);
       },
       onError: () => setIsRecording(false),
+    }, true, {
+      inactivityMs: 10000,
+      onInactivity: handleSilencePause,
     });
   };
 
