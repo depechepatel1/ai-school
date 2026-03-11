@@ -108,4 +108,6 @@ const DevNav = forwardRef<HTMLDivElement>(function DevNav(_props, _ref) {
       </button>
     </div>
   );
-}
+});
+
+export default DevNav;

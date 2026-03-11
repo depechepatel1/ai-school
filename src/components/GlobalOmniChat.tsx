@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "@/lib/auth";
 import OmniChatModal from "@/components/OmniChatModal";
 
-export default function GlobalOmniChat() {
+const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props, _ref) {
   const { session } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });
