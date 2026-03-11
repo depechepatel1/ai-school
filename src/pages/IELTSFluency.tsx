@@ -232,27 +232,27 @@ export default function IELTSFluency() {
         </div>
 
         {/* Main content — bottom */}
-        <div className="absolute bottom-0 left-0 right-0 pb-6 pt-12 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 pb-3 sm:pb-6 pt-6 sm:pt-12 px-3 sm:px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
           {/* Question text above karaoke */}
           {shadowCurriculum.currentQuestionText && (
-             <p className="text-[13px] italic text-white/70 max-w-2xl mx-auto mb-1.5 text-center line-clamp-3 leading-relaxed">
+             <p className="text-[11px] sm:text-[13px] italic text-white/70 max-w-2xl mx-auto mb-1 sm:mb-1.5 text-center line-clamp-2 sm:line-clamp-3 leading-relaxed">
                Q: {shadowCurriculum.currentQuestionText}
              </p>
           )}
 
           {/* Karaoke text */}
-          <div key={sentenceKey} className="mb-3 w-full text-center relative z-10 animate-fade-in">
+          <div key={sentenceKey} className="mb-2 sm:mb-3 w-full text-center relative z-10 animate-fade-in">
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
           {/* Visualizer */}
-          <div className="w-full max-w-3xl mb-4">
-            <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
+          <div className="w-full max-w-3xl mb-2 sm:mb-4">
+            <div onClick={handlePlayModel} className="relative h-14 sm:h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
               <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
                 <span className="text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
                 <span className="text-[9px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
               </div>
-              <div className="absolute inset-0 px-8 py-2">
+              <div className="absolute inset-0 px-4 sm:px-8 py-2">
                 <PronunciationVisualizer
                   isRecording={isRecording}
                   isPlayingModel={isPlayingModel}
@@ -269,26 +269,26 @@ export default function IELTSFluency() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-3">
-            <button onClick={handlePlayModel} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
-              {isPlayingModel ? <Loader2 className="w-6 h-6 animate-spin" /> : <Headphones className="w-6 h-6" />}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <button onClick={handlePlayModel} className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
+              {isPlayingModel ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : <Headphones className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
 
-            <button onClick={handleRecord} className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecording ? "Stop" : "Record"}>
-              {isRecording ? <div className="w-6 h-6 bg-white rounded-sm animate-pulse" /> : <Mic className="w-8 h-8 text-white/80" />}
+            <button onClick={handleRecord} className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecording ? "Stop" : "Record"}>
+              {isRecording ? <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-sm animate-pulse" /> : <Mic className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" />}
             </button>
 
             <button
               onClick={lastRecordingUrl ? handleReplay : undefined}
               disabled={!lastRecordingUrl}
-              className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`}
+              className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`}
               title="Replay"
             >
-              <Play className="w-6 h-6 ml-0.5" />
+              <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5" />
             </button>
 
-            <button onClick={handleNextChunk} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all active:scale-95" title="Next Chunk">
-              <SkipForward className="w-5 h-5" />
+            <button onClick={handleNextChunk} className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all active:scale-95" title="Next Chunk">
+              <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>

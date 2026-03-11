@@ -361,7 +361,7 @@ export default function IELTSSpeaking() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-32 right-6 z-[400] w-[340px]"
+              className="absolute bottom-20 sm:bottom-32 right-3 sm:right-6 z-[400] w-[260px] sm:w-[340px]"
             >
               <div className="bg-black/80 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_-5px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-2 mb-3">
