@@ -42,25 +42,12 @@ const DevNav = forwardRef<HTMLDivElement>(function DevNav(_props, _ref) {
     try {
       const creds = DEV_CREDENTIALS[route.role];
       if (creds) {
-        // Sign in and wait for the auth state to propagate
-        const { error } = await supabase.auth.signInWithPassword({
+        await supabase.auth.signInWithPassword({
           email: creds.email,
           password: creds.password,
         });
-        if (!error) {
-          // Wait for onAuthStateChange to fire and update context
-          await new Promise<void>((resolve) => {
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-              if (session?.user) {
-                subscription.unsubscribe();
-                resolve();
-              }
-            });
-            // Safety timeout
-            setTimeout(() => { subscription.unsubscribe(); resolve(); }, 2000);
-          });
-        }
       }
+      // Navigate after sign-in — ProtectedRoute now shows spinner while role loads
       navigate(route.path);
     } catch {
       navigate(route.path);
