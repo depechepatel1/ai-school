@@ -353,8 +353,6 @@ export default function IELTSSpeaking() {
             </span>
           )}
         </div>
-          )}
-        </div>
 
         {/* AI Response + Post-answer popup */}
         <AnimatePresence>
