@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setUser(null);
     setRole(null);
-    setRoleLoading(true);
+    setRoleLoading(false);
     sessionStorage.removeItem("intro_video_played");
     const { error } = await supabase.auth.signOut();
     if (error) throw error;

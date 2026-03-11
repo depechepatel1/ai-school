@@ -5,7 +5,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { SEMESTER_WEEKS } from "@/lib/semester";
 import { motion } from "framer-motion";
-import { Calendar, CheckCircle, ArrowRight, FastForward } from "lucide-react";
+import { Calendar, CheckCircle, ArrowRight, FastForward, RefreshCw } from "lucide-react";
 import PageShell from "@/components/PageShell";
 
 export default function WeekSelection() {
@@ -15,6 +15,14 @@ export default function WeekSelection() {
   const courseWeek = useCourseWeek(user?.id ?? null);
   const [picked, setPicked] = useState<number | null>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const [timedOut, setTimedOut] = useState(false);
+
+  // Timeout fallback: if loading hangs for 10s, show error
+  useEffect(() => {
+    if (!courseWeek.loading) return;
+    const timer = setTimeout(() => setTimedOut(true), 10000);
+    return () => clearTimeout(timer);
+  }, [courseWeek.loading]);
 
   const handlePick = (w: number) => {
     setPicked(w);
@@ -35,6 +43,20 @@ export default function WeekSelection() {
   };
 
   if (courseWeek.loading) {
+    if (timedOut) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
+          <p className="text-sm text-muted-foreground">Loading took too long. Please try again.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
