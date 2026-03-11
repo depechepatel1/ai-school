@@ -303,7 +303,7 @@ export default function IELTSSpeaking() {
         />
 
         {/* Recording controls — bottom center */}
-        <div className="absolute bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex flex-col items-center gap-2">
+        <div className="absolute bottom-[9rem] sm:bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex flex-col items-center gap-2">
           <div className="flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
             <button
               onClick={handleToggleRecording}
