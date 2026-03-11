@@ -30,7 +30,10 @@ export async function sendChatMessage(
     body: { messages },
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error("[AI] Chat error:", error);
+    throw error;
+  }
 
   return {
     content: data?.content || "Sorry, I couldn't process that. Please try again.",

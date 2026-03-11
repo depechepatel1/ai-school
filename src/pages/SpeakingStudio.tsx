@@ -23,6 +23,7 @@ import ExaminerConfig from "@/components/speaking/ExaminerConfig";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import SaveSessionModal from "@/components/speaking/SaveSessionModal";
+import SessionFeedbackCard from "@/components/speaking/SessionFeedbackCard";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 import { UKFlag, USFlag } from "@/components/speaking/FlagIcons";
 
@@ -544,11 +545,18 @@ export default function SpeakingStudio() {
 
         {/* Modals */}
         
-        {test.showSaveModal &&
-        <SaveSessionModal isPartial={true}
-        onSave={() => {addXP(50);test.resetTest();}}
-        onDiscard={() => test.resetTest()} />
-        }
+        {test.showSaveModal && (
+          <>
+            <SessionFeedbackCard
+              transcript={test.messages.map((m) => `${m.role === "student" ? "Student" : "Examiner"}: ${m.text}`).join("\n")}
+              partsCompleted={test.completedParts.length}
+              onClose={() => {}}
+            />
+            <SaveSessionModal isPartial={true}
+              onSave={() => {addXP(50);test.resetTest();}}
+              onDiscard={() => test.resetTest()} />
+          </>
+        )}
         {test.countdown !== null && <CountdownOverlay count={test.countdown} />}
       </div>
     </PageShell>);

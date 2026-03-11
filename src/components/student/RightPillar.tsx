@@ -2,13 +2,19 @@ import { useState } from "react";
 import { Snowflake } from "lucide-react";
 import FlickeringFire from "./FlickeringFire";
 import SatelliteWidget from "./SatelliteWidget";
+import { useStreak } from "@/hooks/useStreak";
+import { useAuth } from "@/lib/auth";
 
 interface RightPillarProps {
   onNavigate: (section: string) => void;
 }
 
 export default function RightPillar({ onNavigate }: RightPillarProps) {
+  const { user } = useAuth();
+  const { currentStreak, loading } = useStreak(user?.id ?? null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+  const streakLabel = loading ? "..." : `${currentStreak} Day Streak`;
 
   return (
     <div className="absolute top-0 right-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
@@ -23,10 +29,10 @@ export default function RightPillar({ onNavigate }: RightPillarProps) {
             <div className="group-hover/fire:scale-110 transition-transform duration-300 group-active/fire:scale-95">
               <FlickeringFire />
             </div>
-            <span className="text-xs font-bold text-orange-100 drop-shadow-[0_0_5px_rgba(249,115,22,0.5)] mt-1">12 Day Streak</span>
+            <span className="text-xs font-bold text-orange-100 drop-shadow-[0_0_5px_rgba(249,115,22,0.5)] mt-1">{streakLabel}</span>
             {activeTooltip === 'fire' && (
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max bg-orange-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-fade-in-up z-50">
-                🔥 Amazing! Top 5%
+                {currentStreak >= 7 ? "🔥 Amazing! Keep it going!" : currentStreak > 0 ? "🔥 Great start!" : "Start practicing to build your streak!"}
               </div>
             )}
           </div>
