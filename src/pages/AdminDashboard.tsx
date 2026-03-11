@@ -863,12 +863,8 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("student_practice_logs")
-        .select("activity_type, course_type, week_number, active_seconds, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true });
-      setLogs(data ?? []);
+      const data = await fetchUserPracticeLogs(user.id);
+      setLogs(data);
       setLoading(false);
     })();
   }, [user.id]);
