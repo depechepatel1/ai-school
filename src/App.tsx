@@ -72,7 +72,7 @@ const App = () => { // rebuild trigger
       <Toaster />
       <Sonner />
       <LanguageProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <NetworkStatus />
           {import.meta.env.DEV && (
