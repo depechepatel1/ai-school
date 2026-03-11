@@ -46,8 +46,17 @@ const DevNav = forwardRef<HTMLDivElement>(function DevNav(_props, _ref) {
           email: creds.email,
           password: creds.password,
         });
+        // Wait for auth state to propagate to React
+        await new Promise<void>((resolve) => {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === "SIGNED_IN") {
+              subscription.unsubscribe();
+              resolve();
+            }
+          });
+          setTimeout(() => { subscription.unsubscribe(); resolve(); }, 3000);
+        });
       }
-      // Navigate after sign-in — ProtectedRoute now shows spinner while role loads
       navigate(route.path);
     } catch {
       navigate(route.path);
