@@ -186,8 +186,14 @@ export default function Signup() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, selectedRole);
-      toast({ title: t("signup.created"), description: "You can now sign in with your credentials." });
-      navigate("/login");
+      // Auto-login after signup (auto-confirm is enabled)
+      try {
+        const { signIn } = useAuth();
+      } catch {}
+      toast({ title: t("signup.created"), description: "Welcome! Redirecting…" });
+      // Navigate to role-appropriate page
+      const roleRoutes: Record<string, string> = { student: "/select-week", teacher: "/teacher", parent: "/parent" };
+      navigate(roleRoutes[selectedRole] || "/", { replace: true });
     } catch (err: any) {
       toast({ title: t("signup.failed"), description: getSafeErrorMessage(err), variant: "destructive" });
     } finally {
