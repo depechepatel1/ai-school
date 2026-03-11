@@ -9,6 +9,7 @@
  * Currently proxied through a backend edge function for security.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
