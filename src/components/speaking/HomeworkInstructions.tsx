@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, BookOpen, Check } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchTodayPracticeLogs } from "@/services/db";
 
 interface Props {
   courseType: "ielts" | "igcse";
