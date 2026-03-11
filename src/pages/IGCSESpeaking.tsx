@@ -26,10 +26,12 @@ import { ArrowLeft, Mic, RotateCcw, AlertTriangle, MessageSquare, Loader2 } from
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
-const SPEAKING_SYSTEM_PROMPT = `You are a professional IGCSE English Speaking Examiner. After the student answers a question:
-1. Ask ONE short follow-up question based on their answer (1 sentence).
-2. Then give brief improvement feedback (2-3 sentences max): highlight what was good and suggest ONE improvement.
-Keep responses concise and encouraging. Focus on complex sentences, transition phrases, and vocabulary usage.`;
+const SPEAKING_SYSTEM_PROMPT = `You are a professional IGCSE English Speaking Examiner. Assess the student's communication skills, vocabulary, grammar, and pronunciation.
+After the student answers:
+1. Ask ONE short follow-up question (1 sentence).
+2. Give brief feedback (2-3 sentences): highlight what was good and suggest ONE specific improvement in vocabulary or grammar.
+3. Suggest 1-2 more advanced words or phrases the student could have used.
+Keep responses concise and encouraging.`;
 
 export default function IGCSESpeaking() {
   const navigate = useNavigate();

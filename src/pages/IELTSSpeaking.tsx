@@ -26,10 +26,12 @@ import { ArrowLeft, Mic, SkipForward, RotateCcw, AlertTriangle, MessageSquare, L
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
-const SPEAKING_SYSTEM_PROMPT = `You are a professional IELTS Speaking Examiner. After the student answers a question:
-1. Ask ONE short follow-up question based on their answer (1 sentence).
-2. Then give brief improvement feedback (2-3 sentences max): highlight what was good and suggest ONE improvement.
-Keep responses concise and encouraging. Focus on complex sentences, transition phrases, and vocabulary usage.`;
+const SPEAKING_SYSTEM_PROMPT = `You are a professional IELTS Speaking Examiner assessing across the 4 criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, and Pronunciation.
+After the student answers:
+1. Ask ONE short follow-up question (1 sentence).
+2. Give brief feedback (2-3 sentences): reference which criterion applies, highlight what was good, and suggest ONE specific improvement.
+3. Suggest 1-2 advanced vocabulary words the student could have used.
+Keep responses concise and encouraging.`;
 
 export default function IELTSSpeaking() {
   const navigate = useNavigate();
