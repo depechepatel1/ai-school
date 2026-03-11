@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { ArrowLeft, BarChart3, Zap, Trophy, Crown, Medal, Clock, TrendingUp, Award } from "lucide-react";
@@ -89,6 +89,14 @@ export default function StudentAnalysis() {
   const { data, loading } = useAnalyticsData(user?.id ?? null, courseType, period);
   const navigate = useNavigate();
   const weekNum = getWeekNumber();
+
+  // Responsive ring size
+  const [ringSize, setRingSize] = useState(window.innerWidth < 640 ? 80 : 120);
+  useEffect(() => {
+    const onResize = () => setRingSize(window.innerWidth < 640 ? 80 : 120);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const { rangeStart, rangeEnd } = useMemo(() => {
     const now = new Date();
@@ -196,7 +204,7 @@ export default function StudentAnalysis() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
                         >
-                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={window.innerWidth < 640 ? 80 : 120} />
+                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={ringSize} />
                         </motion.div>
                       ))}
                     </div>

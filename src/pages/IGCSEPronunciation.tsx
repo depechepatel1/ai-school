@@ -28,6 +28,7 @@ import MicRecordButton from "@/components/speaking/MicRecordButton";
 export default function IGCSEPronunciation() {
   usePageTitle("IGCSE Pronunciation");
   const navigate = useNavigate();
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const courseWeek = useCourseWeek(userId);
@@ -59,7 +60,10 @@ export default function IGCSEPronunciation() {
   });
 
   useEffect(() => {
-    fetchPronunciationItems().then(setTwisters).catch(console.error);
+    fetchPronunciationItems().then(setTwisters).catch((err) => {
+      console.error(err);
+      setLoadError("Failed to load pronunciation items.");
+    });
   }, []);
 
   useEffect(() => {
@@ -156,6 +160,17 @@ export default function IGCSEPronunciation() {
       progress.savePosition({ index: currentIndex, score: result.overallScore });
     }
   }, [currentTwister, currentIndex, progress]);
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-3">
+          <p className="text-sm text-destructive">{loadError}</p>
+          <button onClick={() => { setLoadError(null); fetchPronunciationItems().then(setTwisters).catch(() => setLoadError("Failed to load.")); }} className="text-xs text-primary underline">Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (

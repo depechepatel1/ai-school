@@ -232,7 +232,7 @@ export default function ParentDashboard() {
 
         {/* Footer */}
         <motion.div variants={fadeUp} className="mt-auto pt-4 text-center">
-          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
+          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026000001号</p>
         </motion.div>
       </motion.div>
 

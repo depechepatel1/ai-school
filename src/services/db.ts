@@ -388,6 +388,16 @@ export async function fetchAuditLogs(limit = 500) {
   return data ?? [];
 }
 
+// ── Delete Conversation ───────────────────────────────────
+
+export async function deleteConversation(conversationId: string) {
+  const { error } = await supabase
+    .from("conversations")
+    .delete()
+    .eq("id", conversationId);
+  if (error) throw error;
+}
+
 export async function fetchProfilesByIds(ids: string[]) {
   const { data, error } = await supabase
     .from("profiles")

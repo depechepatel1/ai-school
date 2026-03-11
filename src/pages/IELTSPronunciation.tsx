@@ -60,10 +60,14 @@ export default function IELTSPronunciation() {
   });
 
   // Load tongue twisters
+  const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     fetchPronunciationItems()
       .then(setTwisters)
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setLoadError("Failed to load pronunciation items. Please try again.");
+      });
   }, []);
 
   // Resume from saved progress
@@ -162,6 +166,17 @@ export default function IELTSPronunciation() {
       progress.savePosition({ index: currentIndex, score: result.overallScore });
     }
   }, [currentTwister, currentIndex, progress]);
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-3">
+          <p className="text-sm text-destructive">{loadError}</p>
+          <button onClick={() => { setLoadError(null); fetchPronunciationItems().then(setTwisters).catch(() => setLoadError("Failed to load. Please try again.")); }} className="text-xs text-primary underline">Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (
