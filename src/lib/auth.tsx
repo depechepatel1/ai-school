@@ -44,19 +44,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let initialSessionHandled = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // Safety: if neither callback resolves in 5s, force loading=false
+    const timeout = setTimeout(() => {
+      console.warn("[Auth] Timeout — forcing loading=false");
+      setLoading(false);
+      setRoleLoading(false);
+    }, 5000);
+
+    const finish = () => clearTimeout(timeout);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "INITIAL_SESSION") initialSessionHandled = true;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        // Don't block loading on role fetch — set loading false first
+        setLoading(false);
+        finish();
         await loadRole(session.user.id);
-        // Warm up TTS voices early so first play is instant
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
       } else {
         setRole(null);
+        setLoading(false);
+        finish();
       }
-      setLoading(false);
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -65,15 +78,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        setLoading(false);
+        finish();
         await loadRole(session.user.id);
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");
+      } else {
+        setLoading(false);
+        finish();
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); finish(); };
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string, selectedRole: AppRole) => {
