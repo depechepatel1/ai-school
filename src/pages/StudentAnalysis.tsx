@@ -41,9 +41,8 @@ function fmtHM(s: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function ProgressRing({ data, color, label }: { data: ActivityData; color: string; label: string }) {
-  const size = 120;
-  const stroke = 8;
+function ProgressRing({ data, color, label, size = 120 }: { data: ActivityData; color: string; label: string; size?: number }) {
+  const stroke = size >= 100 ? 8 : 6;
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const pct = data.pct;
@@ -51,7 +50,7 @@ function ProgressRing({ data, color, label }: { data: ActivityData; color: strin
   const isOvertime = data.overtime > 0;
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-1.5 sm:gap-2">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="white" strokeOpacity={0.08} strokeWidth={stroke} />
@@ -64,16 +63,16 @@ function ProgressRing({ data, color, label }: { data: ActivityData; color: strin
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-white">{Math.round(pct * 100)}%</span>
+          <span className={`${size >= 100 ? 'text-2xl' : 'text-lg'} font-bold text-white`}>{Math.round(pct * 100)}%</span>
           {isOvertime && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+            <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
               +{fmt(data.overtime)}
             </span>
           )}
         </div>
       </div>
-      <span className="text-xs font-bold uppercase tracking-wider text-white/70">{label}</span>
-      <span className="text-[11px] text-white/40 font-medium">{fmt(data.seconds)} / {fmt(data.target)}</span>
+      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/70">{label}</span>
+      <span className="text-[10px] sm:text-[11px] text-white/40 font-medium">{fmt(data.seconds)} / {fmt(data.target)}</span>
     </div>
   );
 }
@@ -122,12 +121,12 @@ export default function StudentAnalysis() {
 
   return (
     <PageShell fullWidth loopVideos={[ANALYSIS_VIDEO]} hideFooter>
-      <div className="absolute inset-4 z-10 flex items-center justify-center">
-        <div className="relative w-full h-full max-w-[960px] max-h-[700px] rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
+        <div className="absolute inset-2 sm:inset-4 z-10 flex items-center justify-center">
+        <div className="relative w-full h-full sm:max-w-[960px] sm:max-h-[700px] rounded-2xl sm:rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-3">
+          <div className="relative z-10 flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-2 sm:pb-3">
             <button onClick={() => navigate("/student")} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Back</span>
@@ -149,7 +148,7 @@ export default function StudentAnalysis() {
           </div>
 
           {/* Period tabs */}
-          <div className="relative z-10 flex items-center gap-1 px-6 pb-4">
+          <div className="relative z-10 flex items-center gap-1 px-4 sm:px-6 pb-3 sm:pb-4 overflow-x-auto scrollbar-hide">
             {PERIODS.map((p) => (
               <button
                 key={p.key}
@@ -171,9 +170,9 @@ export default function StudentAnalysis() {
           </div>
 
           {/* Content — two columns */}
-          <div className="relative z-10 flex-1 flex gap-4 px-6 pb-4 overflow-hidden">
+          <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 px-4 sm:px-6 pb-4 overflow-hidden">
             {/* Left: Analytics */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-5 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-5 overflow-y-auto min-h-0">
               {loading || !data ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white/40 text-sm animate-pulse">
                   Loading analytics…
@@ -188,7 +187,7 @@ export default function StudentAnalysis() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className="flex flex-col items-center gap-5 w-full"
                   >
-                    <div className="flex items-center justify-center gap-8">
+                    <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
                       {ACTIVITIES.map((a, i) => (
                         <motion.div
                           key={a.key}
@@ -196,7 +195,7 @@ export default function StudentAnalysis() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
                         >
-                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} />
+                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={window.innerWidth < 640 ? 80 : 120} />
                         </motion.div>
                       ))}
                     </div>
@@ -243,7 +242,7 @@ export default function StudentAnalysis() {
             </div>
 
             {/* Right panel */}
-            <div className="w-[240px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+            <div className="w-full md:w-[240px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden max-h-[300px] md:max-h-none">
               {/* Right panel tabs */}
               <div className="flex border-b border-white/10">
                 {rightTabs.map((t) => (
