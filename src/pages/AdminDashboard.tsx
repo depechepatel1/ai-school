@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList, Film, Timer, Upload } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeAdminAction, fetchAllPracticeLogs, fetchAllProfiles, fetchAllUserRolesAndProfiles, fetchAllClasses, fetchUserPracticeLogs, fetchRecentPracticeLogs, fetchRecentConversations, fetchAuditLogs, fetchProfilesByIds } from "@/services/db";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
 import { toast } from "@/hooks/use-toast";
@@ -31,12 +31,7 @@ async function adminAction(action: string, params: Record<string, any>) {
   if (!ALLOWED_ADMIN_ACTIONS.has(action)) {
     throw new Error(`Unknown admin action: ${action}`);
   }
-  const { data, error } = await supabase.functions.invoke("admin-manage-users", {
-    body: { action, ...params },
-  });
-  if (error) throw error;
-  if (data?.error) throw new Error(data.error);
-  return data;
+  return invokeAdminAction(action, params);
 }
 
 type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
@@ -176,17 +171,12 @@ function AnalyticsPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data: logData } = await supabase
-        .from("student_practice_logs")
-        .select("user_id, activity_type, course_type, week_number, active_seconds, created_at")
-        .order("created_at", { ascending: true });
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("id, created_at");
-
-      setAllLogs(logData ?? []);
-      setProfiles(profileData ?? []);
+      const [logData, profileData] = await Promise.all([
+        fetchAllPracticeLogs(),
+        fetchAllProfiles(),
+      ]);
+      setAllLogs(logData);
+      setProfiles(profileData);
       setLoading(false);
     })();
   }, []);
@@ -517,12 +507,7 @@ function UsersPanel() {
   const [bulkConfirm, setBulkConfirm] = useState<{ action: "role" | "delete"; role?: string } | null>(null);
 
   const loadUsers = useCallback(async () => {
-    const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-    const { data: profiles } = await supabase.from("profiles").select("id, display_name, avatar_url, created_at");
-    const merged = (profiles ?? []).map((p) => ({
-      ...p,
-      role: roles?.find((r) => r.user_id === p.id)?.role ?? "unknown",
-    }));
+    const merged = await fetchAllUserRolesAndProfiles();
     setUsers(merged);
     setLoading(false);
   }, []);
@@ -878,12 +863,8 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("student_practice_logs")
-        .select("activity_type, course_type, week_number, active_seconds, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true });
-      setLogs(data ?? []);
+      const data = await fetchUserPracticeLogs(user.id);
+      setLogs(data);
       setLoading(false);
     })();
   }, [user.id]);
@@ -1166,8 +1147,8 @@ function ClassesPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("classes").select("*").order("created_at", { ascending: false });
-      setClasses(data ?? []);
+      const data = await fetchAllClasses();
+      setClasses(data);
       setLoading(false);
     })();
   }, []);
@@ -1279,12 +1260,8 @@ function PracticePanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("student_practice_logs")
-        .select("id, user_id, activity_type, course_type, week_number, active_seconds, created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      setLogs(data ?? []);
+      const data = await fetchRecentPracticeLogs(50);
+      setLogs(data);
       setLoading(false);
     })();
   }, []);
@@ -1317,12 +1294,8 @@ function ConversationsPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, user_id, title, created_at")
-        .order("updated_at", { ascending: false })
-        .limit(50);
-      setConvos(data ?? []);
+      const data = await fetchRecentConversations(50);
+      setConvos(data);
       setLoading(false);
     })();
   }, []);
@@ -1365,13 +1338,7 @@ function AuditPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data: auditData } = await supabase
-        .from("admin_audit_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(500);
-
-      const entries = auditData ?? [];
+      const entries = await fetchAuditLogs(500);
       setLogs(entries);
 
       const ids = new Set<string>();
@@ -1381,13 +1348,9 @@ function AuditPanel() {
       }
 
       if (ids.size > 0) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("id, display_name")
-          .in("id", Array.from(ids));
-
+        const profileData = await fetchProfilesByIds(Array.from(ids));
         const map: Record<string, string> = {};
-        for (const p of profileData ?? []) {
+        for (const p of profileData) {
           map[p.id] = p.display_name || "Unknown";
         }
         setProfiles(map);
