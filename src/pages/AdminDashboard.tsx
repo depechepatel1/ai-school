@@ -112,14 +112,14 @@ export default function AdminDashboard() {
 
             {/* Content */}
             <div className="flex-1 min-h-0 overflow-y-auto">
-              {activeTab === "analytics" && <AnalyticsPanel />}
-              {activeTab === "users" && <UsersPanel />}
-              {activeTab === "classes" && <ClassesPanel />}
-              {activeTab === "practice" && <PracticePanel />}
-              {activeTab === "conversations" && <ConversationsPanel />}
-              {activeTab === "audit" && <AuditPanel />}
-              {activeTab === "timers" && <AdminTimerSettings />}
-              {activeTab === "curriculum" && <AdminCurriculumUpload />}
+              {activeTab === "analytics" && <div><AnalyticsPanel /></div>}
+              {activeTab === "users" && <div><UsersPanel /></div>}
+              {activeTab === "classes" && <div><ClassesPanel /></div>}
+              {activeTab === "practice" && <div><PracticePanel /></div>}
+              {activeTab === "conversations" && <div><ConversationsPanel /></div>}
+              {activeTab === "audit" && <div><AuditPanel /></div>}
+              {activeTab === "timers" && <div><AdminTimerSettings /></div>}
+              {activeTab === "curriculum" && <div><AdminCurriculumUpload /></div>}
             </div>
           </motion.div>
         </div>
