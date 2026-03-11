@@ -24,6 +24,7 @@ export default function ResetPassword() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    if (import.meta.env.DEV) return; // Allow testing in dev mode
     const hash = window.location.hash;
     if (!hash.includes("type=recovery")) {
       navigate("/login");

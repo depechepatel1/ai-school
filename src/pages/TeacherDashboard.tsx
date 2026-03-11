@@ -44,7 +44,10 @@ export default function TeacherDashboard() {
     try {
       const data = await fetchClasses();
       setClasses(data);
-    } catch {}
+    } catch (err: any) {
+      console.error("Failed to load classes:", err);
+      toast({ title: t("common.error"), description: "Could not load classes. Please try again.", variant: "destructive" });
+    }
   };
 
   const handleCreateClass = async () => {

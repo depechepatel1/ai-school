@@ -46,6 +46,12 @@ export function useAudioCapture() {
       mediaRecorderRef.current = recorder;
       return true;
     } catch (err) {
+      // Clean up stream if getUserMedia succeeded but MediaRecorder failed
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setActiveStream(null);
+      }
       console.warn("[Mic] Permission denied or error:", err);
       setMicDenied(true);
       return false;

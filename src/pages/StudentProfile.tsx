@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { ArrowLeft, Camera, User, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, User, Check, Loader2, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { useAuth } from "@/lib/auth";
@@ -14,7 +14,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export default function StudentProfile() {
   usePageTitle("Profile");
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,6 +98,11 @@ export default function StudentProfile() {
       toast({ title: "Name updated" });
     }
     setSaving(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -184,6 +189,15 @@ export default function StudentProfile() {
                 {user?.email ?? "—"}
               </div>
             </div>
+
+            {/* Sign Out */}
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
           </div>
         </motion.div>
       </div>

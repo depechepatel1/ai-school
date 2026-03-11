@@ -1,6 +1,6 @@
 import {
   ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
-  Book, PenTool, Headphones, Edit, CloudDownload,
+  Book, PenTool, Headphones, Edit, CloudDownload, User,
 } from "lucide-react";
 import StudentMessagesTab from "./StudentMessagesTab";
 
@@ -9,8 +9,9 @@ interface LeftPillarProps {
   showSkills: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  handleEmailClick: (subject: string, body: string) => void;
   setTeacherHint: (hint: string | null) => void;
+  displayName?: string;
+  avatarUrl?: string | null;
 }
 
 /* ── tiny progress ring (SVG) ── */
@@ -67,31 +68,40 @@ function MicroProgress({ pct, color }: { pct: number; color: string }) {
   );
 }
 
-export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint }: LeftPillarProps) {
+export default function LeftPillar({
+  onShowSkills, showSkills, activeTab, setActiveTab, setTeacherHint,
+  displayName = "Student", avatarUrl,
+}: LeftPillarProps) {
+  const initials = displayName.charAt(0).toUpperCase();
+
   return (
     <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
-      {/* Profile Card */}
+      {/* Profile Card — dynamic data */}
       <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 flex items-center gap-4 shadow-lg cursor-pointer hover:bg-black/60 transition-colors relative z-50" onClick={onShowSkills}>
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-[2px] flex-shrink-0">
-          <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-xl font-bold">
-            雪
-          </div>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={displayName} className="w-full h-full rounded-full object-cover" />
+          ) : (
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-xl font-bold">
+              {initials}
+            </div>
+          )}
         </div>
-        <div>
-          <div className="font-sans text-lg leading-tight text-white" style={{ textShadow: '0 0 10px rgba(255,255,255,0.5)' }}>李雪 (Lǐ Xuě)</div>
-          <div className="text-sm font-bold text-blue-100">Snow Li</div>
+        <div className="min-w-0">
+          <div className="font-sans text-lg leading-tight text-white truncate" style={{ textShadow: '0 0 10px rgba(255,255,255,0.5)' }}>
+            {displayName}
+          </div>
           <div className="text-sm text-blue-200 flex items-center gap-1 mt-1 bg-blue-500/20 px-2 py-0.5 rounded-md w-fit">
-            Band 6.5 <ChevronDown className="w-3 h-3" />
+            Skills <ChevronDown className="w-3 h-3" />
           </div>
         </div>
         {showSkills && (
           <div className="absolute top-full left-0 w-full mt-2 bg-gray-900 border border-white/20 rounded-xl p-4 text-xs shadow-2xl animate-fade-in-up ring-1 ring-white/10">
-            <h4 className="text-gray-400 uppercase tracking-widest text-[10px] mb-2 font-bold border-b border-gray-700 pb-1">IELTS Breakdown</h4>
+            <h4 className="text-gray-400 uppercase tracking-widest text-[10px] mb-2 font-bold border-b border-gray-700 pb-1">Practice Skills</h4>
             <div className="space-y-2">
-              <div className="flex justify-between items-center"><span className="text-gray-300">Speaking</span><span className="font-mono font-bold text-green-400 bg-green-400/10 px-1.5 rounded">6.0</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-300">Writing</span><span className="font-mono font-bold text-green-400 bg-green-400/10 px-1.5 rounded">6.5</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-300">Reading</span><span className="font-mono font-bold text-yellow-400 bg-yellow-400/10 px-1.5 rounded">6.0</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-300">Listening</span><span className="font-mono font-bold text-green-400 bg-green-400/10 px-1.5 rounded">7.0</span></div>
+              <div className="flex justify-between items-center"><span className="text-gray-300">Shadowing</span><span className="font-mono font-bold text-cyan-400 bg-cyan-400/10 px-1.5 rounded">—</span></div>
+              <div className="flex justify-between items-center"><span className="text-gray-300">Pronunciation</span><span className="font-mono font-bold text-orange-400 bg-orange-400/10 px-1.5 rounded">—</span></div>
+              <div className="flex justify-between items-center"><span className="text-gray-300">Speaking</span><span className="font-mono font-bold text-purple-400 bg-purple-400/10 px-1.5 rounded">—</span></div>
             </div>
           </div>
         )}
@@ -123,7 +133,14 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
         <div className="flex-1 overflow-y-auto scrollbar-hide p-1 space-y-3">
           {activeTab === 'tasks' ? (
             <>
-              {/* Priority Task – gradient border, no pulse */}
+              {/* Demo badge */}
+              <div className="flex items-center justify-center">
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-400/20 text-[8px] font-bold uppercase tracking-wider text-amber-300/60">
+                  Sample Tasks
+                </span>
+              </div>
+
+              {/* Priority Task – gradient border */}
               <div
                 className="relative rounded-2xl p-[1px] overflow-hidden animate-fade-in-up"
                 style={{ animationDelay: '0ms', background: 'linear-gradient(135deg, hsl(24 100% 50%), hsl(0 72% 51%), hsl(24 100% 50%))', backgroundSize: '200% 200%' }}
