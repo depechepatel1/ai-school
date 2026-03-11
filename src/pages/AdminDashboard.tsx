@@ -1338,13 +1338,7 @@ function AuditPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data: auditData } = await supabase
-        .from("admin_audit_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(500);
-
-      const entries = auditData ?? [];
+      const entries = await fetchAuditLogs(500);
       setLogs(entries);
 
       const ids = new Set<string>();
@@ -1354,13 +1348,9 @@ function AuditPanel() {
       }
 
       if (ids.size > 0) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("id, display_name")
-          .in("id", Array.from(ids));
-
+        const profileData = await fetchProfilesByIds(Array.from(ids));
         const map: Record<string, string> = {};
-        for (const p of profileData ?? []) {
+        for (const p of profileData) {
           map[p.id] = p.display_name || "Unknown";
         }
         setProfiles(map);
