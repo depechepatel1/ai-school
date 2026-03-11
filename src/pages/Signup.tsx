@@ -186,11 +186,8 @@ export default function Signup() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, selectedRole);
-      // Auto-login after signup (auto-confirm is enabled)
-      try {
-        const { signIn } = useAuth();
-      } catch {}
       toast({ title: t("signup.created"), description: "Welcome! Redirecting…" });
+      // With auto-confirm enabled, the auth state change will fire automatically
       // Navigate to role-appropriate page
       const roleRoutes: Record<string, string> = { student: "/select-week", teacher: "/teacher", parent: "/parent" };
       navigate(roleRoutes[selectedRole] || "/", { replace: true });
