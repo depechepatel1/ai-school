@@ -10,7 +10,7 @@
 | 5 | Build real streak tracking system from student_practice_logs | ✅ done |
 | 6 | Replace sample tasks with real assignment system (DB + UI) | ✅ done |
 | 7 | Parent Dashboard "Link Child" — real implementation | ✅ done |
-| 8 | Empty state handling across all list views | ⬚ todo |
+| 8 | Empty state handling across all list views | ✅ done |
 
 ---
 
