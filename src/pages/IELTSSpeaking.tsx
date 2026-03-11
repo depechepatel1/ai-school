@@ -18,6 +18,7 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curriculum-storage";
 import { chat, type ChatMessage } from "@/services/ai";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
+import { Square } from "lucide-react";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
