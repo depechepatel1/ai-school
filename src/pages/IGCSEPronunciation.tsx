@@ -28,6 +28,7 @@ import MicRecordButton from "@/components/speaking/MicRecordButton";
 export default function IGCSEPronunciation() {
   usePageTitle("IGCSE Pronunciation");
   const navigate = useNavigate();
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const courseWeek = useCourseWeek(userId);
