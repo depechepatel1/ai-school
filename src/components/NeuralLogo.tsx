@@ -4,9 +4,6 @@ const NeuralLogo = forwardRef<HTMLDivElement>((_, ref) => (
   <div ref={ref} className="relative w-9 h-9 flex items-center justify-center mr-2">
     {/* Core Glow */}
     <div className="absolute w-2.5 h-2.5 bg-blue-400 rounded-full shadow-[0_0_12px_rgba(96,165,250,0.8)]" />
-  <div className="relative w-9 h-9 flex items-center justify-center mr-2">
-    {/* Core Glow */}
-    <div className="absolute w-2.5 h-2.5 bg-blue-400 rounded-full shadow-[0_0_12px_rgba(96,165,250,0.8)]" />
 
     {/* Inner Ring - Cyan/Blue */}
     <svg className="absolute w-full h-full animate-[spin_6s_linear_infinite] opacity-90" viewBox="0 0 100 100">
