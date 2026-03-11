@@ -187,7 +187,7 @@ export default function StudentAnalysis() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className="flex flex-col items-center gap-5 w-full"
                   >
-                    <div className="flex items-center justify-center gap-8">
+                    <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
                       {ACTIVITIES.map((a, i) => (
                         <motion.div
                           key={a.key}
@@ -195,7 +195,7 @@ export default function StudentAnalysis() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
                         >
-                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} />
+                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={window.innerWidth < 640 ? 80 : 120} />
                         </motion.div>
                       ))}
                     </div>
