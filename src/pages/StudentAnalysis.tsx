@@ -170,9 +170,9 @@ export default function StudentAnalysis() {
           </div>
 
           {/* Content — two columns */}
-          <div className="relative z-10 flex-1 flex gap-4 px-6 pb-4 overflow-hidden">
+          <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 px-4 sm:px-6 pb-4 overflow-hidden">
             {/* Left: Analytics */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-5 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-5 overflow-y-auto min-h-0">
               {loading || !data ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white/40 text-sm animate-pulse">
                   Loading analytics…
