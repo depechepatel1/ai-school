@@ -160,6 +160,13 @@ export default function IELTSPronunciation() {
     // Optional: could score pronunciation here
   }, []);
 
+  useEffect(() => {
+    if (practiceTimer.isComplete && !summaryShownRef.current) {
+      summaryShownRef.current = true;
+      setShowSummary(true);
+    }
+  }, [practiceTimer.isComplete]);
+
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

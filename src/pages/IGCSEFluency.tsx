@@ -169,6 +169,13 @@ export default function IGCSEFluency() {
     clearRecording();
   };
 
+  useEffect(() => {
+    if (practiceTimer.isComplete && !summaryShownRef.current) {
+      summaryShownRef.current = true;
+      setShowSummary(true);
+    }
+  }, [practiceTimer.isComplete]);
+
   if (courseWeek.loading || shadowCurriculum.loading || timerSettings.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
