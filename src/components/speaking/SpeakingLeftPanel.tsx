@@ -21,9 +21,9 @@ export default function SpeakingLeftPanel({
   onNextQuestion,
 }: SpeakingLeftPanelProps) {
   return (
-    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[80] w-[200px] flex flex-col gap-3 animate-fade-in">
+    <div className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-[80] w-[160px] sm:w-[200px] flex flex-col gap-3 animate-fade-in">
       {/* Week & Question info card */}
-      <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
+      <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-3 sm:p-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
         {/* Week selector */}
         {courseType && (
           <div className="mb-3">
@@ -41,9 +41,9 @@ export default function SpeakingLeftPanel({
             {sectionLabel}
           </span>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-white/90">Q{questionIndex + 1}</span>
+            <span className="text-xl sm:text-2xl font-bold text-white/90">Q{questionIndex + 1}</span>
             {totalQuestions > 1 && (
-              <span className="text-sm text-white/30 font-medium">/ {totalQuestions}</span>
+              <span className="text-xs sm:text-sm text-white/30 font-medium">/ {totalQuestions}</span>
             )}
           </div>
         </div>
