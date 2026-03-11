@@ -344,6 +344,13 @@ export default function IELTSFluency() {
             </motion.div>
           )}
         </AnimatePresence>
+        <PracticeSummaryOverlay
+          visible={showSummary}
+          activeSeconds={practiceTimer.activeSeconds}
+          targetSeconds={practiceTimer.targetSeconds}
+          activityLabel="Fluency (Shadowing)"
+          onDismiss={() => setShowSummary(false)}
+        />
       </div>
     </PageShell>
   );

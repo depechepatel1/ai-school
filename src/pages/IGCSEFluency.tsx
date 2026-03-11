@@ -313,6 +313,13 @@ export default function IGCSEFluency() {
             </motion.div>
           )}
         </AnimatePresence>
+        <PracticeSummaryOverlay
+          visible={showSummary}
+          activeSeconds={practiceTimer.activeSeconds}
+          targetSeconds={practiceTimer.targetSeconds}
+          activityLabel="Fluency (Shadowing)"
+          onDismiss={() => setShowSummary(false)}
+        />
       </div>
     </PageShell>
   );

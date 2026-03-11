@@ -286,6 +286,13 @@ export default function IELTSPronunciation() {
             </button>
           </div>
         </div>
+        <PracticeSummaryOverlay
+          visible={showSummary}
+          activeSeconds={practiceTimer.activeSeconds}
+          targetSeconds={practiceTimer.targetSeconds}
+          activityLabel="Pronunciation"
+          onDismiss={() => setShowSummary(false)}
+        />
       </div>
     </PageShell>
   );
