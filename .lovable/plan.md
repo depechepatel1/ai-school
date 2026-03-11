@@ -4,7 +4,7 @@
 | # | Task | Status |
 |---|------|--------|
 | 1 | Responsive layout for Student Dashboard | ✅ done |
-| 2 | Responsive layout for Speaking Studio pages | ⬚ todo |
+| 2 | Responsive layout for Speaking Studio pages | ✅ done |
 | 3 | Responsive layout for StudentAnalysis page | ⬚ todo |
 | 4 | AdminDashboard — refactor direct Supabase imports to service layer | ⬚ todo |
 | 5 | Build real streak tracking system from student_practice_logs | ⬚ todo |
