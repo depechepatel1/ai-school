@@ -9,6 +9,7 @@
  * Currently proxied through a backend edge function for security.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -32,6 +33,11 @@ export async function sendChatMessage(
 
   if (error) {
     console.error("[AI] Chat error:", error);
+    toast({
+      variant: "destructive",
+      title: "AI unavailable",
+      description: "Could not reach the AI service. Please try again shortly.",
+    });
     throw error;
   }
 
