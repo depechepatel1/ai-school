@@ -1260,12 +1260,8 @@ function PracticePanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("student_practice_logs")
-        .select("id, user_id, activity_type, course_type, week_number, active_seconds, created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      setLogs(data ?? []);
+      const data = await fetchRecentPracticeLogs(50);
+      setLogs(data);
       setLoading(false);
     })();
   }, []);
