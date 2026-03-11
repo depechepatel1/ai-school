@@ -36,10 +36,21 @@ export default function DevToolbar() {
   const handleSignIn = async (account: typeof ACCOUNTS[0]) => {
     setLoading(account.email);
     try {
-      await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: account.email,
         password: account.password,
       });
+      if (!error) {
+        // Redirect based on role
+        const roleRedirects: Record<string, string> = {
+          "dev-igcse@test.com": "/select-week",
+          "dev-ielts@test.com": "/select-week",
+          "dev-teacher@test.com": "/teacher",
+          "dev-parent@test.com": "/parent",
+          "dev-admin@test.com": "/admin",
+        };
+        window.location.href = roleRedirects[account.email] ?? "/";
+      }
     } catch (e) {
       console.error("Dev sign-in failed:", e);
     } finally {
