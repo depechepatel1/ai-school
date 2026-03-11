@@ -66,4 +66,6 @@ const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props
     </div>,
     document.body
   );
-}
+});
+
+export default GlobalOmniChat;
