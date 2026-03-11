@@ -3,9 +3,11 @@ import { Code, LogOut, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const ACCOUNTS = [
-  { label: "Student", email: "student@test.com", password: "test123", color: "bg-blue-600" },
-  { label: "Teacher", email: "teacher@test.com", password: "test123", color: "bg-emerald-600" },
-  { label: "Admin", email: "admin@test.com", password: "test123", color: "bg-amber-600" },
+  { label: "IGCSE Student", email: "dev-igcse@test.com", password: "devtest123", color: "bg-blue-600" },
+  { label: "IELTS Student", email: "dev-ielts@test.com", password: "devtest123", color: "bg-indigo-600" },
+  { label: "Teacher", email: "dev-teacher@test.com", password: "devtest123", color: "bg-emerald-600" },
+  { label: "Parent", email: "dev-parent@test.com", password: "devtest123", color: "bg-rose-600" },
+  { label: "Admin", email: "dev-admin@test.com", password: "devtest123", color: "bg-amber-600" },
 ];
 
 const PAGES = [
