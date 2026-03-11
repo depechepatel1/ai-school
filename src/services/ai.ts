@@ -33,6 +33,11 @@ export async function sendChatMessage(
 
   if (error) {
     console.error("[AI] Chat error:", error);
+    toast({
+      variant: "destructive",
+      title: "AI unavailable",
+      description: "Could not reach the AI service. Please try again shortly.",
+    });
     throw error;
   }
 
