@@ -284,16 +284,49 @@ export default function IGCSESpeaking() {
           transcript={liveTranscript}
           interim={liveInterim}
           isRecording={isRecording}
+          isPaused={isPaused}
         />
 
         {/* Recording controls */}
-        <div className="absolute bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
-          <button
-            onClick={handleToggleRecording}
-            className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}
-          >
-            {isRecording ? <div className="w-5 h-5 bg-white rounded animate-pulse" /> : <Mic className="w-7 h-7 text-white" />}
-          </button>
+        <div className="absolute bottom-[13.5rem] left-1/2 -translate-x-1/2 z-[310] flex flex-col items-center gap-2">
+          <div className="flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
+            <button
+              onClick={handleToggleRecording}
+              className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
+                isRecording && isPaused
+                  ? "bg-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.6)] scale-110"
+                  : isRecording
+                  ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110"
+                  : "bg-white/10 border border-white/20 hover:bg-white/20"
+              }`}
+            >
+              {isRecording && isPaused ? (
+                <Mic className="w-7 h-7 text-white" />
+              ) : isRecording ? (
+                <div className="w-5 h-5 bg-white rounded animate-pulse" />
+              ) : (
+                <Mic className="w-7 h-7 text-white" />
+              )}
+            </button>
+
+            {/* Stop button visible when paused */}
+            {isRecording && isPaused && (
+              <button
+                onClick={handleFullStop}
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/20 border border-red-500/30 hover:bg-red-500/40 transition-all"
+                title="Stop recording"
+              >
+                <Square className="w-4 h-4 text-red-300 fill-red-300" />
+              </button>
+            )}
+          </div>
+
+          {/* Resume label when paused */}
+          {isRecording && isPaused && (
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-300/80 animate-pulse">
+              Tap to Resume
+            </span>
+          )}
         </div>
 
         {/* AI Response + Post-answer popup */}
