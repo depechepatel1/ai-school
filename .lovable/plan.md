@@ -1,29 +1,36 @@
 
 
-## Analysis
+## Audit: What's Done vs. What's Still Missing
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Implemented (Steps 1-9 from the plan)
+1. **Start Practice CTA** — Done in `StudentPractice.tsx`
+2. **Back buttons** — Already present on all practice pages (verified: ArrowLeft + navigate in all 8 files)
+3. **Course badges** — Already present on practice pages
+4. **SYSTEM_PROMPT with IELTS criteria** — Done in `types/speaking.ts`, `IELTSSpeaking.tsx`, `IGCSESpeaking.tsx`
+5. **Dynamic Part 2 cue cards** — Done (`SpeakingStudio.tsx` imports `getSpeakingQuestions`, falls back to `PART2_TOPIC`)
+6. **SessionFeedbackCard** — Done (rendered in `SpeakingStudio.tsx` lines 550-554)
+7. **WelcomeModal** — Done (file exists, rendered in `StudentPractice.tsx`)
+8. **BrowserBanner** — Done (file exists, rendered in `StudentPractice.tsx`)
+9. **Streak widget wired to real data** — Done (`useStreak.ts` hook exists, `RightPillar.tsx` uses it)
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### NOT Yet Implemented
+- **Step 10 — Loading/error state audit**: `ai.ts` still has no toast notifications on error. Practice pages haven't been audited for missing spinners.
+- **Step 11 — Short-phrase karaoke layout fix**: Already present in `ProsodyVisualizer.tsx` line 10 (`data.length >= 4` conditional). This is done.
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+So the only remaining item is **Step 10: Add toast error handling to `ai.ts` and audit loading states across practice pages**.
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+### Plan for Step 10
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+1. **`src/services/ai.ts`** — Import `toast` and show a user-facing error toast when `sendChatMessage` fails, before re-throwing
+2. **Practice pages audit** — Verify each page shows `Loader2` spinners during async operations:
+   - `IELTSPronunciation.tsx` — already has `Loader2` import and usage
+   - `IGCSEPronunciation.tsx` — already has `Loader2`
+   - `IELTSFluency.tsx` — already has `Loader2`
+   - `IGCSEFluency.tsx` — already has `Loader2`
+   - `IELTSSpeaking.tsx` — already has `Loader2`
+   - `IGCSESpeaking.tsx` — already has `Loader2`
+   - `SpeakingStudio.tsx` — already has `Loader2`
+3. **`SessionFeedbackCard.tsx`** — already shows `Loader2` spinner + has error fallback text
 
----
-
-## Changes -- `src/components/PageShell.tsx`
-
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
-
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+The only concrete code change needed is adding a toast notification to `ai.ts` on error.
 
