@@ -126,7 +126,7 @@ export default function StudentAnalysis() {
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-3">
+          <div className="relative z-10 flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-2 sm:pb-3">
             <button onClick={() => navigate("/student")} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Back</span>
