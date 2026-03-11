@@ -336,4 +336,51 @@ export async function fetchAllClasses() {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
+export async function fetchUserPracticeLogs(userId: string) {
+  const { data, error } = await supabase
+    .from("student_practice_logs")
+    .select("activity_type, course_type, week_number, active_seconds, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchRecentPracticeLogs(limit = 50) {
+  const { data, error } = await supabase
+    .from("student_practice_logs")
+    .select("id, user_id, activity_type, course_type, week_number, active_seconds, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchRecentConversations(limit = 50) {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id, user_id, title, created_at")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchAuditLogs(limit = 500) {
+  const { data, error } = await supabase
+    .from("admin_audit_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchProfilesByIds(ids: string[]) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, display_name")
+    .in("id", ids);
+  if (error) throw error;
+  return data ?? [];
 }

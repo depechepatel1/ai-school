@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, Clock, Activity, Trash2, UserMinus, ChevronDown, ChevronUp, AlertTriangle, CalendarIcon, ArrowLeft, Eye, Download, Search, ChevronLeft, ChevronRight, CheckSquare, Square, ClipboardList, Film, Timer, Upload } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
-import { invokeAdminAction, fetchAllPracticeLogs, fetchAllProfiles, fetchAllUserRolesAndProfiles, fetchAllClasses } from "@/services/db";
+import { invokeAdminAction, fetchAllPracticeLogs, fetchAllProfiles, fetchAllUserRolesAndProfiles, fetchAllClasses, fetchUserPracticeLogs, fetchRecentPracticeLogs, fetchRecentConversations, fetchAuditLogs, fetchProfilesByIds } from "@/services/db";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
 import { toast } from "@/hooks/use-toast";
