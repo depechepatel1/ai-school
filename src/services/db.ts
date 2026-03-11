@@ -405,15 +405,26 @@ export async function fetchProfilesByIds(ids: string[]) {
  * rest days this week (days with no practice, Mon-Sun).
  */
 export async function fetchStreakData(userId: string): Promise<{ streak: number; restDays: number }> {
-  // Get distinct dates the user practiced, ordered descending
-  const { data, error } = await supabase
-    .from("student_practice_logs")
-    .select("created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  // Fetch all practice dates with pagination to avoid 1000-row limit
+  const allRows: { created_at: string }[] = [];
+  const PAGE_SIZE = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from("student_practice_logs")
+      .select("created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allRows.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
 
-  if (error) throw error;
-  if (!data || data.length === 0) return { streak: 0, restDays: 7 };
+  if (allRows.length === 0) return { streak: 0, restDays: 7 };
+  const data = allRows;
 
   // Extract unique date strings (YYYY-MM-DD) in user's local timezone
   const uniqueDates = Array.from(

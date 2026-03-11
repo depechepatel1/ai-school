@@ -139,4 +139,8 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
       </button>
     </div>
   );
-}
+});
+
+DevToolbar.displayName = "DevToolbar";
+
+export default DevToolbar;

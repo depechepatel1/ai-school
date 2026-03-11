@@ -61,8 +61,8 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             {children}
           </div>
         ) : (
-          <div className="absolute inset-0 z-20 flex items-center justify-end pr-8 p-6">
-            <div className="w-full max-w-md px-6 py-8 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide">
+          <div className="absolute inset-0 z-20 flex items-center justify-center sm:justify-end p-4 sm:pr-8 sm:p-6">
+            <div className="w-full max-w-md px-4 sm:px-6 py-6 sm:py-8 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide">
               {children}
             </div>
           </div>

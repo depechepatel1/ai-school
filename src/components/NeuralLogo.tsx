@@ -35,6 +35,8 @@ const NeuralLogo = forwardRef<HTMLDivElement>((_, ref) => (
       <div className="absolute top-0 left-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_6px_#fff]" />
     </div>
   </div>
-);
+));
+
+NeuralLogo.displayName = "NeuralLogo";
 
 export default NeuralLogo;

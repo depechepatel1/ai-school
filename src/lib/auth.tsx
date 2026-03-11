@@ -120,6 +120,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    setSession(null);
+    setUser(null);
+    setRole(null);
+    setRoleLoading(true);
+    sessionStorage.removeItem("intro_video_played");
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
