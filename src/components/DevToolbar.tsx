@@ -68,7 +68,7 @@ const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-[9999]">
+    <div ref={ref} className="fixed bottom-4 left-4 z-[9999]">
       {open && (
         <div className="mb-2 w-56 max-h-[70vh] overflow-y-auto rounded-xl bg-gray-950 border border-gray-800 shadow-2xl text-xs">
           {/* Header */}
