@@ -46,7 +46,7 @@ export default function WeekSelection() {
   // Fetch curriculum topics
   useEffect(() => {
     if (!courseWeek.courseType) return;
-    fetchCurriculum(courseWeek.courseType, "shadowing")
+    fetchCurriculumJSON(courseWeek.courseType)
       .then((data) => setWeekTopics(getWeekTopics(data)))
       .catch(console.error);
   }, [courseWeek.courseType]);
