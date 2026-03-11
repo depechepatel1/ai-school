@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, forwardRef } from "react";
 import { Mic } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/lib/auth";
