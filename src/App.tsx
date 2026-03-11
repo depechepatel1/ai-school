@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NetworkStatus from "@/components/NetworkStatus";
+import DevToolbar from "@/components/DevToolbar";
 
 // Eagerly load landing + auth pages (first paint)
 import Index from "./pages/Index";
