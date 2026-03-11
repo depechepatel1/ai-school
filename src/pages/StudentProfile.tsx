@@ -32,6 +32,10 @@ export default function StudentProfile() {
         setAvatarUrl(p.avatar_url);
       }
       setLoaded(true);
+    }).catch((err) => {
+      console.error("Failed to load profile:", err);
+      toast({ title: "Failed to load profile", description: "Please check your connection and try again.", variant: "destructive" });
+      setLoaded(true);
     });
   }, [user?.id]);
 
