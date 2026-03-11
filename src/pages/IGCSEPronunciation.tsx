@@ -148,6 +148,8 @@ export default function IGCSEPronunciation() {
   const stopRecordingCb = useCallback(() => {
     setIsRecording(false);
     stopMediaRecorder();
+  }, [stopMediaRecorder]);
+
   // Show summary when timer target is reached
   useEffect(() => {
     if (practiceTimer.isComplete && !summaryShownRef.current) {
