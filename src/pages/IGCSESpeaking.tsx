@@ -164,17 +164,24 @@ export default function IGCSESpeaking() {
   };
 
   const handleToggleRecording = () => {
-    if (isRecording) stopRecording();
-    else startRecording();
+    if (isRecording && isPaused) {
+      handleResume();
+    } else if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  const handleFullStop = () => {
+    stopRecording();
   };
 
   const handleTogglePause = () => {
     if (isPaused) {
-      setIsPaused(false);
-      practiceTimer.resume();
+      handleResume();
     } else {
-      setIsPaused(true);
-      practiceTimer.pause();
+      handleSilencePause();
     }
   };
 
