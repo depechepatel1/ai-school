@@ -49,7 +49,7 @@ export default function StudentPractice() {
     />
   );
 
-  const rightPillarContent = <RightPillar />;
+  const rightPillarContent = <RightPillar streak={streak} restDays={restDays} />;
 
   return (
     <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
