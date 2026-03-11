@@ -75,6 +75,11 @@ const App = () => { // rebuild trigger
       <BrowserRouter>
         <AuthProvider>
           <NetworkStatus />
+          {import.meta.env.DEV && (
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 z-[9999] px-3 py-0.5 bg-destructive text-destructive-foreground text-xs font-mono tracking-widest rounded-b-md opacity-80 pointer-events-none select-none">
+              DEV MODE — AUTH BYPASSED
+            </div>
+          )}
           <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
