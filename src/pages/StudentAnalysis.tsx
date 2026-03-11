@@ -121,8 +121,8 @@ export default function StudentAnalysis() {
 
   return (
     <PageShell fullWidth loopVideos={[ANALYSIS_VIDEO]} hideFooter>
-      <div className="absolute inset-4 z-10 flex items-center justify-center">
-        <div className="relative w-full h-full max-w-[960px] max-h-[700px] rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
+        <div className="absolute inset-2 sm:inset-4 z-10 flex items-center justify-center">
+        <div className="relative w-full h-full sm:max-w-[960px] sm:max-h-[700px] rounded-2xl sm:rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
           {/* Header */}
