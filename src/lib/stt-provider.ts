@@ -16,8 +16,17 @@ export interface STTCallbacks {
   onEnd?: () => void;
 }
 
+export interface STTConfig {
+  /** Milliseconds of no onResult before onInactivity fires. Default 10000. */
+  inactivityMs?: number;
+  /** Called when no speech result received for inactivityMs. */
+  onInactivity?: () => void;
+}
+
 export interface STTHandle {
   stop: () => void;
+  pause: () => void;
+  resume: () => void;
 }
 
 // ── Browser implementation ─────────────────────────────────────
@@ -25,7 +34,8 @@ export interface STTHandle {
 function browserListen(
   lang: string,
   callbacks: STTCallbacks,
-  continuous = true
+  continuous = true,
+  config?: STTConfig
 ): STTHandle {
   const SR =
     (window as any).SpeechRecognition ||
@@ -34,7 +44,7 @@ function browserListen(
   if (!SR) {
     console.warn("[STT] Speech recognition not supported in this browser.");
     callbacks.onError?.("not-supported");
-    return { stop: () => {} };
+    return { stop: () => {}, pause: () => {}, resume: () => {} };
   }
 
   const recognition = new SR();
@@ -43,8 +53,30 @@ function browserListen(
   recognition.interimResults = true;
 
   let stopped = false;
+  let paused = false;
   let restartAttempts = 0;
   const MAX_RESTART_ATTEMPTS = 5;
+
+  // ── Inactivity timer ──
+  const inactivityMs = config?.inactivityMs ?? 10000;
+  let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    if (!config?.onInactivity || stopped || paused) return;
+    inactivityTimer = setTimeout(() => {
+      if (!stopped && !paused) {
+        config.onInactivity?.();
+      }
+    }, inactivityMs);
+  }
+
+  function clearInactivityTimer() {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+    }
+  }
 
   recognition.onresult = (event: any) => {
     let finalText = "";
@@ -57,51 +89,70 @@ function browserListen(
       }
     }
     if (finalText) {
-      restartAttempts = 0; // Reset on successful result
+      restartAttempts = 0;
       callbacks.onResult?.(finalText);
+      resetInactivityTimer();
     }
-    if (interimText) callbacks.onInterim?.(interimText);
+    if (interimText) {
+      callbacks.onInterim?.(interimText);
+      // Interim results also indicate speech activity — reset timer
+      resetInactivityTimer();
+    }
   };
 
   recognition.onerror = (event: any) => {
     callbacks.onError?.(event.error);
     if (event.error === "not-allowed" || event.error === "not-supported") {
-      stopped = true; // Don't try to restart on permission errors
+      stopped = true;
     }
   };
 
   recognition.onend = () => {
-    if (!stopped) {
-      restartAttempts++;
-      if (restartAttempts > MAX_RESTART_ATTEMPTS) {
-        console.warn("[STT] Max restart attempts reached, stopping.");
-        callbacks.onEnd?.();
-        return;
-      }
-      // Auto-restart with exponential backoff
-      const delay = Math.min(500 * Math.pow(2, restartAttempts - 1), 5000);
-      try {
-        setTimeout(() => {
-          if (!stopped) recognition.start();
-        }, delay);
-      } catch {}
-    } else {
-      callbacks.onEnd?.();
+    if (paused || stopped) {
+      if (stopped) callbacks.onEnd?.();
+      return;
     }
+    // Auto-restart for continuous mode
+    restartAttempts++;
+    if (restartAttempts > MAX_RESTART_ATTEMPTS) {
+      console.warn("[STT] Max restart attempts reached, stopping.");
+      callbacks.onEnd?.();
+      return;
+    }
+    const delay = Math.min(500 * Math.pow(2, restartAttempts - 1), 5000);
+    try {
+      setTimeout(() => {
+        if (!stopped && !paused) recognition.start();
+      }, delay);
+    } catch {}
   };
 
   try {
     recognition.start();
+    resetInactivityTimer();
   } catch {}
 
   return {
     stop: () => {
       stopped = true;
+      paused = false;
+      clearInactivityTimer();
       recognition.onend = null;
-      try {
-        recognition.stop();
-      } catch {}
+      try { recognition.stop(); } catch {}
       callbacks.onEnd?.();
+    },
+    pause: () => {
+      if (paused || stopped) return;
+      paused = true;
+      clearInactivityTimer();
+      try { recognition.stop(); } catch {}
+    },
+    resume: () => {
+      if (!paused || stopped) return;
+      paused = false;
+      restartAttempts = 0;
+      try { recognition.start(); } catch {}
+      resetInactivityTimer();
     },
   };
 }
@@ -111,27 +162,27 @@ function browserListen(
 function aliyunListen(
   lang: string,
   callbacks: STTCallbacks,
-  continuous = true
+  continuous = true,
+  config?: STTConfig
 ): STTHandle {
-  // TODO: Implement when Aliyun Paraformer API is available.
-  // Will stream audio to a backend function via WebSocket.
   console.warn("[STT] Aliyun provider not yet implemented, falling back to browser.");
-  return browserListen(lang, callbacks, continuous);
+  return browserListen(lang, callbacks, continuous, config);
 }
 
 // ── Public API ─────────────────────────────────────────────────
 
 /**
  * Start listening using the configured STT provider.
- * Returns a handle with stop().
+ * Returns a handle with stop(), pause(), resume().
  */
 export function startListening(
   lang: string,
   callbacks: STTCallbacks,
-  continuous = true
+  continuous = true,
+  config?: STTConfig
 ): STTHandle {
-  if (PROVIDERS.stt === "aliyun") return aliyunListen(lang, callbacks, continuous);
-  return browserListen(lang, callbacks, continuous);
+  if (PROVIDERS.stt === "aliyun") return aliyunListen(lang, callbacks, continuous, config);
+  return browserListen(lang, callbacks, continuous, config);
 }
 
 /** Get the current provider name */
