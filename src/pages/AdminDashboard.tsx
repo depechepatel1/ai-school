@@ -1294,12 +1294,8 @@ function ConversationsPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, user_id, title, created_at")
-        .order("updated_at", { ascending: false })
-        .limit(50);
-      setConvos(data ?? []);
+      const data = await fetchRecentConversations(50);
+      setConvos(data);
       setLoading(false);
     })();
   }, []);
