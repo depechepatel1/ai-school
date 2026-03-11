@@ -229,7 +229,7 @@ export default function IELTSSpeaking() {
         </div>
 
         {/* DO NOT READ reminder */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300]">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300] hidden sm:block">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 backdrop-blur-2xl">
             <AlertTriangle className="w-4 h-4 text-red-400" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-red-300">Do Not Read Your Answers</span>
