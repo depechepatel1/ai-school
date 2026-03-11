@@ -6,7 +6,7 @@ import { SEMESTER_WEEKS } from "@/lib/semester";
 import { motion } from "framer-motion";
 import { Calendar, CheckCircle, ArrowRight, FastForward } from "lucide-react";
 import PageShell from "@/components/PageShell";
-import { fetchCurriculum, type CurriculumData } from "@/services/curriculum-storage";
+import { fetchCurriculumJSON, type CurriculumData } from "@/services/curriculum-storage";
 
 /** Extract a short topic label per week from the curriculum data */
 function getWeekTopics(data: CurriculumData): Record<number, string> {
