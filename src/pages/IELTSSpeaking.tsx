@@ -168,20 +168,25 @@ export default function IELTSSpeaking() {
   };
 
   const handleToggleRecording = () => {
-    if (isRecording) {
+    if (isRecording && isPaused) {
+      // Paused state: resume
+      handleResume();
+    } else if (isRecording) {
       stopRecording();
     } else {
       startRecording();
     }
   };
 
+  const handleFullStop = () => {
+    stopRecording();
+  };
+
   const handleTogglePause = () => {
     if (isPaused) {
-      setIsPaused(false);
-      practiceTimer.resume();
+      handleResume();
     } else {
-      setIsPaused(true);
-      practiceTimer.pause();
+      handleSilencePause();
     }
   };
 
