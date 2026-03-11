@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
-  const [roleLoading, setRoleLoading] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(true);
 
   const loadRole = async (userId: string) => {
     setRoleLoading(true);
