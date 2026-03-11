@@ -40,6 +40,8 @@ export default function IELTSFluency() {
   const [isPlayingModel, setIsPlayingModel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [sentenceKey, setSentenceKey] = useState(0);
+  const [showSummary, setShowSummary] = useState(false);
+  const summaryShownRef = useRef(false);
   const [showEndPopup, setShowEndPopup] = useState(false);
 
   const ttsHandleRef = useRef<TTSHandle | null>(null);
