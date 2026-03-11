@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useStreak } from "@/hooks/useStreak";
 import { fetchProfile } from "@/services/db";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 
