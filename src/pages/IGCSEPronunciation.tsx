@@ -161,6 +161,17 @@ export default function IGCSEPronunciation() {
     }
   }, [currentTwister, currentIndex, progress]);
 
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-3">
+          <p className="text-sm text-destructive">{loadError}</p>
+          <button onClick={() => { setLoadError(null); fetchPronunciationItems().then(setTwisters).catch(() => setLoadError("Failed to load.")); }} className="text-xs text-primary underline">Retry</button>
+        </div>
+      </div>
+    );
+  }
+
   if (twisters.length === 0 || progress.loading || timerSettings.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
