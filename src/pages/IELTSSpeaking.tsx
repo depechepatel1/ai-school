@@ -250,8 +250,8 @@ export default function IELTSSpeaking() {
           )}
         </div>
 
-        {/* Floating Info Panel — left */}
-        <div className="absolute top-32 left-4 z-50">
+        {/* Floating Info Panel — left (hidden on small landscape) */}
+        <div className="absolute top-32 left-4 z-50 hidden sm:block">
           <FloatingInfoPanel
             course="IELTS"
             weekNumber={courseWeek.selectedWeek}
