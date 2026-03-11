@@ -242,7 +242,7 @@ export default function StudentAnalysis() {
             </div>
 
             {/* Right panel */}
-            <div className="w-[240px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+            <div className="w-full md:w-[240px] shrink-0 flex flex-col rounded-2xl bg-white/5 border border-white/10 overflow-hidden max-h-[300px] md:max-h-none">
               {/* Right panel tabs */}
               <div className="flex border-b border-white/10">
                 {rightTabs.map((t) => (
