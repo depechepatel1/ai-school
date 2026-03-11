@@ -12,7 +12,7 @@ export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSi
   const navigate = useNavigate();
 
   return (
-    <div role="navigation" aria-label="Main navigation" className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-[480px] flex justify-center">
+    <div role="navigation" aria-label="Main navigation" className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-[480px] flex justify-center">
       <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 flex items-center justify-between gap-6 shadow-2xl hover:border-white/20 transition-colors">
         <button onClick={() => setShowHomeworkModal(true)} aria-label="Homework" className="min-h-[44px] min-w-[44px] text-gray-400 hover:text-white flex flex-col items-center gap-1 group">
           <div className="relative">
