@@ -1,30 +1,29 @@
 
 
-## Problem
+## Analysis
 
-The root route (`/`) in `Index.tsx` waits for `loading` and `roleLoading` to both be false before redirecting. In dev mode with no logged-in user, the auth provider still takes time to resolve (up to 5 seconds via the safety timeout), so you see a spinner.
+### Problem 1: Video not moving
+The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
 
-The `ProtectedRoute` already has the `DEV_BYPASS_AUTH` fix, but `Index.tsx` does not — it independently gates on auth state.
+**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
 
-## Fix
+### Problem 2: The vertical line with one-sided fade
+The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
 
-**`src/pages/Index.tsx`** — In dev mode, skip the loading gate and redirect immediately to a default dev landing page (e.g. `/student`):
+Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
 
-```tsx
-useEffect(() => {
-  if (import.meta.env.DEV) {
-    navigate("/student", { replace: true });
-    return;
-  }
-  if (loading || roleLoading) return;
-  if (!user) {
-    navigate("/signup", { replace: true });
-    return;
-  }
-  const routes = { student: "/select-week", teacher: "/teacher", parent: "/parent", admin: "/admin" };
-  navigate(routes[role ?? ""] || "/signup", { replace: true });
-}, [user, role, loading, roleLoading, navigate]);
-```
+**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
 
-This is a single-line addition at the top of the `useEffect`. In production, the existing auth-gated flow remains unchanged. In dev, the page redirects instantly to `/student` (you can then use the DevToolbar to go anywhere else).
+---
+
+## Changes -- `src/components/PageShell.tsx`
+
+### 1. Shift video left using transform instead of object-position
+- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
+- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+
+### 2. Remove fade effects on auth screens
+- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
+- Keep footer behavior for `fullWidth` screens unchanged
+- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
 
