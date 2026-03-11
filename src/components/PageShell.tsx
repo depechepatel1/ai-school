@@ -15,43 +15,6 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
-  const navigate = useNavigate();
-  const [devOpen, setDevOpen] = useState(false);
-  const [devLoading, setDevLoading] = useState<string | null>(null);
-
-  // Transform-based shift replaces object-position for auth screens
-
-  const handleDevLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
-    setDevLoading(account.email);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: account.email,
-        password: account.password,
-      });
-      if (error) {
-        toast({ title: "Dev Login Failed", description: getSafeErrorMessage(error), variant: "destructive" });
-        return;
-      }
-      setDevOpen(false);
-      // Wait for onAuthStateChange to propagate session to React state
-      await new Promise<void>((resolve) => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-          if (event === "SIGNED_IN") {
-            subscription.unsubscribe();
-            resolve();
-          }
-        });
-        // Safety timeout
-        setTimeout(() => { subscription.unsubscribe(); resolve(); }, 3000);
-      });
-      navigate(account.redirect);
-    } catch (err: any) {
-      toast({ title: "Dev Login Failed", description: getSafeErrorMessage(err), variant: "destructive" });
-    } finally {
-      setDevLoading(null);
-    }
-  };
-
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
       {/* Full Viewport Container */}
