@@ -29,7 +29,7 @@ const PAGES = [
   { path: "/parent", label: "Parent Dashboard" },
 ];
 
-export default function DevToolbar() {
+const DevToolbar = forwardRef<HTMLDivElement>((_, ref) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
