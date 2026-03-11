@@ -133,8 +133,8 @@ export default function Login() {
 
         {/* ICP Footer */}
         <motion.div variants={fadeUp} className="mt-auto pt-6 text-center space-y-0.5">
-          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
-          <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
+          <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026000001号</p>
+          <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026000001号A</p>
         </motion.div>
       </motion.div>
     </PageShell>

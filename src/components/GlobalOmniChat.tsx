@@ -36,7 +36,7 @@ const GlobalOmniChat = forwardRef<HTMLDivElement>(function GlobalOmniChat(_props
     if (d.moved < 5) setChatOpen(prev => !prev);
   }, []);
 
-  if (!session) return null;
+  if (!session && !import.meta.env.DEV) return null;
 
   return createPortal(
     <div

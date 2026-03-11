@@ -171,13 +171,19 @@ function AnalyticsPanel() {
 
   useEffect(() => {
     (async () => {
-      const [logData, profileData] = await Promise.all([
-        fetchAllPracticeLogs(),
-        fetchAllProfiles(),
-      ]);
-      setAllLogs(logData);
-      setProfiles(profileData);
-      setLoading(false);
+      try {
+        const [logData, profileData] = await Promise.all([
+          fetchAllPracticeLogs(),
+          fetchAllProfiles(),
+        ]);
+        setAllLogs(logData);
+        setProfiles(profileData);
+      } catch (err) {
+        console.error("Failed to load analytics data:", err);
+        toast({ title: "Analytics Error", description: "Failed to load practice data. Some charts may be empty.", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 

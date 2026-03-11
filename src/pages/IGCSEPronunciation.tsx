@@ -60,7 +60,10 @@ export default function IGCSEPronunciation() {
   });
 
   useEffect(() => {
-    fetchPronunciationItems().then(setTwisters).catch(console.error);
+    fetchPronunciationItems().then(setTwisters).catch((err) => {
+      console.error(err);
+      setLoadError("Failed to load pronunciation items.");
+    });
   }, []);
 
   useEffect(() => {

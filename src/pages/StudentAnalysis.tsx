@@ -204,7 +204,7 @@ export default function StudentAnalysis() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
                         >
-                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={window.innerWidth < 640 ? 80 : 120} />
+                          <ProgressRing data={data[a.key]} color={a.color} label={a.label} size={ringSize} />
                         </motion.div>
                       ))}
                     </div>

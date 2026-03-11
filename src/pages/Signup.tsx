@@ -337,8 +337,8 @@ export default function Signup() {
               <Link to="/login" className="text-blue-400 hover:underline">{t("signup.signIn")}</Link>
             </p>
             <div className="pt-2 border-t border-white/[0.04] space-y-0.5">
-              <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
-              <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
+              <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026000001号</p>
+              <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026000001号A</p>
             </div>
           </div>
         </motion.form>
