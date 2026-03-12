@@ -178,6 +178,12 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const sectionMap: Record<string, string> = { part_2: "Part 2", part_3: "Part 3", model_answer: "Model Answer" };
   const sectionLabel = currentQuestion ? sectionMap[currentQuestion.sectionId] ?? currentQuestion.sectionId : "";
 
+  const cleanupRecordingResources = () => {
+    if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
+    stopMediaRecorder();
+    speechTrackerRef.current?.reset();
+  };
+
   const startSttListening = () => {
     sttHandleRef.current = startListening("en-US", {
       onResult: (text) => {
@@ -186,13 +192,17 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         currentTranscriptRef.current += pauseMarker + " " + text;
         setLiveTranscript(currentTranscriptRef.current.trimStart());
         setLiveInterim("");
-        debouncedPunctuate(currentTranscriptRef.current.trim());
+        punctuateWithMarkers(currentTranscriptRef.current.trim());
       },
       onInterim: (text) => {
         speechTrackerRef.current?.onSpeechDetected();
         setLiveInterim(text);
       },
-      onError: () => setRecordingState("idle"),
+      onError: () => {
+        cleanupRecordingResources();
+        setRecordingState("idle");
+        setSilenceNudge(false);
+      },
     });
   };
 
