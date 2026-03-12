@@ -197,7 +197,7 @@ export default function DevNav() {
             <div className="border-t border-white/5 mt-1 pt-1" />
 
             {accountsReady ? (
-              <div className="w-full px-3 py-1.5 text-[9px] text-green-500/60 flex items-center gap-1.5">
+              <div className="w-full px-3 py-1.5 text-[10px] text-green-500/60 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3 h-3" />
                 Dev accounts ready
               </div>

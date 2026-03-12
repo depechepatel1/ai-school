@@ -134,7 +134,7 @@ export default function Login() {
         <motion.div variants={fadeUp} className="mt-8 text-center">
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/10" />
-            <span className="text-[10px] text-gray-600 uppercase tracking-widest">{t("login.newHere")}</span>
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t("login.newHere")}</span>
             <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/10" />
           </div>
           <Link

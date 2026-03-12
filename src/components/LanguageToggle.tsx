@@ -10,7 +10,7 @@ export default function LanguageToggle() {
       title={lang === "en" ? "切换到中文" : "Switch to English"}
     >
       <span className={lang === "en" ? "text-blue-300" : "text-gray-500"}>EN</span>
-      <span className="text-gray-600">/</span>
+      <span className="text-gray-500">/</span>
       <span className={lang === "zh" ? "text-blue-300" : "text-gray-500"}>中</span>
     </button>
   );
