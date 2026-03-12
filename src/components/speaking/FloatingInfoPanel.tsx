@@ -7,6 +7,8 @@ interface Props {
   questionType?: string;
   questionNumber?: string;
   questionText?: string;
+  progressCurrent?: number;
+  progressTotal?: number;
 }
 
 function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, questionText }: Props) {

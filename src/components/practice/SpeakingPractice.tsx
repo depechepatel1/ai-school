@@ -187,7 +187,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
           </div>
         </div>
 
-        <PracticeProgress label="Question" current={currentQIndex + 1} total={questions.length} />
+        
 
 
         <LiveTranscriptBar transcript={liveTranscript} interim={liveInterim} isRecording={isRecording} />
