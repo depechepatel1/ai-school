@@ -90,7 +90,7 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
           );
         })}
       </div>
-      <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20 mt-1">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/20 mt-1">
         {courseType.toUpperCase()} Course
       </span>
     </div>
