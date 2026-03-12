@@ -21,6 +21,7 @@ import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, Headphones, Mic, Play, Loader2, RotateCcw, SkipForward, Rewind } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 
 type CourseType = "ielts" | "igcse";
 
