@@ -223,7 +223,7 @@ export default function AdminCurriculumUpload() {
         <div className="flex items-end gap-2">
           {selectedModule !== "shadowing-pronunciation" ? (
             <div className="flex-1">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
               <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-2.5 py-1.5 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all">
                 {COURSE_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>)}
               </select>
