@@ -4,9 +4,10 @@ import { Mic, Eye, Headphones, PenTool, Book, FileText, Check } from "lucide-rea
 
 interface SatelliteWidgetProps {
   onNavigate: (section: string) => void;
+  speakingProgress?: number;
 }
 
-const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNavigate }, ref) => {
+const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNavigate, speakingProgress = 0 }, ref) => {
   const navigate = useNavigate();
   const nodes = [
     { label: "READING", icon: Eye, color: "blue" as const, progress: 60 },
@@ -23,7 +24,7 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
   };
 
-  const centerProgress = 45;
+  const centerProgress = speakingProgress;
   const centerR = 54;
   const centerCirc = 2 * Math.PI * centerR;
   const centerDashOffset = centerCirc - (centerProgress / 100) * centerCirc;

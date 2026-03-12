@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 import PageShell from "@/components/PageShell";
 
 import LeftPillar from "@/components/student/LeftPillar";
@@ -19,6 +20,8 @@ export default function StudentPractice() {
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
   const { videoList } = useVideoLoopStack();
+  const { data: analytics } = useAnalyticsData(user?.id ?? null, courseWeek.courseType, "weekly");
+  const speakingProgress = analytics ? Math.round(analytics.speaking.pct * 100) : 0;
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -47,7 +50,7 @@ export default function StudentPractice() {
           courseType={courseWeek.courseType}
           courseLoading={courseWeek.loading}
         />
-        <RightPillar onNavigate={handleNavigate} />
+        <RightPillar onNavigate={handleNavigate} speakingProgress={speakingProgress} />
         <BottomDock setShowHomeworkModal={setShowHomeworkModal} setCalendarOpen={setCalendarOpen} onSettings={signOut} />
       </div>
     </PageShell>

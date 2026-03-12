@@ -5,6 +5,8 @@ import {
   Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
 } from "lucide-react";
 import { usePrefetchProps } from "@/hooks/usePrefetch";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
+import { useAuth } from "@/lib/auth";
 import StudentMessagesTab from "./StudentMessagesTab";
 
 interface LeftPillarProps {
@@ -74,6 +76,11 @@ function MicroProgress({ pct, color }: { pct: number; color: string }) {
 
 export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint, courseType, courseLoading }: LeftPillarProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: analytics } = useAnalyticsData(user?.id ?? null, courseType, "weekly");
+  const pronPct = analytics ? Math.round(analytics.pronunciation.pct * 100) : 0;
+  const fluPct = analytics ? Math.round(analytics.shadowing.pct * 100) : 0;
+  const speakPct = analytics ? Math.round(analytics.speaking.pct * 100) : 0;
   return (
     <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
       {/* Profile Card */}
@@ -122,9 +129,9 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
           <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/30 block text-center mb-2.5">Practice Modes</span>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { key: "pronunciation", label: "Pronun.", icon: Headphones, color: "#0ea5e9", bgClass: "bg-sky-500/15 border-sky-400/25", hoverClass: "hover:bg-sky-500/25 hover:border-sky-400/40", progress: 0 },
-              { key: "fluency", label: "Fluency", icon: AudioWaveform, color: "#8b5cf6", bgClass: "bg-violet-500/15 border-violet-400/25", hoverClass: "hover:bg-violet-500/25 hover:border-violet-400/40", progress: 0 },
-              { key: "speaking", label: "Speak", icon: MessageSquare, color: "#f59e0b", bgClass: "bg-amber-500/15 border-amber-400/25", hoverClass: "hover:bg-amber-500/25 hover:border-amber-400/40", progress: 0 },
+              { key: "pronunciation", label: "Pronun.", icon: Headphones, color: "#0ea5e9", bgClass: "bg-sky-500/15 border-sky-400/25", hoverClass: "hover:bg-sky-500/25 hover:border-sky-400/40", progress: pronPct },
+              { key: "fluency", label: "Fluency", icon: AudioWaveform, color: "#8b5cf6", bgClass: "bg-violet-500/15 border-violet-400/25", hoverClass: "hover:bg-violet-500/25 hover:border-violet-400/40", progress: fluPct },
+              { key: "speaking", label: "Speak", icon: MessageSquare, color: "#f59e0b", bgClass: "bg-amber-500/15 border-amber-400/25", hoverClass: "hover:bg-amber-500/25 hover:border-amber-400/40", progress: speakPct },
             ].map((mode) => {
               const Icon = mode.icon;
               const prefix = courseType === "ielts" ? "/ielts" : "/igcse";

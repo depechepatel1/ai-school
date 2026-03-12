@@ -8,9 +8,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 interface RightPillarProps {
   onNavigate: (section: string) => void;
+  speakingProgress?: number;
 }
 
-export default function RightPillar({ onNavigate }: RightPillarProps) {
+export default function RightPillar({ onNavigate, speakingProgress }: RightPillarProps) {
   const { user } = useAuth();
   const { currentStreak, loading } = useStreak(user?.id ?? null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
@@ -68,7 +69,7 @@ export default function RightPillar({ onNavigate }: RightPillarProps) {
 
       {/* Satellite Widget */}
       <div className="flex-1 flex items-center justify-center relative overflow-visible mt-4 -translate-x-8">
-        <SatelliteWidget onNavigate={onNavigate} />
+        <SatelliteWidget onNavigate={onNavigate} speakingProgress={speakingProgress} />
       </div>
     </div>
   );
