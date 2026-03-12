@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchStudentCourseType, fetchSelectedWeek, updateSelectedWeek } from "@/services/db";
 
 /**
@@ -6,32 +7,34 @@ import { fetchStudentCourseType, fetchSelectedWeek, updateSelectedWeek } from "@
  * and manage their selected working week.
  */
 export function useCourseWeek(userId: string | null) {
-  const [courseType, setCourseType] = useState<"ielts" | "igcse" | null>(null);
-  const [selectedWeek, setSelectedWeekState] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [selectedWeekOverride, setSelectedWeekOverride] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!userId) { setLoading(false); return; }
+  const { data: courseType = null, isLoading: ctLoading } = useQuery({
+    queryKey: ["course-type", userId],
+    enabled: !!userId,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const ct = await fetchStudentCourseType(userId!);
+      return (ct as "ielts" | "igcse") ?? null;
+    },
+  });
 
-    (async () => {
-      try {
-        const [ct, week] = await Promise.all([
-          fetchStudentCourseType(userId),
-          fetchSelectedWeek(userId),
-        ]);
-        if (ct) setCourseType(ct as "ielts" | "igcse");
-        if (week) setSelectedWeekState(week);
-      } catch (err) {
-        console.error("useCourseWeek error:", err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [userId]);
+  const { data: fetchedWeek = 1, isLoading: weekLoading } = useQuery({
+    queryKey: ["selected-week", userId],
+    enabled: !!userId,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const week = await fetchSelectedWeek(userId!);
+      return week ?? 1;
+    },
+  });
+
+  const selectedWeek = selectedWeekOverride ?? fetchedWeek;
+  const loading = ctLoading || weekLoading;
 
   const setSelectedWeek = useCallback(
     async (week: number) => {
-      setSelectedWeekState(week);
+      setSelectedWeekOverride(week);
       if (userId) {
         await updateSelectedWeek(userId, week).catch(console.error);
       }

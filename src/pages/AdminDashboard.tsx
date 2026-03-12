@@ -94,14 +94,16 @@ export default function AdminDashboard() {
 
             {/* Content */}
             <div className="flex-1 min-h-0 overflow-y-auto">
-              {activeTab === "analytics" && <AnalyticsPanel />}
-              {activeTab === "users" && <UsersPanel />}
-              {activeTab === "classes" && <ClassesPanel />}
-              {activeTab === "practice" && <PracticePanel />}
-              {activeTab === "conversations" && <ConversationsPanel />}
-              {activeTab === "audit" && <AuditPanel />}
-              {activeTab === "timers" && <AdminTimerSettings />}
-              {activeTab === "curriculum" && <AdminCurriculumUpload />}
+              <Suspense fallback={<LoadingSpinner variant="chart" />}>
+                {activeTab === "analytics" && <AnalyticsPanel />}
+                {activeTab === "users" && <UsersPanel />}
+                {activeTab === "classes" && <ClassesPanel />}
+                {activeTab === "practice" && <PracticePanel />}
+                {activeTab === "conversations" && <ConversationsPanel />}
+                {activeTab === "audit" && <AuditPanel />}
+                {activeTab === "timers" && <AdminTimerSettings />}
+                {activeTab === "curriculum" && <AdminCurriculumUpload />}
+              </Suspense>
             </div>
           </motion.div>
         </div>
