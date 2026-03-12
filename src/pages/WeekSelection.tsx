@@ -15,7 +15,6 @@ function getWeekTopics(data: CurriculumData): Record<number, string> {
     const firstSection = week.sections?.[0];
     const firstQ = firstSection?.questions?.[0];
     if (firstQ?.question_text) {
-      // Truncate at first '?' or limit to ~25 chars
       const raw = firstQ.question_text.split("?")[0].trim();
       topics[week.week_number] = raw.length > 28 ? raw.slice(0, 25) + "…" : raw;
     }
@@ -36,14 +35,12 @@ export default function WeekSelection() {
     setTimeout(() => confirmRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
   };
 
-  // Pre-select last used week once loaded
   useEffect(() => {
     if (!courseWeek.loading && picked === null) {
       setPicked(courseWeek.selectedWeek);
     }
   }, [courseWeek.loading, courseWeek.selectedWeek, picked]);
 
-  // Fetch curriculum topics
   useEffect(() => {
     if (!courseWeek.courseType) return;
     fetchCurriculumJSON(courseWeek.courseType)
@@ -78,64 +75,66 @@ export default function WeekSelection() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <span className="inline-block px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/20 text-[10px] font-bold uppercase tracking-[0.15em] text-blue-300/90 mb-3">
+          <span className="inline-block px-3 py-1 rounded-full bg-teal-500/15 border border-teal-400/20 text-[10px] font-bold uppercase tracking-[0.15em] text-teal-300/90 mb-3">
             {courseLabel} Course
           </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-blue-200 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-200 via-white to-teal-200 leading-tight">
             Select Your Week
           </h1>
           <p className="text-sm text-white/40 mt-2">Choose which week's curriculum to practice</p>
         </div>
 
         {/* Week Grid */}
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 w-full mb-8">
-          {Array.from({ length: SEMESTER_WEEKS }, (_, i) => i + 1).map((w) => {
-            const isSelected = w === picked;
-            const isLast = w === lastWeek;
-            const topic = weekTopics[w];
+        <div className="bg-white/[0.02] rounded-2xl p-4 w-full mb-8">
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 w-full">
+            {Array.from({ length: SEMESTER_WEEKS }, (_, i) => i + 1).map((w) => {
+              const isSelected = w === picked;
+              const isLast = w === lastWeek;
+              const topic = weekTopics[w];
 
-            return (
-              <motion.button
-                key={w}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => handlePick(w)}
-                className={`
-                  relative flex flex-col items-center justify-center py-3.5 rounded-xl border transition-all duration-200
-                  ${isSelected
-                    ? "bg-blue-600/30 border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.25)] ring-1 ring-blue-400/30"
-                    : "bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15]"
-                  }
-                `}
-                title={topic || `Week ${w}`}
-              >
-                <span className={`text-lg font-bold tabular-nums ${isSelected ? "text-blue-200" : "text-white/70"}`}>
-                  {w}
-                </span>
-                {topic ? (
-                  <span className={`text-[7px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-blue-300/70" : "text-white/25"}`}>
-                    {topic.length > 12 ? topic.slice(0, 10) + "…" : topic}
+              return (
+                <motion.button
+                  key={w}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handlePick(w)}
+                  className={`
+                    relative flex flex-col items-center justify-center py-3.5 min-h-[60px] rounded-xl border transition-all duration-200
+                    ${isSelected
+                      ? "bg-teal-600/30 border-teal-400/50 shadow-[0_0_20px_rgba(20,184,166,0.25)] ring-1 ring-teal-400/30"
+                      : "bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15]"
+                    }
+                  `}
+                  title={topic || `Week ${w}`}
+                >
+                  <span className={`text-lg font-bold tabular-nums ${isSelected ? "text-teal-200" : "text-white/70"}`}>
+                    {w}
                   </span>
-                ) : (
-                  <span className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isSelected ? "text-blue-300/80" : "text-white/30"}`}>
-                    Week
-                  </span>
-                )}
-                {isLast && !isSelected && (
-                  <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-500/80 flex items-center justify-center">
-                    <CheckCircle className="w-2.5 h-2.5 text-white" />
-                  </span>
-                )}
-                {isSelected && (
-                  <motion.div
-                    layoutId="week-ring"
-                    className="absolute inset-0 rounded-xl border-2 border-blue-400/60 pointer-events-none"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </motion.button>
-            );
-          })}
+                  {topic ? (
+                    <span className={`text-[10px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-teal-300/70" : "text-white/25"}`}>
+                      {topic.length > 12 ? topic.slice(0, 10) + "…" : topic}
+                    </span>
+                  ) : (
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${isSelected ? "text-teal-300/80" : "text-white/30"}`}>
+                      Week
+                    </span>
+                  )}
+                  {isLast && !isSelected && (
+                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-500/80 flex items-center justify-center">
+                      <CheckCircle className="w-2.5 h-2.5 text-white" />
+                    </span>
+                  )}
+                  {isSelected && (
+                    <motion.div
+                      layoutId="week-ring"
+                      className="absolute inset-0 rounded-xl border-2 border-teal-400/60 pointer-events-none"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Selected week topic preview */}
@@ -159,7 +158,7 @@ export default function WeekSelection() {
             </p>
             <button
               onClick={() => navigate("/student", { replace: true })}
-              className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400/70 hover:text-blue-300 transition-colors"
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-teal-400/70 hover:text-teal-300 transition-colors"
             >
               <FastForward className="w-3 h-3" />
               Continue Week {lastWeek}
@@ -174,7 +173,7 @@ export default function WeekSelection() {
           whileTap={{ scale: 0.98 }}
           onClick={handleConfirm}
           disabled={picked === null}
-          className="w-full max-w-xs h-12 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(37,99,235,0.25)] hover:shadow-[0_0_40px_rgba(37,99,235,0.4)]"
+          className="w-full max-w-xs h-12 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(20,184,166,0.25)] hover:shadow-[0_0_40px_rgba(20,184,166,0.4)]"
         >
           <Calendar className="w-4 h-4" />
           Start Week {picked}

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, User, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, User, Check, Loader2, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { useAuth } from "@/lib/auth";
@@ -112,7 +112,7 @@ export default function StudentProfile() {
           <div className="relative z-10 p-6 flex flex-col items-center gap-6">
             {/* Header */}
             <div className="w-full flex items-center justify-between">
-              <button onClick={() => navigate("/student")} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
+              <button onClick={() => navigate("/student")} className="flex items-center gap-2 text-white/60 hover:text-white transition-all">
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">Back</span>
               </button>
@@ -161,12 +161,12 @@ export default function StudentProfile() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={100}
                   placeholder="Enter your name"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-white/25 transition-colors"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-teal-400/40 transition-all"
                 />
                 <button
                   onClick={handleSaveName}
                   disabled={saving || !displayName.trim()}
-                  className="px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white/70 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-4 py-3 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white hover:shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 </button>
@@ -178,7 +178,8 @@ export default function StudentProfile() {
               <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 pl-1">
                 Email
               </label>
-              <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/40">
+              <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/40 opacity-60 flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-white/30 shrink-0" />
                 {user?.email ?? "—"}
               </div>
             </div>
