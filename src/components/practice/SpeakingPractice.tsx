@@ -112,10 +112,25 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const pauseTracker = useRef(createPauseTracker(1500));
   const { startMediaRecorder, stopMediaRecorder } = useAudioCapture();
 
+  // Keep a ref to the latest slots so the callback can access them
+  const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
+
   const debouncedPunctuate = useCallback(
-    createDebouncedPunctuate((punctuated) => setLiveTranscript(punctuated), 800),
+    createDebouncedPunctuate((punctuated) => {
+      // Re-inject pause markers that were stripped before sending to AI
+      const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
+      currentTranscriptRef.current = restored;
+      setLiveTranscript(restored);
+    }, 800),
     []
   );
+
+  // Wrapper that strips markers before punctuating
+  const punctuateWithMarkers = useCallback((raw: string) => {
+    const { clean, slots } = stripPauseMarkers(raw);
+    pauseSlotsRef.current = slots;
+    debouncedPunctuate(clean);
+  }, [debouncedPunctuate]);
 
   const practiceTimer = usePracticeTimer({
     userId, courseType, activityType: "speaking",
