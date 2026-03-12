@@ -146,7 +146,9 @@ export default function TeacherDashboard() {
 
               {/* Classes grid — 2 or 3 columns */}
               <div className="flex-1 overflow-y-auto scrollbar-hide mb-5">
-                {classes.length === 0 ? (
+                {classesLoading ? (
+                  <CardGridSkeleton cards={4} />
+                ) : classes.length === 0 ? (
                   <motion.div variants={fadeUp} className="text-center py-12">
                     <div className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-3">
                       <Users className="w-6 h-6 text-gray-600" />
