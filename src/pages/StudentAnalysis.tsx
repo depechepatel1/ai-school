@@ -365,7 +365,7 @@ function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries
               <div className="flex-1 min-w-0">
                 <div className={`text-[11px] font-semibold truncate ${isMe ? "text-white" : "text-white/60"}`}>
                   {entry.display_name}
-                  {isMe && <span className="text-[9px] ml-1 text-white/30">(you)</span>}
+                  {isMe && <span className="text-[10px] ml-1 text-white/35">(you)</span>}
                 </div>
                 <div className="mt-1 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
                   <div
