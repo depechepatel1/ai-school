@@ -1575,10 +1575,6 @@ function AuditPanel() {
 }
 
 /* ── Shared Loading Spinner ──────────────────────────────── */
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center py-8">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-    </div>
-  );
+function LoadingSpinner({ variant = "table" }: { variant?: "chart" | "table" }) {
+  return variant === "chart" ? <ChartSkeleton /> : <TableSkeleton />;
 }
