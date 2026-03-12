@@ -8,24 +8,12 @@ const CACHE_BUST = "?v=2";
 
 const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4${CACHE_BUST}`;
 
-export const VIDEO_LOOP_STACK = [
-  `${STORAGE_BASE}/loop-stack/1.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/2.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/3.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/4.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/5.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/6.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/7.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/8.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/9.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/10.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/11.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/12.mp4${CACHE_BUST}`,
-  `${STORAGE_BASE}/loop-stack/13.mp4${CACHE_BUST}`,
-];
+/** @deprecated Use useVideoLoopStack() hook instead for dynamic discovery */
+export const VIDEO_LOOP_STACK: string[] = [];
 
 /** Fisher-Yates shuffle, keeping index 0 in place */
 function shuffleExceptFirst(arr: string[]): string[] {
+  if (arr.length <= 1) return [...arr];
   const first = arr[0];
   const rest = arr.slice(1);
   for (let i = rest.length - 1; i > 0; i--) {
