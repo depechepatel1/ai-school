@@ -1,11 +1,9 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
+  ChevronDown, AlertTriangle, Zap, Check,
   Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
 } from "lucide-react";
-import { usePrefetchProps } from "@/hooks/usePrefetch";
 import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 import { useAuth } from "@/lib/auth";
 import StudentMessagesTab from "./StudentMessagesTab";
