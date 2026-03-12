@@ -1,23 +1,29 @@
 
 
-## Plan: Smart Line Justification for Karaoke Text
+## Analysis
 
-**Problem**: The karaoke text needs to span the full width of the visualizer so syllables align with audio peaks. But when text wraps, a short second line (< 4 words) gets stretched across the full width, looking bad.
+### Problem 1: Video not moving
+The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
 
-**Solution**: Use a two-row layout approach in `ProsodyVisualizer.tsx`:
+**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
 
-1. **Make text wider than the visualizer** — change `max-w-3xl` to `max-w-4xl` (the visualizer box below uses `max-w-3xl`), giving the text a slightly wider canvas.
+### Problem 2: The vertical line with one-sided fade
+The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
 
-2. **Split words into lines using a ref-based approach** — After render, detect which words are on which visual line using `offsetTop` of each word element. Then apply:
-   - **First line**: `justify-between` (full justified, spanning the width)
-   - **Subsequent lines with < 4 words**: `justify-center` (centered)
-   - **Subsequent lines with ≥ 4 words**: `justify-between` (full justified)
+Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
 
-**Implementation in `ProsodyVisualizer.tsx`**:
-- Add `useRef` + `useEffect` + `useState` to measure word positions after render
-- Group words into lines by comparing `offsetTop` values
-- Render each detected line as its own flex row with appropriate justification
-- Fallback: render all words in a single `justify-between` row if measurement hasn't happened yet
+**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
 
-This keeps the first line fully justified (aligned with the visualizer) while centering short trailing lines.
+---
+
+## Changes -- `src/components/PageShell.tsx`
+
+### 1. Shift video left using transform instead of object-position
+- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
+- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+
+### 2. Remove fade effects on auth screens
+- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
+- Keep footer behavior for `fullWidth` screens unchanged
+- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
 
