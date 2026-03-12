@@ -12,35 +12,66 @@ const VALID_PATHS = [
   ...Array.from({ length: 10 }, (_, i) => `loop-stack/${i + 1}.mp4`),
 ];
 
+function respond(status: number, body: any) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // --- Auth: require admin ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return respond(401, { error: "Unauthorized" });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const callerClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data, error: claimsError } = await callerClient.auth.getClaims(token);
+    if (claimsError || !data?.claims) {
+      return respond(401, { error: "Invalid token" });
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const { data: roleData } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.claims.sub)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return respond(403, { error: "Admin role required" });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const targetPath = formData.get("path") as string | null;
 
     if (!file || !targetPath) {
-      return new Response(
-        JSON.stringify({ error: "Missing file or path" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(400, { error: "Missing file or path" });
     }
 
     if (!VALID_PATHS.includes(targetPath)) {
-      return new Response(
-        JSON.stringify({ error: `Invalid path. Must be one of: ${VALID_PATHS.join(", ")}` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(400, { error: `Invalid path. Must be one of: ${VALID_PATHS.join(", ")}` });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
+    const supabase = createClient(supabaseUrl, serviceKey);
     const arrayBuffer = await file.arrayBuffer();
 
     const { error } = await supabase.storage
@@ -52,14 +83,8 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    return new Response(
-      JSON.stringify({ success: true, path: targetPath }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return respond(200, { success: true, path: targetPath });
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return respond(500, { error: err.message });
   }
 });

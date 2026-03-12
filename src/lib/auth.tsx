@@ -27,8 +27,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadRole = async (userId: string) => {
-    const role = await fetchUserRole(userId);
-    setRole((role as AppRole) ?? null);
+    const fetchedRole = await fetchUserRole(userId);
+    setRole((fetchedRole as AppRole) ?? null);
   };
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => loadRole(session.user.id), 0);
+        await loadRole(session.user.id);
         // Warm up TTS voices early so first play is instant
         preloadVoices();
         preloadAccent("uk");
@@ -47,11 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadRole(session.user.id);
+        await loadRole(session.user.id);
         preloadVoices();
         preloadAccent("uk");
         preloadAccent("us");

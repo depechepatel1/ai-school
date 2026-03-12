@@ -26,6 +26,9 @@ const routes = [
 ];
 
 export default function DevNav() {
+  // Only render in development builds — Vite tree-shakes this out of production
+  if (!import.meta.env.DEV) return null;
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();

@@ -115,7 +115,8 @@ serve(async (req) => {
         if (error) return respond(500, { error: error.message });
         await adminClient.from("user_roles").delete().eq("user_id", user_id);
         await adminClient.from("class_memberships").delete().eq("user_id", user_id);
-        await adminClient.from("parent_student_links").delete().or(`parent_id.eq.${user_id},student_id.eq.${user_id}`);
+        await adminClient.from("parent_student_links").delete().eq("parent_id", user_id);
+        await adminClient.from("parent_student_links").delete().eq("student_id", user_id);
         await adminClient.from("profiles").delete().eq("id", user_id);
 
         audit(user_id, { deleted_name: profile?.display_name ?? "Unknown" });

@@ -3,7 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const DEV_ACCOUNTS = [
@@ -14,35 +15,68 @@ const DEV_ACCOUNTS = [
   { email: "dev-admin@test.com", password: "devtest123", role: "admin", displayName: "Dev Admin" },
 ];
 
+function respond(status: number, body: any) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    // --- Auth: require admin ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return respond(401, { error: "Unauthorized" });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const callerClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return respond(401, { error: "Invalid token" });
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const { data: roleData } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", claimsData.claims.sub)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return respond(403, { error: "Admin role required" });
+    }
 
     const results: any[] = [];
     const userIds: Record<string, string> = {};
 
-    // 1. Create or find all accounts
     for (const account of DEV_ACCOUNTS) {
       const { data: existingUsers } = await adminClient.auth.admin.listUsers();
       const existing = existingUsers?.users?.find((u: any) => u.email === account.email);
 
       if (existing) {
-        // Ensure role exists
-        const { data: roleData } = await adminClient
+        const { data: existingRole } = await adminClient
           .from("user_roles")
           .select("role")
           .eq("user_id", existing.id)
           .maybeSingle();
 
-        if (!roleData) {
+        if (!existingRole) {
           await adminClient.from("user_roles").insert({ user_id: existing.id, role: account.role });
         }
         userIds[account.email] = existing.id;
@@ -74,7 +108,6 @@ serve(async (req) => {
     const ieltsStudentId = userIds["dev-ielts@test.com"];
     const parentId = userIds["dev-parent@test.com"];
 
-    // 2. Ensure IGCSE class exists
     let igcseClassId: string | null = null;
     if (teacherId) {
       const { data: existingIgcse } = await adminClient
@@ -96,7 +129,6 @@ serve(async (req) => {
       }
     }
 
-    // 3. Ensure IELTS class exists
     let ieltsClassId: string | null = null;
     if (teacherId) {
       const { data: existingIelts } = await adminClient
@@ -118,7 +150,6 @@ serve(async (req) => {
       }
     }
 
-    // 4. Add students to classes
     if (igcseClassId && igcseStudentId) {
       await adminClient
         .from("class_memberships")
@@ -130,7 +161,6 @@ serve(async (req) => {
         .upsert({ class_id: ieltsClassId, user_id: ieltsStudentId }, { onConflict: "class_id,user_id" });
     }
 
-    // 5. Link parent to both students
     if (parentId) {
       for (const studentId of [igcseStudentId, ieltsStudentId]) {
         if (studentId) {
@@ -141,13 +171,8 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ results, igcseClassId, ieltsClassId }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond(200, { results, igcseClassId, ieltsClassId });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond(500, { error: error.message });
   }
 });
