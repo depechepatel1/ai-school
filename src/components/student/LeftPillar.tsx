@@ -17,35 +17,6 @@ interface LeftPillarProps {
   courseType: "ielts" | "igcse" | null;
 }
 
-/* ── tiny progress ring (SVG) ── */
-function ProgressRing({ done, total, size = 32 }: { done: number; total: number; size?: number }) {
-  const r = (size - 4) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = total > 0 ? done / total : 0;
-  return (
-    <svg width={size} height={size} className="shrink-0">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={2.5} />
-      <circle
-        cx={size / 2} cy={size / 2} r={r} fill="none"
-        stroke="url(#prog-grad)" strokeWidth={2.5}
-        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        className="transition-all duration-700"
-      />
-      <defs>
-        <linearGradient id="prog-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="hsl(174 84% 40%)" />
-          <stop offset="100%" stopColor="hsl(172 72% 50%)" />
-        </linearGradient>
-      </defs>
-      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" className="fill-white/70 text-[10px] font-bold font-outfit">
-        {done}/{total}
-      </text>
-    </svg>
-  );
-}
-
 /* ── section divider with centered label chip ── */
 function SectionDivider({ label }: { label: string }) {
   return (
