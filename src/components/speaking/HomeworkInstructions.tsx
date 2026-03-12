@@ -100,7 +100,7 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
           ) : (
             <>
               <div>
-                <span className="text-cyan-300/80 font-bold uppercase text-[9px] tracking-wider">Part 1 · Shadow Reading (15 min)</span>
+                <span className="text-cyan-300/80 font-bold uppercase text-[10px] tracking-wider">Part 1 · Shadow Reading (15 min)</span>
                 <p className="mt-0.5">Shadow read all model answers for Week {shadowingWeek} (10 min) + Tongue Twisters (5 min).</p>
                 <ProgressBar progress={getProgress("shadowing")} />
               </div>
