@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { BookOpen } from "lucide-react";
 
 interface Props {
