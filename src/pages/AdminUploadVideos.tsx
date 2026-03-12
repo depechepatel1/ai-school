@@ -103,6 +103,23 @@ export default function AdminUploadVideos() {
     }
   }, []);
 
+  const deleteLoopClip = useCallback(async (slot: VideoSlot) => {
+    if (!slot.path.startsWith("loop-stack/")) return;
+    if (!confirm(`Delete ${slot.label} from storage? This cannot be undone.`)) return;
+
+    try {
+      const { error } = await supabase.storage.from("videos").remove([slot.path]);
+      if (error) throw error;
+
+      setSlots((prev) => prev.filter((s) => s.path !== slot.path));
+      setStatuses((s) => { const copy = { ...s }; delete copy[slot.path]; return copy; });
+      setProgress((p) => { const copy = { ...p }; delete copy[slot.path]; return copy; });
+      toast({ title: `🗑️ ${slot.label} deleted` });
+    } catch (err: any) {
+      toast({ title: `❌ Delete failed`, description: err.message, variant: "destructive" });
+    }
+  }, []);
+
   const addLoopSlot = () => {
     // Find next available number
     const loopNumbers = slots
@@ -190,7 +207,19 @@ export default function AdminUploadVideos() {
                     <Film className="h-4 w-4 text-muted-foreground" />
                     {slot.label}
                     {status === "done" && <Check className="ml-auto h-5 w-5 text-green-500" />}
-                    {status !== "done" && slot.existsInStorage && (
+                    {status !== "done" && slot.existsInStorage && slot.path.startsWith("loop-stack/") && (
+                      <div className="ml-auto flex items-center gap-1.5">
+                        <span className="text-[9px] uppercase tracking-wider text-emerald-400 font-bold">In Storage</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteLoopClip(slot); }}
+                          className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          title={`Delete ${slot.label}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                    {status !== "done" && slot.existsInStorage && !slot.path.startsWith("loop-stack/") && (
                       <span className="ml-auto text-[9px] uppercase tracking-wider text-emerald-400 font-bold">In Storage</span>
                     )}
                   </CardTitle>
