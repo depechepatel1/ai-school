@@ -127,13 +127,13 @@ export default function StudentMessagesTab() {
             return (
               <motion.div key={m.id} variants={fadeUp} className={`flex gap-1.5 ${isUser ? "justify-end" : "justify-start"}`}>
                 {!isUser && (
-                  <div className="w-5 h-5 rounded-full bg-blue-500/15 border border-blue-400/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-2.5 h-2.5 text-blue-400" />
+                  <div className="w-5 h-5 rounded-full bg-teal-500/15 border border-teal-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Bot className="w-2.5 h-2.5 text-teal-400" />
                   </div>
                 )}
                 <div className={`max-w-[80%] px-2.5 py-1.5 rounded-xl text-[10px] leading-relaxed ${
                   isUser
-                    ? "bg-blue-500/15 border border-blue-400/20 text-blue-100 rounded-br-sm"
+                    ? "bg-teal-500/15 border border-teal-400/20 text-teal-100 rounded-br-sm"
                     : "bg-white/[0.04] border border-white/[0.08] text-white/70 rounded-bl-sm"
                 }`}>
                   <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_code]:text-[9px] [&_code]:bg-white/10 [&_code]:px-0.5 [&_code]:rounded">
