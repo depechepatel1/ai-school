@@ -449,7 +449,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
             <div className="space-y-2">
               {Object.entries(stats.courseMap).map(([course, seconds]) => (
                 <div key={course} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${course === "igcse" ? "text-amber-300" : "text-cyan-300"}`}>{course}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${course === "igcse" ? "text-amber-300" : "text-cyan-300"}`}>{course}</span>
                   <p className="text-sm font-bold text-white/80 mt-0.5">{formatTime(seconds)}</p>
                 </div>
               ))}
