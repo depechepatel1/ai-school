@@ -14,6 +14,8 @@ interface UsePracticeTimerOptions {
   practiceMode: PracticeMode;
   /** Whether audio is actively being produced (recording or TTS playing) */
   isAudioActive: boolean;
+  /** Whether actual speech is being detected (more accurate than isAudioActive for anti-cheating) */
+  isSpeechDetected?: boolean;
 }
 
 interface PracticeTimerState {
@@ -48,6 +50,7 @@ export function usePracticeTimer({
   weekNumber,
   practiceMode,
   isAudioActive,
+  isSpeechDetected,
 }: UsePracticeTimerOptions): PracticeTimerState {
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -66,11 +69,14 @@ export function usePracticeTimer({
     activeSecondsRef.current = activeSeconds;
   }, [activeSeconds]);
 
-  // Auto-pause/resume based on audio activity
+  // Auto-pause/resume based on actual speech activity
   useEffect(() => {
     if (manualPause) return;
-    setIsRunning(isAudioActive);
-  }, [isAudioActive, manualPause]);
+    // If speech detection is available, use it (more accurate).
+    // Otherwise fall back to isAudioActive (for pronunciation/fluency where STT isn't running).
+    const shouldRun = isSpeechDetected !== undefined ? isSpeechDetected : isAudioActive;
+    setIsRunning(shouldRun);
+  }, [isAudioActive, isSpeechDetected, manualPause]);
 
   // Core timer tick
   useEffect(() => {
