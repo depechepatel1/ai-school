@@ -24,6 +24,7 @@ import { Headphones, Mic, Play, Loader2, SkipForward } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
 import FluencyEndPopup from "./FluencyEndPopup";
+import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
 
 type CourseType = "ielts" | "igcse";
 

@@ -24,6 +24,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from 
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
+import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
 
 type CourseType = "ielts" | "igcse";
 
