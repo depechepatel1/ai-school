@@ -126,16 +126,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes gradient-move {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes text-flash {
-  0% { background-position: 200% center; }
-  100% { background-position: -200% center; }
-}
 
 @keyframes ethericDrift {
   0% { transform: translateY(0) scale(0); opacity: 0; }
