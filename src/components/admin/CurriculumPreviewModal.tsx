@@ -62,7 +62,7 @@ export default function CurriculumPreviewModal({ data, fileName, onConfirm, onCa
                 <div className="px-4 py-3 space-y-4">
                   {week.sections.map((section) => (
                     <div key={section.section_id} className="space-y-2">
-                      <p className="text-[9px] font-bold uppercase tracking-wider text-amber-400/70">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400/70">
                         {section.section_id.replace(/_/g, " ")}
                       </p>
                       {section.questions.map((q) => (

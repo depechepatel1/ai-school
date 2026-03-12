@@ -224,7 +224,7 @@ export default function AdminUploadVideos() {
                       </div>
                     )}
                     {status !== "done" && slot.existsInStorage && !slot.path.startsWith("loop-stack/") && (
-                      <span className="ml-auto text-[9px] uppercase tracking-wider text-emerald-400 font-bold">In Storage</span>
+                      <span className="ml-auto text-[10px] uppercase tracking-wider text-emerald-400 font-bold">In Storage</span>
                     )}
                   </CardTitle>
                 </CardHeader>

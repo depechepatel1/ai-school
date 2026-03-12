@@ -24,7 +24,7 @@ function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: L
           {/* Question always displayed at top */}
           {questionText && (
             <div className={hasContent ? "mb-3 pb-2.5 border-b border-white/[0.06]" : ""}>
-              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-cyan-400/60 mr-2">Q:</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-cyan-400/60 mr-2">Q:</span>
               <span className="text-[13px] text-white/70 font-medium leading-relaxed">{questionText}</span>
             </div>
           )}

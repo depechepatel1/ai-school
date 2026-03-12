@@ -112,7 +112,7 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
               </div>
               <div className="w-full h-px bg-white/[0.06]" />
               <div>
-                <span className="text-amber-300/80 font-bold uppercase text-[9px] tracking-wider">Pronunciation · Tongue Twisters</span>
+                <span className="text-amber-300/80 font-bold uppercase text-[10px] tracking-wider">Pronunciation · Tongue Twisters</span>
                 <p className="mt-0.5">Practice pronunciation with tongue twisters (10 min).</p>
                 <ProgressBar progress={getProgress("pronunciation")} />
               </div>
