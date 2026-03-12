@@ -237,7 +237,7 @@ export default function ConversationDetailView({
           </div>
         )}
         {(editingNote || !note) && noteText.length > 0 && (
-          <p className="text-[8px] text-gray-600 mt-1 text-right">{noteText.length}/{MAX_NOTE_LENGTH}</p>
+          <p className="text-[10px] text-gray-500 mt-1 text-right">{noteText.length}/{MAX_NOTE_LENGTH}</p>
         )}
       </motion.div>
     </motion.div>

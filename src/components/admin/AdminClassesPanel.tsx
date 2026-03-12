@@ -76,7 +76,7 @@ export default function ClassesPanel() {
                       <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02]">
                         <div className="w-6 h-6 rounded-full bg-white/[0.06] flex items-center justify-center text-[10px] font-bold text-gray-400 shrink-0">{(m.display_name || "?")[0].toUpperCase()}</div>
                         <p className="text-[10px] text-gray-300 flex-1 truncate">{m.display_name}</p>
-                        <p className="text-[9px] text-gray-600">{new Date(m.joined_at).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-gray-500">{new Date(m.joined_at).toLocaleDateString()}</p>
                         <button disabled={busy} onClick={() => removeMember(c.id, m.user_id)} className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50" title="Remove from class">
                           <UserMinus className="w-3 h-3" />
                         </button>

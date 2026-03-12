@@ -469,7 +469,7 @@ function Avatar({ name, url, size = 24 }: { name: string; url?: string | null; s
       {url ? (
         <img src={url} alt="" className="w-full h-full object-cover" />
       ) : (
-        <span className="text-[9px] font-bold text-white/40">{name.charAt(0).toUpperCase()}</span>
+        <span className="text-[10px] font-bold text-white/40">{name.charAt(0).toUpperCase()}</span>
       )}
     </div>
   );

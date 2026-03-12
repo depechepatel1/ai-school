@@ -120,9 +120,9 @@ export default function AdminTimerSettings() {
         <table className="w-full">
           <thead>
             <tr className="bg-white/[0.03]">
-              <th className="text-left px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white/40">Course</th>
-              <th className="text-left px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white/40">Module</th>
-              <th className="text-center px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white/40">Minutes</th>
+              <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">Course</th>
+              <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">Module</th>
+              <th className="text-center px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">Minutes</th>
             </tr>
           </thead>
           <tbody>

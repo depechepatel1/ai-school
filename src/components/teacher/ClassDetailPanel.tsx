@@ -184,7 +184,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
         {/* Bar Chart — fills remaining space */}
         {chartData.length > 0 && (
           <div className="flex-1 rounded-xl bg-white/[0.02] border border-white/[0.06] p-3">
-            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-2">Practice Minutes</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Practice Minutes</p>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={chartData} barCategoryGap="20%">
                 <XAxis dataKey="name" tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false} />
