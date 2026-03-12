@@ -38,4 +38,6 @@ const BottomDock = forwardRef<HTMLDivElement, BottomDockProps>(({ setShowHomewor
       </div>
     </div>
   );
-}
+});
+
+export default BottomDock;
