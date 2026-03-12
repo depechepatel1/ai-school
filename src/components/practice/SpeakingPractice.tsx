@@ -179,7 +179,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         </div>
 
         {/* Floating Info Panel */}
-        <div className="absolute top-32 left-4 z-50">
+        <div className="absolute top-40 left-4 z-50">
           <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType={config.singleQuestionPerWeek ? "Speaking" : sectionLabel} questionNumber={config.singleQuestionPerWeek ? "Q1" : `Q${currentQIndex + 1}`} questionText={currentQuestion?.text ?? ""} />
           <div className="mt-3 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-4 py-3 max-w-xs">
             <span className="text-[8px] font-bold uppercase tracking-[0.15em] text-white/30 block mb-1">Tips</span>
