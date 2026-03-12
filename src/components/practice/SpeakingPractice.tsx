@@ -163,14 +163,6 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         <PracticeHeader badgeClass={config.badgeClass} badgeLabel={config.badgeLabel} />
 
-        {/* DO NOT READ reminder */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[300]">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 backdrop-blur-2xl">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-red-300">Do Not Read Your Answers</span>
-          </div>
-        </div>
-
         {/* Timer */}
         <div className="absolute top-16 left-4 z-50">
           {timerSettings.countdownMinutes && (
@@ -178,7 +170,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
           )}
         </div>
 
-        {/* Floating Info Panel */}
+        {/* Floating Info Panel + Tips + Do Not Read */}
         <div className="absolute top-40 left-4 z-50">
           <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType={config.singleQuestionPerWeek ? "Speaking" : sectionLabel} questionNumber={config.singleQuestionPerWeek ? "Q1" : `Q${currentQIndex + 1}`} questionText={currentQuestion?.text ?? ""} />
           <div className="mt-3 bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-xl px-4 py-3 max-w-xs">
@@ -188,6 +180,10 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
               <li>• Add transition phrases</li>
               <li>• Include weekly vocabulary</li>
             </ul>
+          </div>
+          <div className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 backdrop-blur-2xl max-w-[220px]">
+            <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-red-300">Do Not Read Your Answers</span>
           </div>
         </div>
 
