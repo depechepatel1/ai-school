@@ -44,7 +44,8 @@ export default function DevNav() {
   const location = useLocation();
   const { user, role: currentRole } = useAuth();
 
-  if (!import.meta.env.DEV) return null;
+  const isDevEnv = import.meta.env.DEV || window.location.hostname.includes("lovable.app");
+  if (!isDevEnv) return null;
 
   const handleNav = async (route: typeof routes[0]) => {
     setLastError(null);
