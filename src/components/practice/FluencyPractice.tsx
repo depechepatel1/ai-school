@@ -24,6 +24,7 @@ import { Headphones, Mic, Play, Loader2, SkipForward } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
 import FluencyEndPopup from "./FluencyEndPopup";
+import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
 
 type CourseType = "ielts" | "igcse";
 
@@ -61,6 +62,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   const fluencyTimings = useFluencyTimings(courseType);
   const config = COURSE_CONFIG[courseType];
 
+  const [accent, setAccent] = useState<Accent>("uk");
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [targetProgress, setTargetProgress] = useState(0);
@@ -106,7 +108,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
     if (!currentText) return;
     if (isPlayingModel) { ttsHandleRef.current?.stop(); setIsPlayingModel(false); setActiveWordIndex(-1); return; }
     setIsPlayingModel(true); setActiveWordIndex(0); setTargetProgress(0);
-    ttsHandleRef.current = speak(currentText, "uk", {
+    ttsHandleRef.current = speak(currentText, accent, {
       rate: 0.8, pitch: 1.1,
       onBoundary: (charIndex) => { const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar); if (idx !== -1) { setActiveWordIndex(idx); setTargetProgress(computeTargetProgress(idx)); } },
       onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); setTargetProgress(1); },
@@ -160,8 +162,10 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
         <PracticeProgress label="Chunk" current={shadowCurriculum.currentIndex + 1} total={shadowCurriculum.totalChunks} />
 
-        {/* Vertical button stack – far right */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2">
+        {/* Accent selector + Vertical button stack – far right */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3">
+          <AccentSelector accent={accent} onChange={setAccent} />
+          <div className="flex flex-col items-center gap-2">
           <button onClick={handlePlayModel} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
             {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5" />}
           </button>
@@ -174,6 +178,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
           <button onClick={handleNextChunk} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all active:scale-95" title="Next Chunk">
             <SkipForward className="w-5 h-5" />
           </button>
+          </div>
         </div>
 
         {/* Bottom bar: karaoke text + visualizer */}

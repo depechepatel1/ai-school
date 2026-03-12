@@ -24,6 +24,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from 
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
+import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
 
 type CourseType = "ielts" | "igcse";
 
@@ -58,6 +59,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const pronunciationTimings = usePronunciationTimings();
   const config = COURSE_CONFIG[courseType];
 
+  const [accent, setAccent] = useState<Accent>("uk");
   const [twisters, setTwisters] = useState<PronunciationItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
@@ -118,7 +120,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     if (!currentTwister) return;
     if (isPlayingModel) { ttsHandleRef.current?.stop(); setIsPlayingModel(false); setActiveWordIndex(-1); return; }
     setIsPlayingModel(true); setActiveWordIndex(0); setTargetProgress(0);
-    ttsHandleRef.current = speak(currentTwister.text, "uk", {
+    ttsHandleRef.current = speak(currentTwister.text, accent, {
       rate: 0.8, pitch: 1.1,
       onBoundary: (charIndex) => { const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar); if (idx !== -1) { setActiveWordIndex(idx); setTargetProgress(computeTargetProgress(idx)); } },
       onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); setTargetProgress(1); },
@@ -156,8 +158,10 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
 
         <PracticeProgress label="Tongue Twister" current={currentIndex + 1} total={twisters.length} subLabel={moduleLabel} />
 
-        {/* Vertical button stack – far right */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2">
+        {/* Accent selector + Vertical button stack – far right */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3">
+          <AccentSelector accent={accent} onChange={setAccent} />
+          <div className="flex flex-col items-center gap-2">
           <button onClick={handlePrev} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Previous">
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -174,6 +178,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
           <button onClick={handleNext} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Next">
             <ChevronRight className="w-4 h-4" />
           </button>
+          </div>
         </div>
 
         {/* Bottom bar: karaoke text + visualizer */}
