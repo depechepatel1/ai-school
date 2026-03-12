@@ -64,7 +64,7 @@ export default function ConversationListView({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search conversations…"
-            className="w-full h-9 pl-9 pr-8 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            className="w-full h-9 pl-9 pr-8 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-teal-400/40 focus:bg-white/[0.06] transition-all"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
