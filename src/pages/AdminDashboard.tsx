@@ -56,7 +56,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <NeuralLogo />
                 <div>
-                  <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-white to-amber-300 leading-tight">
+                  <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-white to-amber-300 tracking-tight leading-tight">
                     Neural Admin
                   </h1>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/20 text-[10px] font-semibold text-amber-300">

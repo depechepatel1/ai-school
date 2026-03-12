@@ -15,7 +15,7 @@ const NotFound = () => {
         <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-400/20 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(20,184,166,0.15)]">
           <AlertTriangle className="w-8 h-8 text-teal-400" />
         </div>
-        <h1 className="text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 mb-3">
+        <h1 className="text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 tracking-tight mb-3">
           404
         </h1>
         <p className="text-lg text-white/60 mb-8">Oops! Page not found</p>

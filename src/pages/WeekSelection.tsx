@@ -111,7 +111,7 @@ export default function WeekSelection() {
                     {w}
                   </span>
                   {topic ? (
-                    <span className={`text-[10px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-teal-300/70" : "text-white/25"}`}>
+                    <span className={`text-[10px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-teal-300/70" : "text-white/35"}`}>
                       {topic.length > 12 ? topic.slice(0, 10) + "…" : topic}
                     </span>
                   ) : (

@@ -457,7 +457,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
           </div>
 
           <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
-            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Recent Sessions</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Recent Sessions</p>
             {logs.slice(-10).reverse().map((l, i) => (
               <div key={i} className="flex items-center gap-2 py-1">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ACTIVITY_COLORS[l.activity_type] || "#888" }} />

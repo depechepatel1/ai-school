@@ -28,7 +28,7 @@ export default function ParentDashboard() {
           <div className="flex items-center gap-2.5">
             <NeuralLogo />
             <div>
-              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 leading-tight">{t("brand.title")}</h1>
+              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 tracking-tight leading-tight">{t("brand.title")}</h1>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-400/20 text-[10px] font-semibold text-rose-300">
                 <Heart className="w-3 h-3" /> {t("portal.parent")}
               </span>
