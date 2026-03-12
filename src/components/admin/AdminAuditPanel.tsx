@@ -72,7 +72,7 @@ export default function AuditPanel() {
           {actionTypes.map((a) => {
             const meta = a === "all" ? null : ACTION_LABELS[a];
             return (
-              <button key={a} onClick={() => setActionFilter(a)} className={`px-2 py-1 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all ${actionFilter === a ? "bg-amber-500/15 border border-amber-400/20 text-amber-300" : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"}`}>
+              <button key={a} onClick={() => setActionFilter(a)} className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${actionFilter === a ? "bg-amber-500/15 border border-amber-400/20 text-amber-300" : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"}`}>
                 {a === "all" ? "All" : meta?.label || a}
               </button>
             );
