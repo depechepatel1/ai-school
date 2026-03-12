@@ -43,16 +43,16 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
       >
         {item.syllables.map((syl, sIdx) => {
           let yOffset = 0,
-            fontSize = "text-base",
+            fontSize = "text-2xl",
             color = isActive ? "text-cyan-300" : "text-white/60",
             weight = "font-medium",
             shadow = "";
           if (syl.pitch === 2 && syl.stress === 2) {
-            yOffset = -10; fontSize = "text-xl"; weight = "font-bold";
+            yOffset = -20; fontSize = "text-4xl"; weight = "font-bold";
             color = isActive ? "text-cyan-200" : "text-yellow-400";
-            shadow = isActive ? "drop-shadow-[0_0_14px_rgba(34,211,238,0.9)]" : "drop-shadow-[0_0_10px_rgba(250,204,21,0.6)]";
+            shadow = isActive ? "drop-shadow-[0_0_20px_rgba(34,211,238,0.9)]" : "drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]";
           } else if (syl.pitch === 2) {
-            yOffset = -4; fontSize = "text-lg"; weight = "font-semibold";
+            yOffset = -8; fontSize = "text-2xl"; weight = "font-semibold";
             color = isActive ? "text-cyan-300" : "text-white";
           } else {
             color = isActive ? "text-cyan-500" : "text-gray-400";
