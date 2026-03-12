@@ -385,7 +385,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
           </div>
 
           <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
-            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Activity Breakdown</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Activity Breakdown</p>
             {(["shadowing", "pronunciation", "speaking"] as const).map((a) => {
               const secs = stats.activitySums[a];
               const maxSecs = Math.max(...Object.values(stats.activitySums), 1);
