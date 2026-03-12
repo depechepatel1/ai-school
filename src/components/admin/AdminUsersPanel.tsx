@@ -385,7 +385,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
           </div>
 
           <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
-            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Activity Breakdown</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Activity Breakdown</p>
             {(["shadowing", "pronunciation", "speaking"] as const).map((a) => {
               const secs = stats.activitySums[a];
               const maxSecs = Math.max(...Object.values(stats.activitySums), 1);
@@ -417,7 +417,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
             </ResponsiveContainer>
             <div className="flex justify-center gap-3 mt-1">
               {["shadowing", "pronunciation", "speaking"].map((a) => (
-                <span key={a} className="flex items-center gap-1 text-[8px] text-gray-400">
+                <span key={a} className="flex items-center gap-1 text-[10px] text-gray-400">
                   <span className="w-2 h-2 rounded-full" style={{ background: ACTIVITY_COLORS[a] }} /> {a.charAt(0).toUpperCase() + a.slice(1)}
                 </span>
               ))}
@@ -449,7 +449,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
             <div className="space-y-2">
               {Object.entries(stats.courseMap).map(([course, seconds]) => (
                 <div key={course} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${course === "igcse" ? "text-amber-300" : "text-cyan-300"}`}>{course}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${course === "igcse" ? "text-amber-300" : "text-cyan-300"}`}>{course}</span>
                   <p className="text-sm font-bold text-white/80 mt-0.5">{formatTime(seconds)}</p>
                 </div>
               ))}
@@ -457,7 +457,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
           </div>
 
           <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
-            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Recent Sessions</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Recent Sessions</p>
             {logs.slice(-10).reverse().map((l, i) => (
               <div key={i} className="flex items-center gap-2 py-1">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ACTIVITY_COLORS[l.activity_type] || "#888" }} />

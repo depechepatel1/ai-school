@@ -78,7 +78,7 @@ export default function WeekSelection() {
           <span className="inline-block px-3 py-1 rounded-full bg-teal-500/15 border border-teal-400/20 text-[10px] font-bold uppercase tracking-[0.15em] text-teal-300/90 mb-3">
             {courseLabel} Course
           </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-200 via-white to-teal-200 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-200 via-white to-teal-200 tracking-tight leading-tight">
             Select Your Week
           </h1>
           <p className="text-sm text-white/40 mt-2">Choose which week's curriculum to practice</p>
@@ -111,7 +111,7 @@ export default function WeekSelection() {
                     {w}
                   </span>
                   {topic ? (
-                    <span className={`text-[10px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-teal-300/70" : "text-white/25"}`}>
+                    <span className={`text-[10px] font-medium mt-0.5 truncate max-w-full px-1 ${isSelected ? "text-teal-300/70" : "text-white/35"}`}>
                       {topic.length > 12 ? topic.slice(0, 10) + "…" : topic}
                     </span>
                   ) : (
