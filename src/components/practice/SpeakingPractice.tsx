@@ -15,7 +15,7 @@ import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curricul
 import { chat, type ChatMessage } from "@/services/ai";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
-import { createPauseTracker } from "@/lib/speech-annotations";
+import { createPauseTracker, stripPauseMarkers, reinsertPauseMarkers } from "@/lib/speech-annotations";
 import { createSpeechActivityTracker, type SpeechActivityTracker } from "@/lib/speech-activity-tracker";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
@@ -112,10 +112,25 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const pauseTracker = useRef(createPauseTracker(1500));
   const { startMediaRecorder, stopMediaRecorder } = useAudioCapture();
 
+  // Keep a ref to the latest slots so the callback can access them
+  const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
+
   const debouncedPunctuate = useCallback(
-    createDebouncedPunctuate((punctuated) => setLiveTranscript(punctuated), 800),
+    createDebouncedPunctuate((punctuated) => {
+      // Re-inject pause markers that were stripped before sending to AI
+      const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
+      currentTranscriptRef.current = restored;
+      setLiveTranscript(restored);
+    }, 800),
     []
   );
+
+  // Wrapper that strips markers before punctuating
+  const punctuateWithMarkers = useCallback((raw: string) => {
+    const { clean, slots } = stripPauseMarkers(raw);
+    pauseSlotsRef.current = slots;
+    debouncedPunctuate(clean);
+  }, [debouncedPunctuate]);
 
   const practiceTimer = usePracticeTimer({
     userId, courseType, activityType: "speaking",
@@ -123,6 +138,9 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     isAudioActive: recordingState !== "idle",
     isSpeechDetected: isSpeechActive,
   });
+
+  // Ref to always call the latest finishRecording (avoids stale closure)
+  const finishRecordingRef = useRef<() => void>(() => {});
 
   // Create speech activity tracker on mount
   useEffect(() => {
@@ -136,7 +154,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         setSilenceNudge(false);
       },
       onAutoPause: () => {
-        finishRecording();
+        finishRecordingRef.current();
       },
     });
     return () => speechTrackerRef.current?.destroy();
@@ -160,6 +178,12 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const sectionMap: Record<string, string> = { part_2: "Part 2", part_3: "Part 3", model_answer: "Model Answer" };
   const sectionLabel = currentQuestion ? sectionMap[currentQuestion.sectionId] ?? currentQuestion.sectionId : "";
 
+  const cleanupRecordingResources = () => {
+    if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
+    stopMediaRecorder();
+    speechTrackerRef.current?.reset();
+  };
+
   const startSttListening = () => {
     sttHandleRef.current = startListening("en-US", {
       onResult: (text) => {
@@ -168,21 +192,28 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         currentTranscriptRef.current += pauseMarker + " " + text;
         setLiveTranscript(currentTranscriptRef.current.trimStart());
         setLiveInterim("");
-        debouncedPunctuate(currentTranscriptRef.current.trim());
+        punctuateWithMarkers(currentTranscriptRef.current.trim());
       },
       onInterim: (text) => {
         speechTrackerRef.current?.onSpeechDetected();
         setLiveInterim(text);
       },
-      onError: () => setRecordingState("idle"),
+      onError: () => {
+        cleanupRecordingResources();
+        setRecordingState("idle");
+        setSilenceNudge(false);
+      },
     });
   };
 
   const startRecording = async () => {
+    // Clean up any leftover resources from a previous stuck session
+    cleanupRecordingResources();
     setRecordingState("recording");
     setSilenceNudge(false);
     setLiveTranscript(""); setLiveInterim("");
     currentTranscriptRef.current = "";
+    pauseSlotsRef.current = [];
     setAiResponse(null); setShowPostAnswer(false);
     speechTrackerRef.current?.reset();
     pauseTracker.current.reset();
@@ -200,7 +231,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     // Auto-submit after 2 minutes of being paused
     if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
     pauseTimeoutRef.current = setTimeout(() => {
-      finishRecording();
+      finishRecordingRef.current();
     }, 120_000);
   };
 
@@ -235,6 +266,9 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
       setIsAiThinking(false); setShowPostAnswer(true);
     }
   };
+
+  // Keep finishRecordingRef always pointing to the latest version
+  useEffect(() => { finishRecordingRef.current = finishRecording; });
 
   const handleRecordingTap = () => {
     if (recordingState === "idle") startRecording();

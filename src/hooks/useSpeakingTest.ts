@@ -6,7 +6,7 @@ import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import type { Accent } from "@/lib/tts-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
-import { createPauseTracker } from "@/lib/speech-annotations";
+import { createPauseTracker, stripPauseMarkers, reinsertPauseMarkers } from "@/lib/speech-annotations";
 
 interface UseSpeakingTestOptions {
   accent: Accent;
@@ -37,6 +37,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
   const pauseTracker = useRef(createPauseTracker(1500));
+  const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
   // Refs for timeout cleanup
   const pendingTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -56,10 +57,18 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   // Debounced punctuation — updates liveTranscript with punctuated text
   const debouncedPunctuate = useMemo(
     () => createDebouncedPunctuate((punctuated) => {
-      setLiveTranscript(punctuated);
+      const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
+      currentTranscriptRef.current = restored;
+      setLiveTranscript(restored);
     }, 800),
     []
   );
+
+  const punctuateWithMarkers = useCallback((raw: string) => {
+    const { clean, slots } = stripPauseMarkers(raw);
+    pauseSlotsRef.current = slots;
+    debouncedPunctuate(clean);
+  }, [debouncedPunctuate]);
 
   useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
   useEffect(() => { testStateRef.current = testState; }, [testState]);
@@ -73,7 +82,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
         currentTranscriptRef.current += pauseMarker + " " + text;
         setLiveTranscript(currentTranscriptRef.current.trimStart());
         setLiveInterim("");
-        debouncedPunctuate(currentTranscriptRef.current.trim());
+        punctuateWithMarkers(currentTranscriptRef.current.trim());
       },
       onInterim: (text) => {
         interimTranscriptRef.current = text;

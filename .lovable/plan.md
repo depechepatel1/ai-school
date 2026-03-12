@@ -1,41 +1,29 @@
 
 
-## Bug Analysis
+## Analysis
 
-### Bug 1: Pause markers disappearing (flip-flopping text)
+### Problem 1: Video not moving
+The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
 
-**Root cause**: The `debouncedPunctuate` callback sends `currentTranscriptRef.current` (which contains `⟦1.8s⟧` markers) to the AI punctuation edge function. The AI strips these markers since they're not English text. When the punctuated result returns, `setLiveTranscript(punctuated)` overwrites the display with marker-free text. Then on the next STT chunk, `setLiveTranscript(currentTranscriptRef.current.trimStart())` restores the markers — causing the flip-flop.
+**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
 
-**Fix**: Before sending text to the punctuation API, strip pause markers from the input. When the result comes back, re-inject the markers at their original positions. Concretely:
+### Problem 2: The vertical line with one-sided fade
+The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
 
-In `SpeakingPractice.tsx`, modify the `debouncedPunctuate` callback (line 115-118):
-- Before calling punctuate, extract all `⟦...s⟧` markers and their positions
-- Send only the clean text to the API
-- When the result returns, re-inject the markers at the correct positions
-- A simpler approach: keep `currentTranscriptRef` as the source of truth (it already has markers). Only punctuate the non-marker segments. When punctuation returns, merge the punctuated text back with the markers preserved.
+Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
 
-Simplest reliable fix: strip markers before sending, then after punctuation returns, don't use the punctuated text to replace markers — instead, update `currentTranscriptRef` by applying punctuation only to the text segments between markers, then set `liveTranscript` from the ref.
+**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
 
-**Implementation**: Create a helper `stripPauseMarkers(text)` and `reinsertPauseMarkers(punctuated, original)` in `speech-annotations.ts`. The debounced punctuate wrapper will:
-1. Strip markers from `currentTranscriptRef.current`
-2. Send stripped text to punctuate API  
-3. On result, re-insert markers at their original relative positions
-4. Update both `currentTranscriptRef.current` and `setLiveTranscript`
+---
 
-### Bug 2: Recording gets stuck (can't restart)
+## Changes -- `src/components/PageShell.tsx`
 
-**Root cause**: When STT errors occur (e.g., `no-speech`, `network` errors from Web Speech API), the `onError` callback sets `recordingState` to `"idle"` but does NOT clean up the media recorder or speech tracker. The media recorder stream stays open, and subsequent `startRecording` calls may fail silently because `getUserMedia` or `MediaRecorder` is still active.
+### 1. Shift video left using transform instead of object-position
+- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
+- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
 
-Additionally, the `onAutoPause` callback calls `finishRecording()` which is defined inside the component but captured in a stale closure from the `useEffect([], [])` — it captures the initial `finishRecording` reference, which has stale state values for `currentQuestion`, `conversationHistory`, etc.
-
-**Fix**:
-1. Add proper cleanup to the `onError` handler — stop media recorder, reset speech tracker
-2. Fix the stale closure: use a ref for `finishRecording` so the `onAutoPause` callback always calls the latest version
-3. Add error recovery: if `startRecording` is called while resources are still active, clean them up first
-
-### Files to Edit
-
-1. **`src/lib/speech-annotations.ts`** — Add `stripPauseMarkers()` and `reinsertPauseMarkers()` helpers
-2. **`src/components/practice/SpeakingPractice.tsx`** — Fix punctuation to preserve markers; fix error handling cleanup; fix stale closure for `finishRecording`; add cleanup guard in `startRecording`
-3. **`src/hooks/useSpeakingTest.ts`** — Apply same marker-preservation fix if it uses `debouncedPunctuate` with pause markers
+### 2. Remove fade effects on auth screens
+- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
+- Keep footer behavior for `fullWidth` screens unchanged
+- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
 

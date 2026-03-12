@@ -124,6 +124,57 @@ export function analyzeTranscript(text: string): SpeechAnalysis {
   };
 }
 
+// ── Pause Marker Preservation (for punctuation round-trips) ──
+
+const PAUSE_MARKER_RE = /\s*⟦\d+\.?\d*s⟧\s*/g;
+
+interface MarkerSlot { marker: string; wordIndexBefore: number }
+
+/** Strip ⟦…s⟧ markers, returning clean text + slots for reinsertion. */
+export function stripPauseMarkers(text: string): { clean: string; slots: MarkerSlot[] } {
+  const slots: MarkerSlot[] = [];
+  let wordCount = 0;
+  let last = 0;
+  const clean: string[] = [];
+
+  PAUSE_MARKER_RE.lastIndex = 0;
+  let m;
+  while ((m = PAUSE_MARKER_RE.exec(text)) !== null) {
+    const before = text.slice(last, m.index);
+    if (before) {
+      const words = before.trim().split(/\s+/).filter(Boolean);
+      wordCount += words.length;
+      clean.push(before);
+    }
+    slots.push({ marker: m[0].trim(), wordIndexBefore: wordCount });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) clean.push(text.slice(last));
+
+  return { clean: clean.join("").replace(/\s{2,}/g, " ").trim(), slots };
+}
+
+/** Re-inject pause markers into punctuated text at the saved word positions. */
+export function reinsertPauseMarkers(punctuated: string, slots: MarkerSlot[]): string {
+  if (slots.length === 0) return punctuated;
+
+  const words = punctuated.split(/(\s+)/); // keep whitespace tokens
+  const realWordIndices: number[] = [];
+  words.forEach((w, i) => { if (w.trim()) realWordIndices.push(i); });
+
+  // Insert markers in reverse order so indices stay valid
+  const sorted = [...slots].sort((a, b) => b.wordIndexBefore - a.wordIndexBefore);
+  for (const { marker, wordIndexBefore } of sorted) {
+    const insertAt = wordIndexBefore < realWordIndices.length
+      ? realWordIndices[wordIndexBefore]
+      : words.length;
+    words.splice(insertAt, 0, ` ${marker} `);
+    // Rebuild index map not needed since we go in reverse
+  }
+
+  return words.join("").replace(/\s{2,}/g, " ").trim();
+}
+
 // ── Pause Injection Helper ───────────────────────────────────
 
 export function createPauseTracker(thresholdMs = 1500) {
