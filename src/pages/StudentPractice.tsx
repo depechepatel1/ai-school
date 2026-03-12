@@ -16,7 +16,6 @@ import BrowserBanner from "@/components/student/BrowserBanner";
 
 export default function StudentPractice() {
   const { signOut, user } = useAuth();
-  const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
   const { videoList } = useVideoLoopStack();
   const { data: analytics } = useAnalyticsData(user?.id ?? null, courseWeek.courseType, "weekly");
