@@ -50,7 +50,7 @@ export default function StudentPractice() {
           courseType={courseWeek.courseType}
           courseLoading={courseWeek.loading}
         />
-        <RightPillar onNavigate={handleNavigate} />
+        <RightPillar onNavigate={handleNavigate} speakingProgress={speakingProgress} />
         <BottomDock setShowHomeworkModal={setShowHomeworkModal} setCalendarOpen={setCalendarOpen} onSettings={signOut} />
       </div>
     </PageShell>

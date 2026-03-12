@@ -69,7 +69,7 @@ export default function RightPillar({ onNavigate, speakingProgress }: RightPilla
 
       {/* Satellite Widget */}
       <div className="flex-1 flex items-center justify-center relative overflow-visible mt-4 -translate-x-8">
-        <SatelliteWidget onNavigate={onNavigate} />
+        <SatelliteWidget onNavigate={onNavigate} speakingProgress={speakingProgress} />
       </div>
     </div>
   );

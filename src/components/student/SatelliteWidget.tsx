@@ -24,7 +24,7 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
   };
 
-  const centerProgress = 45;
+  const centerProgress = speakingProgress;
   const centerR = 54;
   const centerCirc = 2 * Math.PI * centerR;
   const centerDashOffset = centerCirc - (centerProgress / 100) * centerCirc;
