@@ -74,14 +74,14 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   // Before measurement, render hidden flex-wrap to measure positions
   if (lines.length === 0) {
     return (
-      <div ref={containerRef} className="relative min-h-[6rem] w-full max-w-4xl mx-auto flex flex-wrap items-center justify-between content-center gap-y-4 mt-4 mb-2 px-6">
+      <div ref={containerRef} className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-wrap items-end justify-between content-end gap-y-2 mt-0 mb-0 px-6">
         {data.map((item, i) => renderWord(item, i, (el) => { wordRefs.current[i] = el; }))}
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[6rem] w-full max-w-4xl mx-auto flex flex-col items-center gap-y-4 mt-4 mb-2 px-6">
+    <div className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-2 mt-0 mb-0 px-6">
       {lines.map((lineIndices, lineIdx) => {
         const isFirstLine = lineIdx === 0;
         const justify = isFirstLine || lineIndices.length >= 4 ? "justify-between" : "justify-center";
