@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN accent text NOT NULL DEFAULT 'uk';

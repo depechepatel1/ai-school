@@ -24,7 +24,8 @@ import { Headphones, Mic, Play, Loader2, SkipForward } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
 import FluencyEndPopup from "./FluencyEndPopup";
-import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
+import AccentSelector from "@/components/speaking/AccentSelector";
+import { useAccent } from "@/hooks/useAccent";
 
 type CourseType = "ielts" | "igcse";
 
@@ -62,7 +63,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   const fluencyTimings = useFluencyTimings(courseType);
   const config = COURSE_CONFIG[courseType];
 
-  const [accent, setAccent] = useState<Accent>("uk");
+  const { accent, setAccent } = useAccent(userId);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [targetProgress, setTargetProgress] = useState(0);

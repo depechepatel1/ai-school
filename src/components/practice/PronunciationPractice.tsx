@@ -24,7 +24,8 @@ import { ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from 
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
-import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
+import AccentSelector from "@/components/speaking/AccentSelector";
+import { useAccent } from "@/hooks/useAccent";
 
 type CourseType = "ielts" | "igcse";
 
@@ -59,7 +60,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const pronunciationTimings = usePronunciationTimings();
   const config = COURSE_CONFIG[courseType];
 
-  const [accent, setAccent] = useState<Accent>("uk");
+  const { accent, setAccent } = useAccent(userId);
   const [twisters, setTwisters] = useState<PronunciationItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);

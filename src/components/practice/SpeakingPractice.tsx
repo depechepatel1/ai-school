@@ -24,7 +24,8 @@ import { Mic, SkipForward, AlertTriangle } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
 import SpeakingFeedbackPanel from "./SpeakingFeedbackPanel";
-import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
+import AccentSelector from "@/components/speaking/AccentSelector";
+import { useAccent } from "@/hooks/useAccent";
 
 type CourseType = "ielts" | "igcse";
 
@@ -81,7 +82,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const timerSettings = useTimerSettings(courseType, "speaking");
   const config = COURSE_CONFIG[courseType];
 
-  const [accent, setAccent] = useState<Accent>("uk");
+  const { accent, setAccent } = useAccent(userId);
   const [questions, setQuestions] = useState<SpeakingQuestion[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
