@@ -32,6 +32,7 @@ const SpeakingFeedbackPanel = forwardRef<HTMLDivElement, SpeakingFeedbackPanelPr
   hasMultipleQuestions,
   onTryAgain,
   onNextQuestion,
+  onDismiss,
 }, ref) {
   const accent = ACCENT_CLASSES[accentColor] ?? ACCENT_CLASSES.purple;
 
