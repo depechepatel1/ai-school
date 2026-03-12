@@ -162,8 +162,8 @@ export default function UsersPanel() {
             {!bulkConfirm ? (
               <div className="flex items-center gap-2">
                 <p className="text-[10px] text-amber-300 font-bold flex-1">{bulkIds.length} selected {checked.size !== bulkIds.length ? `(${checked.size - bulkIds.length} self excluded)` : ""}</p>
-                <button onClick={() => setBulkConfirm({ action: "role" })} className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-teal-500/15 border border-teal-400/20 text-teal-300 hover:bg-teal-500/25 transition-all">Change Role</button>
-                <button onClick={() => setBulkConfirm({ action: "delete" })} className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-red-500/15 border border-red-400/20 text-red-300 hover:bg-red-500/25 transition-all">Delete</button>
+                <button onClick={() => setBulkConfirm({ action: "role" })} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-500/15 border border-teal-400/20 text-teal-300 hover:bg-teal-500/25 transition-all">Change Role</button>
+                <button onClick={() => setBulkConfirm({ action: "delete" })} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-red-500/15 border border-red-400/20 text-red-300 hover:bg-red-500/25 transition-all">Delete</button>
                 <button onClick={() => setChecked(new Set())} className="text-[10px] text-gray-500 hover:text-gray-300 px-1">Clear</button>
               </div>
             ) : bulkConfirm.action === "role" && !bulkConfirm.role ? (
