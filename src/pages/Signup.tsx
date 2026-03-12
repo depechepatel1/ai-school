@@ -189,9 +189,19 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
+    setErrors({});
+    const result = signupSchema.safeParse({ displayName, email, password });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName, selectedRole);
+      await signUp(result.data.email, result.data.password, result.data.displayName, selectedRole);
       toast({ title: t("signup.created"), description: t("signup.verifyEmail") });
       navigate("/login");
     } catch (err: any) {
