@@ -92,7 +92,7 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
               </div>
               <div className="w-full h-px bg-white/[0.06]" />
               <div>
-                <span className="text-purple-300/80 font-bold uppercase text-[9px] tracking-wider">Post-Homework · Recording</span>
+                <span className="text-purple-300/80 font-bold uppercase text-[10px] tracking-wider">Post-Homework · Recording</span>
                 <p className="mt-0.5">Record a 2-min audio answering this week's Section 6 question. Use 1 complex sentence + Present Perfect tense.</p>
                 <ProgressBar progress={getProgress("speaking")} />
               </div>
