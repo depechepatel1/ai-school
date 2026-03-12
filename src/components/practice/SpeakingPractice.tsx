@@ -139,6 +139,9 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     isSpeechDetected: isSpeechActive,
   });
 
+  // Ref to always call the latest finishRecording (avoids stale closure)
+  const finishRecordingRef = useRef<() => void>(() => {});
+
   // Create speech activity tracker on mount
   useEffect(() => {
     speechTrackerRef.current = createSpeechActivityTracker({
@@ -151,7 +154,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         setSilenceNudge(false);
       },
       onAutoPause: () => {
-        finishRecording();
+        finishRecordingRef.current();
       },
     });
     return () => speechTrackerRef.current?.destroy();
