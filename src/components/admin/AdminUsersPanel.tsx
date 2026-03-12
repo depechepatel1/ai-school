@@ -417,7 +417,7 @@ function StudentDrillDown({ user, onBack }: { user: any; onBack: () => void }) {
             </ResponsiveContainer>
             <div className="flex justify-center gap-3 mt-1">
               {["shadowing", "pronunciation", "speaking"].map((a) => (
-                <span key={a} className="flex items-center gap-1 text-[8px] text-gray-400">
+                <span key={a} className="flex items-center gap-1 text-[10px] text-gray-400">
                   <span className="w-2 h-2 rounded-full" style={{ background: ACTIVITY_COLORS[a] }} /> {a.charAt(0).toUpperCase() + a.slice(1)}
                 </span>
               ))}
