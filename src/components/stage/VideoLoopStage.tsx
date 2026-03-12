@@ -21,14 +21,23 @@ export const VIDEO_LOOP_STACK = [
   `${STORAGE_BASE}/loop-stack/10.mp4${CACHE_BUST}`,
 ];
 
+/** Fisher-Yates shuffle, keeping index 0 in place */
+function shuffleExceptFirst(arr: string[]): string[] {
+  const first = arr[0];
+  const rest = arr.slice(1);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  return [first, ...rest];
+}
+
 interface VideoLoopStageProps {
   videoList?: string[];
   playIntro?: boolean;
   objectPosition?: string;
-  /** If provided, the audio toggle is rendered externally via a portal-like pattern */
   onMuteStateChange?: (isMuted: boolean) => void;
   externalMuteControl?: boolean;
-  /** CSS class applied to video elements (e.g. for responsive scaling) */
   scaleClass?: string;
 }
 
@@ -44,35 +53,49 @@ export default function VideoLoopStage({
   const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
   const useIntro = playIntro && !alreadyPlayedIntro;
 
-  const [isMuted, setIsMuted] = useState(false); // Sound ON by default
+  const [isMuted, setIsMuted] = useState(false);
   const [introFinished, setIntroFinished] = useState(!useIntro);
   const [activePlayer, setActivePlayer] = useState<"A" | "B">("A");
 
   const introRef = useRef<HTMLVideoElement>(null);
   const refA = useRef<HTMLVideoElement>(null);
   const refB = useRef<HTMLVideoElement>(null);
-  const nextIndexRef = useRef(2);
+
+  // Shuffled playlist & index tracker
+  const playlistRef = useRef<string[]>(shuffleExceptFirst(videoList));
+  const playIndexRef = useRef(1); // 0 is already on Player A
 
   const activeVideoRef = !introFinished ? introRef : activePlayer === "A" ? refA : refB;
 
-  // Robust play helper — respects current muted state, falls back to muted if browser blocks
-  const safePlay = useCallback((v: HTMLVideoElement, forceMuted = false) => {
-    if (forceMuted) v.muted = true;
+  const getNextClip = useCallback((): string => {
+    const playlist = playlistRef.current;
+    if (playIndexRef.current >= playlist.length) {
+      // Reshuffle entire list for next round
+      const reshuffled = [...videoList];
+      for (let i = reshuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [reshuffled[i], reshuffled[j]] = [reshuffled[j], reshuffled[i]];
+      }
+      playlistRef.current = reshuffled;
+      playIndexRef.current = 0;
+    }
+    return playlistRef.current[playIndexRef.current++];
+  }, [videoList]);
+
+  const safePlay = useCallback((v: HTMLVideoElement) => {
     v.play().catch(() => {
-      // Browser blocked unmuted autoplay — fall back to muted
       v.muted = true;
       v.play().catch(() => {});
     });
   }, []);
 
-  // Try to autoplay intro with sound; browser may block and we fall back to muted
+  // Intro autoplay with sound
   useEffect(() => {
     if (!useIntro || !introRef.current) return;
     const v = introRef.current;
     v.muted = false;
     v.volume = 1.0;
     v.play().catch(() => {
-      // Browser blocked unmuted autoplay — fall back to muted, update UI state
       v.muted = true;
       setIsMuted(true);
       v.play().catch(() => {});
@@ -95,21 +118,23 @@ export default function VideoLoopStage({
     setIntroFinished(true);
   };
 
-  // When intro finishes, explicitly start Player A (onCanPlay may have already fired)
+  // When intro finishes, start Player A and defer-preload Player B
   useEffect(() => {
     if (!introFinished) return;
-    if (refA.current) {
-      refA.current.muted = isMuted;
-      safePlay(refA.current);
+    const a = refA.current;
+    if (a) {
+      a.muted = isMuted;
+      safePlay(a);
     }
-    // Preload Player B with next video
+    // Defer Player B preload so it doesn't compete with Player A
     if (!shouldLoop && refB.current && videoList.length > 1) {
-      refB.current.src = videoList[1];
+      const nextClip = getNextClip();
+      refB.current.src = nextClip;
       refB.current.load();
     }
   }, [introFinished]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // When active player ends, only swap after the next player has decodable data ready
+  // Instant swap when active player ends
   const handlePlayerEnded = useCallback(
     (player: "A" | "B") => {
       if (shouldLoop) return;
@@ -118,61 +143,55 @@ export default function VideoLoopStage({
       const nextRef = nextPlayer === "A" ? refA : refB;
       const currentRef = player === "A" ? refA : refB;
 
-      const activateNextWhenReady = async () => {
-        const nextEl = nextRef.current;
-        if (!nextEl) return;
+      const nextEl = nextRef.current;
+      if (!nextEl) return;
 
-        if (nextEl.readyState < 2) {
-          await new Promise<void>((resolve) => {
-            const done = () => resolve();
-            nextEl.addEventListener("canplay", done, { once: true });
-            nextEl.addEventListener("error", done, { once: true });
-          });
-        }
-
-        const playableNext = nextRef.current;
-        if (!playableNext) return;
-
-        playableNext.muted = isMuted;
+      // If ready, swap instantly; otherwise wait for canplay
+      const doSwap = () => {
+        nextEl.muted = isMuted;
         setActivePlayer(nextPlayer);
-        safePlay(playableNext);
+        safePlay(nextEl);
 
-        // Preload the upcoming clip on the now-inactive player
+        // Preload next clip on the now-inactive player
         const inactiveEl = currentRef.current;
         if (inactiveEl) {
-          const preloadIdx = nextIndexRef.current % videoList.length;
-          inactiveEl.src = videoList[preloadIdx];
+          inactiveEl.src = getNextClip();
           inactiveEl.load();
-          nextIndexRef.current = preloadIdx + 1;
         }
       };
 
-      void activateNextWhenReady();
+      if (nextEl.readyState >= 2) {
+        doSwap();
+      } else {
+        nextEl.addEventListener("canplay", doSwap, { once: true });
+      }
     },
-    [shouldLoop, videoList, safePlay, isMuted]
+    [shouldLoop, safePlay, isMuted, getNextClip]
   );
 
-  // Sync muted state to the currently active video element
+  // Sync muted state
   useEffect(() => {
     const vid = activeVideoRef.current;
     if (vid) vid.muted = isMuted;
   }, [isMuted, activeVideoRef]);
 
+  const videoBase = `absolute inset-0 w-full h-full object-cover ${scaleClass ?? ""}`;
+
   return (
     <>
-      {/* Intro video — plays once, attempts unmuted autoplay */}
+      {/* Intro video */}
       {useIntro && (
         <video
           ref={introRef}
           src={VIDEO_INTRO}
           playsInline
           onEnded={handleIntroEnd}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"} ${scaleClass ?? ""}`}
+          className={`${videoBase} z-[3] ${introFinished ? "opacity-0 pointer-events-none" : "opacity-100"}`}
           style={{ objectPosition }}
         />
       )}
 
-      {/* Player A */}
+      {/* Player A — always visible, z-index swap only */}
       <video
         ref={refA}
         src={videoList[0]}
@@ -186,11 +205,11 @@ export default function VideoLoopStage({
           const v = e.currentTarget;
           console.error("[VideoPlayer] A error:", v.error?.code, v.error?.message, "src:", v.src);
         }}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${activePlayer === "A" ? "z-[2] opacity-100" : "z-[1] opacity-0"} ${scaleClass ?? ""}`}
+        className={`${videoBase} ${activePlayer === "A" ? "z-[2]" : "z-[1]"}`}
         style={{ objectPosition }}
       />
 
-      {/* Player B */}
+      {/* Player B — always visible, z-index swap only */}
       {!shouldLoop && (
         <video
           ref={refB}
@@ -203,12 +222,12 @@ export default function VideoLoopStage({
             const v = e.currentTarget;
             console.error("[VideoPlayer] B error:", v.error?.code, v.error?.message, "src:", v.src);
           }}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${activePlayer === "B" ? "z-[2] opacity-100" : "z-[1] opacity-0"} ${scaleClass ?? ""}`}
+          className={`${videoBase} ${activePlayer === "B" ? "z-[2]" : "z-[1]"}`}
           style={{ objectPosition }}
         />
       )}
 
-      {/* Audio Toggle — portaled to body to escape z-0 stacking context */}
+      {/* Audio Toggle */}
       {createPortal(
         <button
           onClick={toggleAudio}
