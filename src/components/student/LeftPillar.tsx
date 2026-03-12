@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
   Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
