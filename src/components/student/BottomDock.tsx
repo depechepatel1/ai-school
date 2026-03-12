@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { BookOpen, Calendar, BarChart3, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { usePrefetchProps } from "@/hooks/usePrefetch";
 
 interface BottomDockProps {
   setShowHomeworkModal: (show: boolean) => void;
