@@ -162,7 +162,7 @@ export default function DevNav() {
             className="mb-2 p-2 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-1 w-[200px] shadow-2xl"
           >
             {/* Status bar */}
-            <div className="px-3 py-1 text-[9px] font-mono text-gray-500 border-b border-white/5 mb-1">
+            <div className="px-3 py-1 text-[10px] font-mono text-gray-500 border-b border-white/5 mb-1">
               {user ? (
                 <span className="text-green-400">{user.email} ({currentRole ?? "no role"})</span>
               ) : (
