@@ -176,7 +176,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
             <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center space-y-1">
               <div className={`mx-auto w-6 h-6 rounded-lg bg-white/[0.04] flex items-center justify-center ${c.color}`}>{c.icon}</div>
               <p className={`text-sm font-bold ${c.color}`}>{c.value}</p>
-              <p className="text-[9px] text-gray-500 uppercase tracking-wider">{c.label}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">{c.label}</p>
             </div>
           ))}
         </div>
