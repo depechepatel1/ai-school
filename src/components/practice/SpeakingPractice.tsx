@@ -125,9 +125,10 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const startRecording = async () => {
     setIsRecording(true); setIsPaused(false); setLiveTranscript(""); setLiveInterim("");
     currentTranscriptRef.current = ""; setAiResponse(null); setShowPostAnswer(false);
+    pauseTracker.current.reset();
     await startMediaRecorder();
     sttHandleRef.current = startListening("en-US", {
-      onResult: (text) => { currentTranscriptRef.current += " " + text; setLiveTranscript((prev) => (prev + " " + text).trimStart()); setLiveInterim(""); debouncedPunctuate(currentTranscriptRef.current.trim()); },
+      onResult: (text) => { const pauseMarker = pauseTracker.current.onChunk(); currentTranscriptRef.current += pauseMarker + " " + text; setLiveTranscript(currentTranscriptRef.current.trimStart()); setLiveInterim(""); debouncedPunctuate(currentTranscriptRef.current.trim()); },
       onInterim: (text) => setLiveInterim(text),
       onError: () => setIsRecording(false),
     });
