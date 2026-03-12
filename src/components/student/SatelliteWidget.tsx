@@ -29,7 +29,7 @@ export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
   const centerDashOffset = centerCirc - (centerProgress / 100) * centerCirc;
 
   const colorMap = {
-    blue: { border: "border-blue-500/50 bg-blue-900/40 group-hover:bg-blue-500 group-hover:border-blue-200", glow: "bg-blue-500", ring: "#3b82f6" },
+    blue: { border: "border-sky-500/50 bg-sky-900/40 group-hover:bg-sky-500 group-hover:border-sky-200", glow: "bg-sky-500", ring: "#0ea5e9" },
     teal: { border: "border-teal-500/50 bg-teal-900/40 group-hover:bg-teal-500 group-hover:border-teal-200", glow: "bg-teal-400", ring: "#14b8a6" },
     pink: { border: "border-pink-500/50 bg-pink-900/40 group-hover:bg-pink-500 group-hover:border-pink-200", glow: "bg-pink-500", ring: "#ec4899" },
     orange: { border: "border-orange-500/50 bg-orange-900/40 group-hover:bg-orange-500 group-hover:border-orange-200", glow: "bg-orange-500", ring: "#f97316" },
