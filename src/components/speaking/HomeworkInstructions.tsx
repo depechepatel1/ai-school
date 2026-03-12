@@ -28,7 +28,7 @@ function ProgressBar({ progress }: { progress: TaskProgress }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-[9px] font-semibold text-white/50 tabular-nums min-w-[3.5rem] text-right">
+      <span className="text-[10px] font-semibold text-white/50 tabular-nums min-w-[3.5rem] text-right">
         {mins}/{targetMins} min
       </span>
       {done && <Check className="w-3 h-3 text-emerald-400 shrink-0" />}
