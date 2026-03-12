@@ -27,9 +27,14 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
 
   useEffect(() => {
     wordRefs.current = wordRefs.current.slice(0, data.length);
-    // Measure after render
-    requestAnimationFrame(measureLines);
-  }, [data, measureLines]);
+    setLines([]); // Reset so fallback renders for measurement
+  }, [data]);
+
+  useEffect(() => {
+    if (lines.length === 0 && data.length > 0) {
+      requestAnimationFrame(measureLines);
+    }
+  }, [lines, data, measureLines]);
 
   const renderWord = (item: WordData, i: number, refCb: (el: HTMLDivElement | null) => void) => {
     const isActive = i === activeWordIndex;
