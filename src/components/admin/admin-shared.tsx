@@ -40,7 +40,7 @@ export function KpiCard({ icon, label, value, color }: { icon: React.ReactNode; 
 export function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-2">{title}</p>
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">{title}</p>
       {children}
     </div>
   );

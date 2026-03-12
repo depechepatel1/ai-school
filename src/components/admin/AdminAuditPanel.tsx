@@ -118,7 +118,7 @@ export default function AuditPanel() {
         return (
           <div key={entry.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
             <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border ${actionMeta.color}`}>{actionMeta.label}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${actionMeta.color}`}>{actionMeta.label}</span>
               <span className="text-[10px] text-gray-500 ml-auto">{new Date(entry.created_at).toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-1.5 text-[10px]">
