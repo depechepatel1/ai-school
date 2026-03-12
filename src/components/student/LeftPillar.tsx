@@ -13,10 +13,8 @@ interface LeftPillarProps {
   showSkills: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  handleEmailClick: (subject: string, body: string) => void;
   setTeacherHint: (hint: string | null) => void;
   courseType: "ielts" | "igcse" | null;
-  courseLoading: boolean;
 }
 
 /* ── tiny progress ring (SVG) ── */
