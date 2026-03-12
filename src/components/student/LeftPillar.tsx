@@ -94,7 +94,7 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
       {/* Practice Mode Buttons */}
       {courseType && (
         <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-3 shadow-lg">
-          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/30 block text-center mb-2.5">Practice Modes</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 block text-center mb-2.5">Practice Modes</span>
           <div className="grid grid-cols-3 gap-2">
             {[
               { key: "pronunciation", label: "Pronun.", icon: Headphones, color: "#0ea5e9", bgClass: "bg-sky-500/15 border-sky-400/25", hoverClass: "hover:bg-sky-500/25 hover:border-sky-400/40", progress: pronPct },
