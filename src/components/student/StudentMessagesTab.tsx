@@ -110,7 +110,7 @@ export default function StudentMessagesTab() {
           <motion.div variants={fadeUp} className="mb-2 rounded-xl bg-amber-500/[0.06] border border-amber-400/15 px-3 py-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <StickyNote className="w-3 h-3 text-amber-400" />
-              <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wider">Teacher Feedback</span>
+              <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Teacher Feedback</span>
             </div>
             <p className="text-[10px] text-amber-100/80 leading-relaxed whitespace-pre-wrap">{note.content}</p>
           </motion.div>
