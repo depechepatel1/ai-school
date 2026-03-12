@@ -21,6 +21,7 @@ import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, Headphones, Mic, Play, Loader2, RotateCcw, SkipForward, Rewind } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 
 type CourseType = "ielts" | "igcse";
 
@@ -194,11 +195,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   }, [practiceTimer.isComplete]);
 
   if (courseWeek.loading || shadowCurriculum.loading || timerSettings.loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
+    return <PracticeSkeleton />;
   }
 
   return (
