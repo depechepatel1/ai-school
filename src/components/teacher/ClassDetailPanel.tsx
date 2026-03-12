@@ -170,7 +170,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
         <div className="flex flex-col gap-2 w-48 shrink-0">
           {[
             { icon: <Users className="w-3.5 h-3.5" />, label: "Active", value: `${stats.active}/${stats.total}`, color: "text-emerald-300" },
-            { icon: <Clock className="w-3.5 h-3.5" />, label: "Avg Time", value: formatTime(Math.round(stats.avg)), color: "text-blue-300" },
+            { icon: <Clock className="w-3.5 h-3.5" />, label: "Avg Time", value: formatTime(Math.round(stats.avg)), color: "text-teal-300" },
             { icon: <TrendingUp className="w-3.5 h-3.5" />, label: "Top", value: stats.topActivity, color: "text-purple-300" },
           ].map((c, i) => (
             <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center space-y-1">
