@@ -29,7 +29,7 @@ function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, q
         </div>
         {questionType && (
           <div className="flex items-center gap-2">
-            <span className="text-white/40 font-semibold uppercase tracking-wider text-[9px] w-16">Type</span>
+            <span className="text-white/40 font-semibold uppercase tracking-wider text-[10px] w-16">Type</span>
             <span className="text-purple-300/80 font-bold">{questionType}</span>
           </div>
         )}
