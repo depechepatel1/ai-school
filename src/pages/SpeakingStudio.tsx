@@ -28,7 +28,7 @@ import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 import { UKFlag, USFlag } from "@/components/speaking/FlagIcons";
 
 // ── Hooks ──
-import { useXP } from "@/hooks/useXP";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";

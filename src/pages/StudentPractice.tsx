@@ -29,7 +29,7 @@ export default function StudentPractice() {
   const handleNavigate = (section: string) => {};
 
   return (
-    <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell playIntroVideo fullWidth loopVideos={videoList} hideFooter>
       <div className="relative w-full h-full text-white animate-fade-in-up font-outfit">
         <WelcomeModal />
         <BrowserBanner />
