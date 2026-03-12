@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -52,6 +53,7 @@ const App = () => {
   }, []);
 
   return (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -67,18 +69,18 @@ const App = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/select-week" element={<ProtectedRoute allowedRoles={["student"]}><WeekSelection /></ProtectedRoute>} />
             <Route path="/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentPractice /></ProtectedRoute>} />
-            <Route path="/speaking" element={<ProtectedRoute allowedRoles={["student"]}><SpeakingStudio /></ProtectedRoute>} />
-            <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><IELTSPronunciation /></ProtectedRoute>} />
-            <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><IELTSFluency /></ProtectedRoute>} />
-            <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><IELTSSpeaking /></ProtectedRoute>} />
-            <Route path="/igcse/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><IGCSEPronunciation /></ProtectedRoute>} />
-            <Route path="/igcse/fluency" element={<ProtectedRoute allowedRoles={["student"]}><IGCSEFluency /></ProtectedRoute>} />
-            <Route path="/igcse/speaking" element={<ProtectedRoute allowedRoles={["student"]}><IGCSESpeaking /></ProtectedRoute>} />
-            <Route path="/analysis" element={<ProtectedRoute allowedRoles={["student"]}><StudentAnalysis /></ProtectedRoute>} />
+            <Route path="/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><SpeakingStudio /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSPronunciation /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSFluency /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSSpeaking /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/igcse/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEPronunciation /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/igcse/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEFluency /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/igcse/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSESpeaking /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/analysis" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><StudentAnalysis /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
-            <Route path="/teacher" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/teacher" element={<ProtectedRoute allowedRoles={["teacher"]}><ErrorBoundary><TeacherDashboard /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/parent" element={<ProtectedRoute allowedRoles={["parent"]}><ParentDashboard /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><AdminDashboard /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/admin/upload-videos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUploadVideos /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -89,6 +91,7 @@ const App = () => {
       </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
   );
 };
 
