@@ -5,7 +5,7 @@ import {
   Mic, MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
 "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
