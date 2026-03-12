@@ -197,7 +197,7 @@ export default function AnalyticsPanel() {
         </div>
 
         <p className="text-[9px] text-gray-600 text-center">
-          {logs.length} sessions in range · {allLogs.length} total
+          {logs.length} sessions in range
         </p>
       </div>
 
