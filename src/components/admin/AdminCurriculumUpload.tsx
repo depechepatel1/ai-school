@@ -235,7 +235,7 @@ export default function AdminCurriculumUpload() {
             </div>
           )}
           <div className="flex-1">
-            <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Module</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Module</label>
             <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)} className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-2.5 py-1.5 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all">
               {MODULE_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>)}
             </select>
