@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { BookOpen, Calendar, BarChart3, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +8,7 @@ interface BottomDockProps {
   onSettings: () => void;
 }
 
-export default function BottomDock({ setShowHomeworkModal, setCalendarOpen, onSettings }: BottomDockProps) {
+const BottomDock = forwardRef<HTMLDivElement, BottomDockProps>(({ setShowHomeworkModal, setCalendarOpen, onSettings }, ref) => {
   const navigate = useNavigate();
 
   return (
