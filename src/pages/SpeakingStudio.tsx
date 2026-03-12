@@ -5,7 +5,7 @@ import {
   Mic, MicOff, Play, Headphones, ChevronRight, ArrowLeft, SkipForward, Loader2, X } from
 "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
@@ -29,6 +29,7 @@ import { UKFlag, USFlag } from "@/components/speaking/FlagIcons";
 
 // ── Hooks ──
 import { useXP } from "@/hooks/useXP";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import { useSpeakingTest } from "@/hooks/useSpeakingTest";
@@ -67,6 +68,7 @@ export default function SpeakingStudio() {
   const accentLower = accent.toLowerCase() as Accent;
 
   // ── Hooks ──
+  const { videoList } = useVideoLoopStack();
   const { xp, level, addXP } = useXP();
   const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording, clearMicDenied } = useAudioCapture();
   const curriculum = useCurriculum(userId, "pronunciation");
@@ -237,7 +239,7 @@ export default function SpeakingStudio() {
   return (
     <PageShell
       fullWidth
-      loopVideos={VIDEO_1_STACK}
+      loopVideos={videoList}
       hideFooter>
 
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">

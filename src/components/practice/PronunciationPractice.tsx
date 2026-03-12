@@ -18,7 +18,8 @@ import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import PageShell from "@/components/PageShell";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
@@ -48,6 +49,7 @@ const COURSE_CONFIG: Record<CourseType, {
 };
 
 export default function PronunciationPractice({ courseType }: PronunciationPracticeProps) {
+  const { videoList } = useVideoLoopStack();
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const courseWeek = useCourseWeek(userId);
@@ -141,7 +143,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const moduleLabel = currentTwister?.target_sound ?? `Module ${currentTwister?.module ?? "?"}`;
 
   return (
-    <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell fullWidth loopVideos={videoList} hideFooter>
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         <PracticeHeader badgeClass={config.badgeClass} badgeLabel={config.badgeLabel} />
 

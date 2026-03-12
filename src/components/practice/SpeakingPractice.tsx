@@ -18,7 +18,8 @@ import { createDebouncedPunctuate } from "@/lib/punctuate";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import PageShell from "@/components/PageShell";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { Mic, SkipForward, AlertTriangle } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
@@ -70,6 +71,7 @@ Keep responses concise and encouraging.`,
 };
 
 export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) {
+  const { videoList } = useVideoLoopStack();
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -157,7 +159,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   }
 
   return (
-    <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell fullWidth loopVideos={videoList} hideFooter>
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         <PracticeHeader badgeClass={config.badgeClass} badgeLabel={config.badgeLabel} />
 

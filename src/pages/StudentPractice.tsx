@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
+import PageShell from "@/components/PageShell";
 
 import LeftPillar from "@/components/student/LeftPillar";
 import RightPillar from "@/components/student/RightPillar";
@@ -17,6 +18,7 @@ export default function StudentPractice() {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
+  const { videoList } = useVideoLoopStack();
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -27,7 +29,7 @@ export default function StudentPractice() {
   const handleNavigate = (section: string) => {};
 
   return (
-    <PageShell playIntroVideo fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell playIntroVideo fullWidth loopVideos={videoList} hideFooter>
       <div className="relative w-full h-full text-white animate-fade-in-up font-outfit">
         <WelcomeModal />
         <BrowserBanner />

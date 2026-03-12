@@ -1,8 +1,5 @@
 import { ShieldCheck } from "lucide-react";
 import BackgroundStage from "@/components/stage/BackgroundStage";
-import { VIDEO_LOOP_STACK } from "@/components/stage/VideoLoopStage";
-
-export { VIDEO_LOOP_STACK as VIDEO_1_STACK };
 
 interface PageShellProps {
   children: React.ReactNode;

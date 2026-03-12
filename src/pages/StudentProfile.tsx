@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, User, Check, Loader2, Lock } from "lucide-react";
 import { motion } from "framer-motion";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import PageShell from "@/components/PageShell";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ import { useEffect } from "react";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export default function StudentProfile() {
+  const { videoList } = useVideoLoopStack();
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +101,7 @@ export default function StudentProfile() {
   };
 
   return (
-    <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell fullWidth loopVideos={videoList} hideFooter>
       <div className="absolute inset-4 z-10 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
