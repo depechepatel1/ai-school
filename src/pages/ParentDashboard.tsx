@@ -28,8 +28,8 @@ export default function ParentDashboard() {
           <div className="flex items-center gap-2.5">
             <NeuralLogo />
             <div>
-              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">{t("brand.title")}</h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-400/20 text-[9px] font-semibold text-rose-300">
+              <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 leading-tight">{t("brand.title")}</h1>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-400/20 text-[10px] font-semibold text-rose-300">
                 <Heart className="w-3 h-3" /> {t("portal.parent")}
               </span>
             </div>
@@ -43,15 +43,15 @@ export default function ParentDashboard() {
         </motion.div>
 
         {/* Link child — hero card */}
-        <motion.div variants={fadeUp} className="text-center p-6 rounded-2xl bg-gradient-to-br from-blue-500/[0.08] to-purple-500/[0.05] border border-blue-400/10 mb-5">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-400/20 flex items-center justify-center mx-auto mb-3">
-            <Users className="w-6 h-6 text-blue-400" />
+        <motion.div variants={fadeUp} className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-500/[0.08] to-purple-500/[0.05] border border-teal-400/10 mb-5">
+          <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-400/20 flex items-center justify-center mx-auto mb-3">
+            <Users className="w-6 h-6 text-teal-400" />
           </div>
           <h2 className="text-sm font-bold text-gray-200 mb-1">{t("parent.linkTitle")}</h2>
           <p className="text-[11px] text-gray-500 max-w-[240px] mx-auto leading-relaxed">
             {t("parent.linkDesc")}
           </p>
-          <button className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-400/20 text-xs font-semibold text-blue-300 hover:bg-blue-500/25 transition-all">
+          <button className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white text-xs font-bold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(20,184,166,0.2)]">
             {t("parent.linkButton")}
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -66,16 +66,16 @@ export default function ParentDashboard() {
             <motion.div
               key={i}
               variants={fadeUp}
-              className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all group cursor-default"
+              className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all group cursor-default"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/[0.08] border border-blue-400/10 flex items-center justify-center text-blue-400 shrink-0 group-hover:bg-blue-500/15 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/[0.08] border border-teal-400/10 flex items-center justify-center text-teal-400 shrink-0 group-hover:bg-teal-500/15 transition-colors">
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-xs font-semibold text-gray-300">{item.title}</h3>
                 <p className="text-[10px] text-gray-500 mt-0.5">{item.desc}</p>
               </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-gray-600 shrink-0">{item.tag}</span>
+              <span className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[10px] font-bold uppercase tracking-widest text-gray-500 shrink-0">{item.tag}</span>
             </motion.div>
           ))}
         </div>

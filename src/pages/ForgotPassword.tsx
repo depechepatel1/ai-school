@@ -54,10 +54,10 @@ export default function ForgotPassword() {
           <div className="flex justify-center mb-3">
             <NeuralLogo />
           </div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 leading-tight">
             {t("brand.title")}
           </h1>
-          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-blue-500/10 border border-blue-400/15 text-[10px] font-semibold tracking-widest uppercase text-blue-300/80">
+          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-teal-500/10 border border-teal-400/15 text-[10px] font-semibold tracking-widest uppercase text-teal-300/80">
             {t("brand.edition")}
           </span>
           <p className="text-sm text-gray-400 mt-2">
@@ -67,8 +67,8 @@ export default function ForgotPassword() {
 
         {sent ? (
           <motion.div variants={fadeUp} className="text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-400/20 flex items-center justify-center mx-auto">
-              <Mail className="w-8 h-8 text-blue-400" />
+            <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-400/20 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(20,184,166,0.2)]">
+              <Mail className="w-8 h-8 text-teal-400" />
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-300">{t("forgot.emailSentTo")} <span className="text-white font-medium">{email}</span></p>
@@ -91,13 +91,13 @@ export default function ForgotPassword() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-teal-400/40 focus:bg-white/[0.06] transition-all"
               />
             </div>
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(37,99,235,0.25)]"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(20,184,166,0.25)]"
             >
               {isLoading ? (
                 <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

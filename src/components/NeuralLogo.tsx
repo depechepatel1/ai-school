@@ -1,15 +1,15 @@
 const NeuralLogo = () => (
   <div className="relative w-9 h-9 flex items-center justify-center mr-2">
     {/* Core Glow */}
-    <div className="absolute w-2.5 h-2.5 bg-blue-400 rounded-full shadow-[0_0_12px_rgba(96,165,250,0.8)]" />
+    <div className="absolute w-2.5 h-2.5 bg-teal-400 rounded-full shadow-[0_0_12px_rgba(20,184,166,0.8)]" />
 
-    {/* Inner Ring - Cyan/Blue */}
+    {/* Inner Ring - Teal/Cyan */}
     <svg className="absolute w-full h-full animate-[spin_6s_linear_infinite] opacity-90" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r="22" fill="none" stroke="url(#neural-cyan-gradient)" strokeWidth="4" strokeDasharray="30 20" strokeLinecap="round" />
+      <circle cx="50" cy="50" r="22" fill="none" stroke="url(#neural-teal-gradient)" strokeWidth="4" strokeDasharray="30 20" strokeLinecap="round" />
       <defs>
-        <linearGradient id="neural-cyan-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="neural-teal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#22d3ee" stopOpacity="0" />
-          <stop offset="100%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#14b8a6" />
         </linearGradient>
       </defs>
     </svg>

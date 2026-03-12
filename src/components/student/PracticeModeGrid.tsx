@@ -60,7 +60,7 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="text-center mb-1">
-        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/50">
           Choose Practice Mode
         </span>
       </div>
@@ -84,13 +84,13 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
               </div>
               <div className="text-center">
                 <div className="text-xs font-bold text-white/90">{mode.label}</div>
-                <div className="text-[9px] text-white/40 font-medium mt-0.5">{mode.sublabel}</div>
+                <div className="text-[10px] text-white/40 font-medium mt-0.5">{mode.sublabel}</div>
               </div>
             </motion.button>
           );
         })}
       </div>
-      <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20 mt-1">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/20 mt-1">
         {courseType.toUpperCase()} Course
       </span>
     </div>

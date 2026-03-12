@@ -228,12 +228,12 @@ export default function Signup() {
         <motion.div variants={fadeUp} className="text-center mb-4">
           <div className="flex justify-center items-center gap-2 mb-1.5">
             <NeuralLogo />
-            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-200/70">{t("brand.subtitle")}</span>
+            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-teal-200/70">{t("brand.subtitle")}</span>
           </div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-blue-300 leading-tight">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 leading-tight">
             {t("brand.title")}
           </h1>
-          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-blue-500/10 border border-blue-400/15 text-[10px] font-semibold tracking-widest uppercase text-blue-300/80">
+          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-teal-500/10 border border-teal-400/15 text-[10px] font-semibold tracking-widest uppercase text-teal-300/80">
             {t("brand.edition")}
           </span>
         </motion.div>
@@ -247,7 +247,7 @@ export default function Signup() {
               onClick={() => setSelectedRole(r.value)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                 selectedRole === r.value
-                  ? "bg-blue-500/20 text-blue-200 border border-blue-400/30 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                  ? "bg-teal-500/20 text-teal-200 border border-teal-400/30 shadow-[0_0_12px_rgba(20,184,166,0.15)]"
                   : "bg-white/[0.03] text-gray-500 border border-white/[0.06] hover:border-white/15 hover:text-gray-400"
               }`}
             >
@@ -265,7 +265,7 @@ export default function Signup() {
                 placeholder={t("signup.displayName")}
                 value={displayName}
                 onChange={(e) => { setDisplayName(e.target.value); setErrors((p) => ({ ...p, displayName: "" })); }}
-                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.displayName ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.displayName ? "border-red-500/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
               />
               {errors.displayName && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.displayName}</p>}
             </div>
@@ -275,7 +275,7 @@ export default function Signup() {
                 placeholder={t("signup.email")}
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
-                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
               />
               {errors.email && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.email}</p>}
             </div>
@@ -285,21 +285,21 @@ export default function Signup() {
                 placeholder={t("signup.password")}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
-                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
               />
               {errors.password && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.password}</p>}
             </div>
           </div>
 
           {/* PRC Consent */}
-          <div className="space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+          <div className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
             <div className="flex items-start gap-2">
               <Checkbox id="agree" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} className="mt-0.5" />
               <label htmlFor="agree" className="text-[11px] leading-snug text-gray-400 cursor-pointer">
                 我已阅读并同意{" "}
-                <button type="button" onClick={() => setLegalModal("terms")} className="text-blue-400 hover:underline">《用户协议》</button>
+                <button type="button" onClick={() => setLegalModal("terms")} className="text-teal-400 hover:underline">《用户协议》</button>
                 {" "}和{" "}
-                <button type="button" onClick={() => setLegalModal("privacy")} className="text-blue-400 hover:underline">《隐私政策》</button>
+                <button type="button" onClick={() => setLegalModal("privacy")} className="text-teal-400 hover:underline">《隐私政策》</button>
               </label>
             </div>
 
@@ -339,7 +339,7 @@ export default function Signup() {
           <button
             type="submit"
             disabled={isLoading || !canSubmit}
-            className="w-full h-11 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_25px_rgba(37,99,235,0.25)]"
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_25px_rgba(20,184,166,0.25)]"
           >
             <UserPlus className="w-4 h-4" />
             {isLoading ? t("signup.creating") : t("signup.createAccount")}
@@ -349,7 +349,7 @@ export default function Signup() {
           <div className="text-center space-y-2 pt-1">
             <p className="text-[11px] text-gray-500">
               {t("signup.alreadyHaveAccount")}{" "}
-              <Link to="/login" className="text-blue-400 hover:underline">{t("signup.signIn")}</Link>
+              <Link to="/login" className="text-teal-400 hover:underline">{t("signup.signIn")}</Link>
             </p>
             <div className="pt-2 border-t border-white/[0.04] space-y-0.5">
               <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
