@@ -339,21 +339,13 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         {/* Recording controls — 3 state: idle / recording / paused */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[310] flex flex-col items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
           {/* Main record/pause/resume button */}
-          <button onClick={handleRecordingTap} className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
-            recordingState === "recording"
-              ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110"
-              : recordingState === "paused"
-                ? "bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
-                : "bg-white/10 border border-white/20 hover:bg-white/20"
-          }`}>
-            {recordingState === "recording" ? (
-              <Pause className="w-6 h-6 text-white" />
-            ) : recordingState === "paused" ? (
-              <Play className="w-6 h-6 text-white ml-0.5" />
-            ) : (
-              <Mic className="w-7 h-7 text-white" />
-            )}
-          </button>
+          <MicRecordButton
+            recordingState={recordingState}
+            onToggle={handleRecordingTap}
+            stream={activeStream}
+            size="lg"
+            shape="circle"
+          />
 
           {/* Finish/Submit button — only visible when recording or paused */}
           {recordingState !== "idle" && (
