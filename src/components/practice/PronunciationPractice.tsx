@@ -156,13 +156,33 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
 
         <PracticeProgress label="Tongue Twister" current={currentIndex + 1} total={twisters.length} subLabel={moduleLabel} />
 
-        {/* Main content */}
-        <div className="absolute bottom-0 left-0 right-0 pb-6 pt-12 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
-          <div key={sentenceKey} className="mb-3 w-full text-center relative z-10 animate-fade-in">
+        {/* Vertical button stack – far right */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2">
+          <button onClick={handlePrev} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Previous">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button onClick={handlePlayModel} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
+            {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5" />}
+          </button>
+          <MicRecordButton isRecording={isRecording} micDenied={micDenied} onToggle={handleRecord} stream={activeStream} size="lg" shape="rounded" />
+          <button onClick={lastRecordingUrl ? handleReplay : undefined} disabled={!lastRecordingUrl} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`} title="Replay">
+            <Play className="w-5 h-5 ml-0.5" />
+          </button>
+          <button onClick={handleRepeat} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Repeat">
+            <RotateCcw className="w-4 h-4" />
+          </button>
+          <button onClick={handleNext} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Next">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Bottom bar: karaoke text + visualizer */}
+        <div className="absolute bottom-0 left-0 right-16 pb-4 pt-8 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/50 to-transparent">
+          <div key={sentenceKey} className="mb-2 w-full text-center relative z-10 animate-fade-in">
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
-          <div className="w-full max-w-3xl mb-4">
+          <div className="w-full max-w-3xl">
             {/* Progress indicator */}
             <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
               <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentIndex + 1) / twisters.length) * 100}%` }} />
@@ -176,25 +196,6 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
                 <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")} />
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button onClick={handlePrev} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Previous">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button onClick={handlePlayModel} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
-              {isPlayingModel ? <Loader2 className="w-6 h-6 animate-spin" /> : <Headphones className="w-6 h-6" />}
-            </button>
-            <MicRecordButton isRecording={isRecording} micDenied={micDenied} onToggle={handleRecord} stream={activeStream} size="lg" shape="rounded" />
-            <button onClick={lastRecordingUrl ? handleReplay : undefined} disabled={!lastRecordingUrl} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`} title="Replay">
-              <Play className="w-6 h-6 ml-0.5" />
-            </button>
-            <button onClick={handleRepeat} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Repeat">
-              <RotateCcw className="w-5 h-5" />
-            </button>
-            <button onClick={handleNext} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Next">
-              <ChevronRight className="w-5 h-5" />
-            </button>
           </div>
         </div>
         <PracticeSummaryOverlay visible={showSummary} activeSeconds={practiceTimer.activeSeconds} targetSeconds={practiceTimer.targetSeconds} activityLabel="Pronunciation" onDismiss={() => setShowSummary(false)} />

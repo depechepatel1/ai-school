@@ -160,14 +160,29 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
         <PracticeProgress label="Chunk" current={shadowCurriculum.currentIndex + 1} total={shadowCurriculum.totalChunks} />
 
-        {/* Main content */}
-        <div className="absolute bottom-0 left-0 right-0 pb-6 pt-12 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/60 to-transparent">
+        {/* Vertical button stack – far right */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2">
+          <button onClick={handlePlayModel} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
+            {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5" />}
+          </button>
+          <button onClick={handleRecord} className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecording ? "Stop" : "Record"}>
+            {isRecording ? <div className="w-5 h-5 bg-white rounded-sm animate-pulse" /> : <Mic className="w-7 h-7 text-white/80" />}
+          </button>
+          <button onClick={lastRecordingUrl ? handleReplay : undefined} disabled={!lastRecordingUrl} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`} title="Replay">
+            <Play className="w-5 h-5 ml-0.5" />
+          </button>
+          <button onClick={handleNextChunk} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all active:scale-95" title="Next Chunk">
+            <SkipForward className="w-5 h-5" />
+          </button>
+        </div>
 
-          <div key={sentenceKey} className="mb-3 w-full text-center relative z-10 animate-fade-in">
+        {/* Bottom bar: karaoke text + visualizer */}
+        <div className="absolute bottom-0 left-0 right-16 pb-4 pt-8 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/50 to-transparent">
+          <div key={sentenceKey} className="mb-2 w-full text-center relative z-10 animate-fade-in">
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
-          <div className="w-full max-w-3xl mb-4">
+          <div className="w-full max-w-3xl">
             {/* Progress indicator */}
             <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
               <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((shadowCurriculum.currentIndex + 1) / shadowCurriculum.totalChunks) * 100}%` }} />
@@ -181,21 +196,6 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
                 <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={fluencyTimings.getDuration(currentText)} />
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button onClick={handlePlayModel} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
-              {isPlayingModel ? <Loader2 className="w-6 h-6 animate-spin" /> : <Headphones className="w-6 h-6" />}
-            </button>
-            <button onClick={handleRecord} className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] scale-105" : "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]"}`} title={isRecording ? "Stop" : "Record"}>
-              {isRecording ? <div className="w-6 h-6 bg-white rounded-sm animate-pulse" /> : <Mic className="w-8 h-8 text-white/80" />}
-            </button>
-            <button onClick={lastRecordingUrl ? handleReplay : undefined} disabled={!lastRecordingUrl} className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 ${!lastRecordingUrl ? "text-white/20 opacity-30 cursor-not-allowed" : isPlayingReplay ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300" : "bg-white/[0.06] border border-white/[0.08] text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10"}`} title="Replay">
-              <Play className="w-6 h-6 ml-0.5" />
-            </button>
-            <button onClick={handleNextChunk} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all active:scale-95" title="Next Chunk">
-              <SkipForward className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
