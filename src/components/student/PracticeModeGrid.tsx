@@ -55,7 +55,7 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
     );
   }
 
-  const prefix = courseType === "ielts" ? "/ielts" : "/igcse";
+  
 
   return (
     <div className="flex flex-col items-center gap-4">
