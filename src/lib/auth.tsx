@@ -33,44 +33,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
-    let lastRoleUserId: string | null = null; // prevent duplicate role fetches
+    let lastRoleUserId: string | null = null;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const handleSession = async (session: Session | null) => {
       if (!isMounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         const userId = session.user.id;
-        // Skip if we already loaded the role for this user
         if (lastRoleUserId === userId) {
           setLoading(false);
           return;
         }
         lastRoleUserId = userId;
-        setTimeout(async () => {
-          try {
-            await loadRole(userId);
-          } catch (e) {
-            console.error("[Auth] Failed to load role:", e);
-            setRole(null);
-          }
-          if (isMounted) setLoading(false);
-        }, 0);
+        try {
+          await loadRole(userId);
+        } catch (e) {
+          console.error("[Auth] Failed to load role:", e);
+          setRole(null);
+        }
+        if (isMounted) setLoading(false);
       } else {
         lastRoleUserId = null;
         setRole(null);
         setLoading(false);
       }
-    });
+    };
 
+    // Eagerly fetch session and start role load immediately
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isMounted) return;
-      if (!session) {
-        setLoading(false);
-      }
+      handleSession(session);
     }).catch((e) => {
       console.error("[Auth] getSession failed:", e);
       if (isMounted) setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleSession(session);
     });
 
     return () => {
