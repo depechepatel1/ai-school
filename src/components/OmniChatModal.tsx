@@ -256,7 +256,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         {/* Input */}
         <div className="px-3 pb-3 pt-1">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-purple-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
             <form
               onSubmit={(e) => {
                 e.preventDefault();
