@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { BookOpen, Calendar, BarChart3, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { usePrefetchProps } from "@/hooks/usePrefetch";
 
 interface BottomDockProps {
   setShowHomeworkModal: (show: boolean) => void;
@@ -10,6 +11,8 @@ interface BottomDockProps {
 
 const BottomDock = forwardRef<HTMLDivElement, BottomDockProps>(({ setShowHomeworkModal, setCalendarOpen, onSettings }, ref) => {
   const navigate = useNavigate();
+  const analysisPrefetch = usePrefetchProps("/analysis");
+  const profilePrefetch = usePrefetchProps("/profile");
 
   return (
     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-[400px] flex justify-center">
@@ -27,11 +30,11 @@ const BottomDock = forwardRef<HTMLDivElement, BottomDockProps>(({ setShowHomewor
           <span className="text-[10px] uppercase font-bold group-hover:text-purple-200">Schedule</span>
         </button>
         <div className="w-px h-5 bg-white/10" />
-        <button onClick={() => navigate("/analysis")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
+        <button {...analysisPrefetch} onClick={() => navigate("/analysis")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
           <BarChart3 className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-cyan-400" />
           <span className="text-[10px] uppercase font-bold group-hover:text-cyan-200">Analysis</span>
         </button>
-        <button onClick={() => navigate("/profile")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
+        <button {...profilePrefetch} onClick={() => navigate("/profile")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
           <User className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white/50" />
           <span className="text-[10px] uppercase font-bold group-hover:text-white/80">Profile</span>
         </button>

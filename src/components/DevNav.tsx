@@ -3,6 +3,7 @@ import { Code, UserPlus, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { prefetchRoute } from "@/hooks/usePrefetch";
 import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 
@@ -167,6 +168,7 @@ export default function DevNav() {
               <button
                 key={r.path}
                 onClick={() => handleNav(r)}
+                onMouseEnter={() => prefetchRoute(r.path)}
                 disabled={loading}
                 className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   location.pathname === r.path
