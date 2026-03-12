@@ -16,12 +16,13 @@ import { chat, type ChatMessage } from "@/services/ai";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
 import { createPauseTracker } from "@/lib/speech-annotations";
+import { createSpeechActivityTracker, type SpeechActivityTracker } from "@/lib/speech-activity-tracker";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 import PageShell from "@/components/PageShell";
 import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
-import { Mic, SkipForward, AlertTriangle } from "lucide-react";
+import { Mic, Pause, Play, Square, Check, SkipForward, AlertTriangle } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
 import SpeakingFeedbackPanel from "./SpeakingFeedbackPanel";
@@ -29,6 +30,7 @@ import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
 
 type CourseType = "ielts" | "igcse";
+type RecordingState = "idle" | "recording" | "paused";
 
 interface SpeakingPracticeProps {
   courseType: CourseType;
@@ -86,8 +88,18 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const { accent, setAccent } = useAccent(userId);
   const [questions, setQuestions] = useState<SpeakingQuestion[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+
+  // 3-state recording
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
+  const [isSpeechActive, setIsSpeechActive] = useState(false);
+  const [silenceNudge, setSilenceNudge] = useState(false);
+  const speechTrackerRef = useRef<SpeechActivityTracker | null>(null);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Derived booleans for backward compat
+  const isRecording = recordingState === "recording";
+  const isPaused = recordingState === "paused";
+
   const [liveTranscript, setLiveTranscript] = useState("");
   const [liveInterim, setLiveInterim] = useState("");
   const [aiResponse, setAiResponse] = useState<string | null>(null);
@@ -108,8 +120,34 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const practiceTimer = usePracticeTimer({
     userId, courseType, activityType: "speaking",
     weekNumber: courseWeek.selectedWeek, practiceMode: "homework",
-    isAudioActive: isRecording && !isPaused,
+    isAudioActive: recordingState !== "idle",
+    isSpeechDetected: isSpeechActive,
   });
+
+  // Create speech activity tracker on mount
+  useEffect(() => {
+    speechTrackerRef.current = createSpeechActivityTracker({
+      onSilent: () => {
+        setIsSpeechActive(false);
+        setSilenceNudge(true);
+      },
+      onSpeaking: () => {
+        setIsSpeechActive(true);
+        setSilenceNudge(false);
+      },
+      onAutoPause: () => {
+        finishRecording();
+      },
+    });
+    return () => speechTrackerRef.current?.destroy();
+  }, []);
+
+  // Cleanup pause timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!shadowCurriculum.curriculumData) return;
@@ -122,20 +160,64 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const sectionMap: Record<string, string> = { part_2: "Part 2", part_3: "Part 3", model_answer: "Model Answer" };
   const sectionLabel = currentQuestion ? sectionMap[currentQuestion.sectionId] ?? currentQuestion.sectionId : "";
 
-  const startRecording = async () => {
-    setIsRecording(true); setIsPaused(false); setLiveTranscript(""); setLiveInterim("");
-    currentTranscriptRef.current = ""; setAiResponse(null); setShowPostAnswer(false);
-    pauseTracker.current.reset();
-    await startMediaRecorder();
+  const startSttListening = () => {
     sttHandleRef.current = startListening("en-US", {
-      onResult: (text) => { const pauseMarker = pauseTracker.current.onChunk(); currentTranscriptRef.current += pauseMarker + " " + text; setLiveTranscript(currentTranscriptRef.current.trimStart()); setLiveInterim(""); debouncedPunctuate(currentTranscriptRef.current.trim()); },
-      onInterim: (text) => setLiveInterim(text),
-      onError: () => setIsRecording(false),
+      onResult: (text) => {
+        speechTrackerRef.current?.onSpeechDetected();
+        const pauseMarker = pauseTracker.current.onChunk();
+        currentTranscriptRef.current += pauseMarker + " " + text;
+        setLiveTranscript(currentTranscriptRef.current.trimStart());
+        setLiveInterim("");
+        debouncedPunctuate(currentTranscriptRef.current.trim());
+      },
+      onInterim: (text) => {
+        speechTrackerRef.current?.onSpeechDetected();
+        setLiveInterim(text);
+      },
+      onError: () => setRecordingState("idle"),
     });
   };
 
-  const stopRecording = async () => {
-    setIsRecording(false);
+  const startRecording = async () => {
+    setRecordingState("recording");
+    setSilenceNudge(false);
+    setLiveTranscript(""); setLiveInterim("");
+    currentTranscriptRef.current = "";
+    setAiResponse(null); setShowPostAnswer(false);
+    speechTrackerRef.current?.reset();
+    pauseTracker.current.reset();
+    await startMediaRecorder();
+    startSttListening();
+  };
+
+  const pauseRecording = () => {
+    setRecordingState("paused");
+    setSilenceNudge(false);
+    practiceTimer.pause();
+    if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
+    stopMediaRecorder();
+
+    // Auto-submit after 2 minutes of being paused
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => {
+      finishRecording();
+    }, 120_000);
+  };
+
+  const resumeRecording = async () => {
+    if (pauseTimeoutRef.current) { clearTimeout(pauseTimeoutRef.current); pauseTimeoutRef.current = null; }
+    setRecordingState("recording");
+    setSilenceNudge(false);
+    practiceTimer.resume();
+    await startMediaRecorder();
+    startSttListening();
+  };
+
+  const finishRecording = async () => {
+    if (pauseTimeoutRef.current) { clearTimeout(pauseTimeoutRef.current); pauseTimeoutRef.current = null; }
+    setRecordingState("idle");
+    setSilenceNudge(false);
+    speechTrackerRef.current?.reset();
     if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
     stopMediaRecorder();
     const transcript = currentTranscriptRef.current.trim();
@@ -154,9 +236,28 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     }
   };
 
-  const handleToggleRecording = () => { if (isRecording) stopRecording(); else startRecording(); };
-  const handleTogglePause = () => { if (isPaused) { setIsPaused(false); practiceTimer.resume(); } else { setIsPaused(true); practiceTimer.pause(); } };
-  const resetState = () => { setShowPostAnswer(false); setAiResponse(null); setLiveTranscript(""); setLiveInterim(""); currentTranscriptRef.current = ""; };
+  const handleRecordingTap = () => {
+    if (recordingState === "idle") startRecording();
+    else if (recordingState === "recording") pauseRecording();
+    else if (recordingState === "paused") resumeRecording();
+  };
+
+  const handleFinish = () => {
+    if (recordingState !== "idle") finishRecording();
+  };
+
+  const handleTogglePause = () => {
+    if (isPaused) resumeRecording();
+    else pauseRecording();
+  };
+
+  const resetState = () => {
+    setShowPostAnswer(false); setAiResponse(null);
+    setLiveTranscript(""); setLiveInterim("");
+    currentTranscriptRef.current = "";
+    setRecordingState("idle"); setSilenceNudge(false);
+    speechTrackerRef.current?.reset();
+  };
   const handleTryAgain = () => resetState();
   const handleNextQuestion = () => { resetState(); setCurrentQIndex((i) => (i + 1) % questions.length); };
 
@@ -193,9 +294,6 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
           </div>
         </div>
 
-        
-
-
         <LiveTranscriptBar transcript={liveTranscript} interim={liveInterim} isRecording={isRecording} />
 
         {/* Accent selector – top right */}
@@ -203,17 +301,58 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
           <AccentSelector accent={accent} onChange={setAccent} />
         </div>
 
-        {/* Recording controls */}
+        {/* Recording controls — 3 state: idle / recording / paused */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[310] flex flex-col items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
-          <button onClick={handleToggleRecording} className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}>
-            {isRecording ? <div className="w-5 h-5 bg-white rounded animate-pulse" /> : <Mic className="w-7 h-7 text-white" />}
+          {/* Main record/pause/resume button */}
+          <button onClick={handleRecordingTap} className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
+            recordingState === "recording"
+              ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110"
+              : recordingState === "paused"
+                ? "bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                : "bg-white/10 border border-white/20 hover:bg-white/20"
+          }`}>
+            {recordingState === "recording" ? (
+              <Pause className="w-6 h-6 text-white" />
+            ) : recordingState === "paused" ? (
+              <Play className="w-6 h-6 text-white ml-0.5" />
+            ) : (
+              <Mic className="w-7 h-7 text-white" />
+            )}
           </button>
-          {!isRecording && !showPostAnswer && config.showNextQuestion && questions.length > 1 && (
+
+          {/* Finish/Submit button — only visible when recording or paused */}
+          {recordingState !== "idle" && (
+            <button onClick={handleFinish} className="w-10 h-10 rounded-full bg-emerald-500/80 hover:bg-emerald-500 flex items-center justify-center transition-all shadow-lg" title="Finish & Submit">
+              <Check className="w-5 h-5 text-white" />
+            </button>
+          )}
+
+          {/* Next question — only when idle and not showing feedback */}
+          {recordingState === "idle" && !showPostAnswer && config.showNextQuestion && questions.length > 1 && (
             <button onClick={handleNextQuestion} className="p-2.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white transition-colors shadow-lg" title="Skip Question">
               <SkipForward className="w-5 h-5" />
             </button>
           )}
         </div>
+
+        {/* Silence nudge — shows when student hasn't spoken for 8 seconds */}
+        {silenceNudge && recordingState === "recording" && (
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-[320] animate-fade-in-up">
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 backdrop-blur-2xl">
+              <span className="text-xs text-amber-300 font-medium">Still thinking? Timer paused until you speak</span>
+            </div>
+          </div>
+        )}
+
+        {/* Paused indicator */}
+        {recordingState === "paused" && (
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-[320] animate-fade-in-up">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 backdrop-blur-2xl">
+              <Pause className="w-4 h-4 text-amber-400" />
+              <span className="text-xs text-amber-300 font-medium">Paused — tap mic to continue</span>
+            </div>
+          </div>
+        )}
 
         <SpeakingFeedbackPanel
           isAiThinking={isAiThinking}
