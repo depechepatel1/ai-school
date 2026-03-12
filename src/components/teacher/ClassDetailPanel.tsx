@@ -219,7 +219,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
             <motion.div key={s.user_id} variants={fadeUp}
               className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all">
               {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-[11px] font-bold text-gray-300 shrink-0 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-[11px] font-bold text-gray-300 shrink-0 overflow-hidden">
                 {s.avatar_url
                   ? <img src={s.avatar_url} className="w-full h-full object-cover" />
                   : (s.display_name ?? "S")[0].toUpperCase()}
