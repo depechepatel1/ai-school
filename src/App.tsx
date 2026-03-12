@@ -45,14 +45,41 @@ const ANALYSIS_VIDEO = `${SUPABASE_URL}/storage/v1/object/public/videos/analysis
 const VIDEO_URLS = [...VIDEO_1_STACK, INTRO_VIDEO, ANALYSIS_VIDEO, "/images/dashboard-bg.jpg"];
 
 const App = () => {
+  // Prefetch only the first loop video eagerly; defer the rest so they don't
+  // compete with auth, page chunks, and the initial video playback.
   useEffect(() => {
-    VIDEO_URLS.forEach((url) => {
+    // Eagerly prefetch first loop clip + dashboard bg (small)
+    [VIDEO_1_STACK[0], "/images/dashboard-bg.jpg"].forEach((url) => {
       const link = document.createElement("link");
       link.rel = "prefetch";
-      link.as = "video";
+      link.as = url.endsWith(".jpg") ? "image" : "video";
       link.href = url;
       document.head.appendChild(link);
     });
+
+    // Defer remaining videos until browser is idle
+    const deferredUrls = [...VIDEO_1_STACK.slice(1), INTRO_VIDEO, ANALYSIS_VIDEO];
+    if ("requestIdleCallback" in window) {
+      (window as any).requestIdleCallback(() => {
+        deferredUrls.forEach((url) => {
+          const link = document.createElement("link");
+          link.rel = "prefetch";
+          link.as = "video";
+          link.href = url;
+          document.head.appendChild(link);
+        });
+      });
+    } else {
+      setTimeout(() => {
+        deferredUrls.forEach((url) => {
+          const link = document.createElement("link");
+          link.rel = "prefetch";
+          link.as = "video";
+          link.href = url;
+          document.head.appendChild(link);
+        });
+      }, 3000);
+    }
   }, []);
 
   return (
