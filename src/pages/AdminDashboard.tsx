@@ -57,7 +57,7 @@ export default function AdminDashboard() {
                   <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-white to-amber-300 leading-tight">
                     Neural Admin
                   </h1>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/20 text-[9px] font-semibold text-amber-300">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/20 text-[10px] font-semibold text-amber-300">
                     <Shield className="w-3 h-3" /> Administrator
                   </span>
                 </div>
@@ -72,13 +72,13 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
 
-            {/* Tabs */}
-            <motion.div variants={fadeUp} className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-5">
+            {/* Tabs — horizontally scrollable */}
+            <motion.div variants={fadeUp} className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-5 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
                     activeTab === tab.id
                       ? "bg-amber-500/15 border border-amber-400/20 text-amber-300"
                       : "text-gray-500 hover:text-gray-300"
