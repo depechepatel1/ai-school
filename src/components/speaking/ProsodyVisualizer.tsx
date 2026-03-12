@@ -88,10 +88,9 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   return (
     <div className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-2 mt-0 mb-0 px-6">
       {lines.map((lineIndices, lineIdx) => {
-        const isFirstLine = lineIdx === 0;
-        const justify = isFirstLine || lineIndices.length >= 4 ? "justify-between" : "justify-center";
+        const justify = lineIdx === 0 ? "justify-between" : "justify-center";
         return (
-          <div key={lineIdx} className={`w-full flex flex-wrap items-baseline ${justify}`}>
+          <div key={lineIdx} className={`w-full flex flex-nowrap items-baseline ${justify}`}>
             {lineIndices.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
           </div>
         );
