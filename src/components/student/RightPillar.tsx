@@ -11,7 +11,7 @@ interface RightPillarProps {
   speakingProgress?: number;
 }
 
-export default function RightPillar({ onNavigate }: RightPillarProps) {
+export default function RightPillar({ onNavigate, speakingProgress }: RightPillarProps) {
   const { user } = useAuth();
   const { currentStreak, loading } = useStreak(user?.id ?? null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
