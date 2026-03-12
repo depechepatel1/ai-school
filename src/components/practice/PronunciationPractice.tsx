@@ -142,7 +142,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const moduleLabel = currentTwister?.target_sound ?? `Module ${currentTwister?.module ?? "?"}`;
 
   return (
-    <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell fullWidth loopVideos={videoList} hideFooter>
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         <PracticeHeader badgeClass={config.badgeClass} badgeLabel={config.badgeLabel} />
 

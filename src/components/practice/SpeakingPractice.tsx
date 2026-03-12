@@ -158,7 +158,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   }
 
   return (
-    <PageShell fullWidth loopVideos={VIDEO_1_STACK} hideFooter>
+    <PageShell fullWidth loopVideos={videoList} hideFooter>
       <div className="relative w-full h-full text-white font-outfit select-none animate-fade-in-up">
         <PracticeHeader badgeClass={config.badgeClass} badgeLabel={config.badgeLabel} />
 
