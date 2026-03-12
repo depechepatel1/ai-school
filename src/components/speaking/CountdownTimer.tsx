@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Flame, Pause, Play, Check } from "lucide-react";
 
 interface Props {
