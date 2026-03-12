@@ -77,12 +77,12 @@ export default function StreakWidget({
           {mins}:{secs.toString().padStart(2, "0")}
         </div>
         {isComplete && (
-          <span className="text-[8px] font-bold uppercase tracking-widest text-emerald-400/70">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/70">
             {isOvertime ? "Overtime" : "Done!"}
           </span>
         )}
         {!isComplete && !isRunning && (
-          <span className="text-[8px] font-bold uppercase tracking-widest text-white/30">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/35">
             Paused
           </span>
         )}

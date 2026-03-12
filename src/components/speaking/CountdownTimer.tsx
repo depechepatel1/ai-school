@@ -53,8 +53,8 @@ function CountdownTimer({ countdownFrom, activeSeconds, isRunning, onPause, onRe
           {isOvertime && "+"}
           {mins}:{secs.toString().padStart(2, "0")}
         </div>
-        {isComplete && <span className="text-[8px] font-bold uppercase tracking-widest text-emerald-400/70">{isOvertime ? "Extended Time" : "Done!"}</span>}
-        {!isComplete && !isRunning && <span className="text-[8px] font-bold uppercase tracking-widest text-white/30">Paused</span>}
+        {isComplete && <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/70">{isOvertime ? "Extended Time" : "Done!"}</span>}
+        {!isComplete && !isRunning && <span className="text-[10px] font-bold uppercase tracking-widest text-white/35">Paused</span>}
       </div>
       <button
         onClick={isRunning ? onPause : onResume}

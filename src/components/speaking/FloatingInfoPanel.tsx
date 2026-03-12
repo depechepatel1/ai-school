@@ -35,7 +35,7 @@ function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, q
         )}
         {questionNumber && (
           <div className="flex items-center gap-2">
-            <span className="text-white/40 font-semibold uppercase tracking-wider text-[9px] w-16">Question</span>
+            <span className="text-white/40 font-semibold uppercase tracking-wider text-[10px] w-16">Question</span>
             <span className="text-amber-300/80 font-bold">
               {questionNumber}
               {progressCurrent != null && progressTotal != null && (
