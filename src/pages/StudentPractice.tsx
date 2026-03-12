@@ -12,7 +12,7 @@ import HomeworkModal from "@/components/student/HomeworkModal";
 import ScheduleModal from "@/components/student/ScheduleModal";
 import WelcomeModal from "@/components/student/WelcomeModal";
 import BrowserBanner from "@/components/student/BrowserBanner";
-import PracticeModeGrid from "@/components/student/PracticeModeGrid";
+
 
 export default function StudentPractice() {
   const { signOut, user } = useAuth();
