@@ -7,12 +7,16 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("[Index] auth state:", { loading, user: user?.email, role });
     if (loading) return;
     if (!user) {
       navigate("/signup", { replace: true });
       return;
     }
-    if (!role) return;
+    if (!role) {
+      console.warn("[Index] user authenticated but role is null — stuck spinner");
+      return;
+    }
     const routes: Record<string, string> = { student: "/select-week", teacher: "/teacher", parent: "/parent", admin: "/admin" };
     navigate(routes[role] || "/signup", { replace: true });
   }, [user, role, loading, navigate]);
