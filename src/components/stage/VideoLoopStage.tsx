@@ -1,15 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Volume2, VolumeX } from "lucide-react";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/videos`;
 const CACHE_BUST = "?v=2";
 
 const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4${CACHE_BUST}`;
-
-/** @deprecated Use useVideoLoopStack() hook instead for dynamic discovery */
-export const VIDEO_LOOP_STACK: string[] = [];
 
 /** Fisher-Yates shuffle, keeping index 0 in place */
 function shuffleExceptFirst(arr: string[]): string[] {
@@ -38,7 +36,10 @@ export default function VideoLoopStage({
   objectPosition = "center center",
   scaleClass,
 }: VideoLoopStageProps) {
-  const videoList = videoListProp && videoListProp.length > 0 ? videoListProp : VIDEO_LOOP_STACK;
+  // Self-load from storage when no list is provided
+  const { videoList: hookVideoList, isLoading } = useVideoLoopStack();
+  const videoList = videoListProp && videoListProp.length > 0 ? videoListProp : hookVideoList;
+
   const shouldLoop = videoList.length === 1;
 
   const alreadyPlayedIntro = sessionStorage.getItem("intro_video_played") === "true";
@@ -53,8 +54,17 @@ export default function VideoLoopStage({
   const refB = useRef<HTMLVideoElement>(null);
 
   // Shuffled playlist & index tracker
-  const playlistRef = useRef<string[]>(shuffleExceptFirst(videoList));
-  const playIndexRef = useRef(1); // 0 is already on Player A
+  const playlistRef = useRef<string[]>([]);
+  const playIndexRef = useRef(1);
+  const initializedRef = useRef(false);
+
+  // Initialize / re-initialize playlist when videoList changes
+  useEffect(() => {
+    if (videoList.length === 0) return;
+    playlistRef.current = shuffleExceptFirst(videoList);
+    playIndexRef.current = 1;
+    initializedRef.current = true;
+  }, [videoList]);
 
   const activeVideoRef = !introFinished ? introRef : activePlayer === "A" ? refA : refB;
 
@@ -109,11 +119,16 @@ export default function VideoLoopStage({
     setIntroFinished(true);
   };
 
-  // When intro finishes, start Player A and defer-preload Player B
+  // When intro finishes (or no intro) AND videos are loaded, start Player A
   useEffect(() => {
-    if (!introFinished) return;
+    if (!introFinished || videoList.length === 0) return;
     const a = refA.current;
     if (a) {
+      // Update src if it doesn't match the current first clip
+      const firstClip = videoList[0];
+      if (a.src !== firstClip) {
+        a.src = firstClip;
+      }
       a.muted = isMuted;
       safePlay(a);
     }
@@ -123,7 +138,7 @@ export default function VideoLoopStage({
       refB.current.src = nextClip;
       refB.current.load();
     }
-  }, [introFinished]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [introFinished, videoList.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Instant swap when active player ends
   const handlePlayerEnded = useCallback(
@@ -165,6 +180,11 @@ export default function VideoLoopStage({
     const vid = activeVideoRef.current;
     if (vid) vid.muted = isMuted;
   }, [isMuted, activeVideoRef]);
+
+  // Don't render video elements until we have URLs
+  if (videoList.length === 0) {
+    return <div className="absolute inset-0 bg-gray-900" />;
+  }
 
   const videoBase = `absolute inset-0 w-full h-full object-cover ${scaleClass ?? ""}`;
 
