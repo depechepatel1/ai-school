@@ -136,7 +136,7 @@ export default function StudentMessagesTab() {
                     ? "bg-teal-500/15 border border-teal-400/20 text-teal-100 rounded-br-sm"
                     : "bg-white/[0.04] border border-white/[0.08] text-white/70 rounded-bl-sm"
                 }`}>
-                  <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_code]:text-[9px] [&_code]:bg-white/10 [&_code]:px-0.5 [&_code]:rounded">
+                  <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_code]:text-[10px] [&_code]:bg-white/10 [&_code]:px-0.5 [&_code]:rounded">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                 </div>
