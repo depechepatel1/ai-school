@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
   Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
@@ -138,26 +139,41 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
               const r = 28;
               const circ = 2 * Math.PI * r;
               const dashOffset = circ - (mode.progress / 100) * circ;
+              const hasProgress = mode.progress > 0;
+              const bgStrokeWidth = hasProgress ? 2.5 : 2;
+              const fgStrokeWidth = 2.5;
               return (
-                <button
+                <motion.button
                   key={mode.key}
                   onClick={() => navigate(`${prefix}/${mode.key}`)}
-                  className={`relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border transition-all duration-200 active:scale-95 group ${mode.bgClass} ${mode.hoverClass}`}
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  className={`relative flex flex-col items-center justify-center gap-1.5 min-h-[64px] py-3 rounded-2xl border transition-colors duration-200 group ${mode.bgClass} ${mode.hoverClass}`}
                 >
-                  {/* Circular progress ring overlaid */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" viewBox="0 0 70 80">
-                    <circle cx="35" cy="36" r={r} fill="none" stroke={mode.color} strokeOpacity="0.15" strokeWidth="2.5" />
-                    <circle cx="35" cy="36" r={r} fill="none" stroke={mode.color} strokeWidth="2.5" strokeDasharray={circ} strokeDashoffset={dashOffset} strokeLinecap="round" className="drop-shadow-[0_0_4px_rgba(255,255,255,0.2)] transition-all duration-1000 ease-out" transform="rotate(-90 35 36)" />
+                  {/* Circular progress ring — centered via viewBox */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 64 72" preserveAspectRatio="xMidYMid meet">
+                    <circle cx="32" cy="36" r={r} fill="none" stroke={mode.color} strokeOpacity="0.12" strokeWidth={bgStrokeWidth} />
+                    {hasProgress && (
+                      <circle
+                        cx="32" cy="36" r={r} fill="none"
+                        stroke={mode.color} strokeWidth={fgStrokeWidth}
+                        strokeDasharray={circ} strokeDashoffset={dashOffset}
+                        strokeLinecap="round"
+                        filter={`drop-shadow(0 0 4px ${mode.color}50)`}
+                        className="transition-all duration-1000 ease-out"
+                        transform="rotate(-90 32 36)"
+                      />
+                    )}
                   </svg>
-                  {/* Completion tick */}
+                  {/* Completion tick — matches SatelliteWidget style */}
                   {mode.progress >= 100 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-black/50 animate-bounce z-50">
-                      <Check className="w-3 h-3 text-white stroke-[3]" />
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900 animate-bounce z-50">
+                      <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
                     </div>
                   )}
                   <Icon className="w-5 h-5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all relative z-10" />
                   <span className="text-[9px] font-bold text-white/50 group-hover:text-white/80 uppercase tracking-wider relative z-10">{mode.label}</span>
-                </button>
+                </motion.button>
               );
             })}
           </div>
