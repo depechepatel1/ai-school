@@ -270,6 +270,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   // Keep finishRecordingRef always pointing to the latest version
   useEffect(() => { finishRecordingRef.current = finishRecording; });
 
+  const handleRecordingTap = () => {
     if (recordingState === "idle") startRecording();
     else if (recordingState === "recording") pauseRecording();
     else if (recordingState === "paused") resumeRecording();
