@@ -22,7 +22,7 @@ export const PracticeHeader = memo(function PracticeHeader({ badgeClass, badgeLa
       >
         <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
       </button>
-      <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl border ${badgeClass}`}>
+      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl border ${badgeClass}`}>
         {badgeLabel}
       </span>
     </div>
