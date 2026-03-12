@@ -3,6 +3,7 @@ import { Code, UserPlus, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { prefetchRoute } from "@/hooks/usePrefetch";
 import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 
