@@ -52,6 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session && import.meta.env.DEV) {
+        console.log("[Auth] Dev mode: auto-signing in as dev-igcse@test.com");
+        await supabase.auth.signInWithPassword({
+          email: "dev-igcse@test.com",
+          password: "devtest123",
+        });
+        return; // onAuthStateChange will handle the rest
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
