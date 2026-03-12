@@ -32,23 +32,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Set session/user synchronously — never block the callback with async DB calls
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        try {
-          await loadRole(session.user.id);
-          preloadVoices();
-          preloadAccent("uk");
-          preloadAccent("us");
-        } catch (e) {
-          console.error("Failed to load role:", e);
-          setRole(null);
-        }
+        const userId = session.user.id;
+        // Defer DB call to next tick so Supabase internals settle first
+        setTimeout(async () => {
+          try {
+            await loadRole(userId);
+            preloadVoices();
+            preloadAccent("uk");
+            preloadAccent("us");
+          } catch (e) {
+            console.error("Failed to load role:", e);
+            setRole(null);
+          }
+          setLoading(false);
+        }, 0);
       } else {
         setRole(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -60,20 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return; // onAuthStateChange will handle the rest
       }
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        try {
-          await loadRole(session.user.id);
-          preloadVoices();
-          preloadAccent("uk");
-          preloadAccent("us");
-        } catch (e) {
-          console.error("Failed to load role:", e);
-          setRole(null);
-        }
+      // If no session and not dev, just stop loading
+      if (!session) {
+        setLoading(false);
       }
-      setLoading(false);
+      // If session exists, onAuthStateChange already fired and is handling it
     });
 
     return () => subscription.unsubscribe();
