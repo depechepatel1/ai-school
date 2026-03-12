@@ -32,13 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      // Set session/user synchronously — never block the callback with async DB calls
+      if (!isMounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         const userId = session.user.id;
-        // Defer DB call to next tick so Supabase internals settle first
         setTimeout(async () => {
           try {
             await loadRole(userId);
@@ -46,10 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             preloadAccent("uk");
             preloadAccent("us");
           } catch (e) {
-            console.error("Failed to load role:", e);
+            console.error("[Auth] Failed to load role:", e);
             setRole(null);
           }
-          setLoading(false);
+          if (isMounted) setLoading(false);
         }, 0);
       } else {
         setRole(null);
@@ -57,23 +58,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session && import.meta.env.DEV) {
-        console.log("[Auth] Dev mode: auto-signing in as dev-igcse@test.com");
-        await supabase.auth.signInWithPassword({
-          email: "dev-igcse@test.com",
-          password: "devtest123",
-        });
-        return; // onAuthStateChange will handle the rest
-      }
-      // If no session and not dev, just stop loading
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
       if (!session) {
         setLoading(false);
       }
       // If session exists, onAuthStateChange already fired and is handling it
+    }).catch((e) => {
+      console.error("[Auth] getSession failed:", e);
+      if (isMounted) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string, selectedRole: AppRole) => {

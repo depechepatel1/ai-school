@@ -1,8 +1,10 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Code } from "lucide-react";
+import { Code, UserPlus, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "@/hooks/use-toast";
 
 const DEV_CREDENTIALS: Record<string, { email: string; password: string }> = {
   student: { email: "dev-igcse@test.com", password: "devtest123" },
@@ -15,9 +17,9 @@ const routes = [
   { path: "/login", label: "Login", role: null },
   { path: "/signup", label: "Signup", role: null },
   { path: "/forgot-password", label: "Forgot PW", role: null },
-  { path: "/reset-password", label: "Reset PW", role: null },
+  { path: "/select-week", label: "Week Select", role: "student" },
   { path: "/student", label: "Student", role: "student" },
-  { path: "/speaking", label: "Speaking Studio", role: "student" },
+  { path: "/speaking", label: "Speaking", role: "student" },
   { path: "/analysis", label: "Analysis", role: "student" },
   { path: "/profile", label: "Profile", role: "student" },
   { path: "/teacher", label: "Teacher", role: "teacher" },
@@ -28,24 +30,110 @@ const routes = [
 export default function DevNav() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, role: currentRole } = useAuth();
 
-  // Only render in development builds — Vite tree-shakes this out of production
   if (!import.meta.env.DEV) return null;
 
   const handleNav = async (route: typeof routes[0]) => {
-    if (route.role && DEV_CREDENTIALS[route.role]) {
-      setLoading(true);
-      const creds = DEV_CREDENTIALS[route.role];
-      await supabase.auth.signInWithPassword({
+    setLastError(null);
+
+    if (!route.role) {
+      navigate(route.path);
+      setOpen(false);
+      return;
+    }
+
+    const creds = DEV_CREDENTIALS[route.role];
+    if (!creds) {
+      navigate(route.path);
+      setOpen(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Sign out first for a clean switch between roles
+      await supabase.auth.signOut();
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: creds.email,
         password: creds.password,
       });
+
+      if (error) {
+        setLastError(`${route.role}: ${error.message}`);
+        toast({
+          title: `Login failed (${route.role})`,
+          description: error.message + ". Click 'Setup Dev Accounts' first.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!data.session) {
+        setLastError("No session — email may need confirmation");
+        setLoading(false);
+        return;
+      }
+
+      // Wait for onAuthStateChange + setTimeout role loading to complete
+      await new Promise((r) => setTimeout(r, 600));
+
+      navigate(route.path);
+      setOpen(false);
+    } catch (err: any) {
+      setLastError(err.message);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
       setLoading(false);
     }
-    navigate(route.path);
-    setOpen(false);
+  };
+
+  const handleSetupAccounts = async () => {
+    setLoading(true);
+    setLastError(null);
+    const results: string[] = [];
+
+    for (const [role, creds] of Object.entries(DEV_CREDENTIALS)) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: creds.email,
+          password: creds.password,
+          options: { data: { display_name: `Dev ${role}`, role } },
+        });
+
+        if (error) {
+          if (error.message?.toLowerCase().includes("already")) {
+            results.push(`${role}: exists`);
+          } else {
+            results.push(`${role}: FAILED — ${error.message}`);
+          }
+          continue;
+        }
+
+        if (data.user) {
+          const { error: re } = await supabase
+            .from("user_roles")
+            .upsert({ user_id: data.user.id, role: role as any }, { onConflict: "user_id" });
+          if (re) results.push(`${role}: created, role FAILED — ${re.message}`);
+          else results.push(`${role}: CREATED`);
+
+          await supabase
+            .from("profiles")
+            .upsert({ id: data.user.id, display_name: `Dev ${role.charAt(0).toUpperCase() + role.slice(1)}` }, { onConflict: "id" });
+        }
+      } catch (err: any) {
+        results.push(`${role}: ERROR — ${err.message}`);
+      }
+    }
+
+    await supabase.auth.signOut();
+    toast({ title: "Dev accounts", description: results.join(", ") });
+    setLoading(false);
   };
 
   return (
@@ -57,8 +145,24 @@ export default function DevNav() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="mb-2 p-2 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-1 min-w-[140px] shadow-2xl"
+            className="mb-2 p-2 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-1 min-w-[180px] shadow-2xl"
           >
+            {/* Status bar */}
+            <div className="px-3 py-1 text-[9px] font-mono text-gray-500 border-b border-white/5 mb-1">
+              {user ? (
+                <span className="text-green-400">{user.email} ({currentRole ?? "no role"})</span>
+              ) : (
+                <span className="text-red-400">Not signed in</span>
+              )}
+            </div>
+
+            {lastError && (
+              <div className="px-2 py-1 text-[9px] text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                {lastError}
+              </div>
+            )}
+
             {routes.map((r) => (
               <button
                 key={r.path}
@@ -74,6 +178,17 @@ export default function DevNav() {
                 {r.role && <span className="ml-1 text-[9px] text-gray-600">({r.role})</span>}
               </button>
             ))}
+
+            <div className="border-t border-white/5 mt-1 pt-1" />
+
+            <button
+              onClick={handleSetupAccounts}
+              disabled={loading}
+              className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-colors flex items-center gap-1.5 ${loading ? "opacity-50 cursor-wait" : ""}`}
+            >
+              <UserPlus className="w-3 h-3" />
+              {loading ? "Working..." : "Setup Dev Accounts"}
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
