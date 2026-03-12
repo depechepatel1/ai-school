@@ -49,3 +49,5 @@ function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, q
     </div>
   );
 }
+
+export default memo(FloatingInfoPanel);

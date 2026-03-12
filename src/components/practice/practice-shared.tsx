@@ -1,7 +1,9 @@
 /**
  * Shared UI components for practice screens (Fluency, Pronunciation, Speaking).
  * Extracted to reduce duplication across the three practice components.
+ * Wrapped in React.memo to prevent unnecessary re-renders during audio playback.
  */
+import { memo } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,7 +12,7 @@ interface PracticeBackButtonProps {
   badgeLabel: string;
 }
 
-export function PracticeHeader({ badgeClass, badgeLabel }: PracticeBackButtonProps) {
+export const PracticeHeader = memo(function PracticeHeader({ badgeClass, badgeLabel }: PracticeBackButtonProps) {
   const navigate = useNavigate();
   return (
     <div className="absolute top-4 left-4 z-[300] flex items-center gap-2">
@@ -25,7 +27,7 @@ export function PracticeHeader({ badgeClass, badgeLabel }: PracticeBackButtonPro
       </span>
     </div>
   );
-}
+});
 
 interface PracticeProgressProps {
   label: string;
@@ -34,7 +36,7 @@ interface PracticeProgressProps {
   subLabel?: string;
 }
 
-export function PracticeProgress({ label, current, total, subLabel }: PracticeProgressProps) {
+export const PracticeProgress = memo(function PracticeProgress({ label, current, total, subLabel }: PracticeProgressProps) {
   return (
     <div className="absolute top-4 right-4 z-50">
       <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2.5 text-center">
@@ -49,4 +51,4 @@ export function PracticeProgress({ label, current, total, subLabel }: PracticePr
       </div>
     </div>
   );
-}
+});

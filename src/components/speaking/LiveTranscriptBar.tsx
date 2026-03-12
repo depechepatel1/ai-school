@@ -46,3 +46,5 @@ function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: L
     </div>
   );
 }
+
+export default memo(LiveTranscriptBar);

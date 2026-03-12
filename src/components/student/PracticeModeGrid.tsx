@@ -95,4 +95,4 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
       </span>
     </div>
   );
-}
+});

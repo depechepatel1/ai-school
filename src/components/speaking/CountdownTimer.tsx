@@ -66,3 +66,5 @@ function CountdownTimer({ countdownFrom, activeSeconds, isRunning, onPause, onRe
     </div>
   );
 }
+
+export default memo(CountdownTimer);
