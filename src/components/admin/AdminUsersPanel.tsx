@@ -130,7 +130,7 @@ export default function UsersPanel() {
             placeholder="Search by name…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[11px] text-gray-200 placeholder:text-gray-600 outline-none focus:border-amber-400/30 transition-all"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[11px] text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-400/30 transition-all"
           />
         </div>
         <div className="flex gap-1">
