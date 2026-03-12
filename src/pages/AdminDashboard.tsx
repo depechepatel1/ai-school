@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import AdminTimerSettings from "@/components/admin/AdminTimerSettings";
 import AdminCurriculumUpload from "@/components/admin/AdminCurriculumUpload";
+import { ChartSkeleton, TableSkeleton } from "@/components/ui/dashboard-skeleton";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
