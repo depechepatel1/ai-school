@@ -154,7 +154,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
         </div>
 
         {/* Floating Info Panel */}
-        <div className="absolute top-32 left-4 z-50">
+        <div className="absolute top-40 left-4 z-50">
           <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.shadowingWeek} questionType={sectionLabel} questionNumber={questionId} questionText={shadowCurriculum.currentQuestionText ?? ""} />
         </div>
 
