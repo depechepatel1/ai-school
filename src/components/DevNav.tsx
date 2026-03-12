@@ -171,7 +171,7 @@ export default function DevNav() {
             </div>
 
             {lastError && (
-              <div className="px-2 py-1 text-[9px] text-red-400 flex items-center gap-1">
+              <div className="px-2 py-1 text-[10px] text-red-400 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3 flex-shrink-0" />
                 {lastError}
               </div>
