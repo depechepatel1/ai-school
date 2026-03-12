@@ -6,6 +6,7 @@ import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import type { Accent } from "@/lib/tts-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
+import { createPauseTracker } from "@/lib/speech-annotations";
 
 interface UseSpeakingTestOptions {
   accent: Accent;
