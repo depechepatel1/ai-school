@@ -248,7 +248,7 @@ export default function StudentAnalysis() {
                   <button
                     key={t.key}
                     onClick={() => setRightPanel(t.key)}
-                    className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                    className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
                       rightPanel === t.key
                         ? "text-yellow-300 bg-white/5"
                         : "text-white/40 hover:text-white/60"
