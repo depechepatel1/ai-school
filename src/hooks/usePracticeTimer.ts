@@ -69,11 +69,14 @@ export function usePracticeTimer({
     activeSecondsRef.current = activeSeconds;
   }, [activeSeconds]);
 
-  // Auto-pause/resume based on audio activity
+  // Auto-pause/resume based on actual speech activity
   useEffect(() => {
     if (manualPause) return;
-    setIsRunning(isAudioActive);
-  }, [isAudioActive, manualPause]);
+    // If speech detection is available, use it (more accurate).
+    // Otherwise fall back to isAudioActive (for pronunciation/fluency where STT isn't running).
+    const shouldRun = isSpeechDetected !== undefined ? isSpeechDetected : isAudioActive;
+    setIsRunning(shouldRun);
+  }, [isAudioActive, isSpeechDetected, manualPause]);
 
   // Core timer tick
   useEffect(() => {
