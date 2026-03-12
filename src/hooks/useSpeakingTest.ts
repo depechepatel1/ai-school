@@ -6,6 +6,7 @@ import { speak, stopSpeaking, type TTSHandle } from "@/lib/tts-provider";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import type { Accent } from "@/lib/tts-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
+import { createPauseTracker } from "@/lib/speech-annotations";
 
 interface UseSpeakingTestOptions {
   accent: Accent;
@@ -35,6 +36,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const isRecordingRef = useRef(false);
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
+  const pauseTracker = useRef(createPauseTracker(1500));
   // Refs for timeout cleanup
   const pendingTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -66,9 +68,10 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const startSpeechRecognition = useCallback(() => {
     if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
     sttHandleRef.current = startListening("en-US", {
-      onResult: (text) => {
-        currentTranscriptRef.current += " " + text;
-        setLiveTranscript(prev => (prev + " " + text).trimStart());
+    onResult: (text) => {
+        const pauseMarker = pauseTracker.current.onChunk();
+        currentTranscriptRef.current += pauseMarker + " " + text;
+        setLiveTranscript(currentTranscriptRef.current.trimStart());
         setLiveInterim("");
         debouncedPunctuate(currentTranscriptRef.current.trim());
       },
@@ -255,6 +258,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     setMessages((prev) => [...prev, { role: "student", text: userSpeech }]);
     currentTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    pauseTracker.current.reset();
     setLiveTranscript("");
     setLiveInterim("");
     await triggerAIQuestion();
@@ -265,6 +269,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const clearTranscript = useCallback(() => {
     currentTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    pauseTracker.current.reset();
     setLiveTranscript("");
     setLiveInterim("");
   }, []);

@@ -15,6 +15,7 @@ import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curricul
 import { chat, type ChatMessage } from "@/services/ai";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
+import { createPauseTracker } from "@/lib/speech-annotations";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
@@ -96,6 +97,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
 
   const sttHandleRef = useRef<STTHandle | null>(null);
   const currentTranscriptRef = useRef("");
+  const pauseTracker = useRef(createPauseTracker(1500));
   const { startMediaRecorder, stopMediaRecorder } = useAudioCapture();
 
   const debouncedPunctuate = useCallback(
@@ -123,9 +125,10 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const startRecording = async () => {
     setIsRecording(true); setIsPaused(false); setLiveTranscript(""); setLiveInterim("");
     currentTranscriptRef.current = ""; setAiResponse(null); setShowPostAnswer(false);
+    pauseTracker.current.reset();
     await startMediaRecorder();
     sttHandleRef.current = startListening("en-US", {
-      onResult: (text) => { currentTranscriptRef.current += " " + text; setLiveTranscript((prev) => (prev + " " + text).trimStart()); setLiveInterim(""); debouncedPunctuate(currentTranscriptRef.current.trim()); },
+      onResult: (text) => { const pauseMarker = pauseTracker.current.onChunk(); currentTranscriptRef.current += pauseMarker + " " + text; setLiveTranscript(currentTranscriptRef.current.trimStart()); setLiveInterim(""); debouncedPunctuate(currentTranscriptRef.current.trim()); },
       onInterim: (text) => setLiveInterim(text),
       onError: () => setIsRecording(false),
     });
