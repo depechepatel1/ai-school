@@ -232,7 +232,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                           setSpeakingMsgIdx(i);
                         }
                       }}
-                      className={`mt-1 p-0.5 rounded hover:bg-white/10 transition-colors ${speakingMsgIdx === i ? "text-blue-400" : "text-white/30 hover:text-white/60"}`}
+                      className={`mt-1 p-0.5 rounded hover:bg-white/10 transition-colors ${speakingMsgIdx === i ? "text-teal-400" : "text-white/30 hover:text-white/60"}`}
                       title="Read aloud"
                     >
                       <Volume2 className="w-3 h-3" />
