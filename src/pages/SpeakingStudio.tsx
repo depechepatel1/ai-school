@@ -68,7 +68,8 @@ export default function SpeakingStudio() {
   const accentLower = accent.toLowerCase() as Accent;
 
   // ── Hooks ──
-  const { xp, level, addXP } = (await import("@/hooks/useXP")).useXP();
+  const { videoList } = useVideoLoopStack();
+  const { xp, level, addXP } = useXP();
   const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording, clearMicDenied } = useAudioCapture();
   const curriculum = useCurriculum(userId, "pronunciation");
   const test = useSpeakingTest({ accent: accentLower });
