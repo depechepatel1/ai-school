@@ -81,7 +81,7 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   }
 
   return (
-    <div className="relative min-h-[6rem] w-full max-w-4xl mx-auto flex flex-col items-center gap-y-4 mt-4 mb-2 px-6">
+    <div className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-2 mt-0 mb-0 px-6">
       {lines.map((lineIndices, lineIdx) => {
         const isFirstLine = lineIdx === 0;
         const justify = isFirstLine || lineIndices.length >= 4 ? "justify-between" : "justify-center";
