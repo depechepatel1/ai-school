@@ -176,7 +176,7 @@ export default function StudentMessagesTab() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">{c.title || "Untitled"}</p>
-              <p className="text-[9px] text-white/30">{new Date(c.updated_at).toLocaleDateString()}</p>
+              <p className="text-[10px] text-white/35">{new Date(c.updated_at).toLocaleDateString()}</p>
             </div>
             {notedIds.has(c.id) && (
               <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-400/15">
