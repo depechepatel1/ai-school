@@ -103,6 +103,60 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
         )}
       </div>
 
+      {/* Course Banner */}
+      {courseType && (
+        <div className="flex items-center justify-center">
+          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] border ${
+            courseType === "ielts"
+              ? "bg-teal-500/15 border-teal-400/25 text-teal-300"
+              : "bg-amber-500/15 border-amber-400/25 text-amber-300"
+          }`}>
+            {courseType === "ielts" ? "IELTS" : "IGCSE"} Course
+          </span>
+        </div>
+      )}
+
+      {/* Practice Mode Buttons */}
+      {courseType && (
+        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-3 shadow-lg">
+          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/30 block text-center mb-2.5">Practice Modes</span>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { key: "pronunciation", label: "Pronun.", icon: Headphones, color: "#0ea5e9", bgClass: "bg-sky-500/15 border-sky-400/25", hoverClass: "hover:bg-sky-500/25 hover:border-sky-400/40", progress: 0 },
+              { key: "fluency", label: "Fluency", icon: AudioWaveform, color: "#8b5cf6", bgClass: "bg-violet-500/15 border-violet-400/25", hoverClass: "hover:bg-violet-500/25 hover:border-violet-400/40", progress: 0 },
+              { key: "speaking", label: "Speak", icon: MessageSquare, color: "#f59e0b", bgClass: "bg-amber-500/15 border-amber-400/25", hoverClass: "hover:bg-amber-500/25 hover:border-amber-400/40", progress: 0 },
+            ].map((mode) => {
+              const Icon = mode.icon;
+              const prefix = courseType === "ielts" ? "/ielts" : "/igcse";
+              const r = 28;
+              const circ = 2 * Math.PI * r;
+              const dashOffset = circ - (mode.progress / 100) * circ;
+              return (
+                <button
+                  key={mode.key}
+                  onClick={() => navigate(`${prefix}/${mode.key}`)}
+                  className={`relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border transition-all duration-200 active:scale-95 group ${mode.bgClass} ${mode.hoverClass}`}
+                >
+                  {/* Circular progress ring overlaid */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" viewBox="0 0 70 80">
+                    <circle cx="35" cy="36" r={r} fill="none" stroke={mode.color} strokeOpacity="0.15" strokeWidth="2.5" />
+                    <circle cx="35" cy="36" r={r} fill="none" stroke={mode.color} strokeWidth="2.5" strokeDasharray={circ} strokeDashoffset={dashOffset} strokeLinecap="round" className="drop-shadow-[0_0_4px_rgba(255,255,255,0.2)] transition-all duration-1000 ease-out" transform="rotate(-90 35 36)" />
+                  </svg>
+                  {/* Completion tick */}
+                  {mode.progress >= 100 && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-black/50 animate-bounce z-50">
+                      <Check className="w-3 h-3 text-white stroke-[3]" />
+                    </div>
+                  )}
+                  <Icon className="w-5 h-5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all relative z-10" />
+                  <span className="text-[9px] font-bold text-white/50 group-hover:text-white/80 uppercase tracking-wider relative z-10">{mode.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Tasks / Messages Panel */}
       <div className="flex-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
         {/* ── Sliding pill tab bar ── */}
