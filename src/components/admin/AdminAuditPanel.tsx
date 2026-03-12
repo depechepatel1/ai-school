@@ -101,7 +101,7 @@ export default function AuditPanel() {
             </PopoverContent>
           </Popover>
           {hasFilters && (
-            <button onClick={clearFilters} className="text-[9px] text-gray-500 hover:text-gray-300 px-1.5 py-1 rounded hover:bg-white/[0.04] transition-all">Clear</button>
+            <button onClick={clearFilters} className="text-[10px] text-gray-500 hover:text-gray-300 px-1.5 py-1 rounded hover:bg-white/[0.04] transition-all">Clear</button>
           )}
         </div>
       </div>
