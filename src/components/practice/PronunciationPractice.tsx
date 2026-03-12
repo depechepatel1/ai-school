@@ -181,7 +181,6 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
           <button onClick={handleNext} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Next">
             <ChevronRight className="w-4 h-4" />
           </button>
-          </div>
         </div>
 
         {/* Bottom bar: karaoke text + visualizer */}
