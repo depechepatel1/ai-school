@@ -7,9 +7,11 @@ interface Props {
   questionType?: string;
   questionNumber?: string;
   questionText?: string;
+  progressCurrent?: number;
+  progressTotal?: number;
 }
 
-function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, questionText }: Props) {
+function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, questionText, progressCurrent, progressTotal }: Props) {
   return (
     <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-3 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] max-w-[220px] w-full">
       <div className="flex items-center gap-2 mb-3">
@@ -34,7 +36,12 @@ function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, q
         {questionNumber && (
           <div className="flex items-center gap-2">
             <span className="text-white/40 font-semibold uppercase tracking-wider text-[9px] w-16">Question</span>
-            <span className="text-amber-300/80 font-bold">{questionNumber}</span>
+            <span className="text-amber-300/80 font-bold">
+              {questionNumber}
+              {progressCurrent != null && progressTotal != null && (
+                <span className="text-white/30 font-medium text-[10px]"> / {progressTotal}</span>
+              )}
+            </span>
           </div>
         )}
       </div>
