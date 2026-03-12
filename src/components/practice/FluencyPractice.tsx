@@ -196,7 +196,6 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
   if (courseWeek.loading || shadowCurriculum.loading || timerSettings.loading) {
     return <PracticeSkeleton />;
-    );
   }
 
   return (
