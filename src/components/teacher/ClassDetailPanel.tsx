@@ -133,7 +133,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
         </button>
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-bold text-gray-200 truncate">{className}</h2>
-          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
             courseType === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"
           }`}>{courseType}</span>
         </div>
