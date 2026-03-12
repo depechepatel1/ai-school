@@ -106,7 +106,7 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
               </div>
               <div className="w-full h-px bg-white/[0.06]" />
               <div>
-                <span className="text-purple-300/80 font-bold uppercase text-[9px] tracking-wider">Part 2 · Speaking Practice (20 min)</span>
+                <span className="text-purple-300/80 font-bold uppercase text-[10px] tracking-wider">Part 2 · Speaking Practice (20 min)</span>
                 <p className="mt-0.5">Record answers for all 3 Part 2 questions (3 × 2 min).</p>
                 <ProgressBar progress={getProgress("speaking")} />
               </div>
