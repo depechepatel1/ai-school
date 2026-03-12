@@ -71,7 +71,7 @@ function MicroProgress({ pct, color }: { pct: number; color: string }) {
   );
 }
 
-export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint, courseType, courseLoading }: LeftPillarProps) {
+export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, setTeacherHint, courseType }: LeftPillarProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: analytics } = useAnalyticsData(user?.id ?? null, courseType, "weekly");
