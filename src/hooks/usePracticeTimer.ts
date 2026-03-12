@@ -1,15 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-/**
- * Course-specific time targets in seconds per activity.
- * IELTS: Shadowing 15m, Pronunciation 10m, Speaking 15m
- * IGCSE: Shadowing 10m, Pronunciation 10m, Speaking 10m
- */
-const TIME_TARGETS: Record<string, Record<string, number>> = {
-  ielts: { shadowing: 900, pronunciation: 600, speaking: 900 },
-  igcse: { shadowing: 600, pronunciation: 600, speaking: 600 },
-};
+import { TIME_TARGETS } from "@/lib/semester";
 
 export type ActivityType = "shadowing" | "pronunciation" | "speaking";
 
