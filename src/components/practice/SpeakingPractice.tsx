@@ -21,6 +21,7 @@ import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, Mic, SkipForward, RotateCcw, AlertTriangle, MessageSquare, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 
 type CourseType = "ielts" | "igcse";
 
