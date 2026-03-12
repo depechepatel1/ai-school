@@ -124,26 +124,6 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
         <div className="flex-1 overflow-y-auto scrollbar-hide p-1 space-y-3">
           {activeTab === 'tasks' ? (
             <>
-              {/* Priority Task – gradient border with teal */}
-              <div
-                className="relative rounded-2xl p-[1px] overflow-hidden animate-fade-in-up"
-                style={{ animationDelay: '0ms', background: 'linear-gradient(135deg, hsl(174 84% 40%), hsl(172 72% 50%), hsl(174 84% 40%))', backgroundSize: '200% 200%' }}
-              >
-                <div className="animate-gradient-x absolute inset-0" style={{ background: 'inherit', backgroundSize: 'inherit' }} />
-                <div className="relative bg-black/80 backdrop-blur-xl rounded-2xl p-4">
-                  <div className="flex justify-between items-start mb-1">
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-                      <AlertCircle className="w-3.5 h-3.5 text-primary" /> Priority
-                    </div>
-                    <ProgressRing done={3} total={12} size={30} />
-                  </div>
-                  <h3 className="text-base font-bold text-white mb-0 leading-tight">Reading:<br /><span className="text-lg">Passage 2</span></h3>
-                  <p className="text-[10px] text-white/40 mb-3 mt-1">Test 4 · Questions 14–26</p>
-                  <button className="w-full py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:shadow-[0_0_20px_hsl(174_84%_40%/0.3)] text-white text-xs font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-                    Start Segment <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
 
               {/* Daily Routine */}
               <SectionDivider label="Daily Routine" />
