@@ -37,6 +37,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
   const pauseTracker = useRef(createPauseTracker(1500));
+  const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
   // Refs for timeout cleanup
   const pendingTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
