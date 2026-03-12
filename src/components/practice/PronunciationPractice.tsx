@@ -21,6 +21,7 @@ import CountdownTimer from "@/components/speaking/CountdownTimer";
 import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
 import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
+import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 
 type CourseType = "ielts" | "igcse";
 
