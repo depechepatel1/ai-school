@@ -269,6 +269,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const clearTranscript = useCallback(() => {
     currentTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    pauseTracker.current.reset();
     setLiveTranscript("");
     setLiveInterim("");
   }, []);
