@@ -24,7 +24,8 @@ import { Mic, SkipForward, AlertTriangle } from "lucide-react";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
 import SpeakingFeedbackPanel from "./SpeakingFeedbackPanel";
-import AccentSelector, { type Accent } from "@/components/speaking/AccentSelector";
+import AccentSelector from "@/components/speaking/AccentSelector";
+import { useAccent } from "@/hooks/useAccent";
 
 type CourseType = "ielts" | "igcse";
 
