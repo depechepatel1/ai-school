@@ -170,7 +170,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
         <div className="flex flex-col gap-2 w-48 shrink-0">
           {[
             { icon: <Users className="w-3.5 h-3.5" />, label: "Active", value: `${stats.active}/${stats.total}`, color: "text-emerald-300" },
-            { icon: <Clock className="w-3.5 h-3.5" />, label: "Avg Time", value: formatTime(Math.round(stats.avg)), color: "text-blue-300" },
+            { icon: <Clock className="w-3.5 h-3.5" />, label: "Avg Time", value: formatTime(Math.round(stats.avg)), color: "text-teal-300" },
             { icon: <TrendingUp className="w-3.5 h-3.5" />, label: "Top", value: stats.topActivity, color: "text-purple-300" },
           ].map((c, i) => (
             <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center space-y-1">
@@ -219,7 +219,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
             <motion.div key={s.user_id} variants={fadeUp}
               className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all">
               {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-[11px] font-bold text-gray-300 shrink-0 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-[11px] font-bold text-gray-300 shrink-0 overflow-hidden">
                 {s.avatar_url
                   ? <img src={s.avatar_url} className="w-full h-full object-cover" />
                   : (s.display_name ?? "S")[0].toUpperCase()}
@@ -246,7 +246,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
               {/* View transcripts button */}
               <button
                 onClick={() => setViewingTranscript({ id: s.user_id, name: s.display_name })}
-                className="p-1.5 rounded-lg text-gray-600 hover:text-blue-300 hover:bg-blue-500/10 transition-all"
+                className="p-1.5 rounded-lg text-gray-600 hover:text-teal-300 hover:bg-teal-500/10 transition-all"
                 title="View AI chat transcripts"
               >
                 <MessageSquare className="w-3.5 h-3.5" />

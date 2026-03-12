@@ -209,7 +209,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
               <div
                 className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
                   m.role === "user"
-                    ? "bg-blue-600/80 text-white rounded-br-sm"
+                    ? "bg-teal-600/80 text-white rounded-br-sm"
                     : "bg-white/[0.08] text-gray-200 border border-white/5 rounded-bl-sm"
                 }`}
               >
@@ -232,7 +232,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                           setSpeakingMsgIdx(i);
                         }
                       }}
-                      className={`mt-1 p-0.5 rounded hover:bg-white/10 transition-colors ${speakingMsgIdx === i ? "text-blue-400" : "text-white/30 hover:text-white/60"}`}
+                      className={`mt-1 p-0.5 rounded hover:bg-white/10 transition-colors ${speakingMsgIdx === i ? "text-teal-400" : "text-white/30 hover:text-white/60"}`}
                       title="Read aloud"
                     >
                       <Volume2 className="w-3 h-3" />
@@ -256,13 +256,13 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         {/* Input */}
         <div className="px-3 pb-3 pt-1">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-purple-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 send();
               }}
-              className="relative flex items-center bg-black/50 border border-white/10 rounded-full p-1 pl-3 shadow-sm transition-colors focus-within:border-blue-400/50 focus-within:bg-black/70"
+              className="relative flex items-center bg-black/50 border border-white/10 rounded-full p-1 pl-3 shadow-sm transition-colors focus-within:border-teal-400/50 focus-within:bg-black/70"
             >
               <input
                 type="text"
@@ -279,9 +279,9 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 className="flex items-center gap-0.5 px-1.5 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-[9px] font-bold tracking-wide hover:bg-white/[0.1] transition-all select-none shrink-0"
                 title={sttLang === "en-US" ? "切换到中文" : "Switch to English"}
               >
-                <span className={sttLang === "en-US" ? "text-blue-300" : "text-gray-500"}>EN</span>
+                <span className={sttLang === "en-US" ? "text-teal-300" : "text-gray-500"}>EN</span>
                 <span className="text-gray-600">/</span>
-                <span className={sttLang === "zh-CN" ? "text-blue-300" : "text-gray-500"}>中</span>
+                <span className={sttLang === "zh-CN" ? "text-teal-300" : "text-gray-500"}>中</span>
               </button>
               {/* Voice toggle button — shown when input is empty and not loading */}
               {!input.trim() && !isLoading && (
@@ -306,7 +306,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="p-2 rounded-full transition-all duration-300 shadow-lg bg-blue-600 text-white disabled:opacity-40"
+                  className="p-2 rounded-full transition-all duration-300 shadow-lg bg-teal-600 text-white disabled:opacity-40"
                 >
                   {isLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

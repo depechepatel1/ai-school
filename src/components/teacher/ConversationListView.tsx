@@ -64,7 +64,7 @@ export default function ConversationListView({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search conversations…"
-            className="w-full h-9 pl-9 pr-8 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+            className="w-full h-9 pl-9 pr-8 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-teal-400/40 focus:bg-white/[0.06] transition-all"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
@@ -95,8 +95,8 @@ export default function ConversationListView({
             onClick={() => onSelect(c)}
             className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all cursor-pointer group"
           >
-            <div className="w-8 h-8 rounded-lg bg-blue-500/[0.08] border border-blue-400/10 flex items-center justify-center shrink-0">
-              <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
+            <div className="w-8 h-8 rounded-lg bg-teal-500/[0.08] border border-teal-400/10 flex items-center justify-center shrink-0">
+              <MessageSquare className="w-3.5 h-3.5 text-teal-400" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-gray-200 truncate">{c.title || "Untitled"}</p>

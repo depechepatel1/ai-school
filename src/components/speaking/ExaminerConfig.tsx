@@ -30,7 +30,7 @@ export default function ExaminerConfig({ onStartTest, onClose }: Props) {
       </div>
       <button
         onClick={() => { const parts: string[] = []; if (selectedParts.part1) parts.push("part1"); if (selectedParts.part2) parts.push("part2"); if (selectedParts.part3) parts.push("part3"); if (parts.length > 0) onStartTest(parts); }}
-        className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 shadow-lg">
+        className="w-full py-2 bg-gradient-to-r from-cyan-500 to-teal-600 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 shadow-lg">
         Start Test
       </button>
     </div>

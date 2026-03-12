@@ -249,7 +249,7 @@ export default function AdminCurriculumUpload() {
         <p className="text-[9px] text-white/25">Target: {getFilePath(selectedCourse, selectedModule)} · Accepts .json, .csv, .txt, .docx</p>
 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <button onClick={handleDownloadGuide} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-400/20 text-indigo-300 text-[10px] font-bold hover:bg-indigo-500/25 transition-all">
+          <button onClick={handleDownloadGuide} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/15 border border-teal-400/20 text-teal-300 text-[10px] font-bold hover:bg-teal-500/25 transition-all">
             <Download className="w-3 h-3" /> AI Guide
           </button>
           <CurriculumTimingControls

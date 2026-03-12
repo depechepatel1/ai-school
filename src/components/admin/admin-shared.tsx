@@ -14,14 +14,14 @@ export const PIE_COLORS = ["#22d3ee", "#f97316", "#a855f7"];
 export const ROLES = ["student", "teacher", "parent", "admin"] as const;
 
 export const ROLE_COLORS: Record<string, string> = {
-  student: "bg-blue-500/15 text-blue-300 border-blue-400/20",
+  student: "bg-teal-500/15 text-teal-300 border-teal-400/20",
   teacher: "bg-emerald-500/15 text-emerald-300 border-emerald-400/20",
   parent: "bg-rose-500/15 text-rose-300 border-rose-400/20",
   admin: "bg-amber-500/15 text-amber-300 border-amber-400/20",
 };
 
 export const ACTION_LABELS: Record<string, { label: string; color: string }> = {
-  change_role: { label: "Role Changed", color: "text-blue-300 bg-blue-500/15 border-blue-400/20" },
+  change_role: { label: "Role Changed", color: "text-teal-300 bg-teal-500/15 border-teal-400/20" },
   delete_user: { label: "User Deleted", color: "text-red-300 bg-red-500/15 border-red-400/20" },
   remove_member: { label: "Member Removed", color: "text-orange-300 bg-orange-500/15 border-orange-400/20" },
   add_member: { label: "Member Added", color: "text-emerald-300 bg-emerald-500/15 border-emerald-400/20" },

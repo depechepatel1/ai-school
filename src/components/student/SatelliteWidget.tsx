@@ -29,7 +29,7 @@ export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
   const centerDashOffset = centerCirc - (centerProgress / 100) * centerCirc;
 
   const colorMap = {
-    blue: { border: "border-blue-500/50 bg-blue-900/40 group-hover:bg-blue-500 group-hover:border-blue-200", glow: "bg-blue-500", ring: "#3b82f6" },
+    blue: { border: "border-sky-500/50 bg-sky-900/40 group-hover:bg-sky-500 group-hover:border-sky-200", glow: "bg-sky-500", ring: "#0ea5e9" },
     teal: { border: "border-teal-500/50 bg-teal-900/40 group-hover:bg-teal-500 group-hover:border-teal-200", glow: "bg-teal-400", ring: "#14b8a6" },
     pink: { border: "border-pink-500/50 bg-pink-900/40 group-hover:bg-pink-500 group-hover:border-pink-200", glow: "bg-pink-500", ring: "#ec4899" },
     orange: { border: "border-orange-500/50 bg-orange-900/40 group-hover:bg-orange-500 group-hover:border-orange-200", glow: "bg-orange-500", ring: "#f97316" },
@@ -40,7 +40,7 @@ export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
     <div className="relative w-80 h-80 flex items-center justify-center overflow-visible">
       {/* Background Animations */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-        <div className="absolute w-[300px] h-[300px] border border-blue-400/20 animate-spin" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '20s' }} />
+        <div className="absolute w-[300px] h-[300px] border border-teal-400/20 animate-spin" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '20s' }} />
         <div className="absolute w-[280px] h-[280px] border border-cyan-400/20 animate-spin" style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', animationDuration: '15s', animationDirection: 'reverse' }} />
         <div className="absolute w-[260px] h-[260px] border border-purple-400/20 animate-spin" style={{ borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%', animationDuration: '25s' }} />
 
@@ -64,11 +64,11 @@ export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
       {/* Central Hub */}
       <div className="relative z-30 flex items-center justify-center">
         <svg className="absolute w-[120px] h-[120px] -rotate-90 pointer-events-none overflow-visible z-20">
-          <circle cx="50%" cy="50%" r={centerR} fill="none" stroke="#1e3a8a" strokeWidth="4" strokeOpacity="0.3" />
-          <circle cx="50%" cy="50%" r={centerR} fill="none" stroke="#3b82f6" strokeWidth="4" strokeDasharray={centerCirc} strokeDashoffset={centerDashOffset} strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+          <circle cx="50%" cy="50%" r={centerR} fill="none" stroke="#115e59" strokeWidth="4" strokeOpacity="0.3" />
+          <circle cx="50%" cy="50%" r={centerR} fill="none" stroke="#14b8a6" strokeWidth="4" strokeDasharray={centerCirc} strokeDashoffset={centerDashOffset} strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(20,184,166,0.8)]" />
         </svg>
-        <div onClick={() => navigate("/speaking")} className="relative w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(37,99,235,0.6)] border-2 border-white/20 group transition-all hover:scale-105 active:scale-95 cursor-pointer z-30 hover:shadow-[0_0_80px_rgba(37,99,235,1)]">
-          <div className="absolute -inset-4 rounded-full bg-blue-500/20 animate-ping" style={{ animationDuration: '3s' }} />
+        <div onClick={() => navigate("/speaking")} className="relative w-24 h-24 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(20,184,166,0.6)] border-2 border-white/20 group transition-all hover:scale-105 active:scale-95 cursor-pointer z-30 hover:shadow-[0_0_80px_rgba(20,184,166,1)]">
+          <div className="absolute -inset-4 rounded-full bg-teal-500/20 animate-ping" style={{ animationDuration: '3s' }} />
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-white/20 to-transparent blur-md animate-pulse" />
           <Mic className="relative z-10 w-8 h-8 text-white drop-shadow-md group-hover:scale-110 transition-transform" />
           <span className="relative z-10 text-[9px] font-bold text-white uppercase tracking-widest mt-1">Speak</span>

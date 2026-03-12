@@ -81,7 +81,7 @@ export default function WelcomeModal() {
 
             <button
               onClick={dismiss}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-sm hover:from-blue-500 hover:to-cyan-500 transition-all flex items-center justify-center gap-2 shadow-lg"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold text-sm hover:from-teal-500 hover:to-cyan-500 transition-all flex items-center justify-center gap-2 shadow-lg"
             >
               Let's Get Started <ArrowRight className="w-4 h-4" />
             </button>

@@ -347,8 +347,8 @@ export default function SpeakingStudio() {
               )}
               <div className="w-full max-w-3xl flex flex-col gap-2 mb-2">
                 {practiceType === "pronunciation" && curriculum.curriculumTotal > 0 &&
-              <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700 ease-out"
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${(curriculum.globalSentenceIndex + 1) / curriculum.curriculumTotal * 100}%` }} />
                   </div>
               }
