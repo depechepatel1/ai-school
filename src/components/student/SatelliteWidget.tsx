@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, Eye, Headphones, PenTool, Book, FileText, Check } from "lucide-react";
 
@@ -6,7 +6,7 @@ interface SatelliteWidgetProps {
   onNavigate: (section: string) => void;
 }
 
-export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
+const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNavigate }, ref) => {
   const navigate = useNavigate();
   const nodes = [
     { label: "READING", icon: Eye, color: "blue" as const, progress: 60 },
@@ -100,4 +100,6 @@ export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
       })}
     </div>
   );
-}
+});
+
+export default SatelliteWidget;
