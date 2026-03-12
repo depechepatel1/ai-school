@@ -27,14 +27,9 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
 
   useEffect(() => {
     wordRefs.current = wordRefs.current.slice(0, data.length);
-    setLines([]); // Reset so fallback renders for measurement
-  }, [data]);
-
-  useEffect(() => {
-    if (lines.length === 0 && data.length > 0) {
-      requestAnimationFrame(measureLines);
-    }
-  }, [lines, data, measureLines]);
+    // Measure after render
+    requestAnimationFrame(measureLines);
+  }, [data, measureLines]);
 
   const renderWord = (item: WordData, i: number, refCb: (el: HTMLDivElement | null) => void) => {
     const isActive = i === activeWordIndex;
@@ -85,21 +80,17 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
     );
   }
 
-  const line1 = lines[0] ?? [];
-  const line2 = lines[1] ?? [];
-
   return (
     <div className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-2 mt-0 mb-0 px-6">
-      {/* Line 1: full justified */}
-      <div className="w-full flex flex-nowrap items-baseline justify-between">
-        {line1.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
-      </div>
-      {/* Line 2: center justified */}
-      {line2.length > 0 && (
-        <div className="w-full flex flex-nowrap items-baseline justify-center">
-          {line2.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
-        </div>
-      )}
+      {lines.map((lineIndices, lineIdx) => {
+        const isFirstLine = lineIdx === 0;
+        const justify = isFirstLine || lineIndices.length >= 4 ? "justify-between" : "justify-center";
+        return (
+          <div key={lineIdx} className={`w-full flex flex-wrap items-baseline ${justify}`}>
+            {lineIndices.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
+          </div>
+        );
+      })}
     </div>
   );
 }
