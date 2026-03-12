@@ -193,7 +193,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
         <LiveTranscriptBar transcript={liveTranscript} interim={liveInterim} isRecording={isRecording} />
 
         {/* Recording controls */}
-        <div className="absolute bottom-[9rem] left-1/2 -translate-x-1/2 z-[310] flex items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[310] flex flex-col items-center gap-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
           <button onClick={handleToggleRecording} className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording ? "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-110" : "bg-white/10 border border-white/20 hover:bg-white/20"}`}>
             {isRecording ? <div className="w-5 h-5 bg-white rounded animate-pulse" /> : <Mic className="w-7 h-7 text-white" />}
           </button>
