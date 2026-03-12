@@ -213,7 +213,7 @@ export default function AdminUploadVideos() {
                     {status === "done" && <Check className="ml-auto h-5 w-5 text-green-500" />}
                     {status !== "done" && slot.existsInStorage && slot.path.startsWith("loop-stack/") && (
                       <div className="ml-auto flex items-center gap-1.5">
-                        <span className="text-[9px] uppercase tracking-wider text-emerald-400 font-bold">In Storage</span>
+                        <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">In Storage</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); deleteLoopClip(slot); }}
                           className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
