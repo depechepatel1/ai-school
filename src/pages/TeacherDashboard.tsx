@@ -10,6 +10,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
 import { fetchClasses, createClassWithCourse, getCurrentUserId } from "@/services/db";
 import ClassDetailPanel from "@/components/teacher/ClassDetailPanel";
+import { CardGridSkeleton } from "@/components/ui/dashboard-skeleton";
 
 const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
