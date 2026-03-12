@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export function useAudioCapture() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -9,6 +9,17 @@ export function useAudioCapture() {
   const [isPlayingReplay, setIsPlayingReplay] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
+
+  // Revoke object URL on unmount or when replaced
+  const lastUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (lastUrlRef.current) {
+        URL.revokeObjectURL(lastUrlRef.current);
+      }
+    };
+  }, []);
 
   const startMediaRecorder = useCallback(async (): Promise<boolean> => {
     setMicDenied(false);
@@ -26,8 +37,14 @@ export function useAudioCapture() {
         streamRef.current = null;
         setActiveStream(null);
         if (audioChunksRef.current.length > 0) {
+          // Revoke previous URL before creating new one
+          if (lastUrlRef.current) {
+            URL.revokeObjectURL(lastUrlRef.current);
+          }
           const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-          setLastRecordingUrl(URL.createObjectURL(blob));
+          const url = URL.createObjectURL(blob);
+          lastUrlRef.current = url;
+          setLastRecordingUrl(url);
         }
       };
       recorder.start();
@@ -61,7 +78,13 @@ export function useAudioCapture() {
     setIsPlayingReplay(true);
   }, [lastRecordingUrl, isPlayingReplay]);
 
-  const clearRecording = useCallback(() => setLastRecordingUrl(null), []);
+  const clearRecording = useCallback(() => {
+    if (lastUrlRef.current) {
+      URL.revokeObjectURL(lastUrlRef.current);
+      lastUrlRef.current = null;
+    }
+    setLastRecordingUrl(null);
+  }, []);
   const clearMicDenied = useCallback(() => setMicDenied(false), []);
 
   return {

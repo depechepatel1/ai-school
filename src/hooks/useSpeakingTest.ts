@@ -35,6 +35,21 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const isRecordingRef = useRef(false);
   const testStateRef = useRef(testState);
   const nextTransition = useRef<any>(null);
+  // Refs for timeout cleanup
+  const pendingTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const trackTimeout = useCallback((id: ReturnType<typeof setTimeout>) => {
+    pendingTimeoutsRef.current.push(id);
+    return id;
+  }, []);
+
+  // Cleanup all pending timeouts on unmount
+  useEffect(() => {
+    return () => {
+      pendingTimeoutsRef.current.forEach(clearTimeout);
+      pendingTimeoutsRef.current = [];
+    };
+  }, []);
 
   // Debounced punctuation — updates liveTranscript with punctuated text
   const debouncedPunctuate = useMemo(
@@ -156,17 +171,17 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
         }));
         nextTransition.current = null;
         if (["part1", "part2_speak", "part3"].includes(part)) {
-          setTimeout(() => {
+          trackTimeout(setTimeout(() => {
             if (testStateRef.current.status === "running") {
               setIsRecording(true);
               startSpeechRecognition();
-              if (part === "part1" || part === "part3") setTimeout(() => triggerAIQuestion(), 1500);
+              if (part === "part1" || part === "part3") trackTimeout(setTimeout(() => triggerAIQuestion(), 1500));
             }
-          }, 50);
+          }, 50));
         }
       }
     }
-  }, [countdown, startSpeechRecognition, triggerAIQuestion]);
+  }, [countdown, startSpeechRecognition, triggerAIQuestion, trackTimeout]);
 
   // ── Public actions ──
   const finishTest = useCallback(() => {
@@ -220,15 +235,15 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     if (firstPart === "part2") { firstPartState = "part2_prep"; duration = 60; }
     setTestState({ status: "running", queue: partsList, currentPartIndex: 0, currentPart: firstPartState, timeLeft: duration, elapsedInCurrent: 0 });
     if (firstPartState === "part1" || firstPartState === "part3") {
-      setTimeout(() => { setIsRecording(true); startSpeechRecognition(); setTimeout(() => triggerAIQuestion(), 1500); }, 500);
+      trackTimeout(setTimeout(() => { setIsRecording(true); startSpeechRecognition(); trackTimeout(setTimeout(() => triggerAIQuestion(), 1500)); }, 500));
     }
-  }, [speakTeacherText, startSpeechRecognition, triggerAIQuestion]);
+  }, [speakTeacherText, startSpeechRecognition, triggerAIQuestion, trackTimeout]);
 
   const initiateCountdown = useCallback((partsList: string[]) => {
     setShowTestConfig(false);
     setCountdown(3);
-    setTimeout(() => runTestSetup(partsList), 3000);
-  }, [runTestSetup]);
+    trackTimeout(setTimeout(() => runTestSetup(partsList), 3000));
+  }, [runTestSetup, trackTimeout]);
 
   const skipPrep = useCallback(() => startTransition("part2_speak", 120), [startTransition]);
 

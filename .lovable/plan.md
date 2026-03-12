@@ -1,110 +1,29 @@
 
 
-# Phase 1: Critical Security and Stability Fixes
+## Analysis
 
-This plan covers items 1.1 through 1.6. Subsequent phases will follow in later messages.
+### Problem 1: Video not moving
+The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
 
----
+**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
 
-## 1.1 Fix JWT Validation in `deepseek-chat`
+### Problem 2: The vertical line with one-sided fade
+The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
 
-**File:** `supabase/functions/deepseek-chat/index.ts`
+Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
 
-The `getClaims()` method actually does exist on newer Supabase JS client versions and is the recommended pattern per the project's own edge function docs. However, to be safe and consistent, replace with `getUser()` which is universally supported:
-
-```typescript
-// Replace getClaims block with:
-const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-if (userError || !user) {
-  return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, ... });
-}
-```
-
-## 1.2 Fix SQL Injection in `admin-manage-users`
-
-**File:** `supabase/functions/admin-manage-users/index.ts` (line 118)
-
-Replace the `.or()` string interpolation with two separate delete calls:
-
-```typescript
-await adminClient.from("parent_student_links").delete().eq("parent_id", user_id);
-await adminClient.from("parent_student_links").delete().eq("student_id", user_id);
-```
-
-## 1.3 Add Auth to Unprotected Edge Functions
-
-**Files:** 6 edge functions (excluding `create-dev-accounts` which is a dev-only utility and `check-video-headers`)
-
-Add an auth guard to the top of each function. For admin-only functions (`import-curriculum`, `upload-curriculum`, `upload-video-file`, `upload-videos`, `upload-analysis-video`), require admin role. For `punctuate`, require any authenticated user.
-
-Pattern for admin functions:
-```typescript
-const authHeader = req.headers.get("Authorization");
-if (!authHeader) return respond(401, { error: "Unauthorized" });
-const callerClient = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
-const { data: { user } } = await callerClient.auth.getUser();
-if (!user) return respond(401, { error: "Unauthorized" });
-// For admin-only: check role via service role client
-```
-
-For `punctuate` (called by students during practice): require authenticated user only.
-
-## 1.4 Fix Auth Race Condition
-
-**File:** `src/lib/auth.tsx`
-
-Remove `setTimeout(() => loadRole(...), 0)` and instead await the role inline, setting loading false only after role resolves:
-
-```typescript
-onAuthStateChange(async (_event, session) => {
-  setSession(session);
-  setUser(session?.user ?? null);
-  if (session?.user) {
-    await loadRole(session.user.id);
-    preloadVoices(); preloadAccent("uk"); preloadAccent("us");
-  } else {
-    setRole(null);
-  }
-  setLoading(false);
-});
-```
-
-Same pattern for the `getSession()` block below it (remove the separate `setLoading(false)` call that fires before role loads).
-
-## 1.5 Fix Memory Leaks
-
-### `src/hooks/useAudioCapture.ts`
-- In `recorder.onstop`, call `URL.revokeObjectURL()` on the previous `lastRecordingUrl` before creating a new one
-- Add cleanup in a `useEffect` return to revoke on unmount
-
-### `src/hooks/useSpeakingTest.ts`
-- Lines 159, 163, 223, 230: Store `setTimeout` return values in refs and clear them on unmount via a cleanup `useEffect`
-
-### `src/hooks/use-toast.ts`
-- The listener cleanup already exists (lines 153-157 splice on unmount). The global `listeners` array is by design. No change needed here — this is a false positive in the audit.
-
-## 1.6 Dev Credentials
-
-**File:** `src/components/DevNav.tsx`
-
-The PageShell dev panel was already removed in the previous consolidation. `DevNav.tsx` still has hardcoded credentials. Options:
-- Gate the entire `DevNav` component behind `import.meta.env.DEV` so it never renders in production builds
-- Move credentials to environment variables
-
-Recommended: Wrap the component render in `if (!import.meta.env.DEV) return null;` at the top. This is the simplest fix — Vite tree-shakes the entire component out of production builds.
-
-Also gate `create-dev-accounts` edge function with an environment check or admin auth.
+**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
 
 ---
 
-## Summary of Changes
+## Changes -- `src/components/PageShell.tsx`
 
-| Item | Files Modified | Risk |
-|------|---------------|------|
-| 1.1 | `deepseek-chat/index.ts` | Low |
-| 1.2 | `admin-manage-users/index.ts` | Low |
-| 1.3 | 6 edge functions | Medium — test each after |
-| 1.4 | `src/lib/auth.tsx` | Medium — affects login flow |
-| 1.5 | `useAudioCapture.ts`, `useSpeakingTest.ts` | Low |
-| 1.6 | `DevNav.tsx` | Low |
+### 1. Shift video left using transform instead of object-position
+- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
+- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+
+### 2. Remove fade effects on auth screens
+- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
+- Keep footer behavior for `fullWidth` screens unchanged
+- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
 
