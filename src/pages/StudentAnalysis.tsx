@@ -392,7 +392,7 @@ function ReportPanel({ report, loading }: { report: any; loading: boolean }) {
     <div className="px-3 py-3 space-y-4">
       {/* This Week Homework */}
       <div>
-        <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 block mb-2">This Week · Homework</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block mb-2">This Week · Homework</span>
         {(["shadowing", "pronunciation", "speaking"] as const).map((mod) => (
           <div key={mod} className="flex items-center justify-between py-1.5 border-b border-white/[0.05] last:border-0">
             <span className="text-[11px] text-white/60 capitalize">{mod}</span>
