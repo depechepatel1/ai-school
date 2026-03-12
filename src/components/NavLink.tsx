@@ -11,6 +11,7 @@ interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
 
 const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
   ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
+    const prefetch = usePrefetchProps(typeof to === "string" ? to : to.pathname ?? "");
     return (
       <RouterNavLink
         ref={ref}
@@ -18,6 +19,7 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
         className={({ isActive, isPending }) =>
           cn(className, isActive && activeClassName, isPending && pendingClassName)
         }
+        {...prefetch}
         {...props}
       />
     );

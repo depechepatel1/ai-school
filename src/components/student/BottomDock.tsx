@@ -30,11 +30,11 @@ const BottomDock = forwardRef<HTMLDivElement, BottomDockProps>(({ setShowHomewor
           <span className="text-[10px] uppercase font-bold group-hover:text-purple-200">Schedule</span>
         </button>
         <div className="w-px h-5 bg-white/10" />
-        <button onClick={() => navigate("/analysis")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
+        <button {...analysisPrefetch} onClick={() => navigate("/analysis")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
           <BarChart3 className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-cyan-400" />
           <span className="text-[10px] uppercase font-bold group-hover:text-cyan-200">Analysis</span>
         </button>
-        <button onClick={() => navigate("/profile")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
+        <button {...profilePrefetch} onClick={() => navigate("/profile")} className="text-gray-400 hover:text-white flex flex-col items-center gap-1 group transition-all">
           <User className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white/50" />
           <span className="text-[10px] uppercase font-bold group-hover:text-white/80">Profile</span>
         </button>
