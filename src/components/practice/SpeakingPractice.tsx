@@ -15,6 +15,7 @@ import { getSpeakingQuestions, type SpeakingQuestion } from "@/services/curricul
 import { chat, type ChatMessage } from "@/services/ai";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
+import { createPauseTracker } from "@/lib/speech-annotations";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
