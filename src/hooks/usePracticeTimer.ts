@@ -50,6 +50,7 @@ export function usePracticeTimer({
   weekNumber,
   practiceMode,
   isAudioActive,
+  isSpeechDetected,
 }: UsePracticeTimerOptions): PracticeTimerState {
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
