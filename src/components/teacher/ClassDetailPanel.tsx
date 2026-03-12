@@ -133,7 +133,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
         </button>
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-bold text-gray-200 truncate">{className}</h2>
-          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
             courseType === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"
           }`}>{courseType}</span>
         </div>
@@ -176,7 +176,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
             <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center space-y-1">
               <div className={`mx-auto w-6 h-6 rounded-lg bg-white/[0.04] flex items-center justify-center ${c.color}`}>{c.icon}</div>
               <p className={`text-sm font-bold ${c.color}`}>{c.value}</p>
-              <p className="text-[9px] text-gray-500 uppercase tracking-wider">{c.label}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">{c.label}</p>
             </div>
           ))}
         </div>
@@ -184,7 +184,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
         {/* Bar Chart — fills remaining space */}
         {chartData.length > 0 && (
           <div className="flex-1 rounded-xl bg-white/[0.02] border border-white/[0.06] p-3">
-            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-2">Practice Minutes</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Practice Minutes</p>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={chartData} barCategoryGap="20%">
                 <XAxis dataKey="name" tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false} />

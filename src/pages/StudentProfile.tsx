@@ -163,7 +163,7 @@ export default function StudentProfile() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={100}
                   placeholder="Enter your name"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-teal-400/40 transition-all"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-teal-400/40 transition-all"
                 />
                 <button
                   onClick={handleSaveName}

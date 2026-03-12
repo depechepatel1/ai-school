@@ -72,7 +72,7 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
           <div className="absolute -inset-4 rounded-full bg-teal-500/20 animate-ping" style={{ animationDuration: '3s' }} />
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-white/20 to-transparent blur-md animate-pulse" />
           <Mic className="relative z-10 w-8 h-8 text-white drop-shadow-md group-hover:scale-110 transition-transform" />
-          <span className="relative z-10 text-[9px] font-bold text-white uppercase tracking-widest mt-1">Speak</span>
+          <span className="relative z-10 text-[10px] font-bold text-white uppercase tracking-widest mt-1">Speak</span>
         </div>
       </div>
 
@@ -95,7 +95,7 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
               </div>
             )}
             <node.icon className="w-5 h-5 text-gray-300 group-hover:text-white group-hover:scale-110 transition-all duration-300 relative z-30" />
-            <span className="text-[8px] text-gray-400 group-hover:text-white font-bold mt-1 uppercase text-outline tracking-wide relative z-30 transition-colors">{node.label}</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-white font-bold mt-1 uppercase text-outline tracking-wide relative z-30 transition-colors">{node.label}</span>
           </button>
         );
       })}

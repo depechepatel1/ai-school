@@ -91,7 +91,7 @@ export default function Login() {
                 placeholder={t("login.emailPlaceholder")}
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
-                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60 focus:border-red-400/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-500 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60 focus:border-red-400/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
               />
               {errors.email && <p className="text-[10px] text-red-400 pl-1">{errors.email}</p>}
             </div>
@@ -102,7 +102,7 @@ export default function Login() {
                 placeholder={t("login.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
-                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60 focus:border-red-400/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-500 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60 focus:border-red-400/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
               />
               {errors.password && <p className="text-[10px] text-red-400 pl-1">{errors.password}</p>}
             </div>
@@ -134,7 +134,7 @@ export default function Login() {
         <motion.div variants={fadeUp} className="mt-8 text-center">
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/10" />
-            <span className="text-[10px] text-gray-600 uppercase tracking-widest">{t("login.newHere")}</span>
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t("login.newHere")}</span>
             <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/10" />
           </div>
           <Link

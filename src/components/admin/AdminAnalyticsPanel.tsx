@@ -147,7 +147,7 @@ export default function AnalyticsPanel() {
             <button
               key={p.id}
               onClick={() => applyPreset(p.id)}
-              className={`flex-1 px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                 preset === p.id
                   ? "bg-amber-500/15 border border-amber-400/20 text-amber-300"
                   : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
@@ -196,7 +196,7 @@ export default function AnalyticsPanel() {
           </Popover>
         </div>
 
-        <p className="text-[9px] text-gray-600 text-center">
+        <p className="text-[10px] text-gray-500 text-center">
           {logs.length} sessions in range
         </p>
       </div>
@@ -274,7 +274,7 @@ export default function AnalyticsPanel() {
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(stats.courseMap).map(([course, seconds]) => (
               <div key={course} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                <span className={`text-[9px] font-bold uppercase tracking-wider ${course === "igcse" ? "text-amber-300" : "text-cyan-300"}`}>{course}</span>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${course === "igcse" ? "text-amber-300" : "text-cyan-300"}`}>{course}</span>
                 <p className="text-sm font-bold text-white/80 mt-0.5">{formatTime(seconds)}</p>
               </div>
             ))}

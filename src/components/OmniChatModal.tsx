@@ -280,7 +280,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 title={sttLang === "en-US" ? "切换到中文" : "Switch to English"}
               >
                 <span className={sttLang === "en-US" ? "text-teal-300" : "text-gray-500"}>EN</span>
-                <span className="text-gray-600">/</span>
+                <span className="text-gray-500">/</span>
                 <span className={sttLang === "zh-CN" ? "text-teal-300" : "text-gray-500"}>中</span>
               </button>
               {/* Voice toggle button — shown when input is empty and not loading */}

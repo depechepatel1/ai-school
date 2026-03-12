@@ -48,13 +48,13 @@ function CountdownTimer({ countdownFrom, activeSeconds, isRunning, onPause, onRe
         {isComplete ? <Check className="w-4 h-4 text-emerald-400" /> : <Flame className="w-4 h-4 text-orange-400 animate-pulse" />}
       </div>
       <div className="flex flex-col">
-        {label && <span className="text-[8px] font-bold uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</span>}
+        {label && <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</span>}
         <div className={`font-mono text-sm font-bold tabular-nums tracking-wide ${timeColor}`}>
           {isOvertime && "+"}
           {mins}:{secs.toString().padStart(2, "0")}
         </div>
-        {isComplete && <span className="text-[8px] font-bold uppercase tracking-widest text-emerald-400/70">{isOvertime ? "Extended Time" : "Done!"}</span>}
-        {!isComplete && !isRunning && <span className="text-[8px] font-bold uppercase tracking-widest text-white/30">Paused</span>}
+        {isComplete && <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/70">{isOvertime ? "Extended Time" : "Done!"}</span>}
+        {!isComplete && !isRunning && <span className="text-[10px] font-bold uppercase tracking-widest text-white/35">Paused</span>}
       </div>
       <button
         onClick={isRunning ? onPause : onResume}

@@ -13,7 +13,7 @@ export default function XPWidget({ xp, level }: Props) {
         <Star className="w-4 h-4 text-amber-400 fill-current drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
       </div>
       <div className="flex flex-col w-28">
-        <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider text-amber-300/80 mb-1">
+        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-amber-300/80 mb-1">
           <span>Lvl {level}</span>
           <span className="text-amber-200">{xp} XP</span>
         </div>

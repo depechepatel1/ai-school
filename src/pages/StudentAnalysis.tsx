@@ -248,7 +248,7 @@ export default function StudentAnalysis() {
                   <button
                     key={t.key}
                     onClick={() => setRightPanel(t.key)}
-                    className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                    className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
                       rightPanel === t.key
                         ? "text-yellow-300 bg-white/5"
                         : "text-white/40 hover:text-white/60"
@@ -302,7 +302,7 @@ function ClassLeaderboardPanel({ entries, loading, currentUserId }: { entries: a
               <div className="flex-1 min-w-0">
                 <div className={`text-[11px] font-semibold truncate ${isMe ? "text-white" : "text-white/60"}`}>
                   {entry.display_name}
-                  {isMe && <span className="text-[9px] ml-1 text-white/30">(you)</span>}
+                  {isMe && <span className="text-[10px] ml-1 text-white/35">(you)</span>}
                 </div>
                 <div className="text-[10px] text-white/30 font-medium">{fmt(entry.total_seconds)}</div>
               </div>
@@ -334,7 +334,7 @@ function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries
             return (
               <div key={e.user_id} className="flex flex-col items-center gap-1">
                 <Avatar name={e.display_name} url={e.avatar_url} size={podiumIdx === 1 ? 28 : 22} />
-                <span className={`text-[8px] font-bold truncate max-w-[50px] ${isMe ? "text-white" : "text-white/50"}`}>
+                <span className={`text-[10px] font-bold truncate max-w-[50px] ${isMe ? "text-white" : "text-white/50"}`}>
                   {e.display_name.split(" ")[0]}
                 </span>
                 <div
@@ -365,7 +365,7 @@ function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries
               <div className="flex-1 min-w-0">
                 <div className={`text-[11px] font-semibold truncate ${isMe ? "text-white" : "text-white/60"}`}>
                   {entry.display_name}
-                  {isMe && <span className="text-[9px] ml-1 text-white/30">(you)</span>}
+                  {isMe && <span className="text-[10px] ml-1 text-white/35">(you)</span>}
                 </div>
                 <div className="mt-1 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
                   <div
@@ -392,7 +392,7 @@ function ReportPanel({ report, loading }: { report: any; loading: boolean }) {
     <div className="px-3 py-3 space-y-4">
       {/* This Week Homework */}
       <div>
-        <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 block mb-2">This Week · Homework</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block mb-2">This Week · Homework</span>
         {(["shadowing", "pronunciation", "speaking"] as const).map((mod) => (
           <div key={mod} className="flex items-center justify-between py-1.5 border-b border-white/[0.05] last:border-0">
             <span className="text-[11px] text-white/60 capitalize">{mod}</span>
@@ -423,7 +423,7 @@ function ReportPanel({ report, loading }: { report: any; loading: boolean }) {
 
       {/* 4-Week Chart */}
       <div>
-        <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 block mb-2">Past 4 Weeks</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block mb-2">Past 4 Weeks</span>
         <div className="h-[100px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={report.weeklyChart} barCategoryGap="25%">
@@ -469,7 +469,7 @@ function Avatar({ name, url, size = 24 }: { name: string; url?: string | null; s
       {url ? (
         <img src={url} alt="" className="w-full h-full object-cover" />
       ) : (
-        <span className="text-[9px] font-bold text-white/40">{name.charAt(0).toUpperCase()}</span>
+        <span className="text-[10px] font-bold text-white/40">{name.charAt(0).toUpperCase()}</span>
       )}
     </div>
   );

@@ -22,7 +22,7 @@ export const PracticeHeader = memo(function PracticeHeader({ badgeClass, badgeLa
       >
         <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
       </button>
-      <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl border ${badgeClass}`}>
+      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl border ${badgeClass}`}>
         {badgeLabel}
       </span>
     </div>
@@ -40,12 +40,12 @@ export const PracticeProgress = memo(function PracticeProgress({ label, current,
   return (
     <div className="absolute top-4 right-4 z-50">
       <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2.5 text-center">
-        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/40 block">{label}</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 block">{label}</span>
         <span className="text-lg font-bold text-white/90">{current}</span>
         <span className="text-white/30 text-sm font-medium"> / {total}</span>
         {subLabel && (
           <div className="mt-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-sky-400">{subLabel}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">{subLabel}</span>
           </div>
         )}
       </div>

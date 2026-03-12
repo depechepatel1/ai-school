@@ -162,7 +162,7 @@ export default function DevNav() {
             className="mb-2 p-2 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-1 w-[200px] shadow-2xl"
           >
             {/* Status bar */}
-            <div className="px-3 py-1 text-[9px] font-mono text-gray-500 border-b border-white/5 mb-1">
+            <div className="px-3 py-1 text-[10px] font-mono text-gray-500 border-b border-white/5 mb-1">
               {user ? (
                 <span className="text-green-400">{user.email} ({currentRole ?? "no role"})</span>
               ) : (
@@ -171,7 +171,7 @@ export default function DevNav() {
             </div>
 
             {lastError && (
-              <div className="px-2 py-1 text-[9px] text-red-400 flex items-center gap-1">
+              <div className="px-2 py-1 text-[10px] text-red-400 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3 flex-shrink-0" />
                 {lastError}
               </div>
@@ -190,14 +190,14 @@ export default function DevNav() {
                 } ${loading ? "opacity-50 cursor-wait" : ""}`}
               >
                 {r.label}
-                {r.role && <span className="ml-1 text-[9px] text-gray-600">({r.role})</span>}
+                {r.role && <span className="ml-1 text-[10px] text-gray-500">({r.role})</span>}
               </button>
             ))}
 
             <div className="border-t border-white/5 mt-1 pt-1" />
 
             {accountsReady ? (
-              <div className="w-full px-3 py-1.5 text-[9px] text-green-500/60 flex items-center gap-1.5">
+              <div className="w-full px-3 py-1.5 text-[10px] text-green-500/60 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3 h-3" />
                 Dev accounts ready
               </div>

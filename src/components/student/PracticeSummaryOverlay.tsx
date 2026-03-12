@@ -60,13 +60,13 @@ export default function PracticeSummaryOverlay({
               <div className="text-center">
                 <div className="flex items-center gap-1.5 justify-center text-white/40 mb-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Practiced</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Practiced</span>
                 </div>
                 <span className="text-2xl font-bold text-white">{formatTime(activeSeconds)}</span>
               </div>
               <div className="w-px h-10 bg-white/10" />
               <div className="text-center">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 block mb-1">Activity</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block mb-1">Activity</span>
                 <span className="text-sm font-semibold text-white/70">{activityLabel}</span>
               </div>
             </div>

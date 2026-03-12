@@ -118,7 +118,7 @@ export default function TeacherDashboard() {
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateClass()}
-                  className="flex-1 h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-teal-400/40 focus:bg-white/[0.06] transition-all"
+                  className="flex-1 h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-teal-400/40 focus:bg-white/[0.06] transition-all"
                 />
                 <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                   {(["ielts", "igcse"] as const).map((ct) => (

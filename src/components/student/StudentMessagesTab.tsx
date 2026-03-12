@@ -101,7 +101,7 @@ export default function StudentMessagesTab() {
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-bold text-white truncate">{selectedConvo.title || "Untitled"}</p>
-            <p className="text-[9px] text-white/30">{messages.length} messages</p>
+            <p className="text-[10px] text-white/35">{messages.length} messages</p>
           </div>
         </motion.div>
 
@@ -110,7 +110,7 @@ export default function StudentMessagesTab() {
           <motion.div variants={fadeUp} className="mb-2 rounded-xl bg-amber-500/[0.06] border border-amber-400/15 px-3 py-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <StickyNote className="w-3 h-3 text-amber-400" />
-              <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wider">Teacher Feedback</span>
+              <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Teacher Feedback</span>
             </div>
             <p className="text-[10px] text-amber-100/80 leading-relaxed whitespace-pre-wrap">{note.content}</p>
           </motion.div>
@@ -136,7 +136,7 @@ export default function StudentMessagesTab() {
                     ? "bg-teal-500/15 border border-teal-400/20 text-teal-100 rounded-br-sm"
                     : "bg-white/[0.04] border border-white/[0.08] text-white/70 rounded-bl-sm"
                 }`}>
-                  <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_code]:text-[9px] [&_code]:bg-white/10 [&_code]:px-0.5 [&_code]:rounded">
+                  <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_code]:text-[10px] [&_code]:bg-white/10 [&_code]:px-0.5 [&_code]:rounded">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                 </div>
@@ -176,12 +176,12 @@ export default function StudentMessagesTab() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">{c.title || "Untitled"}</p>
-              <p className="text-[9px] text-white/30">{new Date(c.updated_at).toLocaleDateString()}</p>
+              <p className="text-[10px] text-white/35">{new Date(c.updated_at).toLocaleDateString()}</p>
             </div>
             {notedIds.has(c.id) && (
               <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-400/15">
                 <StickyNote className="w-2.5 h-2.5 text-amber-400" />
-                <span className="text-[8px] font-bold text-amber-300">Feedback</span>
+                <span className="text-[10px] font-bold text-amber-300">Feedback</span>
               </div>
             )}
             <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors" />

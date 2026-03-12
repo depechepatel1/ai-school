@@ -174,7 +174,7 @@ export default function ConversationDetailView({
                 <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0 [&_code]:text-[10px] [&_code]:bg-white/10 [&_code]:px-1 [&_code]:rounded">
                   <ReactMarkdown>{m.content}</ReactMarkdown>
                 </div>
-                <p className="text-[8px] text-gray-600 mt-1.5">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                <p className="text-[10px] text-gray-500 mt-1.5">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
               </div>
               {isUser && (
                 <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -237,7 +237,7 @@ export default function ConversationDetailView({
           </div>
         )}
         {(editingNote || !note) && noteText.length > 0 && (
-          <p className="text-[8px] text-gray-600 mt-1 text-right">{noteText.length}/{MAX_NOTE_LENGTH}</p>
+          <p className="text-[10px] text-gray-500 mt-1 text-right">{noteText.length}/{MAX_NOTE_LENGTH}</p>
         )}
       </motion.div>
     </motion.div>

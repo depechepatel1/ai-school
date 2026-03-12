@@ -72,7 +72,7 @@ export default function AuditPanel() {
           {actionTypes.map((a) => {
             const meta = a === "all" ? null : ACTION_LABELS[a];
             return (
-              <button key={a} onClick={() => setActionFilter(a)} className={`px-2 py-1 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all ${actionFilter === a ? "bg-amber-500/15 border border-amber-400/20 text-amber-300" : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"}`}>
+              <button key={a} onClick={() => setActionFilter(a)} className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${actionFilter === a ? "bg-amber-500/15 border border-amber-400/20 text-amber-300" : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"}`}>
                 {a === "all" ? "All" : meta?.label || a}
               </button>
             );
@@ -101,7 +101,7 @@ export default function AuditPanel() {
             </PopoverContent>
           </Popover>
           {hasFilters && (
-            <button onClick={clearFilters} className="text-[9px] text-gray-500 hover:text-gray-300 px-1.5 py-1 rounded hover:bg-white/[0.04] transition-all">Clear</button>
+            <button onClick={clearFilters} className="text-[10px] text-gray-500 hover:text-gray-300 px-1.5 py-1 rounded hover:bg-white/[0.04] transition-all">Clear</button>
           )}
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function AuditPanel() {
         return (
           <div key={entry.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
             <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border ${actionMeta.color}`}>{actionMeta.label}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${actionMeta.color}`}>{actionMeta.label}</span>
               <span className="text-[10px] text-gray-500 ml-auto">{new Date(entry.created_at).toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-1.5 text-[10px]">
