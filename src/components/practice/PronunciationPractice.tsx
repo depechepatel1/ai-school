@@ -120,7 +120,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     if (!currentTwister) return;
     if (isPlayingModel) { ttsHandleRef.current?.stop(); setIsPlayingModel(false); setActiveWordIndex(-1); return; }
     setIsPlayingModel(true); setActiveWordIndex(0); setTargetProgress(0);
-    ttsHandleRef.current = speak(currentTwister.text, "uk", {
+    ttsHandleRef.current = speak(currentTwister.text, accent, {
       rate: 0.8, pitch: 1.1,
       onBoundary: (charIndex) => { const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar); if (idx !== -1) { setActiveWordIndex(idx); setTargetProgress(computeTargetProgress(idx)); } },
       onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); setTargetProgress(1); },
