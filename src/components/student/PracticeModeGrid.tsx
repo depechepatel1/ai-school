@@ -84,7 +84,7 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
               </div>
               <div className="text-center">
                 <div className="text-xs font-bold text-white/90">{mode.label}</div>
-                <div className="text-[9px] text-white/40 font-medium mt-0.5">{mode.sublabel}</div>
+                <div className="text-[10px] text-white/40 font-medium mt-0.5">{mode.sublabel}</div>
               </div>
             </motion.button>
           );
