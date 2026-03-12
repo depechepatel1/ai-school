@@ -82,7 +82,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
         currentTranscriptRef.current += pauseMarker + " " + text;
         setLiveTranscript(currentTranscriptRef.current.trimStart());
         setLiveInterim("");
-        debouncedPunctuate(currentTranscriptRef.current.trim());
+        punctuateWithMarkers(currentTranscriptRef.current.trim());
       },
       onInterim: (text) => {
         interimTranscriptRef.current = text;
