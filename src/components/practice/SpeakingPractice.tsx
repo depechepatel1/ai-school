@@ -193,17 +193,6 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
 
         <PracticeProgress label="Question" current={currentQIndex + 1} total={questions.length} />
 
-        {/* Main question display */}
-        {!showPostAnswer && currentQuestion && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-xl w-full px-8">
-            <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.10] rounded-3xl p-8 text-center shadow-[0_0_60px_-10px_rgba(0,0,0,0.5)]">
-              <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${config.accentColor === "violet" ? "text-violet-300/60" : "text-purple-300/60"} block mb-3`}>
-                {config.singleQuestionPerWeek ? "Speaking · Question 1" : `${sectionLabel} · Question ${currentQIndex + 1}`}
-              </span>
-              <p className="text-lg font-semibold text-white/90 leading-relaxed">{currentQuestion.text}</p>
-            </div>
-          </div>
-        )}
 
         <LiveTranscriptBar transcript={liveTranscript} interim={liveInterim} isRecording={isRecording} />
 
