@@ -242,7 +242,7 @@ export default function UsersPanel() {
               <button
                 onClick={() => !isSelf(u.id) && setChangingRole(u.id)}
                 disabled={isSelf(u.id)}
-                className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border transition-all ${ROLE_COLORS[u.role] || "bg-gray-500/15 text-gray-400 border-gray-400/20"} ${isSelf(u.id) ? "opacity-50 cursor-default" : "hover:scale-105 cursor-pointer"}`}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all ${ROLE_COLORS[u.role] || "bg-gray-500/15 text-gray-400 border-gray-400/20"} ${isSelf(u.id) ? "opacity-50 cursor-default" : "hover:scale-105 cursor-pointer"}`}
                 title={isSelf(u.id) ? "Can't change own role" : "Click to change role"}
               >
                 {u.role}
