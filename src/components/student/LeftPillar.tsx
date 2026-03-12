@@ -5,6 +5,8 @@ import {
   Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
 } from "lucide-react";
 import { usePrefetchProps } from "@/hooks/usePrefetch";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
+import { useAuth } from "@/lib/auth";
 import StudentMessagesTab from "./StudentMessagesTab";
 
 interface LeftPillarProps {
