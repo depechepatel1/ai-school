@@ -258,6 +258,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     setMessages((prev) => [...prev, { role: "student", text: userSpeech }]);
     currentTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    pauseTracker.current.reset();
     setLiveTranscript("");
     setLiveInterim("");
     await triggerAIQuestion();
