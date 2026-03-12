@@ -18,6 +18,7 @@ export default function StudentPractice() {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
+  const { videoList } = useVideoLoopStack();
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
