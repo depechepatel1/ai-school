@@ -242,7 +242,7 @@ export default function VideoLoopStage({
       {createPortal(
         <button
           onClick={toggleAudio}
-          className="fixed bottom-12 left-12 z-[100] p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
+          className="fixed top-4 right-4 z-[100] p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/40 transition-all shadow-lg hover:scale-105 cursor-pointer"
           title={isMuted ? "Unmute Background" : "Mute Background"}
         >
           {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
