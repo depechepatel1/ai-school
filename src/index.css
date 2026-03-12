@@ -91,41 +91,8 @@
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl;
-  }
-  .glass-card-hover {
-    @apply glass-card hover:border-primary/30 hover:shadow-[0_0_30px_hsl(174_84%_40%/0.12)] transition-all duration-300;
-  }
-  .glass-subtle {
-    @apply bg-white/[0.03] border border-white/[0.06] rounded-2xl;
-  }
-  .glass-elevated {
-    @apply bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
-  }
-  .gradient-text {
-    @apply bg-gradient-to-r from-teal-400 to-cyan-300 bg-clip-text text-transparent;
-  }
-  .teal-glow {
-    box-shadow: 0 0 40px hsl(174 84% 40% / 0.15), 0 0 80px hsl(174 84% 40% / 0.05);
-  }
-  .pulse-recording {
-    animation: pulse-record 1.5s ease-in-out infinite;
-  }
-  @keyframes pulse-record {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(0 72% 51% / 0.6); }
-    50% { box-shadow: 0 0 0 12px hsl(0 72% 51% / 0); }
-  }
   .animate-fade-in-up {
     animation: fadeInUp 0.8s ease-out forwards;
-  }
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: gradient-move 3s ease infinite;
-  }
-  .animate-text-flash {
-    background-size: 200% auto;
-    animation: text-flash 4s linear infinite;
   }
   .border-glow-subtle {
     border: 1px solid rgba(255, 255, 255, 0.1);
