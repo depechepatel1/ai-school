@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Mic } from "lucide-react";
+import { Mic, Pause, Play } from "lucide-react";
 
 const BAR_COUNT = 5;
 
 type MicSize = "sm" | "md" | "lg" | "xl";
 type MicShape = "rounded" | "circle";
+type RecordingState = "idle" | "recording" | "paused";
 
 interface MicRecordButtonProps {
-  isRecording: boolean;
+  /** Simple 2-state mode (backward compat) */
+  isRecording?: boolean;
+  /** 3-state mode — takes precedence over isRecording */
+  recordingState?: RecordingState;
   micDenied?: boolean;
   onToggle: () => void;
   stream?: MediaStream | null;
@@ -30,7 +34,8 @@ const SHAPE_MAP: Record<MicShape, string> = {
 };
 
 export default function MicRecordButton({
-  isRecording,
+  isRecording: isRecordingProp,
+  recordingState: recordingStateProp,
   micDenied = false,
   onToggle,
   stream,
@@ -39,13 +44,18 @@ export default function MicRecordButton({
   idleClassName = "bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]",
   className = "",
 }: MicRecordButtonProps) {
+  // Derive state — 3-state prop takes precedence
+  const state: RecordingState = recordingStateProp ?? (isRecordingProp ? "recording" : "idle");
+  const isActive = state === "recording";
+  const isPaused = state === "paused";
+
   const [levels, setLevels] = useState<number[]>(Array(BAR_COUNT).fill(0));
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
-    if (isRecording && stream) {
+    if (isActive && stream) {
       const ctx = new AudioContext();
       const src = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
@@ -85,36 +95,61 @@ export default function MicRecordButton({
       if (ctxRef.current) { ctxRef.current.close().catch(() => {}); ctxRef.current = null; }
       setLevels(Array(BAR_COUNT).fill(0));
     }
-  }, [isRecording, stream]);
+  }, [isActive, stream]);
 
   const { btn, icon, stop } = SIZE_MAP[size];
   const shapeClass = SHAPE_MAP[shape];
-  const stopRound = shape === "circle" ? "rounded" : "rounded-sm";
+
+  // Status dot color
+  const dotClass = micDenied
+    ? "bg-red-500"
+    : isActive
+      ? "bg-green-500 animate-pulse"
+      : isPaused
+        ? "bg-amber-400 animate-pulse"
+        : "bg-white/20";
+
+  // Button style per state
+  const btnStateClass = isActive
+    ? `bg-red-500 ${size === "xl" ? "shadow-[0_0_40px_rgba(239,68,68,0.6)]" : "shadow-[0_0_24px_rgba(239,68,68,0.4)]"} scale-105`
+    : isPaused
+      ? "bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+      : idleClassName;
 
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
       {/* Status dot */}
-      <div className={`absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full border-2 border-black/30 z-10 transition-all ${
-        micDenied ? "bg-red-500" : isRecording ? "bg-green-500 animate-pulse" : "bg-white/20"
-      }`} />
+      <div className={`absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full border-2 border-black/30 z-10 transition-all ${dotClass}`} />
+
+      {/* Pulsing ring animation when recording */}
+      {isActive && (
+        <>
+          <div className={`absolute inset-0 ${shapeClass} bg-red-500/20 animate-ping`} />
+          <div className={`absolute -inset-1 ${shapeClass} border-2 border-red-400/30 animate-pulse`} />
+        </>
+      )}
+
+      {/* Amber breathing ring when paused */}
+      {isPaused && (
+        <div className={`absolute -inset-1 ${shapeClass} border-2 border-amber-400/30 animate-pulse`} />
+      )}
 
       {/* Button */}
       <button
         onClick={onToggle}
-        title={isRecording ? "Stop" : "Record"}
-        className={`relative ${btn} ${shapeClass} flex items-center justify-center transition-all duration-300 ${
-          isRecording
-            ? `bg-red-500 ${size === "xl" ? "shadow-[0_0_40px_rgba(239,68,68,0.6)]" : "shadow-[0_0_24px_rgba(239,68,68,0.4)]"} scale-105`
-            : idleClassName
-        }`}
+        title={isActive ? "Pause" : isPaused ? "Resume" : "Record"}
+        className={`relative ${btn} ${shapeClass} flex items-center justify-center transition-all duration-300 ${btnStateClass}`}
       >
-        {isRecording
-          ? <div className={`${stop} bg-white ${stopRound} animate-pulse`} />
-          : <Mic className={`${icon} ${micDenied ? "text-red-400" : "text-white/80"}`} />
-        }
+        {isActive ? (
+          <Pause className={`${icon} text-white`} />
+        ) : isPaused ? (
+          <Play className={`${icon} text-white ml-0.5`} />
+        ) : (
+          <Mic className={`${icon} ${micDenied ? "text-red-400" : "text-white/80"}`} />
+        )}
         
         {/* Level bars - inside button at bottom */}
-        <div className={`absolute bottom-1.5 left-0 right-0 flex items-end justify-center gap-[2px] pointer-events-none transition-opacity duration-300 ${isRecording ? "opacity-100" : "opacity-0"}`}>
+        <div className={`absolute bottom-1.5 left-0 right-0 flex items-end justify-center gap-[2px] pointer-events-none transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-0"}`}>
           {levels.map((level, i) => (
             <div
               key={i}
