@@ -20,7 +20,7 @@ function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, q
       </div>
       <div className="space-y-1.5 text-[11px]">
         <div className="flex items-center gap-2">
-          <span className="text-white/40 font-semibold uppercase tracking-wider text-[9px] w-16">Course</span>
+          <span className="text-white/40 font-semibold uppercase tracking-wider text-[10px] w-16">Course</span>
           <span className="text-cyan-300/90 font-bold">{course}</span>
         </div>
         <div className="flex items-center gap-2">
