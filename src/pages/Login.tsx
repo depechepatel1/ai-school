@@ -9,6 +9,7 @@ import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
+import { z } from "zod";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
