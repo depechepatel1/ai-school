@@ -14,7 +14,7 @@ export const PIE_COLORS = ["#22d3ee", "#f97316", "#a855f7"];
 export const ROLES = ["student", "teacher", "parent", "admin"] as const;
 
 export const ROLE_COLORS: Record<string, string> = {
-  student: "bg-blue-500/15 text-blue-300 border-blue-400/20",
+  student: "bg-teal-500/15 text-teal-300 border-teal-400/20",
   teacher: "bg-emerald-500/15 text-emerald-300 border-emerald-400/20",
   parent: "bg-rose-500/15 text-rose-300 border-rose-400/20",
   admin: "bg-amber-500/15 text-amber-300 border-amber-400/20",
