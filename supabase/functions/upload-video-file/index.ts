@@ -68,8 +68,8 @@ Deno.serve(async (req) => {
       return respond(400, { error: "Missing file or path" });
     }
 
-    if (!VALID_PATHS.includes(targetPath)) {
-      return respond(400, { error: `Invalid path. Must be one of: ${VALID_PATHS.join(", ")}` });
+    if (!isValidPath(targetPath)) {
+      return respond(400, { error: `Invalid path. Must be intro.mp4, analysis-bg.mp4, or loop-stack/<number>.mp4` });
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
