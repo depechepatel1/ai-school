@@ -206,6 +206,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
               <SkipForward className="w-5 h-5" />
             </button>
           )}
+          </div>
         </div>
 
         <SpeakingFeedbackPanel
