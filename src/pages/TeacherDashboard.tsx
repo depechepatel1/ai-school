@@ -191,7 +191,6 @@ export default function TeacherDashboard() {
                     ))}
                   </div>
                 )}
-                )}
               </div>
 
               {/* Bottom feature cards — horizontal row */}
