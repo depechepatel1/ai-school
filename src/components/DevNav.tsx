@@ -143,6 +143,8 @@ export default function DevNav() {
     }
 
     await supabase.auth.signOut();
+    localStorage.setItem("dev-accounts-created", "1");
+    setAccountsReady(true);
     toast({ title: "Dev accounts", description: results.join(", ") });
     setLoading(false);
   };
