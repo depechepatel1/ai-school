@@ -35,15 +35,21 @@ export default function TeacherDashboard() {
   const [isCreating, setIsCreating] = useState(false);
   const [newCourseType, setNewCourseType] = useState<"ielts" | "igcse">("ielts");
   const [selectedClass, setSelectedClass] = useState<ClassInfo | null>(null);
+  const [classesLoading, setClassesLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => { loadClasses(); }, []);
 
   const loadClasses = async () => {
+    setClassesLoading(true);
     try {
       const data = await fetchClasses();
       setClasses(data);
-    } catch {}
+    } catch (err: any) {
+      toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
+    } finally {
+      setClassesLoading(false);
+    }
   };
 
   const handleCreateClass = async () => {
