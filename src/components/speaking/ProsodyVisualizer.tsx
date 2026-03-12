@@ -85,16 +85,21 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
     );
   }
 
+  const line1 = lines[0] ?? [];
+  const line2 = lines[1] ?? [];
+
   return (
     <div className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-2 mt-0 mb-0 px-6">
-      {lines.map((lineIndices, lineIdx) => {
-        const justify = lineIdx === 0 ? "justify-between" : "justify-center";
-        return (
-          <div key={lineIdx} className={`w-full flex flex-nowrap items-baseline ${justify}`}>
-            {lineIndices.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
-          </div>
-        );
-      })}
+      {/* Line 1: full justified */}
+      <div className="w-full flex flex-nowrap items-baseline justify-between">
+        {line1.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
+      </div>
+      {/* Line 2: center justified */}
+      {line2.length > 0 && (
+        <div className="w-full flex flex-nowrap items-baseline justify-center">
+          {line2.map((wi) => renderWord(data[wi], wi, (el) => { wordRefs.current[wi] = el; }))}
+        </div>
+      )}
     </div>
   );
 }
