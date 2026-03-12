@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 interface RightPillarProps {
   onNavigate: (section: string) => void;
+  speakingProgress?: number;
 }
 
 export default function RightPillar({ onNavigate }: RightPillarProps) {
