@@ -56,7 +56,7 @@ export default function ClassesPanel() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="text-xs font-semibold text-gray-200">{c.name}</h3>
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${c.course_type === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"}`}>{c.course_type}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${c.course_type === "igcse" ? "bg-amber-500/15 text-amber-300 border border-amber-400/20" : "bg-cyan-500/15 text-cyan-300 border border-cyan-400/20"}`}>{c.course_type}</span>
               </div>
               <code className="text-[10px] text-blue-300/60 font-mono">{c.join_code}</code>
             </div>
