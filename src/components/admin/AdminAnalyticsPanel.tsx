@@ -147,7 +147,7 @@ export default function AnalyticsPanel() {
             <button
               key={p.id}
               onClick={() => applyPreset(p.id)}
-              className={`flex-1 px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                 preset === p.id
                   ? "bg-amber-500/15 border border-amber-400/20 text-amber-300"
                   : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
