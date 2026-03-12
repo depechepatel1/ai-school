@@ -158,10 +158,13 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
 
         <PracticeProgress label="Tongue Twister" current={currentIndex + 1} total={twisters.length} subLabel={moduleLabel} />
 
-        {/* Accent selector + Vertical button stack – far right */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3">
+        {/* Accent selector – top right */}
+        <div className="absolute right-4 top-16 z-50">
           <AccentSelector accent={accent} onChange={setAccent} />
-          <div className="flex flex-col items-center gap-2">
+        </div>
+
+        {/* Vertical button stack – far right */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2">
           <button onClick={handlePrev} className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95" title="Previous">
             <ChevronLeft className="w-4 h-4" />
           </button>

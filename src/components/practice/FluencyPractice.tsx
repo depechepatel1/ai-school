@@ -162,10 +162,13 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
         <PracticeProgress label="Chunk" current={shadowCurriculum.currentIndex + 1} total={shadowCurriculum.totalChunks} />
 
-        {/* Accent selector + Vertical button stack – far right */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3">
+        {/* Accent selector – top right */}
+        <div className="absolute right-4 top-16 z-50">
           <AccentSelector accent={accent} onChange={setAccent} />
-          <div className="flex flex-col items-center gap-2">
+        </div>
+
+        {/* Vertical button stack – far right */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2">
           <button onClick={handlePlayModel} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isPlayingModel ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10"}`} title="Hear Model">
             {isPlayingModel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Headphones className="w-5 h-5" />}
           </button>
