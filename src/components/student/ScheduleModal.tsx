@@ -63,7 +63,7 @@ export default function ScheduleModal({ isOpen, onClose }: ScheduleModalProps) {
             const isToday = day.toDateString() === new Date().toDateString();
             const isReview = day.getDate() % 5 === 0;
             return (
-              <div key={idx} onClick={() => setSelectedDate(day)} className={`aspect-square rounded-lg flex flex-col items-center justify-center relative border transition-all cursor-pointer group ${isToday ? 'bg-blue-600 text-white border-blue-400' : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/20'}`}>
+              <div key={idx} onClick={() => setSelectedDate(day)} className={`aspect-square rounded-lg flex flex-col items-center justify-center relative border transition-all cursor-pointer group ${isToday ? 'bg-teal-600 text-white border-teal-400' : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/20'}`}>
                 <span className="text-xs">{day.getDate()}</span>
                 <div className="flex gap-1 mt-1">
                   {isReview && <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
