@@ -1,29 +1,51 @@
 
 
-## Analysis
+## Plan: Instant-start, zero-flicker, randomized video loop
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Problems
+1. **Slow first load** — all 10 videos share bandwidth; clip 1 competes with prefetching.
+2. **Flicker on transition** — `transition-opacity duration-500` fades between clips, causing a visible flash.
+3. **Sequential order** — clips always play 1→2→3→…→10→1→… which gets repetitive.
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### Design
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+Since first and last frames of all clips are identical, we can do **instant z-index swaps with no opacity transition**. Both players stay at `opacity-100` at all times. The active player sits at `z-[2]`, the standby at `z-[1]`. When the active clip ends, we instantly flip z-indices and call `play()` on the standby — the identical frames make the cut invisible.
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+**Randomization**: Build a shuffled playlist on mount (Fisher-Yates), always starting with index 0 (the clip already set as `src` on Player A). Pick the next clip from the shuffled list. When the list is exhausted, reshuffle.
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+**Fast first load**: Player A gets `preload="auto"` and starts playing immediately. Player B only loads after Player A starts playing (via `onPlaying` or the intro-finished effect), so it doesn't compete for bandwidth.
 
----
+### Changes — single file: `src/components/stage/VideoLoopStage.tsx`
 
-## Changes -- `src/components/PageShell.tsx`
+**1. Add shuffle utility**
+```ts
+function shuffleExceptFirst(arr: string[]): string[] {
+  const first = arr[0];
+  const rest = arr.slice(1);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  return [first, ...rest];
+}
+```
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+**2. Replace `nextIndexRef` with a shuffled queue ref**
+- On mount, create `playlistRef = useRef(shuffleExceptFirst(videoList))` and `playIndexRef = useRef(1)` (index 0 is already on Player A).
+- Helper `getNextClip()`: returns `playlist[playIndex++]`, reshuffles when exhausted.
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+**3. Remove all opacity transitions — instant swap only**
+- Both `<video>` elements: remove `transition-opacity duration-500`, keep both at `opacity-100`.
+- Active player: `z-[2]`. Standby: `z-[1]`.
+- Since frames match, the cut is invisible.
+
+**4. Defer Player B loading**
+- Don't set Player B's `src` until Player A fires `onPlaying` or intro finishes.
+- In the intro-finished `useEffect`, preload B with `getNextClip()`.
+
+**5. Instant swap in `handlePlayerEnded`**
+- When Player A ends: set active to B, call `play()` on B immediately (it's already loaded and at `readyState >= 2`).
+- Then set Player A's `src` to `getNextClip()` and call `.load()` to preload the next clip.
+- No `await canplay` gating — the clip should already be ready since it was preloaded during the previous clip's full playback duration.
+- Keep a fallback: if `readyState < 2`, wait for `canplay` before swapping (safety net for slow connections).
 
