@@ -11,7 +11,7 @@ interface Props {
   progressTotal?: number;
 }
 
-function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, questionText }: Props) {
+function FloatingInfoPanel({ course, weekNumber, questionType, questionNumber, questionText, progressCurrent, progressTotal }: Props) {
   return (
     <div className="bg-black/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-3 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] max-w-[220px] w-full">
       <div className="flex items-center gap-2 mb-3">
