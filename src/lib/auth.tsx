@@ -36,11 +36,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await loadRole(session.user.id);
-        // Warm up TTS voices early so first play is instant
-        preloadVoices();
-        preloadAccent("uk");
-        preloadAccent("us");
+        try {
+          await loadRole(session.user.id);
+          preloadVoices();
+          preloadAccent("uk");
+          preloadAccent("us");
+        } catch (e) {
+          console.error("Failed to load role:", e);
+          setRole(null);
+        }
       } else {
         setRole(null);
       }
@@ -51,10 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await loadRole(session.user.id);
-        preloadVoices();
-        preloadAccent("uk");
-        preloadAccent("us");
+        try {
+          await loadRole(session.user.id);
+          preloadVoices();
+          preloadAccent("uk");
+          preloadAccent("us");
+        } catch (e) {
+          console.error("Failed to load role:", e);
+          setRole(null);
+        }
       }
       setLoading(false);
     });
