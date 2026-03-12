@@ -103,6 +103,23 @@ export default function AdminUploadVideos() {
     }
   }, []);
 
+  const deleteLoopClip = useCallback(async (slot: VideoSlot) => {
+    if (!slot.path.startsWith("loop-stack/")) return;
+    if (!confirm(`Delete ${slot.label} from storage? This cannot be undone.`)) return;
+
+    try {
+      const { error } = await supabase.storage.from("videos").remove([slot.path]);
+      if (error) throw error;
+
+      setSlots((prev) => prev.filter((s) => s.path !== slot.path));
+      setStatuses((s) => { const copy = { ...s }; delete copy[slot.path]; return copy; });
+      setProgress((p) => { const copy = { ...p }; delete copy[slot.path]; return copy; });
+      toast({ title: `🗑️ ${slot.label} deleted` });
+    } catch (err: any) {
+      toast({ title: `❌ Delete failed`, description: err.message, variant: "destructive" });
+    }
+  }, []);
+
   const addLoopSlot = () => {
     // Find next available number
     const loopNumbers = slots
