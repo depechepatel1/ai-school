@@ -20,6 +20,8 @@ export default function StudentPractice() {
   const navigate = useNavigate();
   const courseWeek = useCourseWeek(user?.id ?? null);
   const { videoList } = useVideoLoopStack();
+  const { data: analytics } = useAnalyticsData(user?.id ?? null, courseWeek.courseType, "weekly");
+  const speakingProgress = analytics ? Math.round(analytics.speaking.pct * 100) : 0;
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
