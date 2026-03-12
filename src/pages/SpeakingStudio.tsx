@@ -354,7 +354,7 @@ export default function SpeakingStudio() {
                     <span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
                     <span className="text-[10px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
                   </div>
-                  <div className="absolute inset-0 px-8 py-2">
+                  <div className="absolute inset-0 py-2">
                     <PronunciationVisualizer
                     isRecording={isRecordingShadow}
                     isPlayingModel={isPlayingModel}
