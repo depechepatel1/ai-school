@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface LiveTranscriptBarProps {
