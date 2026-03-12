@@ -40,7 +40,7 @@ export default function SatelliteWidget({ onNavigate }: SatelliteWidgetProps) {
     <div className="relative w-80 h-80 flex items-center justify-center overflow-visible">
       {/* Background Animations */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-        <div className="absolute w-[300px] h-[300px] border border-blue-400/20 animate-spin" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '20s' }} />
+        <div className="absolute w-[300px] h-[300px] border border-teal-400/20 animate-spin" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '20s' }} />
         <div className="absolute w-[280px] h-[280px] border border-cyan-400/20 animate-spin" style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', animationDuration: '15s', animationDirection: 'reverse' }} />
         <div className="absolute w-[260px] h-[260px] border border-purple-400/20 animate-spin" style={{ borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%', animationDuration: '25s' }} />
 
