@@ -100,4 +100,6 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
       })}
     </div>
   );
-}
+});
+
+export default SatelliteWidget;
