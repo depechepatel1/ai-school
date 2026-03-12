@@ -6,11 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const VALID_PATHS = [
-  "intro.mp4",
-  "analysis-bg.mp4",
-  ...Array.from({ length: 10 }, (_, i) => `loop-stack/${i + 1}.mp4`),
-];
+function isValidPath(path: string): boolean {
+  if (path === "intro.mp4" || path === "analysis-bg.mp4") return true;
+  // Accept any loop-stack/<number>.mp4
+  const match = path.match(/^loop-stack\/(\d+)\.mp4$/);
+  return match !== null;
+}
 
 function respond(status: number, body: any) {
   return new Response(JSON.stringify(body), {
