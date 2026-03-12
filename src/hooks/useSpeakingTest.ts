@@ -68,9 +68,10 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const startSpeechRecognition = useCallback(() => {
     if (sttHandleRef.current) { sttHandleRef.current.stop(); sttHandleRef.current = null; }
     sttHandleRef.current = startListening("en-US", {
-      onResult: (text) => {
-        currentTranscriptRef.current += " " + text;
-        setLiveTranscript(prev => (prev + " " + text).trimStart());
+    onResult: (text) => {
+        const pauseMarker = pauseTracker.current.onChunk();
+        currentTranscriptRef.current += pauseMarker + " " + text;
+        setLiveTranscript(currentTranscriptRef.current.trimStart());
         setLiveInterim("");
         debouncedPunctuate(currentTranscriptRef.current.trim());
       },
