@@ -3,6 +3,7 @@
  * Shows 3 practice modes (Pronunciation, Fluency, Speaking)
  * Routes are course-aware (IELTS vs IGCSE)
  */
+import { memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Headphones, AudioWaveform, MessageSquare, Loader2 } from "lucide-react";
