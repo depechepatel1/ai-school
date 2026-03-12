@@ -288,7 +288,7 @@ export default function SpeakingStudio() {
             <>
                 {curriculum.currentTopic && practiceType === "pronunciation" &&
               <div className="bg-black/40 backdrop-blur-2xl border border-white/[0.06] rounded-2xl px-3.5 py-2.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] hover:border-white/[0.12] transition-colors animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">Topic</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">Topic</span>
                     <div className="text-[13px] font-semibold text-white/90 mt-1 leading-tight">{curriculum.currentTopic}</div>
                   </div>
               }
