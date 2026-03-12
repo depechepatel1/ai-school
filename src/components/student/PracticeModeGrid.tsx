@@ -43,8 +43,9 @@ const MODES = [
   },
 ] as const;
 
-export default function PracticeModeGrid({ courseType, loading }: PracticeModeGridProps) {
+export default memo(function PracticeModeGrid({ courseType, loading }: PracticeModeGridProps) {
   const navigate = useNavigate();
+  const prefix = useMemo(() => courseType === "ielts" ? "/ielts" : "/igcse", [courseType]);
 
   if (loading || !courseType) {
     return (
