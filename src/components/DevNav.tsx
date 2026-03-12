@@ -39,6 +39,7 @@ export default function DevNav() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [accountsReady, setAccountsReady] = useState(() => localStorage.getItem("dev-accounts-created") === "1");
   const navigate = useNavigate();
   const location = useLocation();
   const { user, role: currentRole } = useAuth();
