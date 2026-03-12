@@ -81,6 +81,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const timerSettings = useTimerSettings(courseType, "speaking");
   const config = COURSE_CONFIG[courseType];
 
+  const [accent, setAccent] = useState<Accent>("uk");
   const [questions, setQuestions] = useState<SpeakingQuestion[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
