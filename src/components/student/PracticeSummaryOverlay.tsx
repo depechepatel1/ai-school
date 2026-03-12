@@ -66,7 +66,7 @@ export default function PracticeSummaryOverlay({
               </div>
               <div className="w-px h-10 bg-white/10" />
               <div className="text-center">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 block mb-1">Activity</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block mb-1">Activity</span>
                 <span className="text-sm font-semibold text-white/70">{activityLabel}</span>
               </div>
             </div>

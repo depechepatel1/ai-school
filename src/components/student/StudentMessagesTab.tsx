@@ -181,7 +181,7 @@ export default function StudentMessagesTab() {
             {notedIds.has(c.id) && (
               <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-400/15">
                 <StickyNote className="w-2.5 h-2.5 text-amber-400" />
-                <span className="text-[8px] font-bold text-amber-300">Feedback</span>
+                <span className="text-[10px] font-bold text-amber-300">Feedback</span>
               </div>
             )}
             <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors" />
