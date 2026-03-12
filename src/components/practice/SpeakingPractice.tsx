@@ -267,7 +267,9 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     }
   };
 
-  const handleRecordingTap = () => {
+  // Keep finishRecordingRef always pointing to the latest version
+  useEffect(() => { finishRecordingRef.current = finishRecording; });
+
     if (recordingState === "idle") startRecording();
     else if (recordingState === "recording") pauseRecording();
     else if (recordingState === "paused") resumeRecording();
