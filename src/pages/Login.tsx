@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import { motion } from "framer-motion";
-import { LogIn, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";

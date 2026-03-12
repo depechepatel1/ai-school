@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
 import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
