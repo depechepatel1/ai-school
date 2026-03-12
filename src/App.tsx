@@ -13,27 +13,82 @@ import GlobalOmniChat from "@/components/GlobalOmniChat";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 // Lazy-loaded route pages — each becomes its own chunk
-const Index = lazy(() => import("./pages/Index"));
-const Login = lazy(() => import("./pages/Login"));
-const Signup = lazy(() => import("./pages/Signup"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const StudentPractice = lazy(() => import("./pages/StudentPractice"));
-const SpeakingStudio = lazy(() => import("./pages/SpeakingStudio"));
-const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
-const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const StudentAnalysis = lazy(() => import("./pages/StudentAnalysis"));
-const StudentProfile = lazy(() => import("./pages/StudentProfile"));
-const AdminUploadVideos = lazy(() => import("./pages/AdminUploadVideos"));
-const WeekSelection = lazy(() => import("./pages/WeekSelection"));
-const IELTSPronunciation = lazy(() => import("./pages/IELTSPronunciation"));
-const IELTSFluency = lazy(() => import("./pages/IELTSFluency"));
-const IELTSSpeaking = lazy(() => import("./pages/IELTSSpeaking"));
-const IGCSEPronunciation = lazy(() => import("./pages/IGCSEPronunciation"));
-const IGCSEFluency = lazy(() => import("./pages/IGCSEFluency"));
-const IGCSESpeaking = lazy(() => import("./pages/IGCSESpeaking"));
+// We store the import functions so we can prefetch them eagerly
+const pageImports = {
+  Index: () => import("./pages/Index"),
+  Login: () => import("./pages/Login"),
+  Signup: () => import("./pages/Signup"),
+  ForgotPassword: () => import("./pages/ForgotPassword"),
+  ResetPassword: () => import("./pages/ResetPassword"),
+  StudentPractice: () => import("./pages/StudentPractice"),
+  SpeakingStudio: () => import("./pages/SpeakingStudio"),
+  TeacherDashboard: () => import("./pages/TeacherDashboard"),
+  ParentDashboard: () => import("./pages/ParentDashboard"),
+  AdminDashboard: () => import("./pages/AdminDashboard"),
+  NotFound: () => import("./pages/NotFound"),
+  StudentAnalysis: () => import("./pages/StudentAnalysis"),
+  StudentProfile: () => import("./pages/StudentProfile"),
+  AdminUploadVideos: () => import("./pages/AdminUploadVideos"),
+  WeekSelection: () => import("./pages/WeekSelection"),
+  IELTSPronunciation: () => import("./pages/IELTSPronunciation"),
+  IELTSFluency: () => import("./pages/IELTSFluency"),
+  IELTSSpeaking: () => import("./pages/IELTSSpeaking"),
+  IGCSEPronunciation: () => import("./pages/IGCSEPronunciation"),
+  IGCSEFluency: () => import("./pages/IGCSEFluency"),
+  IGCSESpeaking: () => import("./pages/IGCSESpeaking"),
+};
+
+const Index = lazy(pageImports.Index);
+const Login = lazy(pageImports.Login);
+const Signup = lazy(pageImports.Signup);
+const ForgotPassword = lazy(pageImports.ForgotPassword);
+const ResetPassword = lazy(pageImports.ResetPassword);
+const StudentPractice = lazy(pageImports.StudentPractice);
+const SpeakingStudio = lazy(pageImports.SpeakingStudio);
+const TeacherDashboard = lazy(pageImports.TeacherDashboard);
+const ParentDashboard = lazy(pageImports.ParentDashboard);
+const AdminDashboard = lazy(pageImports.AdminDashboard);
+const NotFound = lazy(pageImports.NotFound);
+const StudentAnalysis = lazy(pageImports.StudentAnalysis);
+const StudentProfile = lazy(pageImports.StudentProfile);
+const AdminUploadVideos = lazy(pageImports.AdminUploadVideos);
+const WeekSelection = lazy(pageImports.WeekSelection);
+const IELTSPronunciation = lazy(pageImports.IELTSPronunciation);
+const IELTSFluency = lazy(pageImports.IELTSFluency);
+const IELTSSpeaking = lazy(pageImports.IELTSSpeaking);
+const IGCSEPronunciation = lazy(pageImports.IGCSEPronunciation);
+const IGCSEFluency = lazy(pageImports.IGCSEFluency);
+const IGCSESpeaking = lazy(pageImports.IGCSESpeaking);
+
+// Prefetch chunks for the current route immediately (runs during auth resolution)
+const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
+  "/": [pageImports.Index, pageImports.Signup, pageImports.WeekSelection],
+  "/login": [pageImports.Login],
+  "/signup": [pageImports.Signup],
+  "/forgot-password": [pageImports.ForgotPassword],
+  "/reset-password": [pageImports.ResetPassword],
+  "/select-week": [pageImports.WeekSelection, pageImports.StudentPractice],
+  "/student": [pageImports.StudentPractice],
+  "/speaking": [pageImports.SpeakingStudio],
+  "/ielts/pronunciation": [pageImports.IELTSPronunciation],
+  "/ielts/fluency": [pageImports.IELTSFluency],
+  "/ielts/speaking": [pageImports.IELTSSpeaking],
+  "/igcse/pronunciation": [pageImports.IGCSEPronunciation],
+  "/igcse/fluency": [pageImports.IGCSEFluency],
+  "/igcse/speaking": [pageImports.IGCSESpeaking],
+  "/analysis": [pageImports.StudentAnalysis],
+  "/profile": [pageImports.StudentProfile],
+  "/teacher": [pageImports.TeacherDashboard],
+  "/parent": [pageImports.ParentDashboard],
+  "/admin": [pageImports.AdminDashboard],
+  "/admin/upload-videos": [pageImports.AdminUploadVideos],
+};
+
+// Fire prefetch immediately at module load time — no waiting for React to mount
+const prefetches = pathPrefetchMap[window.location.pathname];
+if (prefetches) {
+  prefetches.forEach((fn) => fn());
+}
 
 const queryClient = new QueryClient();
 
