@@ -6,48 +6,57 @@
 
 @layer base {
   :root {
-    --background: 0 0% 2%;
-    --foreground: 0 0% 95%;
+    /* Backgrounds — teal-tinted */
+    --background: 195 40% 5%;
+    --foreground: 170 30% 95%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 95%;
+    --card: 195 36% 8%;
+    --card-foreground: 170 30% 95%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 195 36% 8%;
+    --popover-foreground: 170 30% 95%;
 
-    --primary: 24 100% 50%;
+    /* Primary — TEAL */
+    --primary: 174 84% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 95%;
+    /* Secondary — deep teal */
+    --secondary: 195 30% 12%;
+    --secondary-foreground: 170 30% 95%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
+    /* Muted — teal-tinted grays */
+    --muted: 195 20% 14%;
+    --muted-foreground: 195 10% 55%;
 
-    --accent: 24 80% 15%;
-    --accent-foreground: 24 100% 60%;
+    /* Accent — teal tinted */
+    --accent: 174 50% 15%;
+    --accent-foreground: 174 84% 55%;
 
+    /* Destructive stays red */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 24 100% 50%;
+    /* Borders — teal-tinted */
+    --border: 195 15% 16%;
+    --input: 195 15% 16%;
+    --ring: 174 84% 40%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 24 100% 50%;
+    /* Sidebar */
+    --sidebar-background: 195 40% 4%;
+    --sidebar-foreground: 170 20% 85%;
+    --sidebar-primary: 174 84% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 24 100% 50%;
+    --sidebar-accent: 195 30% 10%;
+    --sidebar-accent-foreground: 170 30% 95%;
+    --sidebar-border: 195 15% 16%;
+    --sidebar-ring: 174 84% 40%;
 
-    --glass: 0 0% 8% / 0.6;
-    --glass-border: 0 0% 100% / 0.08;
-    --orange-glow: 24 100% 50% / 0.15;
+    /* Custom tokens — teal glow */
+    --glass: 195 36% 8% / 0.6;
+    --glass-border: 170 50% 80% / 0.08;
+    --teal-glow: 174 84% 40% / 0.15;
   }
 }
 
@@ -60,34 +69,45 @@
     @apply bg-background text-foreground font-outfit antialiased;
   }
 
+  /* Global focus-visible ring for accessibility */
+  button:focus-visible, a:focus-visible, input:focus-visible, [role="button"]:focus-visible {
+    @apply outline-none ring-2 ring-teal-400/50 ring-offset-2 ring-offset-black;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: hsl(0 0% 4%);
+    background: hsl(195 40% 4%);
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(0 0% 20%);
+    background: hsl(195 15% 20%);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(24 100% 50% / 0.5);
+    background: hsl(174 84% 40% / 0.5);
   }
 }
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-white/[0.08] rounded-xl;
+    @apply bg-card/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl;
   }
   .glass-card-hover {
-    @apply glass-card hover:border-primary/30 hover:shadow-[0_0_30px_hsl(24_100%_50%/0.1)] transition-all duration-300;
+    @apply glass-card hover:border-primary/30 hover:shadow-[0_0_30px_hsl(174_84%_40%/0.12)] transition-all duration-300;
+  }
+  .glass-subtle {
+    @apply bg-white/[0.03] border border-white/[0.06] rounded-2xl;
+  }
+  .glass-elevated {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
   }
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-teal-400 to-cyan-300 bg-clip-text text-transparent;
   }
-  .orange-glow {
-    box-shadow: 0 0 40px hsl(24 100% 50% / 0.15), 0 0 80px hsl(24 100% 50% / 0.05);
+  .teal-glow {
+    box-shadow: 0 0 40px hsl(174 84% 40% / 0.15), 0 0 80px hsl(174 84% 40% / 0.05);
   }
   .pulse-recording {
     animation: pulse-record 1.5s ease-in-out infinite;
@@ -189,4 +209,3 @@
     animation: flame-flutter 3s infinite ease-in-out;
   }
 }
-
