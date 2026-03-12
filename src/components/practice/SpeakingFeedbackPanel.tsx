@@ -3,7 +3,7 @@
  */
 import { forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Loader2, RotateCcw, SkipForward } from "lucide-react";
+import { MessageSquare, Loader2, RotateCcw, SkipForward, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface SpeakingFeedbackPanelProps {
@@ -15,6 +15,7 @@ interface SpeakingFeedbackPanelProps {
   hasMultipleQuestions: boolean;
   onTryAgain: () => void;
   onNextQuestion: () => void;
+  onDismiss: () => void;
 }
 
 const ACCENT_CLASSES = {
