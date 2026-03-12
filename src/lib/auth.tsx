@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchUserRole, insertUserRole } from "@/services/db";
-import { preloadVoices, preloadAccent } from "@/lib/tts-provider";
+
 
 type AppRole = "student" | "teacher" | "parent" | "admin";
 
@@ -50,9 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(async () => {
           try {
             await loadRole(userId);
-            preloadVoices();
-            preloadAccent("uk");
-            preloadAccent("us");
           } catch (e) {
             console.error("[Auth] Failed to load role:", e);
             setRole(null);

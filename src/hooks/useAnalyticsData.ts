@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   SEMESTER_START,
   SEMESTER_WEEKS,
@@ -25,12 +25,7 @@ export interface AnalyticsPeriodData {
   speaking: ActivityData;
   totalSeconds: number;
   totalTarget: number;
-  /** For bar chart: array of { label, shadowing, pronunciation, speaking } */
   breakdown: { label: string; shadowing: number; pronunciation: number; speaking: number }[];
-}
-
-function makeEmpty(target: number): ActivityData {
-  return { seconds: 0, target, pct: 0, overtime: 0 };
 }
 
 function buildActivityData(seconds: number, target: number): ActivityData {
@@ -39,60 +34,57 @@ function buildActivityData(seconds: number, target: number): ActivityData {
   return { seconds, target, pct, overtime };
 }
 
+function computeRange(period: Period) {
+  const now = new Date();
+  const semStart = new Date(`${SEMESTER_START}T00:00:00`);
+  const semEnd = new Date(semStart.getTime() + SEMESTER_WEEKS * 7 * 86_400_000);
+  let rangeStart: Date;
+  let rangeEnd: Date;
+  let targetMultiplier = 1;
+
+  if (period === "daily") {
+    rangeStart = new Date(now); rangeStart.setHours(0, 0, 0, 0);
+    rangeEnd = new Date(now); rangeEnd.setHours(23, 59, 59, 999);
+  } else if (period === "weekly") {
+    const wk = getWeekNumber(now) || 1;
+    const r = getWeekDateRange(wk);
+    rangeStart = r.start; rangeEnd = r.end;
+    targetMultiplier = SCHOOL_DAYS_PER_WEEK;
+  } else if (period === "monthly") {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    targetMultiplier = SCHOOL_DAYS_PER_WEEK * 4;
+  } else {
+    rangeStart = semStart;
+    rangeEnd = now > semEnd ? semEnd : now;
+    const weeksElapsed = Math.max(1, getWeekNumber(now));
+    targetMultiplier = SCHOOL_DAYS_PER_WEEK * weeksElapsed;
+  }
+  return { rangeStart, rangeEnd, targetMultiplier };
+}
+
 export function useAnalyticsData(
   userId: string | null,
   courseType: "ielts" | "igcse" | null,
   period: Period,
 ) {
-  const [data, setData] = useState<AnalyticsPeriodData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { rangeStart, rangeEnd, targetMultiplier } = computeRange(period);
 
-  useEffect(() => {
-    if (!userId || !courseType) { setLoading(false); return; }
-
-    const fetch = async () => {
-      setLoading(true);
-      const targets = TIME_TARGETS[courseType] ?? TIME_TARGETS.igcse;
-      const now = new Date();
-      let rangeStart: Date;
-      let rangeEnd: Date;
-      let targetMultiplier = 1; // daily = 1
-
-      const semStart = new Date(`${SEMESTER_START}T00:00:00`);
-      const semEnd = new Date(semStart.getTime() + SEMESTER_WEEKS * 7 * 86_400_000);
-
-      if (period === "daily") {
-        rangeStart = new Date(now); rangeStart.setHours(0, 0, 0, 0);
-        rangeEnd = new Date(now); rangeEnd.setHours(23, 59, 59, 999);
-        targetMultiplier = 1;
-      } else if (period === "weekly") {
-        const wk = getWeekNumber(now) || 1;
-        const r = getWeekDateRange(wk);
-        rangeStart = r.start; rangeEnd = r.end;
-        targetMultiplier = SCHOOL_DAYS_PER_WEEK;
-      } else if (period === "monthly") {
-        rangeStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        // ~4 weeks of school days
-        targetMultiplier = SCHOOL_DAYS_PER_WEEK * 4;
-      } else {
-        // total — entire semester up to now
-        rangeStart = semStart;
-        rangeEnd = now > semEnd ? semEnd : now;
-        const weeksElapsed = Math.max(1, getWeekNumber(now));
-        targetMultiplier = SCHOOL_DAYS_PER_WEEK * weeksElapsed;
-      }
+  const { data = null, isLoading: loading } = useQuery({
+    queryKey: ["analytics-data", userId, courseType, period],
+    enabled: !!userId && !!courseType,
+    staleTime: 30_000,
+    queryFn: async (): Promise<AnalyticsPeriodData> => {
+      const targets = TIME_TARGETS[courseType!] ?? TIME_TARGETS.igcse;
 
       const { data: logs } = await supabase
         .from("student_practice_logs")
         .select("activity_type, active_seconds, created_at")
-        .eq("user_id", userId)
+        .eq("user_id", userId!)
         .gte("created_at", rangeStart.toISOString())
         .lte("created_at", rangeEnd.toISOString());
 
       const rows = logs ?? [];
-
-      // Aggregate by activity
       const sums: Record<Activity, number> = { shadowing: 0, pronunciation: 0, speaking: 0 };
       const buckets: Record<string, Record<Activity, number>> = {};
 
@@ -100,16 +92,13 @@ export function useAnalyticsData(
         const act = row.activity_type as Activity;
         if (sums[act] !== undefined) sums[act] += row.active_seconds;
 
-        // Determine bucket label
         let label: string;
         const d = new Date(row.created_at);
         if (period === "daily") {
-          const h = d.getHours();
-          label = `${h}:00`;
+          label = `${d.getHours()}:00`;
         } else if (period === "weekly") {
           label = d.toLocaleDateString("en", { weekday: "short" });
         } else {
-          // monthly / total — group by week number
           label = `W${getWeekNumber(d)}`;
         }
 
@@ -119,7 +108,7 @@ export function useAnalyticsData(
 
       const breakdown = Object.entries(buckets).map(([label, vals]) => ({ label, ...vals }));
 
-      const result: AnalyticsPeriodData = {
+      return {
         shadowing: buildActivityData(sums.shadowing, targets.shadowing * targetMultiplier),
         pronunciation: buildActivityData(sums.pronunciation, targets.pronunciation * targetMultiplier),
         speaking: buildActivityData(sums.speaking, targets.speaking * targetMultiplier),
@@ -127,13 +116,8 @@ export function useAnalyticsData(
         totalTarget: (targets.shadowing + targets.pronunciation + targets.speaking) * targetMultiplier,
         breakdown,
       };
-
-      setData(result);
-      setLoading(false);
-    };
-
-    fetch().catch(console.error);
-  }, [userId, courseType, period]);
+    },
+  });
 
   return { data, loading };
 }

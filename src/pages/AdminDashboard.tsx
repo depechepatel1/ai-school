@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
 import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, ClipboardList, Film, Timer, Upload } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
-import AdminTimerSettings from "@/components/admin/AdminTimerSettings";
-import AdminCurriculumUpload from "@/components/admin/AdminCurriculumUpload";
-import AnalyticsPanel from "@/components/admin/AdminAnalyticsPanel";
-import UsersPanel from "@/components/admin/AdminUsersPanel";
-import ClassesPanel from "@/components/admin/AdminClassesPanel";
-import PracticePanel from "@/components/admin/AdminPracticePanel";
-import ConversationsPanel from "@/components/admin/AdminConversationsPanel";
-import AuditPanel from "@/components/admin/AdminAuditPanel";
+import { LoadingSpinner } from "@/components/admin/admin-shared";
+
+const AdminTimerSettings = lazy(() => import("@/components/admin/AdminTimerSettings"));
+const AdminCurriculumUpload = lazy(() => import("@/components/admin/AdminCurriculumUpload"));
+const AnalyticsPanel = lazy(() => import("@/components/admin/AdminAnalyticsPanel"));
+const UsersPanel = lazy(() => import("@/components/admin/AdminUsersPanel"));
+const ClassesPanel = lazy(() => import("@/components/admin/AdminClassesPanel"));
+const PracticePanel = lazy(() => import("@/components/admin/AdminPracticePanel"));
+const ConversationsPanel = lazy(() => import("@/components/admin/AdminConversationsPanel"));
+const AuditPanel = lazy(() => import("@/components/admin/AdminAuditPanel"));
 
 const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
@@ -92,14 +94,16 @@ export default function AdminDashboard() {
 
             {/* Content */}
             <div className="flex-1 min-h-0 overflow-y-auto">
-              {activeTab === "analytics" && <AnalyticsPanel />}
-              {activeTab === "users" && <UsersPanel />}
-              {activeTab === "classes" && <ClassesPanel />}
-              {activeTab === "practice" && <PracticePanel />}
-              {activeTab === "conversations" && <ConversationsPanel />}
-              {activeTab === "audit" && <AuditPanel />}
-              {activeTab === "timers" && <AdminTimerSettings />}
-              {activeTab === "curriculum" && <AdminCurriculumUpload />}
+              <Suspense fallback={<LoadingSpinner variant="chart" />}>
+                {activeTab === "analytics" && <AnalyticsPanel />}
+                {activeTab === "users" && <UsersPanel />}
+                {activeTab === "classes" && <ClassesPanel />}
+                {activeTab === "practice" && <PracticePanel />}
+                {activeTab === "conversations" && <ConversationsPanel />}
+                {activeTab === "audit" && <AuditPanel />}
+                {activeTab === "timers" && <AdminTimerSettings />}
+                {activeTab === "curriculum" && <AdminCurriculumUpload />}
+              </Suspense>
             </div>
           </motion.div>
         </div>

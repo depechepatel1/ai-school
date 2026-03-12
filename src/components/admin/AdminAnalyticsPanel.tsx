@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
 import { Clock, Users, Activity, CalendarIcon } from "lucide-react";
@@ -12,10 +13,6 @@ import { KpiCard, ChartCard, LoadingSpinner, formatTime, ACTIVITY_COLORS, PIE_CO
 type DatePreset = "7d" | "30d" | "semester" | "custom";
 
 export default function AnalyticsPanel() {
-  const [allLogs, setAllLogs] = useState<any[]>([]);
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const semesterStartDate = new Date(`${SEMESTER_START}T00:00:00`);
   const [preset, setPreset] = useState<DatePreset>("semester");
   const [dateFrom, setDateFrom] = useState<Date>(semesterStartDate);
@@ -38,31 +35,33 @@ export default function AnalyticsPanel() {
     }
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const { data: logData } = await supabase
+  const rangeEnd = endOfDay(dateTo).toISOString();
+  const rangeStart = dateFrom.toISOString();
+
+  const { data: logs = [], isLoading: logsLoading } = useQuery({
+    queryKey: ["admin-practice-logs", rangeStart, rangeEnd],
+    queryFn: async () => {
+      const { data } = await supabase
         .from("student_practice_logs")
         .select("user_id, activity_type, course_type, week_number, active_seconds, created_at")
+        .gte("created_at", rangeStart)
+        .lte("created_at", rangeEnd)
         .order("created_at", { ascending: true });
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
 
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("id, created_at");
+  const { data: profiles = [], isLoading: profilesLoading } = useQuery({
+    queryKey: ["admin-profiles"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, created_at");
+      return data ?? [];
+    },
+    staleTime: 300_000,
+  });
 
-      setAllLogs(logData ?? []);
-      setProfiles(profileData ?? []);
-      setLoading(false);
-    })();
-  }, []);
-
-  const logs = useMemo(() => {
-    const from = dateFrom.getTime();
-    const to = endOfDay(dateTo).getTime();
-    return allLogs.filter((l) => {
-      const t = new Date(l.created_at).getTime();
-      return t >= from && t <= to;
-    });
-  }, [allLogs, dateFrom, dateTo]);
+  const loading = logsLoading || profilesLoading;
 
   const stats = useMemo(() => {
     if (!logs.length) return null;
@@ -198,7 +197,7 @@ export default function AnalyticsPanel() {
         </div>
 
         <p className="text-[9px] text-gray-600 text-center">
-          {logs.length} sessions in range · {allLogs.length} total
+          {logs.length} sessions in range
         </p>
       </div>
 
