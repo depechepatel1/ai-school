@@ -111,7 +111,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   const sttHandleRef = useRef<STTHandle | null>(null);
   const currentTranscriptRef = useRef("");
   const pauseTracker = useRef(createPauseTracker(1500));
-  const { startMediaRecorder, stopMediaRecorder } = useAudioCapture();
+  const { startMediaRecorder, stopMediaRecorder, activeStream } = useAudioCapture();
 
   // Keep a ref to the latest slots so the callback can access them
   const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
