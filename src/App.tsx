@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,29 +8,32 @@ import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import StudentPractice from "./pages/StudentPractice";
-import SpeakingStudio from "./pages/SpeakingStudio";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import ParentDashboard from "./pages/ParentDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
-import StudentAnalysis from "./pages/StudentAnalysis";
-import StudentProfile from "./pages/StudentProfile";
 import DevNav from "@/components/DevNav";
 import GlobalOmniChat from "@/components/GlobalOmniChat";
-import AdminUploadVideos from "./pages/AdminUploadVideos";
-import WeekSelection from "./pages/WeekSelection";
-import IELTSPronunciation from "./pages/IELTSPronunciation";
-import IELTSFluency from "./pages/IELTSFluency";
-import IELTSSpeaking from "./pages/IELTSSpeaking";
-import IGCSEPronunciation from "./pages/IGCSEPronunciation";
-import IGCSEFluency from "./pages/IGCSEFluency";
-import IGCSESpeaking from "./pages/IGCSESpeaking";
+import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
+
+// Lazy-loaded route pages — each becomes its own chunk
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const StudentPractice = lazy(() => import("./pages/StudentPractice"));
+const SpeakingStudio = lazy(() => import("./pages/SpeakingStudio"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const StudentAnalysis = lazy(() => import("./pages/StudentAnalysis"));
+const StudentProfile = lazy(() => import("./pages/StudentProfile"));
+const AdminUploadVideos = lazy(() => import("./pages/AdminUploadVideos"));
+const WeekSelection = lazy(() => import("./pages/WeekSelection"));
+const IELTSPronunciation = lazy(() => import("./pages/IELTSPronunciation"));
+const IELTSFluency = lazy(() => import("./pages/IELTSFluency"));
+const IELTSSpeaking = lazy(() => import("./pages/IELTSSpeaking"));
+const IGCSEPronunciation = lazy(() => import("./pages/IGCSEPronunciation"));
+const IGCSEFluency = lazy(() => import("./pages/IGCSEFluency"));
+const IGCSESpeaking = lazy(() => import("./pages/IGCSESpeaking"));
 
 const queryClient = new QueryClient();
 
@@ -61,6 +64,7 @@ const App = () => {
       <LanguageProvider>
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<DashboardSkeleton />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
@@ -84,6 +88,7 @@ const App = () => {
             <Route path="/admin/upload-videos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUploadVideos /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           <DevNav />
           <GlobalOmniChat />
         </AuthProvider>

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface LiveTranscriptBarProps {
@@ -8,7 +8,7 @@ interface LiveTranscriptBarProps {
   questionText?: string;
 }
 
-export default function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: LiveTranscriptBarProps) {
+function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: LiveTranscriptBarProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,3 +46,5 @@ export default function LiveTranscriptBar({ transcript, interim, isRecording, qu
     </div>
   );
 }
+
+export default memo(LiveTranscriptBar);

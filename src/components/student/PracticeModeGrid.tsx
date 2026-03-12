@@ -3,6 +3,7 @@
  * Shows 3 practice modes (Pronunciation, Fluency, Speaking)
  * Routes are course-aware (IELTS vs IGCSE)
  */
+import { memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Headphones, AudioWaveform, MessageSquare, Loader2 } from "lucide-react";
@@ -42,8 +43,9 @@ const MODES = [
   },
 ] as const;
 
-export default function PracticeModeGrid({ courseType, loading }: PracticeModeGridProps) {
+export default memo(function PracticeModeGrid({ courseType, loading }: PracticeModeGridProps) {
   const navigate = useNavigate();
+  const prefix = useMemo(() => courseType === "ielts" ? "/ielts" : "/igcse", [courseType]);
 
   if (loading || !courseType) {
     return (
@@ -53,7 +55,7 @@ export default function PracticeModeGrid({ courseType, loading }: PracticeModeGr
     );
   }
 
-  const prefix = courseType === "ielts" ? "/ielts" : "/igcse";
+  
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -93,4 +95,4 @@ export default function PracticeModeGrid({ courseType, loading }: PracticeModeGr
       </span>
     </div>
   );
-}
+});
