@@ -231,7 +231,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     // Auto-submit after 2 minutes of being paused
     if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
     pauseTimeoutRef.current = setTimeout(() => {
-      finishRecording();
+      finishRecordingRef.current();
     }, 120_000);
   };
 
