@@ -196,7 +196,7 @@ export default function AnalyticsPanel() {
           </Popover>
         </div>
 
-        <p className="text-[9px] text-gray-600 text-center">
+        <p className="text-[10px] text-gray-500 text-center">
           {logs.length} sessions in range
         </p>
       </div>
