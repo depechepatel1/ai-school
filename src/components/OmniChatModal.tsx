@@ -262,7 +262,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 e.preventDefault();
                 send();
               }}
-              className="relative flex items-center bg-black/50 border border-white/10 rounded-full p-1 pl-3 shadow-sm transition-colors focus-within:border-blue-400/50 focus-within:bg-black/70"
+              className="relative flex items-center bg-black/50 border border-white/10 rounded-full p-1 pl-3 shadow-sm transition-colors focus-within:border-teal-400/50 focus-within:bg-black/70"
             >
               <input
                 type="text"
