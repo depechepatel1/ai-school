@@ -8,7 +8,7 @@ interface LiveTranscriptBarProps {
   questionText?: string;
 }
 
-export default function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: LiveTranscriptBarProps) {
+function LiveTranscriptBar({ transcript, interim, isRecording, questionText }: LiveTranscriptBarProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
