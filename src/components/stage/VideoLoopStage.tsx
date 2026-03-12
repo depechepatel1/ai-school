@@ -19,6 +19,9 @@ export const VIDEO_LOOP_STACK = [
   `${STORAGE_BASE}/loop-stack/8.mp4${CACHE_BUST}`,
   `${STORAGE_BASE}/loop-stack/9.mp4${CACHE_BUST}`,
   `${STORAGE_BASE}/loop-stack/10.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/11.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/12.mp4${CACHE_BUST}`,
+  `${STORAGE_BASE}/loop-stack/13.mp4${CACHE_BUST}`,
 ];
 
 /** Fisher-Yates shuffle, keeping index 0 in place */
