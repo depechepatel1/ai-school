@@ -158,6 +158,12 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
 /* ── Main Signup page ── */
 
 export default function Signup() {
+  const signupSchema = z.object({
+    displayName: z.string().trim().min(1, "Display name is required").max(100, "Display name is too long"),
+    email: z.string().trim().email("Please enter a valid email address").max(255),
+    password: z.string().min(6, "Password must be at least 6 characters").max(128),
+  });
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -167,6 +173,7 @@ export default function Signup() {
   const [isMinor, setIsMinor] = useState(false);
   const [guardianAgreed, setGuardianAgreed] = useState(false);
   const [legalModal, setLegalModal] = useState<"privacy" | "terms" | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
