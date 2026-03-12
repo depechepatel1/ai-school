@@ -109,27 +109,45 @@ export default function VideoLoopStage({
     }
   }, [introFinished]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // When active player ends, swap to preloaded one and queue next
+  // When active player ends, only swap after the next player has decodable data ready
   const handlePlayerEnded = useCallback(
     (player: "A" | "B") => {
       if (shouldLoop) return;
+
       const nextPlayer = player === "A" ? "B" : "A";
       const nextRef = nextPlayer === "A" ? refA : refB;
+      const currentRef = player === "A" ? refA : refB;
 
-      setActivePlayer(nextPlayer);
-      if (nextRef.current) {
-        nextRef.current.muted = isMuted;
-        safePlay(nextRef.current);
-      }
+      const activateNextWhenReady = async () => {
+        const nextEl = nextRef.current;
+        if (!nextEl) return;
 
-      // Preload next video on the now-inactive player
-      const inactiveRef = player === "A" ? refA : refB;
-      if (inactiveRef.current) {
-        const preloadIdx = nextIndexRef.current % videoList.length;
-        inactiveRef.current.src = videoList[preloadIdx];
-        inactiveRef.current.load();
-        nextIndexRef.current = preloadIdx + 1;
-      }
+        if (nextEl.readyState < 2) {
+          await new Promise<void>((resolve) => {
+            const done = () => resolve();
+            nextEl.addEventListener("canplay", done, { once: true });
+            nextEl.addEventListener("error", done, { once: true });
+          });
+        }
+
+        const playableNext = nextRef.current;
+        if (!playableNext) return;
+
+        playableNext.muted = isMuted;
+        setActivePlayer(nextPlayer);
+        safePlay(playableNext);
+
+        // Preload the upcoming clip on the now-inactive player
+        const inactiveEl = currentRef.current;
+        if (inactiveEl) {
+          const preloadIdx = nextIndexRef.current % videoList.length;
+          inactiveEl.src = videoList[preloadIdx];
+          inactiveEl.load();
+          nextIndexRef.current = preloadIdx + 1;
+        }
+      };
+
+      void activateNextWhenReady();
     },
     [shouldLoop, videoList, safePlay, isMuted]
   );
@@ -168,7 +186,7 @@ export default function VideoLoopStage({
           const v = e.currentTarget;
           console.error("[VideoPlayer] A error:", v.error?.code, v.error?.message, "src:", v.src);
         }}
-        className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "A" ? "z-[2]" : "z-[1]"} ${scaleClass ?? ""}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${activePlayer === "A" ? "z-[2] opacity-100" : "z-[1] opacity-0"} ${scaleClass ?? ""}`}
         style={{ objectPosition }}
       />
 
@@ -185,7 +203,7 @@ export default function VideoLoopStage({
             const v = e.currentTarget;
             console.error("[VideoPlayer] B error:", v.error?.code, v.error?.message, "src:", v.src);
           }}
-          className={`absolute inset-0 w-full h-full object-cover ${activePlayer === "B" ? "z-[2]" : "z-[1]"} ${scaleClass ?? ""}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${activePlayer === "B" ? "z-[2] opacity-100" : "z-[1] opacity-0"} ${scaleClass ?? ""}`}
           style={{ objectPosition }}
         />
       )}
