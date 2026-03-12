@@ -11,6 +11,8 @@ interface BottomDockProps {
 
 const BottomDock = forwardRef<HTMLDivElement, BottomDockProps>(({ setShowHomeworkModal, setCalendarOpen, onSettings }, ref) => {
   const navigate = useNavigate();
+  const analysisPrefetch = usePrefetchProps("/analysis");
+  const profilePrefetch = usePrefetchProps("/profile");
 
   return (
     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-[400px] flex justify-center">
