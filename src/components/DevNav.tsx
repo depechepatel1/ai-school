@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Code, UserPlus, AlertCircle } from "lucide-react";
+import { Code, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 
 const DEV_CREDENTIALS: Record<string, { email: string; password: string }> = {
   student: { email: "dev-igcse@test.com", password: "devtest123" },
+  "student-ielts": { email: "dev-ielts@test.com", password: "devtest123" },
   teacher: { email: "dev-teacher@test.com", password: "devtest123" },
   parent: { email: "dev-parent@test.com", password: "devtest123" },
   admin: { email: "dev-admin@test.com", password: "devtest123" },
@@ -21,6 +22,12 @@ const routes = [
   { path: "/select-week", label: "Week Select", role: "student" },
   { path: "/student", label: "Student", role: "student" },
   { path: "/speaking", label: "Speaking", role: "student" },
+  { path: "/igcse/fluency", label: "IGCSE Fluency", role: "student" },
+  { path: "/igcse/pronunciation", label: "IGCSE Pronun.", role: "student" },
+  { path: "/igcse/speaking", label: "IGCSE Speaking", role: "student" },
+  { path: "/ielts/fluency", label: "IELTS Fluency", role: "student-ielts" },
+  { path: "/ielts/pronunciation", label: "IELTS Pronun.", role: "student-ielts" },
+  { path: "/ielts/speaking", label: "IELTS Speaking", role: "student-ielts" },
   { path: "/analysis", label: "Analysis", role: "student" },
   { path: "/profile", label: "Profile", role: "student" },
   { path: "/teacher", label: "Teacher", role: "teacher" },
