@@ -21,7 +21,7 @@ export const ROLE_COLORS: Record<string, string> = {
 };
 
 export const ACTION_LABELS: Record<string, { label: string; color: string }> = {
-  change_role: { label: "Role Changed", color: "text-blue-300 bg-blue-500/15 border-blue-400/20" },
+  change_role: { label: "Role Changed", color: "text-teal-300 bg-teal-500/15 border-teal-400/20" },
   delete_user: { label: "User Deleted", color: "text-red-300 bg-red-500/15 border-red-400/20" },
   remove_member: { label: "Member Removed", color: "text-orange-300 bg-orange-500/15 border-orange-400/20" },
   add_member: { label: "Member Added", color: "text-emerald-300 bg-emerald-500/15 border-emerald-400/20" },

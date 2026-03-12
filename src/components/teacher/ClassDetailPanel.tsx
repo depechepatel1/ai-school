@@ -246,7 +246,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
               {/* View transcripts button */}
               <button
                 onClick={() => setViewingTranscript({ id: s.user_id, name: s.display_name })}
-                className="p-1.5 rounded-lg text-gray-600 hover:text-blue-300 hover:bg-blue-500/10 transition-all"
+                className="p-1.5 rounded-lg text-gray-600 hover:text-teal-300 hover:bg-teal-500/10 transition-all"
                 title="View AI chat transcripts"
               >
                 <MessageSquare className="w-3.5 h-3.5" />

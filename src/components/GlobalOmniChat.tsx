@@ -45,13 +45,13 @@ export default function GlobalOmniChat() {
         className="relative w-16 h-16 flex items-center justify-center cursor-grab active:cursor-grabbing select-none touch-none"
       >
         {/* Outer pulse ring */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-500/40 via-blue-500/30 to-pink-500/40 animate-[siri-pulse_2.5s_ease-in-out_infinite]" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-500/40 via-teal-500/30 to-pink-500/40 animate-[siri-pulse_2.5s_ease-in-out_infinite]" />
         {/* Rotating glow */}
         <div className="absolute inset-[-4px] rounded-full animate-[siri-rotate_6s_linear_infinite]">
-          <div className="w-full h-full rounded-full bg-[conic-gradient(from_0deg,transparent,rgba(168,85,247,0.4),transparent,rgba(59,130,246,0.4),transparent,rgba(236,72,153,0.3),transparent)]" />
+          <div className="w-full h-full rounded-full bg-[conic-gradient(from_0deg,transparent,rgba(168,85,247,0.4),transparent,rgba(20,184,166,0.4),transparent,rgba(236,72,153,0.3),transparent)]" />
         </div>
         {/* Breathing core */}
-        <div className="absolute inset-1 rounded-full bg-gradient-to-br from-purple-600/80 via-blue-600/70 to-pink-500/60 animate-[siri-breathe_3s_ease-in-out_infinite] shadow-[0_0_30px_rgba(139,92,246,0.5),0_0_60px_rgba(59,130,246,0.3)]" />
+        <div className="absolute inset-1 rounded-full bg-gradient-to-br from-purple-600/80 via-teal-600/70 to-pink-500/60 animate-[siri-breathe_3s_ease-in-out_infinite] shadow-[0_0_30px_rgba(139,92,246,0.5),0_0_60px_rgba(20,184,166,0.3)]" />
         {/* Inner glass */}
         <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/10 to-transparent backdrop-blur-sm" />
         {/* Icon */}

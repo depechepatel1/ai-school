@@ -84,10 +84,10 @@ export default function ScheduleModal({ isOpen, onClose }: ScheduleModalProps) {
         {selectedDate && (
           <div className="absolute inset-0 bg-gray-900/95 z-[60] flex flex-col items-center justify-center p-6 rounded-3xl animate-fade-in-up">
             <h3 className="text-white font-bold mb-4">Add Task for {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}</h3>
-            <input autoFocus type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} placeholder="e.g., Vocab Review..." className="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white mb-4 focus:border-blue-500 outline-none" />
+            <input autoFocus type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} placeholder="e.g., Vocab Review..." className="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white mb-4 focus:border-teal-500 outline-none" />
             <div className="flex gap-3 w-full">
               <button onClick={() => setSelectedDate(null)} className="flex-1 py-2 bg-gray-800 rounded-lg text-gray-300">Cancel</button>
-              <button onClick={handleAddTaskSubmit} className="flex-1 py-2 bg-blue-600 rounded-lg text-white font-bold">Add Task</button>
+              <button onClick={handleAddTaskSubmit} className="flex-1 py-2 bg-teal-600 rounded-lg text-white font-bold">Add Task</button>
             </div>
           </div>
         )}

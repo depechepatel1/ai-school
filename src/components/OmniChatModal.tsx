@@ -306,7 +306,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="p-2 rounded-full transition-all duration-300 shadow-lg bg-blue-600 text-white disabled:opacity-40"
+                  className="p-2 rounded-full transition-all duration-300 shadow-lg bg-teal-600 text-white disabled:opacity-40"
                 >
                   {isLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

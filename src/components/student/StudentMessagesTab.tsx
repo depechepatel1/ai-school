@@ -171,8 +171,8 @@ export default function StudentMessagesTab() {
           style={{ animationDelay: `${i * 40}ms` }}
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-blue-500/[0.08] border border-blue-400/10 flex items-center justify-center shrink-0">
-              <MessageSquare className="w-3 h-3 text-blue-400" />
+            <div className="w-7 h-7 rounded-lg bg-teal-500/[0.08] border border-teal-400/10 flex items-center justify-center shrink-0">
+              <MessageSquare className="w-3 h-3 text-teal-400" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">{c.title || "Untitled"}</p>

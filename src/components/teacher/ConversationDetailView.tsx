@@ -162,13 +162,13 @@ export default function ConversationDetailView({
           return (
             <motion.div key={m.id} variants={fadeUp} className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"}`}>
               {!isUser && (
-                <div className="w-7 h-7 rounded-full bg-blue-500/15 border border-blue-400/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-3.5 h-3.5 text-blue-400" />
+                <div className="w-7 h-7 rounded-full bg-teal-500/15 border border-teal-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <Bot className="w-3.5 h-3.5 text-teal-400" />
                 </div>
               )}
               <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                 isUser
-                  ? "bg-blue-500/15 border border-blue-400/20 text-blue-100 rounded-br-md"
+                  ? "bg-teal-500/15 border border-teal-400/20 text-teal-100 rounded-br-md"
                   : "bg-white/[0.04] border border-white/[0.08] text-gray-300 rounded-bl-md"
               }`}>
                 <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0 [&_code]:text-[10px] [&_code]:bg-white/10 [&_code]:px-1 [&_code]:rounded">
