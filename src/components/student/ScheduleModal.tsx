@@ -42,7 +42,7 @@ export default function ScheduleModal({ isOpen, onClose }: ScheduleModalProps) {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Calendar className="text-blue-400" /> {monthNames[month]} {year}
+              <Calendar className="text-teal-400" /> {monthNames[month]} {year}
             </h2>
             <div className="flex gap-1">
               <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))} className="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white"><ChevronLeft className="w-5 h-5" /></button>
