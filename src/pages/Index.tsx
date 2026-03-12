@@ -7,6 +7,11 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // TEMPORARY DEV BYPASS — remove before production
+    if (import.meta.env.DEV) {
+      navigate("/select-week", { replace: true });
+      return;
+    }
     console.log("[Index] auth state:", { loading, user: user?.email, role });
     if (loading) return;
     if (!user) {

@@ -7,6 +7,9 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  // TEMPORARY DEV BYPASS — remove before production
+  if (import.meta.env.DEV) return <>{children}</>;
+
   const { user, role, loading } = useAuth();
 
   if (loading) {
