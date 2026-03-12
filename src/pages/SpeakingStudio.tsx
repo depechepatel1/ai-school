@@ -342,11 +342,6 @@ export default function SpeakingStudio() {
                 <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
               </div>
               {/* Question text — directly below karaoke */}
-              {practiceType === "fluency" && shadowCurriculum.currentQuestionText && (
-                <p className="text-sm italic text-white max-w-2xl mx-auto mb-1 text-center leading-relaxed">
-                  Q: {shadowCurriculum.currentQuestionText}
-                </p>
-              )}
               <div className="w-full max-w-3xl flex flex-col gap-2 mb-2">
                 {practiceType === "pronunciation" && curriculum.curriculumTotal > 0 &&
                 <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
