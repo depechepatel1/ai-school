@@ -178,6 +178,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
           <button onClick={handleNextChunk} className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all active:scale-95" title="Next Chunk">
             <SkipForward className="w-5 h-5" />
           </button>
+          </div>
         </div>
 
         {/* Bottom bar: karaoke text + visualizer */}
