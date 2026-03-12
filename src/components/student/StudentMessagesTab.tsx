@@ -101,7 +101,7 @@ export default function StudentMessagesTab() {
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-bold text-white truncate">{selectedConvo.title || "Untitled"}</p>
-            <p className="text-[9px] text-white/30">{messages.length} messages</p>
+            <p className="text-[10px] text-white/35">{messages.length} messages</p>
           </div>
         </motion.div>
 
