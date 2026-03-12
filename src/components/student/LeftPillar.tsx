@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronDown, AlertCircle, ChevronRight, AlertTriangle, Zap, Check,
-  Book, PenTool, Headphones, Edit, CloudDownload,
+  Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
 } from "lucide-react";
+import { usePrefetchProps } from "@/hooks/usePrefetch";
 import StudentMessagesTab from "./StudentMessagesTab";
 
 interface LeftPillarProps {
