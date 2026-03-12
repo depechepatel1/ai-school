@@ -86,7 +86,7 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
           {courseType === "igcse" ? (
             <>
               <div>
-                <span className="text-cyan-300/80 font-bold uppercase text-[9px] tracking-wider">Pre-Homework · Shadowing</span>
+                <span className="text-cyan-300/80 font-bold uppercase text-[10px] tracking-wider">Pre-Homework · Shadowing</span>
                 <p className="mt-0.5">Shadow Week {shadowingWeek} Model Answers until you can repeat each sentence precisely (10 min).</p>
                 <ProgressBar progress={getProgress("shadowing")} />
               </div>
