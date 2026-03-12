@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { getSafeErrorMessage } from "@/lib/safe-error";
 import AdminTimerSettings from "@/components/admin/AdminTimerSettings";
 import AdminCurriculumUpload from "@/components/admin/AdminCurriculumUpload";
+import { ChartSkeleton, TableSkeleton } from "@/components/ui/dashboard-skeleton";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -273,7 +274,7 @@ function AnalyticsPanel() {
     };
   }, [logs, profiles]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner variant="chart" />;
 
   const formatTime = (secs: number) => {
     const hrs = Math.floor(secs / 3600);
@@ -1574,10 +1575,6 @@ function AuditPanel() {
 }
 
 /* ── Shared Loading Spinner ──────────────────────────────── */
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center py-8">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-    </div>
-  );
+function LoadingSpinner({ variant = "table" }: { variant?: "chart" | "table" }) {
+  return variant === "chart" ? <ChartSkeleton /> : <TableSkeleton />;
 }

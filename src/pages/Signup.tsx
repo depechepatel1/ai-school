@@ -11,6 +11,7 @@ import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
+import { z } from "zod";
 
 type AppRole = "student" | "teacher" | "parent";
 
@@ -157,6 +158,12 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
 /* ── Main Signup page ── */
 
 export default function Signup() {
+  const signupSchema = z.object({
+    displayName: z.string().trim().min(1, "Display name is required").max(100, "Display name is too long"),
+    email: z.string().trim().email("Please enter a valid email address").max(255),
+    password: z.string().min(6, "Password must be at least 6 characters").max(128),
+  });
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -166,6 +173,7 @@ export default function Signup() {
   const [isMinor, setIsMinor] = useState(false);
   const [guardianAgreed, setGuardianAgreed] = useState(false);
   const [legalModal, setLegalModal] = useState<"privacy" | "terms" | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -181,9 +189,19 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
+    setErrors({});
+    const result = signupSchema.safeParse({ displayName, email, password });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName, selectedRole);
+      await signUp(result.data.email, result.data.password, result.data.displayName, selectedRole);
       toast({ title: t("signup.created"), description: t("signup.verifyEmail") });
       navigate("/login");
     } catch (err: any) {
@@ -242,30 +260,35 @@ export default function Signup() {
         {/* Form — fills remaining space */}
         <motion.form variants={fadeUp} onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-3">
           <div className="space-y-2.5">
-            <input
-              placeholder={t("signup.displayName")}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              required
-              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-            />
-            <input
-              type="email"
-              placeholder={t("signup.email")}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-            />
-            <input
-              type="password"
-              placeholder={t("signup.password")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-            />
+            <div>
+              <input
+                placeholder={t("signup.displayName")}
+                value={displayName}
+                onChange={(e) => { setDisplayName(e.target.value); setErrors((p) => ({ ...p, displayName: "" })); }}
+                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.displayName ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+              />
+              {errors.displayName && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.displayName}</p>}
+            </div>
+            <div>
+              <input
+                type="email"
+                placeholder={t("signup.email")}
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
+                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+              />
+              {errors.email && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.email}</p>}
+            </div>
+            <div>
+              <input
+                type="password"
+                placeholder={t("signup.password")}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
+                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+              />
+              {errors.password && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.password}</p>}
+            </div>
           </div>
 
           {/* PRC Consent */}

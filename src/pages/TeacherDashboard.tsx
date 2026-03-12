@@ -10,6 +10,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
 import { fetchClasses, createClassWithCourse, getCurrentUserId } from "@/services/db";
 import ClassDetailPanel from "@/components/teacher/ClassDetailPanel";
+import { CardGridSkeleton } from "@/components/ui/dashboard-skeleton";
 
 const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
@@ -34,15 +35,21 @@ export default function TeacherDashboard() {
   const [isCreating, setIsCreating] = useState(false);
   const [newCourseType, setNewCourseType] = useState<"ielts" | "igcse">("ielts");
   const [selectedClass, setSelectedClass] = useState<ClassInfo | null>(null);
+  const [classesLoading, setClassesLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => { loadClasses(); }, []);
 
   const loadClasses = async () => {
+    setClassesLoading(true);
     try {
       const data = await fetchClasses();
       setClasses(data);
-    } catch {}
+    } catch (err: any) {
+      toast({ title: t("common.error"), description: getSafeErrorMessage(err), variant: "destructive" });
+    } finally {
+      setClassesLoading(false);
+    }
   };
 
   const handleCreateClass = async () => {
@@ -139,7 +146,9 @@ export default function TeacherDashboard() {
 
               {/* Classes grid — 2 or 3 columns */}
               <div className="flex-1 overflow-y-auto scrollbar-hide mb-5">
-                {classes.length === 0 ? (
+                {classesLoading ? (
+                  <CardGridSkeleton cards={4} />
+                ) : classes.length === 0 ? (
                   <motion.div variants={fadeUp} className="text-center py-12">
                     <div className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-3">
                       <Users className="w-6 h-6 text-gray-600" />

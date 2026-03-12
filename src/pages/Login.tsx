@@ -9,25 +9,42 @@ import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
+import { z } from "zod";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
+const loginSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
     setIsLoading(true);
     try {
-      await signIn(email, password);
+      await signIn(result.data.email, result.data.password);
       navigate("/");
     } catch (err: any) {
       toast({ title: t("login.failed"), description: getSafeErrorMessage(err), variant: "destructive" });
@@ -73,10 +90,10 @@ export default function Login() {
                 type="email"
                 placeholder={t("login.emailPlaceholder")}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60 focus:border-red-400/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
               />
+              {errors.email && <p className="text-[10px] text-red-400 pl-1">{errors.email}</p>}
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 pl-1">{t("login.password")}</label>
@@ -84,10 +101,10 @@ export default function Login() {
                 type="password"
                 placeholder={t("login.passwordPlaceholder")}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
+                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60 focus:border-red-400/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
               />
+              {errors.password && <p className="text-[10px] text-red-400 pl-1">{errors.password}</p>}
             </div>
           </div>
 

@@ -48,7 +48,7 @@ export default function WeekSelection() {
     if (!courseWeek.courseType) return;
     fetchCurriculumJSON(courseWeek.courseType)
       .then((data) => setWeekTopics(getWeekTopics(data)))
-      .catch(console.error);
+      .catch(() => {});
   }, [courseWeek.courseType]);
 
   const handleConfirm = async () => {
