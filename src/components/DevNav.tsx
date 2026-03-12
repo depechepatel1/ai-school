@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Code, UserPlus, AlertCircle } from "lucide-react";
+import { Code, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 
 const DEV_CREDENTIALS: Record<string, { email: string; password: string }> = {
   student: { email: "dev-igcse@test.com", password: "devtest123" },
+  "student-ielts": { email: "dev-ielts@test.com", password: "devtest123" },
   teacher: { email: "dev-teacher@test.com", password: "devtest123" },
   parent: { email: "dev-parent@test.com", password: "devtest123" },
   admin: { email: "dev-admin@test.com", password: "devtest123" },
@@ -21,6 +22,12 @@ const routes = [
   { path: "/select-week", label: "Week Select", role: "student" },
   { path: "/student", label: "Student", role: "student" },
   { path: "/speaking", label: "Speaking", role: "student" },
+  { path: "/igcse/fluency", label: "IGCSE Fluency", role: "student" },
+  { path: "/igcse/pronunciation", label: "IGCSE Pronun.", role: "student" },
+  { path: "/igcse/speaking", label: "IGCSE Speaking", role: "student" },
+  { path: "/ielts/fluency", label: "IELTS Fluency", role: "student-ielts" },
+  { path: "/ielts/pronunciation", label: "IELTS Pronun.", role: "student-ielts" },
+  { path: "/ielts/speaking", label: "IELTS Speaking", role: "student-ielts" },
   { path: "/analysis", label: "Analysis", role: "student" },
   { path: "/profile", label: "Profile", role: "student" },
   { path: "/teacher", label: "Teacher", role: "teacher" },
@@ -32,6 +39,7 @@ export default function DevNav() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [accountsReady, setAccountsReady] = useState(() => localStorage.getItem("dev-accounts-created") === "1");
   const navigate = useNavigate();
   const location = useLocation();
   const { user, role: currentRole } = useAuth();
@@ -47,7 +55,9 @@ export default function DevNav() {
       return;
     }
 
-    const creds = DEV_CREDENTIALS[route.role];
+    // Resolve the correct credential key: "student-ielts" uses its own account, others map directly
+    const credKey = route.role;
+    const creds = credKey ? DEV_CREDENTIALS[credKey] : null;
     if (!creds) {
       navigate(route.path);
       setOpen(false);
@@ -133,6 +143,8 @@ export default function DevNav() {
     }
 
     await supabase.auth.signOut();
+    localStorage.setItem("dev-accounts-created", "1");
+    setAccountsReady(true);
     toast({ title: "Dev accounts", description: results.join(", ") });
     setLoading(false);
   };
@@ -183,14 +195,21 @@ export default function DevNav() {
 
             <div className="border-t border-white/5 mt-1 pt-1" />
 
-            <button
-              onClick={handleSetupAccounts}
-              disabled={loading}
-              className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-colors flex items-center gap-1.5 ${loading ? "opacity-50 cursor-wait" : ""}`}
-            >
-              <UserPlus className="w-3 h-3" />
-              {loading ? "Working..." : "Setup Dev Accounts"}
-            </button>
+            {accountsReady ? (
+              <div className="w-full px-3 py-1.5 text-[9px] text-green-500/60 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3 h-3" />
+                Dev accounts ready
+              </div>
+            ) : (
+              <button
+                onClick={handleSetupAccounts}
+                disabled={loading}
+                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-colors flex items-center gap-1.5 ${loading ? "opacity-50 cursor-wait" : ""}`}
+              >
+                <UserPlus className="w-3 h-3" />
+                {loading ? "Working..." : "Setup Dev Accounts"}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
