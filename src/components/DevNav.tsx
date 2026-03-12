@@ -158,7 +158,7 @@ export default function DevNav() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="mb-2 p-2 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-1 min-w-[180px] shadow-2xl"
+            className="mb-2 p-2 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 space-y-1 w-[200px] shadow-2xl"
           >
             {/* Status bar */}
             <div className="px-3 py-1 text-[9px] font-mono text-gray-500 border-b border-white/5 mb-1">
