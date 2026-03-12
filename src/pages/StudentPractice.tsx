@@ -36,12 +36,6 @@ export default function StudentPractice() {
         <HomeworkModal isOpen={showHomeworkModal} onClose={() => setShowHomeworkModal(false)} />
         <ScheduleModal isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} />
 
-        {/* Practice Mode Selector — centered above BottomDock */}
-        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-          <div className="pointer-events-auto">
-            <PracticeModeGrid courseType={courseWeek.courseType} loading={courseWeek.loading} />
-          </div>
-        </div>
 
         <LeftPillar
           onShowSkills={() => setShowSkills(!showSkills)}
