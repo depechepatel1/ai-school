@@ -55,7 +55,9 @@ export default function DevNav() {
       return;
     }
 
-    const creds = DEV_CREDENTIALS[route.role];
+    // Resolve the correct credential key: "student-ielts" uses its own account, others map directly
+    const credKey = route.role;
+    const creds = credKey ? DEV_CREDENTIALS[credKey] : null;
     if (!creds) {
       navigate(route.path);
       setOpen(false);
