@@ -76,6 +76,11 @@ function MicroProgress({ pct, color }: { pct: number; color: string }) {
 
 export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint, courseType, courseLoading }: LeftPillarProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: analytics } = useAnalyticsData(user?.id ?? null, courseType, "weekly");
+  const pronPct = analytics ? Math.round(analytics.pronunciation.pct * 100) : 0;
+  const fluPct = analytics ? Math.round(analytics.shadowing.pct * 100) : 0;
+  const speakPct = analytics ? Math.round(analytics.speaking.pct * 100) : 0;
   return (
     <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
       {/* Profile Card */}
