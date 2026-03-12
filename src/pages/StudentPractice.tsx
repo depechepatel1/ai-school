@@ -24,9 +24,7 @@ export default function StudentPractice() {
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [teacherHint, setTeacherHint] = useState<string | null>(null);
 
-  const handleEmailClick = (subject: string, body: string) => {};
   const handleNavigate = (section: string) => {};
 
   return (
