@@ -171,7 +171,7 @@ export default function UsersPanel() {
                 <p className="text-[10px] text-amber-300 font-bold">Set role for {bulkIds.length} users:</p>
                 <div className="flex gap-1">
                   {ROLES.map((r) => (
-                    <button key={r} onClick={() => setBulkConfirm({ action: "role", role: r })} className={`flex-1 px-2 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all ${ROLE_COLORS[r]} hover:scale-105`}>{r}</button>
+                    <button key={r} onClick={() => setBulkConfirm({ action: "role", role: r })} className={`flex-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${ROLE_COLORS[r]} hover:scale-105`}>{r}</button>
                   ))}
                   <button onClick={() => setBulkConfirm(null)} className="text-[10px] text-gray-500 hover:text-gray-300 px-1">✕</button>
                 </div>
