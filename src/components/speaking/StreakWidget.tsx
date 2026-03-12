@@ -70,7 +70,7 @@ export default function StreakWidget({
 
       <div className="flex flex-col">
         {modeLabel && (
-          <span className="text-[8px] font-bold uppercase tracking-[0.15em] text-white/40 mb-0.5">{modeLabel}</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-0.5">{modeLabel}</span>
         )}
         <div className={`font-mono text-sm font-bold tabular-nums tracking-wide ${timeColor}`}>
           {isOvertime && "+"}
