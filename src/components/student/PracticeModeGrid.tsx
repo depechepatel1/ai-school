@@ -60,7 +60,7 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="text-center mb-1">
-        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/50">
           Choose Practice Mode
         </span>
       </div>
