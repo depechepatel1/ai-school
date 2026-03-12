@@ -249,7 +249,7 @@ export default function SpeakingStudio() {
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> Back
           </button>
           {courseWeek.courseType && (
-            <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl bg-amber-500/20 border border-amber-500/30 text-amber-300">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-[0.12em] backdrop-blur-2xl bg-amber-500/20 border border-amber-500/30 text-amber-300">
               {courseWeek.courseType === "ielts" ? "IELTS" : "IGCSE"} · Homework · Speaking
             </span>
           )}
