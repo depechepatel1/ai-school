@@ -14,6 +14,8 @@ interface UsePracticeTimerOptions {
   practiceMode: PracticeMode;
   /** Whether audio is actively being produced (recording or TTS playing) */
   isAudioActive: boolean;
+  /** Whether actual speech is being detected (more accurate than isAudioActive for anti-cheating) */
+  isSpeechDetected?: boolean;
 }
 
 interface PracticeTimerState {
