@@ -66,7 +66,7 @@ export default function ClassesPanel() {
             {expandedClass === c.id && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="border-t border-white/[0.06]">
                 <div className="p-3 space-y-1.5">
-                  <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Members</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Members</p>
                   {membersLoading ? (
                     <div className="py-2 flex justify-center"><div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" /></div>
                   ) : members.length === 0 ? (
