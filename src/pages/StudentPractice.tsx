@@ -24,9 +24,7 @@ export default function StudentPractice() {
   const [showSkills, setShowSkills] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [teacherHint, setTeacherHint] = useState<string | null>(null);
 
-  const handleEmailClick = (subject: string, body: string) => {};
   const handleNavigate = (section: string) => {};
 
   return (
@@ -43,10 +41,8 @@ export default function StudentPractice() {
           showSkills={showSkills}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          handleEmailClick={handleEmailClick}
-          setTeacherHint={setTeacherHint}
+          setTeacherHint={() => {}}
           courseType={courseWeek.courseType}
-          courseLoading={courseWeek.loading}
         />
         <RightPillar onNavigate={handleNavigate} speakingProgress={speakingProgress} />
         <BottomDock setShowHomeworkModal={setShowHomeworkModal} setCalendarOpen={setCalendarOpen} onSettings={signOut} />
