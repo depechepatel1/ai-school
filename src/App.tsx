@@ -64,6 +64,7 @@ const App = () => {
       <LanguageProvider>
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<DashboardSkeleton />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
@@ -87,6 +88,7 @@ const App = () => {
             <Route path="/admin/upload-videos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUploadVideos /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           <DevNav />
           <GlobalOmniChat />
         </AuthProvider>
