@@ -190,7 +190,7 @@ export default function DevNav() {
                 } ${loading ? "opacity-50 cursor-wait" : ""}`}
               >
                 {r.label}
-                {r.role && <span className="ml-1 text-[9px] text-gray-600">({r.role})</span>}
+                {r.role && <span className="ml-1 text-[10px] text-gray-500">({r.role})</span>}
               </button>
             ))}
 
