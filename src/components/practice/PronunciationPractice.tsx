@@ -163,6 +163,10 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
           </div>
 
           <div className="w-full max-w-3xl mb-4">
+            {/* Progress indicator */}
+            <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
+              <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentIndex + 1) / twisters.length) * 100}%` }} />
+            </div>
             <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
               <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
                 <span className="text-[9px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
