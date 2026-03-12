@@ -41,10 +41,8 @@ export default function StudentPractice() {
           showSkills={showSkills}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          handleEmailClick={handleEmailClick}
-          setTeacherHint={setTeacherHint}
+          setTeacherHint={() => {}}
           courseType={courseWeek.courseType}
-          courseLoading={courseWeek.loading}
         />
         <RightPillar onNavigate={handleNavigate} speakingProgress={speakingProgress} />
         <BottomDock setShowHomeworkModal={setShowHomeworkModal} setCalendarOpen={setCalendarOpen} onSettings={signOut} />
