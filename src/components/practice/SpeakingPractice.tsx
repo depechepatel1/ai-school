@@ -207,10 +207,13 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   };
 
   const startRecording = async () => {
+    // Clean up any leftover resources from a previous stuck session
+    cleanupRecordingResources();
     setRecordingState("recording");
     setSilenceNudge(false);
     setLiveTranscript(""); setLiveInterim("");
     currentTranscriptRef.current = "";
+    pauseSlotsRef.current = [];
     setAiResponse(null); setShowPostAnswer(false);
     speechTrackerRef.current?.reset();
     pauseTracker.current.reset();
