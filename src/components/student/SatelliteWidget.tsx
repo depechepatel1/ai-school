@@ -4,6 +4,7 @@ import { Mic, Eye, Headphones, PenTool, Book, FileText, Check } from "lucide-rea
 
 interface SatelliteWidgetProps {
   onNavigate: (section: string) => void;
+  speakingProgress?: number;
 }
 
 const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNavigate }, ref) => {
