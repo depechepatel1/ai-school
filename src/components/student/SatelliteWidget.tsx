@@ -7,7 +7,7 @@ interface SatelliteWidgetProps {
   speakingProgress?: number;
 }
 
-const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNavigate }, ref) => {
+const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNavigate, speakingProgress = 0 }, ref) => {
   const navigate = useNavigate();
   const nodes = [
     { label: "READING", icon: Eye, color: "blue" as const, progress: 60 },
