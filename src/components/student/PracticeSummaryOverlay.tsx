@@ -60,7 +60,7 @@ export default function PracticeSummaryOverlay({
               <div className="text-center">
                 <div className="flex items-center gap-1.5 justify-center text-white/40 mb-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Practiced</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Practiced</span>
                 </div>
                 <span className="text-2xl font-bold text-white">{formatTime(activeSeconds)}</span>
               </div>
