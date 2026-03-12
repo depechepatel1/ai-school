@@ -13,7 +13,7 @@ interface Props {
   label?: string;
 }
 
-export default function CountdownTimer({ countdownFrom, activeSeconds, isRunning, onPause, onResume, label }: Props) {
+function CountdownTimer({ countdownFrom, activeSeconds, isRunning, onPause, onResume, label }: Props) {
   const remaining = countdownFrom * 60 - activeSeconds;
   const isComplete = remaining <= 0;
   const isOvertime = remaining < 0;
