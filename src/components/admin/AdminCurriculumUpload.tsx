@@ -223,19 +223,19 @@ export default function AdminCurriculumUpload() {
         <div className="flex items-end gap-2">
           {selectedModule !== "shadowing-pronunciation" ? (
             <div className="flex-1">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
               <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-2.5 py-1.5 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all">
                 {COURSE_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>)}
               </select>
             </div>
           ) : (
             <div className="flex-1">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
               <div className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-amber-300/70">Shared (IELTS + IGCSE)</div>
             </div>
           )}
           <div className="flex-1">
-            <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Module</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Module</label>
             <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)} className="w-full bg-white/[0.05] border border-white/[0.12] rounded-lg px-2.5 py-1.5 text-xs text-white/80 focus:outline-none focus:border-amber-400/40 transition-all">
               {MODULE_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>)}
             </select>
@@ -246,7 +246,7 @@ export default function AdminCurriculumUpload() {
           </button>
           <input ref={fileInputRef} type="file" accept=".json,.txt,.docx,.csv" onChange={handleFileSelected} className="hidden" />
         </div>
-        <p className="text-[9px] text-white/25">Target: {getFilePath(selectedCourse, selectedModule)} · Accepts .json, .csv, .txt, .docx</p>
+        <p className="text-[10px] text-white/35">Target: {getFilePath(selectedCourse, selectedModule)} · Accepts .json, .csv, .txt, .docx</p>
 
         <div className="flex items-center gap-1.5 flex-wrap">
           <button onClick={handleDownloadGuide} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/15 border border-teal-400/20 text-teal-300 text-[10px] font-bold hover:bg-teal-500/25 transition-all">

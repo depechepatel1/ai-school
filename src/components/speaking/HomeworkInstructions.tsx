@@ -28,7 +28,7 @@ function ProgressBar({ progress }: { progress: TaskProgress }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-[9px] font-semibold text-white/50 tabular-nums min-w-[3.5rem] text-right">
+      <span className="text-[10px] font-semibold text-white/50 tabular-nums min-w-[3.5rem] text-right">
         {mins}/{targetMins} min
       </span>
       {done && <Check className="w-3 h-3 text-emerald-400 shrink-0" />}
@@ -86,13 +86,13 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
           {courseType === "igcse" ? (
             <>
               <div>
-                <span className="text-cyan-300/80 font-bold uppercase text-[9px] tracking-wider">Pre-Homework · Shadowing</span>
+                <span className="text-cyan-300/80 font-bold uppercase text-[10px] tracking-wider">Pre-Homework · Shadowing</span>
                 <p className="mt-0.5">Shadow Week {shadowingWeek} Model Answers until you can repeat each sentence precisely (10 min).</p>
                 <ProgressBar progress={getProgress("shadowing")} />
               </div>
               <div className="w-full h-px bg-white/[0.06]" />
               <div>
-                <span className="text-purple-300/80 font-bold uppercase text-[9px] tracking-wider">Post-Homework · Recording</span>
+                <span className="text-purple-300/80 font-bold uppercase text-[10px] tracking-wider">Post-Homework · Recording</span>
                 <p className="mt-0.5">Record a 2-min audio answering this week's Section 6 question. Use 1 complex sentence + Present Perfect tense.</p>
                 <ProgressBar progress={getProgress("speaking")} />
               </div>
@@ -100,19 +100,19 @@ export default function HomeworkInstructions({ courseType, selectedWeek, shadowi
           ) : (
             <>
               <div>
-                <span className="text-cyan-300/80 font-bold uppercase text-[9px] tracking-wider">Part 1 · Shadow Reading (15 min)</span>
+                <span className="text-cyan-300/80 font-bold uppercase text-[10px] tracking-wider">Part 1 · Shadow Reading (15 min)</span>
                 <p className="mt-0.5">Shadow read all model answers for Week {shadowingWeek} (10 min) + Tongue Twisters (5 min).</p>
                 <ProgressBar progress={getProgress("shadowing")} />
               </div>
               <div className="w-full h-px bg-white/[0.06]" />
               <div>
-                <span className="text-purple-300/80 font-bold uppercase text-[9px] tracking-wider">Part 2 · Speaking Practice (20 min)</span>
+                <span className="text-purple-300/80 font-bold uppercase text-[10px] tracking-wider">Part 2 · Speaking Practice (20 min)</span>
                 <p className="mt-0.5">Record answers for all 3 Part 2 questions (3 × 2 min).</p>
                 <ProgressBar progress={getProgress("speaking")} />
               </div>
               <div className="w-full h-px bg-white/[0.06]" />
               <div>
-                <span className="text-amber-300/80 font-bold uppercase text-[9px] tracking-wider">Pronunciation · Tongue Twisters</span>
+                <span className="text-amber-300/80 font-bold uppercase text-[10px] tracking-wider">Pronunciation · Tongue Twisters</span>
                 <p className="mt-0.5">Practice pronunciation with tongue twisters (10 min).</p>
                 <ProgressBar progress={getProgress("pronunciation")} />
               </div>

@@ -20,10 +20,10 @@ export default function CurriculumVersionsTable({ metadata }: CurriculumVersions
           <table className="w-full">
             <thead>
               <tr className="bg-white/[0.03]">
-                <th className="text-left px-4 py-2 text-[9px] font-bold uppercase tracking-wider text-white/40">Course</th>
-                <th className="text-left px-4 py-2 text-[9px] font-bold uppercase tracking-wider text-white/40">Module</th>
-                <th className="text-center px-4 py-2 text-[9px] font-bold uppercase tracking-wider text-white/40">Version</th>
-                <th className="text-right px-4 py-2 text-[9px] font-bold uppercase tracking-wider text-white/40">Uploaded</th>
+                <th className="text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">Course</th>
+                <th className="text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">Module</th>
+                <th className="text-center px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">Version</th>
+                <th className="text-right px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">Uploaded</th>
               </tr>
             </thead>
             <tbody>

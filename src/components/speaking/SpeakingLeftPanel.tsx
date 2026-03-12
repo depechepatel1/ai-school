@@ -37,7 +37,7 @@ export default function SpeakingLeftPanel({
 
         {/* Section & Question number */}
         <div className="flex flex-col gap-1 mb-3">
-          <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/40">
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40">
             {sectionLabel}
           </span>
           <div className="flex items-baseline gap-1">
