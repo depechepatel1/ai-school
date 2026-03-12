@@ -3,7 +3,7 @@
  */
 import { forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Loader2, RotateCcw, SkipForward } from "lucide-react";
+import { MessageSquare, Loader2, RotateCcw, SkipForward, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface SpeakingFeedbackPanelProps {
@@ -15,6 +15,7 @@ interface SpeakingFeedbackPanelProps {
   hasMultipleQuestions: boolean;
   onTryAgain: () => void;
   onNextQuestion: () => void;
+  onDismiss: () => void;
 }
 
 const ACCENT_CLASSES = {
@@ -31,6 +32,7 @@ const SpeakingFeedbackPanel = forwardRef<HTMLDivElement, SpeakingFeedbackPanelPr
   hasMultipleQuestions,
   onTryAgain,
   onNextQuestion,
+  onDismiss,
 }, ref) {
   const accent = ACCENT_CLASSES[accentColor] ?? ACCENT_CLASSES.purple;
 
@@ -44,7 +46,14 @@ const SpeakingFeedbackPanel = forwardRef<HTMLDivElement, SpeakingFeedbackPanelPr
           exit={{ opacity: 0, y: 20 }}
           className="absolute bottom-32 right-6 z-[400] w-[340px]"
         >
-          <div className="bg-black/80 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_-5px_rgba(0,0,0,0.5)]">
+          <div className="bg-black/80 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_-5px_rgba(0,0,0,0.5)] relative">
+            <button
+              onClick={onDismiss}
+              className="absolute top-3 right-3 p-1 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.08] transition-all"
+              title="Dismiss"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare className={`w-4 h-4 ${accent.feedbackIcon}`} />
               <span className={`text-[10px] font-bold uppercase tracking-[0.15em] ${accent.feedbackLabel}`}>Examiner Feedback</span>

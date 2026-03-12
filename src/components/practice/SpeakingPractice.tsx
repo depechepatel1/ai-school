@@ -221,6 +221,7 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
           hasMultipleQuestions={questions.length > 1}
           onTryAgain={handleTryAgain}
           onNextQuestion={handleNextQuestion}
+          onDismiss={resetState}
         />
       </div>
     </PageShell>
