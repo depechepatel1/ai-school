@@ -95,7 +95,7 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
               </div>
             )}
             <node.icon className="w-5 h-5 text-gray-300 group-hover:text-white group-hover:scale-110 transition-all duration-300 relative z-30" />
-            <span className="text-[8px] text-gray-400 group-hover:text-white font-bold mt-1 uppercase text-outline tracking-wide relative z-30 transition-colors">{node.label}</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-white font-bold mt-1 uppercase text-outline tracking-wide relative z-30 transition-colors">{node.label}</span>
           </button>
         );
       })}

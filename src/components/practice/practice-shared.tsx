@@ -45,7 +45,7 @@ export const PracticeProgress = memo(function PracticeProgress({ label, current,
         <span className="text-white/30 text-sm font-medium"> / {total}</span>
         {subLabel && (
           <div className="mt-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-sky-400">{subLabel}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">{subLabel}</span>
           </div>
         )}
       </div>

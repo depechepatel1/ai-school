@@ -139,7 +139,7 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
                     </div>
                   )}
                   <Icon className="w-5 h-5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all relative z-10" />
-                  <span className="text-[9px] font-bold text-white/50 group-hover:text-white/80 uppercase tracking-wider relative z-10">{mode.label}</span>
+                  <span className="text-[10px] font-bold text-white/50 group-hover:text-white/80 uppercase tracking-wider relative z-10">{mode.label}</span>
                 </motion.button>
               );
             })}

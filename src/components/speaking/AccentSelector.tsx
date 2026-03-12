@@ -35,7 +35,7 @@ export default function AccentSelector({ accent, onChange }: AccentSelectorProps
       >
         <USFlag size={44} />
         {accent === "us" && (
-          <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[7px] font-bold uppercase tracking-widest text-cyan-300">US</span>
+          <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest text-cyan-300">US</span>
         )}
       </button>
     </div>
