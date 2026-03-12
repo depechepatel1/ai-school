@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let lastRoleUserId: string | null = null; // prevent duplicate role fetches
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isMounted) return;
@@ -40,6 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         const userId = session.user.id;
+        // Skip if we already loaded the role for this user
+        if (lastRoleUserId === userId) {
+          setLoading(false);
+          return;
+        }
+        lastRoleUserId = userId;
         setTimeout(async () => {
           try {
             await loadRole(userId);
@@ -53,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isMounted) setLoading(false);
         }, 0);
       } else {
+        lastRoleUserId = null;
         setRole(null);
         setLoading(false);
       }
@@ -63,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!session) {
         setLoading(false);
       }
-      // If session exists, onAuthStateChange already fired and is handling it
     }).catch((e) => {
       console.error("[Auth] getSession failed:", e);
       if (isMounted) setLoading(false);
