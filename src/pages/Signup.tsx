@@ -260,30 +260,35 @@ export default function Signup() {
         {/* Form — fills remaining space */}
         <motion.form variants={fadeUp} onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-3">
           <div className="space-y-2.5">
-            <input
-              placeholder={t("signup.displayName")}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              required
-              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-            />
-            <input
-              type="email"
-              placeholder={t("signup.email")}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-            />
-            <input
-              type="password"
-              placeholder={t("signup.password")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-400/40 focus:bg-white/[0.06] transition-all"
-            />
+            <div>
+              <input
+                placeholder={t("signup.displayName")}
+                value={displayName}
+                onChange={(e) => { setDisplayName(e.target.value); setErrors((p) => ({ ...p, displayName: "" })); }}
+                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.displayName ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+              />
+              {errors.displayName && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.displayName}</p>}
+            </div>
+            <div>
+              <input
+                type="email"
+                placeholder={t("signup.email")}
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
+                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+              />
+              {errors.email && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.email}</p>}
+            </div>
+            <div>
+              <input
+                type="password"
+                placeholder={t("signup.password")}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
+                className={`w-full h-10 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-600 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60" : "border-white/[0.08] focus:border-blue-400/40"}`}
+              />
+              {errors.password && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.password}</p>}
+            </div>
           </div>
 
           {/* PRC Consent */}

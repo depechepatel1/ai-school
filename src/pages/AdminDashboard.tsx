@@ -274,7 +274,7 @@ function AnalyticsPanel() {
     };
   }, [logs, profiles]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner variant="chart" />;
 
   const formatTime = (secs: number) => {
     const hrs = Math.floor(secs / 3600);
