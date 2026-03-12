@@ -1,6 +1,7 @@
 /**
  * AI Examiner Feedback Panel — extracted from SpeakingPractice.
  */
+import { forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Loader2, RotateCcw, SkipForward } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -21,7 +22,7 @@ const ACCENT_CLASSES = {
   violet: { feedbackIcon: "text-violet-400", feedbackLabel: "text-violet-300/80", spinner: "text-violet-400" },
 };
 
-export default function SpeakingFeedbackPanel({
+const SpeakingFeedbackPanel = forwardRef<HTMLDivElement, SpeakingFeedbackPanelProps>(function SpeakingFeedbackPanel({
   isAiThinking,
   showPostAnswer,
   aiResponse,
@@ -30,13 +31,14 @@ export default function SpeakingFeedbackPanel({
   hasMultipleQuestions,
   onTryAgain,
   onNextQuestion,
-}: SpeakingFeedbackPanelProps) {
+}, ref) {
   const accent = ACCENT_CLASSES[accentColor] ?? ACCENT_CLASSES.purple;
 
   return (
     <AnimatePresence>
       {(isAiThinking || showPostAnswer) && (
         <motion.div
+          ref={ref}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
@@ -83,4 +85,6 @@ export default function SpeakingFeedbackPanel({
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default SpeakingFeedbackPanel;
