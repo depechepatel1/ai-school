@@ -39,20 +39,20 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
       <div
         key={i}
         ref={refCb}
-        className={`relative ${item.chunkWithNext ? "mr-1" : "mx-2"} flex items-baseline group transition-all duration-200 ${activeScale} ${activeBlur}`}
+        className={`relative ${item.chunkWithNext ? "mr-0.5" : "mx-1"} flex items-baseline group transition-all duration-200 ${activeScale} ${activeBlur}`}
       >
         {item.syllables.map((syl, sIdx) => {
           let yOffset = 0,
-            fontSize = "text-2xl",
+            fontSize = "text-base",
             color = isActive ? "text-cyan-300" : "text-white/60",
             weight = "font-medium",
             shadow = "";
           if (syl.pitch === 2 && syl.stress === 2) {
-            yOffset = -20; fontSize = "text-4xl"; weight = "font-bold";
+            yOffset = -10; fontSize = "text-xl"; weight = "font-bold";
             color = isActive ? "text-cyan-200" : "text-yellow-400";
-            shadow = isActive ? "drop-shadow-[0_0_20px_rgba(34,211,238,0.9)]" : "drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]";
+            shadow = isActive ? "drop-shadow-[0_0_14px_rgba(34,211,238,0.9)]" : "drop-shadow-[0_0_10px_rgba(250,204,21,0.6)]";
           } else if (syl.pitch === 2) {
-            yOffset = -8; fontSize = "text-2xl"; weight = "font-semibold";
+            yOffset = -4; fontSize = "text-lg"; weight = "font-semibold";
             color = isActive ? "text-cyan-300" : "text-white";
           } else {
             color = isActive ? "text-cyan-500" : "text-gray-400";
@@ -74,14 +74,14 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   // Before measurement, render hidden flex-wrap to measure positions
   if (lines.length === 0) {
     return (
-      <div ref={containerRef} className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-wrap items-end justify-between content-end gap-y-2 mt-0 mb-0 px-6">
+      <div ref={containerRef} className="relative min-h-[2.5rem] w-full max-w-4xl mx-auto flex flex-wrap items-end justify-between content-end gap-y-1 mt-0 mb-0 px-6">
         {data.map((item, i) => renderWord(item, i, (el) => { wordRefs.current[i] = el; }))}
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-2 mt-0 mb-0 px-6">
+    <div className="relative min-h-[2.5rem] w-full max-w-4xl mx-auto flex flex-col items-center justify-end gap-y-1 mt-0 mb-0 px-6">
       {lines.map((lineIndices, lineIdx) => {
         const isFirstLine = lineIdx === 0;
         const justify = isFirstLine || lineIndices.length >= 4 ? "justify-between" : "justify-center";
