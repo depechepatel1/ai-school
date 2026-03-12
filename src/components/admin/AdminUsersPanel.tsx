@@ -234,7 +234,7 @@ export default function UsersPanel() {
             {changingRole === u.id ? (
               <div className="flex gap-1">
                 {ROLES.map((r) => (
-                  <button key={r} disabled={busy || r === u.role} onClick={() => handleRoleChange(u.id, r)} className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border transition-all ${r === u.role ? ROLE_COLORS[r] + " opacity-50" : "bg-white/[0.04] border-white/[0.1] text-gray-400 hover:text-white hover:bg-white/[0.08]"}`}>{r}</button>
+                  <button key={r} disabled={busy || r === u.role} onClick={() => handleRoleChange(u.id, r)} className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border transition-all ${r === u.role ? ROLE_COLORS[r] + " opacity-50" : "bg-white/[0.04] border-white/[0.1] text-gray-400 hover:text-white hover:bg-white/[0.08]"}`}>{r}</button>
                 ))}
                 <button onClick={() => setChangingRole(null)} className="text-[10px] text-gray-500 hover:text-gray-300 px-1">✕</button>
               </div>
