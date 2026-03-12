@@ -151,7 +151,7 @@ export function stripPauseMarkers(text: string): { clean: string; slots: MarkerS
   }
   if (last < text.length) clean.push(text.slice(last));
 
-  return { clean: clean.join("").replace(/\s{2,}/g, " ").trim(), slots };
+  return { clean: clean.join(" ").replace(/\s{2,}/g, " ").trim(), slots };
 }
 
 /** Re-inject pause markers into punctuated text at the saved word positions. */
