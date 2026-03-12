@@ -52,6 +52,7 @@ const COURSE_CONFIG: Record<CourseType, {
 };
 
 export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
+  const { videoList } = useVideoLoopStack();
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const courseWeek = useCourseWeek(userId);

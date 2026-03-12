@@ -71,6 +71,7 @@ Keep responses concise and encouraging.`,
 };
 
 export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) {
+  const { videoList } = useVideoLoopStack();
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;

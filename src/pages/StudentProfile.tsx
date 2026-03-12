@@ -13,6 +13,7 @@ import { useEffect } from "react";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export default function StudentProfile() {
+  const { videoList } = useVideoLoopStack();
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
