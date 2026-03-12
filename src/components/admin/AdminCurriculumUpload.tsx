@@ -230,7 +230,7 @@ export default function AdminCurriculumUpload() {
             </div>
           ) : (
             <div className="flex-1">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Course</label>
               <div className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-amber-300/70">Shared (IELTS + IGCSE)</div>
             </div>
           )}
