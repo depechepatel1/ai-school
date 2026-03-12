@@ -195,14 +195,21 @@ export default function DevNav() {
 
             <div className="border-t border-white/5 mt-1 pt-1" />
 
-            <button
-              onClick={handleSetupAccounts}
-              disabled={loading}
-              className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-colors flex items-center gap-1.5 ${loading ? "opacity-50 cursor-wait" : ""}`}
-            >
-              <UserPlus className="w-3 h-3" />
-              {loading ? "Working..." : "Setup Dev Accounts"}
-            </button>
+            {accountsReady ? (
+              <div className="w-full px-3 py-1.5 text-[9px] text-green-500/60 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3 h-3" />
+                Dev accounts ready
+              </div>
+            ) : (
+              <button
+                onClick={handleSetupAccounts}
+                disabled={loading}
+                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-colors flex items-center gap-1.5 ${loading ? "opacity-50 cursor-wait" : ""}`}
+              >
+                <UserPlus className="w-3 h-3" />
+                {loading ? "Working..." : "Setup Dev Accounts"}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
