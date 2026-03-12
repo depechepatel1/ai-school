@@ -50,9 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(async () => {
           try {
             await loadRole(userId);
-            preloadVoices();
-            preloadAccent("uk");
-            preloadAccent("us");
           } catch (e) {
             console.error("[Auth] Failed to load role:", e);
             setRole(null);
