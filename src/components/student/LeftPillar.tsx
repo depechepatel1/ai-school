@@ -72,7 +72,8 @@ function MicroProgress({ pct, color }: { pct: number; color: string }) {
   );
 }
 
-export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint }: LeftPillarProps) {
+export default function LeftPillar({ onShowSkills, showSkills, activeTab, setActiveTab, handleEmailClick, setTeacherHint, courseType, courseLoading }: LeftPillarProps) {
+  const navigate = useNavigate();
   return (
     <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
       {/* Profile Card */}
