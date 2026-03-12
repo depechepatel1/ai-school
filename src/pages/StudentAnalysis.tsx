@@ -334,7 +334,7 @@ function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries
             return (
               <div key={e.user_id} className="flex flex-col items-center gap-1">
                 <Avatar name={e.display_name} url={e.avatar_url} size={podiumIdx === 1 ? 28 : 22} />
-                <span className={`text-[8px] font-bold truncate max-w-[50px] ${isMe ? "text-white" : "text-white/50"}`}>
+                <span className={`text-[10px] font-bold truncate max-w-[50px] ${isMe ? "text-white" : "text-white/50"}`}>
                   {e.display_name.split(" ")[0]}
                 </span>
                 <div
