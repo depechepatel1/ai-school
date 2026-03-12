@@ -22,7 +22,7 @@ import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 import PageShell from "@/components/PageShell";
 import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
-import { Check, SkipForward, AlertTriangle } from "lucide-react";
+import { Check, SkipForward, AlertTriangle, Pause } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
 import { PracticeHeader, PracticeProgress } from "./practice-shared";
