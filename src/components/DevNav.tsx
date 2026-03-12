@@ -34,30 +34,9 @@ export default function DevNav() {
   // Only render in development builds — Vite tree-shakes this out of production
   if (!import.meta.env.DEV) return null;
 
-  const handleNav = async (route: typeof routes[0]) => {
-    if (!route.role) {
-      navigate(route.path);
-      setOpen(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const creds = DEV_CREDENTIALS[route.role];
-      if (creds) {
-        await supabase.auth.signInWithPassword({
-          email: creds.email,
-          password: creds.password,
-        });
-      }
-      navigate(route.path);
-    } catch {
-      // navigate anyway
-      navigate(route.path);
-    } finally {
-      setLoading(false);
-      setOpen(false);
-    }
+  const handleNav = (route: typeof routes[0]) => {
+    navigate(route.path);
+    setOpen(false);
   };
 
   return (
