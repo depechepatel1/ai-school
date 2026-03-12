@@ -74,7 +74,7 @@ export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   // Before measurement, render hidden flex-wrap to measure positions
   if (lines.length === 0) {
     return (
-      <div ref={containerRef} className="relative min-h-[3rem] w-full max-w-4xl mx-auto flex flex-wrap items-end justify-between content-end gap-y-2 mt-0 mb-0 px-6">
+      <div ref={containerRef} className="relative min-h-[2.5rem] w-full max-w-4xl mx-auto flex flex-wrap items-end justify-between content-end gap-y-1 mt-0 mb-0 px-6">
         {data.map((item, i) => renderWord(item, i, (el) => { wordRefs.current[i] = el; }))}
       </div>
     );
