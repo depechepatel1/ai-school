@@ -82,9 +82,13 @@ export default function AdminUploadVideos() {
 
       setProgress((p) => ({ ...p, [slot.path]: 30 }));
 
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-video-file`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY },
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: formData,
       });
 
