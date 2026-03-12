@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
-import PageShell, { VIDEO_1_STACK } from "@/components/PageShell";
+import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
+import PageShell from "@/components/PageShell";
 
 import LeftPillar from "@/components/student/LeftPillar";
 import RightPillar from "@/components/student/RightPillar";
