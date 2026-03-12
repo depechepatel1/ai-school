@@ -60,7 +60,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const pronunciationTimings = usePronunciationTimings();
   const config = COURSE_CONFIG[courseType];
 
-  const [accent, setAccent] = useState<Accent>("uk");
+  const { accent, setAccent } = useAccent(userId);
   const [twisters, setTwisters] = useState<PronunciationItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
