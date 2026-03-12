@@ -423,7 +423,7 @@ function ReportPanel({ report, loading }: { report: any; loading: boolean }) {
 
       {/* 4-Week Chart */}
       <div>
-        <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 block mb-2">Past 4 Weeks</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block mb-2">Past 4 Weeks</span>
         <div className="h-[100px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={report.weeklyChart} barCategoryGap="25%">
