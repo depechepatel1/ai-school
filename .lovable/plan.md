@@ -1,29 +1,54 @@
 
 
-## Analysis
+## Problem
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+Videos are fetched from cloud storage on every app launch. The user wants them always available without re-downloading.
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+## Good News: They're Already Cached
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+The PWA service worker config already has a `CacheFirst` strategy for `.mp4` files (line 34-37 of `vite.config.ts`). This means after the **first** download, videos are served from the browser cache for up to 7 days. However, there are two issues:
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+1. **The `?v=2` cache-bust parameter** — the URL pattern `\.(?:mp4)$` won't match URLs ending in `?v=2`, so the service worker may not be caching them at all.
+2. **No proactive precaching** — videos only cache after they're first played, not on app install.
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+## Plan
 
----
+### 1. Fix the service worker URL pattern to match cache-busted video URLs
 
-## Changes -- `src/components/PageShell.tsx`
+Update the runtime caching `urlPattern` in `vite.config.ts` to match URLs with query parameters:
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+```
+// Before: /\.(?:png|jpg|jpeg|webp|gif|mp4)$/
+// After:  /\.(?:png|jpg|jpeg|webp|gif|mp4)(\?.*)?$/i
+```
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+This ensures the `CacheFirst` handler actually intercepts and caches the video URLs.
+
+### 2. Hardcode the video URL list as the primary source
+
+In `useVideoLoopStack.ts`, make the hardcoded `FALLBACK_STACK` (1–13.mp4) the **default** list returned immediately, eliminating the storage API call on every launch. The storage listing query becomes optional (only used by the admin upload page to discover new clips).
+
+This means:
+- No network request needed to know which videos exist
+- The service worker serves cached `.mp4` files instantly after first visit
+- New clips added via admin are picked up when the admin page refreshes
+
+### 3. Extend cache duration for videos
+
+Increase `maxAgeSeconds` from 7 days to 30 days since these assets rarely change:
+
+```
+maxAgeSeconds: 60 * 60 * 24 * 30  // 30 days
+```
+
+### 4. Add error recovery to VideoLoopStage (from previous diagnosis)
+
+While we're here, apply the freeze fix: when a player errors on a missing file, skip to the next clip instead of freezing the chain.
+
+## Result
+
+- First visit: videos download once and are cached by the service worker
+- Subsequent visits: videos load instantly from cache, zero network requests
+- No storage API call needed on startup
+- Missing files no longer freeze the loop
 
