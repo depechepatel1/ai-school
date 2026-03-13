@@ -509,13 +509,6 @@ function LiveInputCanvas({
         const timeBuf = new Uint8Array(analyser.frequencyBinCount);
         const freqBuf = new Uint8Array(analyser.frequencyBinCount);
 
-        /* ╔══════════════════════════════════════════════════════════════╗
-         * ║  🔒 PROTECTED ZONE — NORMAL REPEATING MODE USER LINE       ║
-         * ║  DO NOT MODIFY without user saying "unlock protected zone"  ║
-         * ║  This took a month to tune. Shadowing-mode fixes must       ║
-         * ║  branch AROUND this logic, not alter it.                    ║
-         * ║  Regression test: src/test/live-line-y-mapping.test.ts      ║
-         * ╚══════════════════════════════════════════════════════════════╝ */
         // Register render callback for master RAF loop
         renderRef.current = () => {
           if (s.stopped || !s.analyser) return;
@@ -627,9 +620,6 @@ function LiveInputCanvas({
 
           drawLine(cw, ch);
         };
-        /* ╔══════════════════════════════════════════════════════════════╗
-         * ║  🔒 END PROTECTED ZONE — NORMAL REPEATING MODE USER LINE   ║
-         * ╚══════════════════════════════════════════════════════════════╝ */
 
         // ── Rolling window peak normalization (OUTSIDE protected zone) ──
         // Prevents late-session flattening in long/shadowing sessions by
