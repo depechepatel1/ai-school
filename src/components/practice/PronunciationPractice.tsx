@@ -23,7 +23,8 @@ import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
-import { PracticeHeader, PracticeProgress } from "./practice-shared";
+import { PracticeHeader } from "./practice-shared";
+import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
 
@@ -157,7 +158,10 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
           )}
         </div>
 
-        <PracticeProgress label="Tongue Twister" current={currentIndex + 1} total={twisters.length} subLabel={moduleLabel} />
+        {/* Floating Info Panel */}
+        <div className="absolute top-40 left-4 z-50">
+          <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType="Pronunciation" questionNumber={moduleLabel} progressCurrent={currentIndex + 1} progressTotal={twisters.length} />
+        </div>
 
         {/* Accent selector – top right */}
         <div className="absolute right-4 top-16 z-50">
