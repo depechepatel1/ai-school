@@ -30,10 +30,10 @@ export default defineConfig(({ mode }) => ({
             options: { cacheName: "data-cache", expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 } },
           },
           {
-            // Cache images from storage
-            urlPattern: /\.(?:png|jpg|jpeg|webp|gif|mp4)$/,
+            // Cache images & videos from storage (including ?v=N cache-bust params)
+            urlPattern: /\.(?:png|jpg|jpeg|webp|gif|mp4)(\?.*)?$/i,
             handler: "CacheFirst",
-            options: { cacheName: "media-cache", expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 7 } },
+            options: { cacheName: "media-cache", expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 } },
           },
           {
             // Cache Google Fonts
