@@ -23,7 +23,8 @@ import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { ChevronLeft, ChevronRight, RotateCcw, Headphones, Play, Loader2 } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
-import { PracticeHeader, PracticeProgress } from "./practice-shared";
+import { PracticeHeader } from "./practice-shared";
+import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
 
