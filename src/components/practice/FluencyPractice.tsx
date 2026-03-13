@@ -199,8 +199,9 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
                   <span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
                   <span className="text-[10px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
                 </div>
-              <div className="absolute inset-0 px-8 py-2">
-                <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={fluencyTimings.getDuration(currentText)} />
+                <div className="absolute inset-0 px-8 py-2">
+                  <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={fluencyTimings.getDuration(currentText)} />
+                </div>
               </div>
             </div>
             {/* Chunk counter pill */}
