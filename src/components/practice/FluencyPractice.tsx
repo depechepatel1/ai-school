@@ -134,11 +134,18 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
     return shadowCurriculum.currentChunk?.question_text !== shadowCurriculum.chunks[nextIdx]?.question_text;
   }, [shadowCurriculum]);
 
+  const handlePrevChunk = () => {
+    clearRecording();
+    shadowCurriculum.prevChunk();
+  };
+
   const handleNextChunk = () => {
     clearRecording();
     if (isLastChunkOfAnswer()) setShowEndPopup(true);
     else shadowCurriculum.nextChunk();
   };
+
+  const handleRepeat = () => { clearRecording(); setActiveWordIndex(-1); };
 
   useEffect(() => {
     if (practiceTimer.isComplete && !summaryShownRef.current) { summaryShownRef.current = true; setShowSummary(true); }
