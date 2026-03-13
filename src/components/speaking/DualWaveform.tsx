@@ -27,6 +27,7 @@ function WaveformTrack({
   color,
   progressColor,
   height,
+  isLive,
 }: {
   audioUrl: string | null;
   label: string;
@@ -34,6 +35,7 @@ function WaveformTrack({
   progressColor: string;
   isPlaying: boolean;
   height: number;
+  isLive?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
@@ -71,7 +73,7 @@ function WaveformTrack({
   }, [audioUrl]);
 
   return (
-    <div className="relative">
+    <div className="relative" style={{ height }}>
       <span
         className="absolute top-1 left-3 text-[9px] font-bold uppercase tracking-[0.15em] z-10 opacity-60"
         style={{ color }}
@@ -79,13 +81,30 @@ function WaveformTrack({
         {label}
       </span>
       <div ref={containerRef} className="w-full" />
-      {!audioUrl && (
+      {!audioUrl && !isLive && (
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-[10px] text-white/20 italic">
             {label === "Target"
               ? "Play model to see waveform"
               : "Record to see your waveform"}
           </span>
+        </div>
+      )}
+      {/* Live recording indicator — pulsing bars while mic is active */}
+      {isLive && (
+        <div className="absolute inset-0 flex items-end justify-center gap-[2px] px-4 pb-1">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-[3px] rounded-full"
+              style={{
+                backgroundColor: color,
+                height: `${20 + Math.sin(i * 0.5) * 30 + 20}%`,
+                animation: `waveBar ${0.4 + (i % 5) * 0.1}s ease-in-out infinite alternate`,
+                animationDelay: `${i * 0.04}s`,
+              }}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -109,6 +128,7 @@ export default memo(function DualWaveform({
           progressColor="rgba(34, 211, 238, 0.8)"
           isPlaying={isPlayingModel}
           height={35}
+          isLive={false}
         />
       </div>
       {/* Student waveform */}
@@ -120,6 +140,7 @@ export default memo(function DualWaveform({
           progressColor="rgba(74, 222, 128, 0.8)"
           isPlaying={isRecording}
           height={35}
+          isLive={isRecording}
         />
       </div>
     </div>
