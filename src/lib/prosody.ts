@@ -18,7 +18,23 @@ export interface WordData {
 }
 
 const FUNCTION_WORDS = new Set([
-  'a', 'an', 'the', 'and', 'but', 'or', 'for', 'of', 'is', 'in', 'it', 'to', 'over', 'with', 'at', 'by'
+  // Articles
+  'a', 'an', 'the',
+  // Pronouns
+  'i', 'me', 'my', 'you', 'your', 'he', 'him', 'his', 'she', 'her', 'it', 'its',
+  'we', 'us', 'our', 'they', 'them', 'their', 'this', 'that', 'these', 'those',
+  // Prepositions
+  'at', 'by', 'for', 'from', 'in', 'into', 'of', 'on', 'to', 'with', 'about',
+  'after', 'before', 'between', 'through', 'during', 'over', 'under', 'above', 'below',
+  // Conjunctions
+  'and', 'but', 'or', 'so', 'yet', 'nor', 'if', 'when', 'while', 'because', 'although', 'though',
+  // Auxiliaries
+  'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being',
+  'do', 'does', 'did', 'has', 'have', 'had', 'having',
+  'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 'must',
+  // Other function words
+  'not', 'no', 'as', 'than', 'then', 'just', 'also', 'very', 'too',
+  'there', 'here', 'where', 'how', 'what', 'which', 'who', 'whom',
 ]);
 
 export function parseProsody(text: string): WordData[] {
