@@ -118,6 +118,7 @@ export default memo(function DualWaveform({
   studentAudioUrl,
   isPlayingModel,
   isRecording,
+  modelTimestamps = null,
 }: DualWaveformProps) {
   return (
     <div className="w-full rounded-2xl overflow-hidden bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.2)]">
