@@ -38,36 +38,51 @@ const FUNCTION_WORDS = new Set([
 ]);
 
 export function parseProsody(text: string): WordData[] {
-  const words = text.split(' ');
-  let charCount = 0;
-
-  const analyzed = words.map((word) => {
-    const start = text.indexOf(word, charCount);
-    charCount = start + word.length;
-    const clean = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (!text || text.trim().length === 0) return [];
+  const result: WordData[] = [];
+  const regex = /\S+/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const word = match[0];
+    const startChar = match.index;
+    const endChar = match.index + word.length;
+    const clean = word.toLowerCase().replace(/[^a-z']/g, '');
     const isFunc = FUNCTION_WORDS.has(clean);
     const syls = word.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi) || [word];
     let stressIdx = 0;
     if (syls.length > 1) {
       if (clean.endsWith('graphy') || clean.endsWith('logy')) stressIdx = Math.max(0, syls.length - 3);
-      else if (clean.endsWith('tion') || clean.endsWith('ic')) stressIdx = Math.max(0, syls.length - 2);
+      else if (clean.endsWith('tion') || clean.endsWith('ic') || clean.endsWith('sion')) stressIdx = Math.max(0, syls.length - 2);
       else if (!isFunc) stressIdx = 0;
     }
-    return { word, syllables: syls, isFunc, stressIdx, finalStress: isFunc ? 0 : 2, startChar: start, endChar: charCount };
-  });
-
-  for (let i = 1; i < analyzed.length - 1; i++) {
-    if (!analyzed[i - 1].isFunc && !analyzed[i].isFunc && !analyzed[i + 1].isFunc) analyzed[i].finalStress = 1;
-  }
-
-  return analyzed.map((w, i) => {
-    const next = analyzed[i + 1];
-    const chunkWithNext = !w.isFunc && !!next && next.isFunc;
-    const sylData: SyllableData[] = (w.syllables as string[]).map((txt, idx) => ({
+    const finalStress = isFunc ? 0 : 2;
+    const sylData: SyllableData[] = syls.map((txt, idx) => ({
       text: txt,
-      stress: w.isFunc ? 0 : (idx === w.stressIdx ? w.finalStress : 0),
-      pitch: w.isFunc ? 0 : (idx === w.stressIdx ? 2 : (idx > w.stressIdx ? -1 : 0)),
+      stress: isFunc ? 0 : (idx === stressIdx ? finalStress : 0),
+      pitch: isFunc ? 0 : (idx === stressIdx ? 2 : (idx > stressIdx ? -1 : 0)),
     }));
-    return { ...w, syllables: sylData, chunkWithNext };
-  });
+    const nextWord = (text.slice(endChar).match(/^\s*(\S+)/) || [])[1]?.toLowerCase().replace(/[^a-z']/g, '') || '';
+    const chunkWithNext = !isFunc && FUNCTION_WORDS.has(nextWord);
+    result.push({ word, syllables: sylData, isFunc, stressIdx, finalStress, startChar, endChar, chunkWithNext });
+  }
+  for (let i = 1; i < result.length - 1; i++) {
+    if (!result[i - 1].isFunc && !result[i].isFunc && !result[i + 1].isFunc) {
+      result[i].finalStress = 1;
+      if (result[i].syllables[result[i].stressIdx]) result[i].syllables[result[i].stressIdx].stress = 1;
+    }
+  }
+  return result;
+}
+
+/** Find the word index matching a charIndex from SpeechSynthesis onBoundary */
+export function matchCharIndex(data: WordData[], charIndex: number): number {
+  const exact = data.findIndex((w) => charIndex >= w.startChar && charIndex <= w.endChar + 1);
+  if (exact !== -1) return exact;
+  let closest = 0;
+  let minDist = Infinity;
+  for (let i = 0; i < data.length; i++) {
+    const dist = Math.abs(charIndex - data[i].startChar);
+    if (dist < minDist) { minDist = dist; closest = i; }
+  }
+  return closest;
 }
