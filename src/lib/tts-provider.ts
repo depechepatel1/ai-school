@@ -107,6 +107,22 @@ function refreshVoiceCache(): void {
 // Init on module load
 ensureVoices();
 
+// ── Estimated word timings (fallback for missing onboundary) ──
+
+function estimateWordTimings(text: string, rate: number): { charIndex: number; timeMs: number }[] {
+  const words = text.split(/\s+/);
+  const totalChars = words.reduce((s, w) => s + w.length, 0);
+  const totalMs = (totalChars * 65) / rate;
+  let charPos = 0;
+  let cumChars = 0;
+  return words.map((word) => {
+    const result = { charIndex: charPos, timeMs: (cumChars / totalChars) * totalMs };
+    charPos += word.length + 1;
+    cumChars += word.length;
+    return result;
+  });
+}
+
 // ── Browser speak with auto-retry ─────────────────────────────
 
 function createUtterance(
@@ -128,19 +144,15 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
     return { stop: () => {}, finished: Promise.resolve() };
   }
 
-  // Strip annotations that shouldn't be spoken:
-  // - Parenthesized Chinese glosses e.g. "(中文注释)"
-  // - Stray CJK / fullwidth characters
-  // - Parenthesized all-caps abbreviations e.g. "(COPR)", "(B2)"
-  // - Copyright symbols and similar markers
+  // Strip annotations that shouldn't be spoken
   let cleanText = text;
   if (accent !== "zh") {
     cleanText = cleanText
-      .replace(/\s*\([^)]*[\u4e00-\u9fff\u3400-\u4dbf]+[^)]*\)/g, "") // parenthesized Chinese
-      .replace(/\s*\([A-Z0-9]{1,6}\)/g, "")                            // parenthesized abbreviations like (COPR)
-      .replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]+/g, "") // stray CJK chars
-      .replace(/[©®™]+/g, "")                                          // copyright/trademark symbols
-      .replace(/\s{2,}/g, " ") // collapse extra spaces
+      .replace(/\s*\([^)]*[\u4e00-\u9fff\u3400-\u4dbf]+[^)]*\)/g, "")
+      .replace(/\s*\([A-Z0-9]{1,6}\)/g, "")
+      .replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]+/g, "")
+      .replace(/[©®™]+/g, "")
+      .replace(/\s{2,}/g, " ")
       .trim();
   }
 
@@ -150,12 +162,18 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
   }
 
   let cancelled = false;
+  let fallbackTimerId: ReturnType<typeof setInterval> | null = null;
+  let fallbackTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const clearFallbackTimers = () => {
+    if (fallbackTimerId != null) { clearInterval(fallbackTimerId); fallbackTimerId = null; }
+    if (fallbackTimeoutId != null) { clearTimeout(fallbackTimeoutId); fallbackTimeoutId = null; }
+  };
 
   const finished = new Promise<void>((resolve) => {
     const attemptSpeak = (voiceIndex: number) => {
       if (cancelled) { resolve(); return; }
 
-      // Cancel any previous speech
       speechSynthesis.cancel();
 
       if (!voicesReady) ensureVoices();
@@ -163,7 +181,6 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       const voice = voiceIndex < voiceList.length ? voiceList[voiceIndex] : null;
 
       if (!voice && voiceIndex > 0) {
-        // Exhausted all voices
         console.error("[TTS] All voices failed for accent:", accent);
         opts.onEnd?.();
         resolve();
@@ -171,29 +188,29 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       }
 
       const utterance = createUtterance(cleanText, voice, opts);
+      let realBoundaryFired = false;
 
       utterance.onend = () => {
+        clearFallbackTimers();
         opts.onEnd?.();
         resolve();
       };
 
       utterance.onerror = (e) => {
+        clearFallbackTimers();
         const errorType = (e as any).error || "unknown";
         const voiceName = voice?.name ?? "default";
         console.warn(`[TTS] Voice "${voiceName}" failed with: ${errorType}`);
 
         if (errorType === "synthesis-failed" || errorType === "network") {
-          // Mark this voice as failed and try next one
           if (voice) {
             failedVoiceNames.add(voice.name);
             refreshVoiceCache();
           }
-
           const nextIndex = voiceIndex + 1;
           const remaining = (cachedVoices[accent] ?? []).length;
           if (nextIndex < remaining + voiceIndex + 1) {
             console.log(`[TTS] Retrying with next voice (attempt ${nextIndex + 1})...`);
-            // Small delay before retry to let engine reset
             setTimeout(() => attemptSpeak(0), 100);
           } else {
             console.error("[TTS] No more voices to try");
@@ -201,7 +218,6 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
             resolve();
           }
         } else {
-          // Non-retryable error (e.g. "canceled")
           opts.onEnd?.();
           resolve();
         }
@@ -209,13 +225,47 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
 
       if (opts.onBoundary) {
         utterance.onboundary = (e: SpeechSynthesisEvent) => {
-          if (e.name === "word") opts.onBoundary!(e.charIndex);
+          if (e.name === "word") {
+            realBoundaryFired = true;
+            clearFallbackTimers();
+            opts.onBoundary!(e.charIndex);
+          }
         };
       }
 
-      if (opts.onStart) utterance.onstart = opts.onStart;
+      utterance.onstart = () => {
+        opts.onStart?.();
 
-      // Defer speak slightly after cancel to avoid Chrome/Edge swallowing bug
+        // Start fallback timer for browsers that don't fire onboundary
+        if (opts.onBoundary) {
+          fallbackTimeoutId = setTimeout(() => {
+            if (realBoundaryFired || cancelled) return;
+            console.log("[TTS] No onboundary detected, starting timer-based fallback");
+            const timings = estimateWordTimings(cleanText, opts.rate ?? 0.9);
+            const startTime = Date.now();
+            let nextIdx = 0;
+
+            // Fire first word immediately
+            if (timings.length > 0) {
+              opts.onBoundary!(timings[0].charIndex);
+              nextIdx = 1;
+            }
+
+            fallbackTimerId = setInterval(() => {
+              if (cancelled || nextIdx >= timings.length) {
+                clearFallbackTimers();
+                return;
+              }
+              const elapsed = Date.now() - startTime;
+              while (nextIdx < timings.length && elapsed >= timings[nextIdx].timeMs) {
+                opts.onBoundary!(timings[nextIdx].charIndex);
+                nextIdx++;
+              }
+            }, 50);
+          }, 400);
+        }
+      };
+
       setTimeout(() => {
         if (cancelled) { resolve(); return; }
         console.log("[TTS] Speaking:", text.substring(0, 50), "| voice:", voice?.name ?? "default");
@@ -229,6 +279,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
   return {
     stop: () => {
       cancelled = true;
+      clearFallbackTimers();
       speechSynthesis.cancel();
     },
     finished,
