@@ -193,15 +193,14 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
               <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
                 <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((shadowCurriculum.currentIndex + 1) / shadowCurriculum.totalChunks) * 100}%` }} />
               </div>
-              <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
-                <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
-                  <span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
-                  <span className="text-[10px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
-                </div>
-                <div className="absolute inset-0 px-8 py-2">
-                  <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={fluencyTimings.getDuration(currentText)} />
-                </div>
-              </div>
+            <div className="w-full max-w-3xl mb-4">
+              <DualWaveform
+                modelAudioUrl={null}
+                studentAudioUrl={lastRecordingUrl}
+                isPlayingModel={isPlayingModel}
+                isRecording={isRecording}
+              />
+            </div>
             </div>
             {/* Chunk counter pill */}
             <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
