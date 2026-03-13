@@ -160,7 +160,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
 
         {/* Floating Info Panel */}
         <div className="absolute top-40 left-4 z-50">
-          <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType="Pronunciation" questionNumber={moduleLabel} progressCurrent={currentIndex + 1} progressTotal={twisters.length} />
+          <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType="Pronunciation" questionNumber={moduleLabel} />
         </div>
 
         {/* Accent selector – top right */}
@@ -194,19 +194,27 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
-          <div className="w-full max-w-3xl">
-            {/* Progress indicator */}
-            <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
-              <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentIndex + 1) / twisters.length) * 100}%` }} />
+          <div className="w-full max-w-3xl flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              {/* Progress indicator */}
+              <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
+                <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentIndex + 1) / twisters.length) * 100}%` }} />
+              </div>
+              <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
+                <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
+                  <span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
+                  <span className="text-[10px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
+                </div>
+                <div className="absolute inset-0 px-8 py-2">
+                  <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")} />
+                </div>
+              </div>
             </div>
-            <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
-              <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
-                <span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
-                <span className="text-[10px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
-              </div>
-              <div className="absolute inset-0 px-8 py-2">
-                <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")} />
-              </div>
+            {/* Item counter pill */}
+            <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 block">Item</span>
+              <span className="text-lg font-bold text-white/90">{currentIndex + 1}</span>
+              <span className="text-white/30 text-sm font-medium"> / {twisters.length}</span>
             </div>
           </div>
         </div>
