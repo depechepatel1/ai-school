@@ -170,7 +170,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
         return;
       }
 
-      const utterance = createUtterance(text, voice, opts);
+      const utterance = createUtterance(cleanText, voice, opts);
 
       utterance.onend = () => {
         opts.onEnd?.();
