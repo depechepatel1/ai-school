@@ -62,6 +62,7 @@ export function useShadowingCurriculum(
     totalChunks: chunks.length,
     loading,
     nextChunk,
+    prevChunk,
     resetToFirst,
     curriculumData,
     currentQuestionText: currentChunk?.question_text ?? null,
