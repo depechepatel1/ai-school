@@ -112,7 +112,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
     else { setIsRecording(true); clearRecording(); await startMediaRecorder(); }
   };
 
-  const stopRecordingCb = useCallback(() => { setIsRecording(false); stopMediaRecorder(); }, [stopMediaRecorder]);
+  
 
   const isLastChunkOfAnswer = useCallback(() => {
     if (shadowCurriculum.chunks.length === 0) return false;
