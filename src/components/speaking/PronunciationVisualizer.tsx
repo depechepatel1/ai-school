@@ -1,8 +1,30 @@
 /**
- * PronunciationVisualizer — dual-canvas: target contour + live user line.
- * 
- * Performance optimizations:
- * - Fix 1: O(1) peak envelope follower (replaces per-frame array sort)
+ * PronunciationVisualizer — PLACEHOLDER
+ * The old 700-line canvas system has been removed.
+ * This stub maintains the import interface so other screens don't crash.
+ * It will be replaced by DualWaveform in the next step.
+ */
+import type { WordData } from "@/lib/prosody";
+
+interface Props {
+  isRecording: boolean;
+  isPlayingModel: boolean;
+  activeWordIndex: number;
+  prosodyData: WordData[];
+  targetProgress: number;
+  sentenceKey: number;
+  onAutoStop?: () => void;
+  onPitchContour?: (contour: number[]) => void;
+  measuredDurationMs?: number | null;
+}
+
+export default function PronunciationVisualizer(_props: Props) {
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <span className="text-[10px] text-white/20 italic">Waveform loading…</span>
+    </div>
+  );
+}
  * - Fix 2: Float32Array ring buffer + batched lineTo paths (replaces unbounded history + per-segment bezierCurveTo)
  * - Fix 3: Single master RAF loop in parent (eliminates dual-loop micro-stutters)
  * - Fix 4: ResizeObserver + cached dimensions/gradients (eliminates per-frame getBoundingClientRect)
