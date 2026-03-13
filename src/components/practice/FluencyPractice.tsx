@@ -62,7 +62,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   const courseWeek = useCourseWeek(userId);
   const shadowCurriculum = useShadowingCurriculum(courseType, courseWeek.shadowingWeek);
   const timerSettings = useTimerSettings(courseType, "shadowing-fluency");
-  const fluencyTimings = useFluencyTimings(courseType);
+  
   const config = COURSE_CONFIG[courseType];
 
   const { accent, setAccent } = useAccent(userId);
