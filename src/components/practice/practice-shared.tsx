@@ -28,27 +28,3 @@ export const PracticeHeader = memo(function PracticeHeader({ badgeClass, badgeLa
     </div>
   );
 });
-
-interface PracticeProgressProps {
-  label: string;
-  current: number;
-  total: number;
-  subLabel?: string;
-}
-
-export const PracticeProgress = memo(function PracticeProgress({ label, current, total, subLabel }: PracticeProgressProps) {
-  return (
-    <div className="absolute top-4 right-4 z-50">
-      <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-2.5 text-center">
-        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 block">{label}</span>
-        <span className="text-lg font-bold text-white/90">{current}</span>
-        <span className="text-white/30 text-sm font-medium"> / {total}</span>
-        {subLabel && (
-          <div className="mt-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">{subLabel}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
