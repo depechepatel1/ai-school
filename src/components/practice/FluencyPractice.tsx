@@ -185,14 +185,12 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
               <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
                 <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((shadowCurriculum.currentIndex + 1) / shadowCurriculum.totalChunks) * 100}%` }} />
               </div>
-            <div className="w-full max-w-3xl mb-4">
               <DualWaveform
                 modelAudioUrl={null}
                 studentAudioUrl={lastRecordingUrl}
                 isPlayingModel={isPlayingModel}
                 isRecording={isRecording}
               />
-            </div>
             </div>
             {/* Chunk counter pill */}
             <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
