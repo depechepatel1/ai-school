@@ -620,9 +620,6 @@ function LiveInputCanvas({
 
           drawLine(cw, ch);
         };
-        /* ╔══════════════════════════════════════════════════════════════╗
-         * ║  🔒 END PROTECTED ZONE — NORMAL REPEATING MODE USER LINE   ║
-         * ╚══════════════════════════════════════════════════════════════╝ */
 
         // ── Rolling window peak normalization (OUTSIDE protected zone) ──
         // Prevents late-session flattening in long/shadowing sessions by
