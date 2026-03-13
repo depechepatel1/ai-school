@@ -1,5 +1,7 @@
 // Prosody Parser - analyzes text for stress patterns and pitch contours
 
+import { lookupStress } from "./stress-dictionary";
+
 export interface SyllableData {
   text: string;
   stress: number;
@@ -37,6 +39,86 @@ const FUNCTION_WORDS = new Set([
   'there', 'here', 'where', 'how', 'what', 'which', 'who', 'whom',
 ]);
 
+/** Split a written word into N syllable chunks using onset maximization */
+function splitWordIntoSyllables(word: string, syllableCount: number): string[] {
+  if (syllableCount <= 1) return [word];
+  const lower = word.toLowerCase();
+  const vowels = "aeiouy";
+
+  // Find vowel group positions
+  const nuclei: [number, number][] = [];
+  let i = 0;
+  while (i < lower.length) {
+    if (vowels.includes(lower[i])) {
+      const start = i;
+      while (i < lower.length && vowels.includes(lower[i])) i++;
+      nuclei.push([start, i]);
+    } else {
+      i++;
+    }
+  }
+
+  // Merge nuclei if too many for the target syllable count
+  while (nuclei.length > syllableCount && nuclei.length > 1) {
+    let minGap = Infinity, minIdx = 0;
+    for (let j = 0; j < nuclei.length - 1; j++) {
+      const gap = nuclei[j + 1][0] - nuclei[j][1];
+      if (gap < minGap) { minGap = gap; minIdx = j; }
+    }
+    nuclei[minIdx] = [nuclei[minIdx][0], nuclei[minIdx + 1][1]];
+    nuclei.splice(minIdx + 1, 1);
+  }
+
+  // Split nuclei if too few
+  while (nuclei.length < syllableCount) {
+    let maxLen = 0, maxIdx = 0;
+    for (let j = 0; j < nuclei.length; j++) {
+      const len = nuclei[j][1] - nuclei[j][0];
+      if (len > maxLen) { maxLen = len; maxIdx = j; }
+    }
+    if (maxLen <= 1) break;
+    const mid = nuclei[maxIdx][0] + Math.ceil(maxLen / 2);
+    const orig = nuclei[maxIdx];
+    nuclei.splice(maxIdx, 1, [orig[0], mid], [mid, orig[1]]);
+  }
+
+  if (nuclei.length < 2) return [word];
+
+  // Find split points using onset maximization
+  const ONSETS = new Set(["bl","br","ch","cl","cr","dr","fl","fr","gl","gr","ph","pl","pr",
+    "sc","sh","sk","sl","sm","sn","sp","st","str","sw","th","tr","tw","wh","wr","spr","scr"]);
+  const splitPoints: number[] = [];
+
+  for (let j = 0; j < nuclei.length - 1; j++) {
+    const codaStart = nuclei[j][1];
+    const onsetEnd = nuclei[j + 1][0];
+    const consonants = lower.slice(codaStart, onsetEnd);
+
+    if (consonants.length <= 1) {
+      splitPoints.push(codaStart);
+    } else {
+      let splitAt = codaStart + 1;
+      for (let k = consonants.length - 1; k >= 1; k--) {
+        const candidateOnset = consonants.slice(k);
+        if (ONSETS.has(candidateOnset) || candidateOnset.length === 1) {
+          splitAt = codaStart + k;
+          break;
+        }
+      }
+      splitPoints.push(splitAt);
+    }
+  }
+
+  const result: string[] = [];
+  let prev = 0;
+  for (const sp of splitPoints) {
+    result.push(word.slice(prev, sp));
+    prev = sp;
+  }
+  result.push(word.slice(prev));
+  return result;
+}
+
 export function parseProsody(text: string): WordData[] {
   if (!text || text.trim().length === 0) return [];
   const result: WordData[] = [];
@@ -48,12 +130,25 @@ export function parseProsody(text: string): WordData[] {
     const endChar = match.index + word.length;
     const clean = word.toLowerCase().replace(/[^a-z']/g, '');
     const isFunc = FUNCTION_WORDS.has(clean);
-    const syls = word.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi) || [word];
-    let stressIdx = 0;
-    if (syls.length > 1) {
-      if (clean.endsWith('graphy') || clean.endsWith('logy')) stressIdx = Math.max(0, syls.length - 3);
-      else if (clean.endsWith('tion') || clean.endsWith('ic') || clean.endsWith('sion')) stressIdx = Math.max(0, syls.length - 2);
-      else if (!isFunc) stressIdx = 0;
+
+    // Try CMU dictionary for accurate syllable/stress data
+    const dictEntry = lookupStress(clean);
+    let syls: string[];
+    let stressIdx: number;
+
+    if (dictEntry) {
+      const [sylCount, primaryStress] = dictEntry;
+      syls = splitWordIntoSyllables(word, sylCount);
+      stressIdx = primaryStress;
+    } else {
+      // Fallback: regex syllable splitting (less accurate)
+      syls = word.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi) || [word];
+      stressIdx = 0;
+      if (syls.length > 1) {
+        if (clean.endsWith('graphy') || clean.endsWith('logy')) stressIdx = Math.max(0, syls.length - 3);
+        else if (clean.endsWith('tion') || clean.endsWith('ic') || clean.endsWith('sion')) stressIdx = Math.max(0, syls.length - 2);
+        else if (!isFunc) stressIdx = 0;
+      }
     }
     const finalStress = isFunc ? 0 : 2;
     const sylData: SyllableData[] = syls.map((txt, idx) => ({
