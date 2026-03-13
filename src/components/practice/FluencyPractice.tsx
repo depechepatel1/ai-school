@@ -77,7 +77,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   const [showEndPopup, setShowEndPopup] = useState(false);
 
   const ttsHandleRef = useRef<TTSHandle | null>(null);
-  const { lastRecordingUrl, isPlayingReplay, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
+  const { lastRecordingUrl, isPlayingReplay, micDenied, activeStream, startMediaRecorder, stopMediaRecorder, handleReplay, clearRecording } = useAudioCapture();
 
   const isAudioActive = isRecording || isPlayingModel;
 
