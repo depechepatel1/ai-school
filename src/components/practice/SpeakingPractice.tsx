@@ -25,7 +25,7 @@ import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
 import { Check, SkipForward, AlertTriangle, Pause } from "lucide-react";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
 import { PracticeSkeleton } from "@/components/ui/practice-skeleton";
-import { PracticeHeader, PracticeProgress } from "./practice-shared";
+import { PracticeHeader } from "./practice-shared";
 import SpeakingFeedbackPanel from "./SpeakingFeedbackPanel";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
