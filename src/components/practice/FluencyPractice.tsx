@@ -15,7 +15,7 @@ import { speak, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { useFluencyTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
-import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
+import DualWaveform from "@/components/speaking/DualWaveform";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import PageShell from "@/components/PageShell";
