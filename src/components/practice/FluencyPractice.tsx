@@ -92,14 +92,6 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
     setSentenceKey((k) => k + 1); setShowEndPopup(false);
   }, [currentText]);
 
-  const computeTargetProgress = useCallback((wordIdx: number) => {
-    if (prosodyData.length === 0) return 0;
-    const allSyl = prosodyData.flatMap((d) => d.syllables);
-    if (allSyl.length === 0) return 0;
-    let sylCount = 0;
-    for (let i = 0; i <= wordIdx && i < prosodyData.length; i++) sylCount += prosodyData[i].syllables.length;
-    return Math.min(1, sylCount / allSyl.length);
-  }, [prosodyData]);
 
   const sectionLabel = shadowCurriculum.currentSectionId ? config.sectionMap[shadowCurriculum.currentSectionId] ?? shadowCurriculum.currentSectionId : "";
   const questionId = shadowCurriculum.currentQuestionId?.toUpperCase() ?? "";
