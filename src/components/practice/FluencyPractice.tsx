@@ -26,6 +26,7 @@ import { PracticeHeader } from "./practice-shared";
 import FluencyEndPopup from "./FluencyEndPopup";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
+import { preloadStressDict } from "@/lib/stress-dictionary";
 
 type CourseType = "ielts" | "igcse";
 
@@ -85,6 +86,8 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   });
 
   const currentText = shadowCurriculum.currentChunk?.text ?? "";
+
+  useEffect(() => { preloadStressDict(); }, []);
 
   useEffect(() => {
     if (!currentText) return;

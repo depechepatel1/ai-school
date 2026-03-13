@@ -26,6 +26,7 @@ import { PracticeHeader } from "./practice-shared";
 import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
+import { preloadStressDict } from "@/lib/stress-dictionary";
 
 type CourseType = "ielts" | "igcse";
 
@@ -79,6 +80,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     weekNumber: courseWeek.selectedWeek, practiceMode: "homework", isAudioActive,
   });
 
+  useEffect(() => { preloadStressDict(); }, []);
   useEffect(() => { fetchPronunciationItems().then(setTwisters).catch(() => {}); }, []);
 
   useEffect(() => {
