@@ -111,7 +111,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     setIsPlayingModel(true); setActiveWordIndex(0);
     ttsHandleRef.current = speak(currentTwister.text, accent, {
       rate: 0.8, pitch: 1.1,
-      onBoundary: (charIndex) => { const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar); if (idx !== -1) { setActiveWordIndex(idx); } },
+      onBoundary: (charIndex) => { const idx = matchCharIndex(prosodyData, charIndex); setActiveWordIndex(idx); },
       onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); },
     });
   };
