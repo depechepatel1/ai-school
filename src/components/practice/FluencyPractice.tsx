@@ -203,6 +203,12 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
                 <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={fluencyTimings.getDuration(currentText)} />
               </div>
             </div>
+            {/* Chunk counter pill */}
+            <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 block">Chunk</span>
+              <span className="text-lg font-bold text-white/90">{shadowCurriculum.currentIndex + 1}</span>
+              <span className="text-white/30 text-sm font-medium"> / {shadowCurriculum.totalChunks}</span>
+            </div>
           </div>
         </div>
 
