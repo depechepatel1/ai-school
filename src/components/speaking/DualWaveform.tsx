@@ -19,6 +19,8 @@ interface DualWaveformProps {
   isPlayingModel: boolean;
   /** Whether the student is currently recording */
   isRecording: boolean;
+  /** When available (Aliyun TTS), word-level timestamps for precise karaoke sync. */
+  modelTimestamps?: { word: string; startMs: number; endMs: number }[] | null;
 }
 
 function WaveformTrack({
