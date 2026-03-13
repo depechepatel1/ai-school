@@ -160,7 +160,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
 
         {/* Floating Info Panel */}
         <div className="absolute top-40 left-4 z-50">
-          <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType="Pronunciation" questionNumber={moduleLabel} progressCurrent={currentIndex + 1} progressTotal={twisters.length} />
+          <FloatingInfoPanel course={config.courseLabel} weekNumber={courseWeek.selectedWeek} questionType="Pronunciation" questionNumber={moduleLabel} />
         </div>
 
         {/* Accent selector – top right */}
