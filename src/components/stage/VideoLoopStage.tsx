@@ -9,6 +9,9 @@ const CACHE_BUST = "?v=2";
 
 const VIDEO_INTRO = `${STORAGE_BASE}/intro.mp4${CACHE_BUST}`;
 
+/** Max consecutive errors before giving up */
+const MAX_CONSECUTIVE_ERRORS = 3;
+
 /** Fisher-Yates shuffle, keeping index 0 in place */
 function shuffleExceptFirst(arr: string[]): string[] {
   if (arr.length <= 1) return [...arr];
@@ -36,8 +39,7 @@ export default function VideoLoopStage({
   objectPosition = "center center",
   scaleClass,
 }: VideoLoopStageProps) {
-  // Self-load from storage when no list is provided
-  const { videoList: hookVideoList, isLoading } = useVideoLoopStack();
+  const { videoList: hookVideoList } = useVideoLoopStack();
   const videoList = videoListProp && videoListProp.length > 0 ? videoListProp : hookVideoList;
 
   const shouldLoop = videoList.length === 1;
@@ -52,18 +54,23 @@ export default function VideoLoopStage({
   const introRef = useRef<HTMLVideoElement>(null);
   const refA = useRef<HTMLVideoElement>(null);
   const refB = useRef<HTMLVideoElement>(null);
+  const isMutedRef = useRef(isMuted);
+  const consecutiveErrorsRef = useRef(0);
+
+  // Keep muted ref in sync
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
 
   // Shuffled playlist & index tracker
   const playlistRef = useRef<string[]>([]);
   const playIndexRef = useRef(1);
-  const initializedRef = useRef(false);
 
   // Initialize / re-initialize playlist when videoList changes
   useEffect(() => {
     if (videoList.length === 0) return;
     playlistRef.current = shuffleExceptFirst(videoList);
     playIndexRef.current = 1;
-    initializedRef.current = true;
   }, [videoList]);
 
   const activeVideoRef = !introFinished ? introRef : activePlayer === "A" ? refA : refB;
@@ -71,7 +78,6 @@ export default function VideoLoopStage({
   const getNextClip = useCallback((): string => {
     const playlist = playlistRef.current;
     if (playIndexRef.current >= playlist.length) {
-      // Reshuffle entire list for next round
       const reshuffled = [...videoList];
       for (let i = reshuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -119,31 +125,12 @@ export default function VideoLoopStage({
     setIntroFinished(true);
   };
 
-  // When intro finishes (or no intro) AND videos are loaded, start Player A
-  useEffect(() => {
-    if (!introFinished || videoList.length === 0) return;
-    const a = refA.current;
-    if (a) {
-      // Update src if it doesn't match the current first clip
-      const firstClip = videoList[0];
-      if (a.src !== firstClip) {
-        a.src = firstClip;
-      }
-      a.muted = isMuted;
-      safePlay(a);
-    }
-    // Defer Player B preload so it doesn't compete with Player A
-    if (!shouldLoop && refB.current && videoList.length > 1) {
-      const nextClip = getNextClip();
-      refB.current.src = nextClip;
-      refB.current.load();
-    }
-  }, [introFinished, videoList.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Instant swap when active player ends
   const handlePlayerEnded = useCallback(
     (player: "A" | "B") => {
       if (shouldLoop) return;
+
+      consecutiveErrorsRef.current = 0; // successful play resets error counter
 
       const nextPlayer = player === "A" ? "B" : "A";
       const nextRef = nextPlayer === "A" ? refA : refB;
@@ -152,13 +139,11 @@ export default function VideoLoopStage({
       const nextEl = nextRef.current;
       if (!nextEl) return;
 
-      // If ready, swap instantly; otherwise wait for canplay
       const doSwap = () => {
-        nextEl.muted = isMuted;
+        nextEl.muted = isMutedRef.current;
         setActivePlayer(nextPlayer);
         safePlay(nextEl);
 
-        // Preload next clip on the now-inactive player
         const inactiveEl = currentRef.current;
         if (inactiveEl) {
           inactiveEl.src = getNextClip();
@@ -172,8 +157,55 @@ export default function VideoLoopStage({
         nextEl.addEventListener("canplay", doSwap, { once: true });
       }
     },
-    [shouldLoop, safePlay, isMuted, getNextClip]
+    [shouldLoop, safePlay, getNextClip]
   );
+
+  // Error recovery: skip broken clips instead of freezing
+  const handlePlayerError = useCallback(
+    (player: "A" | "B") => {
+      if (shouldLoop) return;
+
+      consecutiveErrorsRef.current++;
+      const ref = player === "A" ? refA : refB;
+      const el = ref.current;
+
+      console.warn(`[VideoPlayer] ${player} error on src, skipping clip. Consecutive errors: ${consecutiveErrorsRef.current}`);
+
+      if (consecutiveErrorsRef.current >= MAX_CONSECUTIVE_ERRORS) {
+        console.error("[VideoPlayer] Too many consecutive errors, stopping recovery.");
+        return;
+      }
+
+      // Load a new clip on the errored player
+      if (el) {
+        el.src = getNextClip();
+        el.load();
+      }
+
+      // Swap to the other player if it's ready
+      handlePlayerEnded(player);
+    },
+    [shouldLoop, getNextClip, handlePlayerEnded]
+  );
+
+  // When intro finishes (or no intro) AND videos are loaded, start Player A
+  useEffect(() => {
+    if (!introFinished || videoList.length === 0) return;
+    const a = refA.current;
+    if (a) {
+      const firstClip = videoList[0];
+      if (a.src !== firstClip) {
+        a.src = firstClip;
+      }
+      a.muted = isMutedRef.current;
+      safePlay(a);
+    }
+    if (!shouldLoop && refB.current && videoList.length > 1) {
+      const nextClip = getNextClip();
+      refB.current.src = nextClip;
+      refB.current.load();
+    }
+  }, [introFinished, videoList.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync muted state
   useEffect(() => {
@@ -181,7 +213,6 @@ export default function VideoLoopStage({
     if (vid) vid.muted = isMuted;
   }, [isMuted, activeVideoRef]);
 
-  // Don't render video elements until we have URLs
   if (videoList.length === 0) {
     return <div className="absolute inset-0 bg-gray-900" />;
   }
@@ -190,7 +221,6 @@ export default function VideoLoopStage({
 
   return (
     <>
-      {/* Intro video */}
       {useIntro && (
         <video
           ref={introRef}
@@ -202,7 +232,6 @@ export default function VideoLoopStage({
         />
       )}
 
-      {/* Player A — always visible, z-index swap only */}
       <video
         ref={refA}
         src={videoList[0]}
@@ -212,15 +241,11 @@ export default function VideoLoopStage({
         loop={shouldLoop}
         preload="auto"
         onEnded={() => handlePlayerEnded("A")}
-        onError={(e) => {
-          const v = e.currentTarget;
-          console.error("[VideoPlayer] A error:", v.error?.code, v.error?.message, "src:", v.src);
-        }}
+        onError={() => handlePlayerError("A")}
         className={`${videoBase} ${activePlayer === "A" ? "z-[2]" : "z-[1]"}`}
         style={{ objectPosition }}
       />
 
-      {/* Player B — always visible, z-index swap only */}
       {!shouldLoop && (
         <video
           ref={refB}
@@ -229,16 +254,12 @@ export default function VideoLoopStage({
           controls={false}
           preload="auto"
           onEnded={() => handlePlayerEnded("B")}
-          onError={(e) => {
-            const v = e.currentTarget;
-            console.error("[VideoPlayer] B error:", v.error?.code, v.error?.message, "src:", v.src);
-          }}
+          onError={() => handlePlayerError("B")}
           className={`${videoBase} ${activePlayer === "B" ? "z-[2]" : "z-[1]"}`}
           style={{ objectPosition }}
         />
       )}
 
-      {/* Audio Toggle */}
       {createPortal(
         <button
           onClick={toggleAudio}
