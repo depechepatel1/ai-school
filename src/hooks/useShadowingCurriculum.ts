@@ -43,8 +43,12 @@ export function useShadowingCurriculum(
 
   const nextChunk = useCallback(() => {
     if (chunks.length === 0) return;
-    // Infinite loop: wrap around to first chunk
     setCurrentIndex((prev) => (prev + 1) % chunks.length);
+  }, [chunks.length]);
+
+  const prevChunk = useCallback(() => {
+    if (chunks.length === 0) return;
+    setCurrentIndex((prev) => (prev - 1 + chunks.length) % chunks.length);
   }, [chunks.length]);
 
   const resetToFirst = useCallback(() => {
