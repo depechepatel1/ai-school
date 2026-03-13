@@ -128,12 +128,18 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
     return { stop: () => {}, finished: Promise.resolve() };
   }
 
-  // For English accents, strip Chinese glosses (e.g. "(中文注释)") and stray CJK characters
+  // Strip annotations that shouldn't be spoken:
+  // - Parenthesized Chinese glosses e.g. "(中文注释)"
+  // - Stray CJK / fullwidth characters
+  // - Parenthesized all-caps abbreviations e.g. "(COPR)", "(B2)"
+  // - Copyright symbols and similar markers
   let cleanText = text;
   if (accent !== "zh") {
     cleanText = cleanText
       .replace(/\s*\([^)]*[\u4e00-\u9fff\u3400-\u4dbf]+[^)]*\)/g, "") // parenthesized Chinese
+      .replace(/\s*\([A-Z0-9]{1,6}\)/g, "")                            // parenthesized abbreviations like (COPR)
       .replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]+/g, "") // stray CJK chars
+      .replace(/[©®™]+/g, "")                                          // copyright/trademark symbols
       .replace(/\s{2,}/g, " ") // collapse extra spaces
       .trim();
   }
