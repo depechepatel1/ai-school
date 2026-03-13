@@ -80,6 +80,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     weekNumber: courseWeek.selectedWeek, practiceMode: "homework", isAudioActive,
   });
 
+  useEffect(() => { preloadStressDict(); }, []);
   useEffect(() => { fetchPronunciationItems().then(setTwisters).catch(() => {}); }, []);
 
   useEffect(() => {

@@ -91,6 +91,8 @@ export default function SpeakingStudio() {
   // Audio active = recording or playing model
   const isAudioActive = isRecordingShadow || isPlayingModel || test.isRecording;
 
+  useEffect(() => { preloadStressDict(); }, []);
+
   const practiceTimer = usePracticeTimer({
     userId,
     courseType: courseWeek.courseType,

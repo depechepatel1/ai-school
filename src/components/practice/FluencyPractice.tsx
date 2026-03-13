@@ -87,6 +87,8 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
   const currentText = shadowCurriculum.currentChunk?.text ?? "";
 
+  useEffect(() => { preloadStressDict(); }, []);
+
   useEffect(() => {
     if (!currentText) return;
     setProsodyData(parseProsody(currentText));
