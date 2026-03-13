@@ -13,7 +13,7 @@ import { usePracticeTimer } from "@/hooks/usePracticeTimer";
 import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchPronunciationItems, type PronunciationItem } from "@/services/pronunciation-shadowing";
 import { speak, type TTSHandle } from "@/lib/tts-provider";
-import { parseProsody, type WordData } from "@/lib/prosody";
+import { parseProsody, matchCharIndex, type WordData } from "@/lib/prosody";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
 import DualWaveform from "@/components/speaking/DualWaveform";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
