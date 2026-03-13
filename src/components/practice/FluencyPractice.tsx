@@ -88,7 +88,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   useEffect(() => {
     if (!currentText) return;
     setProsodyData(parseProsody(currentText));
-    setTargetProgress(0); setActiveWordIndex(-1);
+    setActiveWordIndex(-1);
     setSentenceKey((k) => k + 1); setShowEndPopup(false);
   }, [currentText]);
 
