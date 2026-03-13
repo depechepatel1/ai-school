@@ -9,6 +9,7 @@ import PageShell from "@/components/PageShell";
 import { parseProsody, type WordData } from "@/lib/prosody";
 import { speak, stopSpeaking, preloadAccent, type Accent } from "@/lib/tts-provider";
 import { analyzeContour } from "@/lib/speech-analysis-provider";
+import { preloadStressDict } from "@/lib/stress-dictionary";
 
 
 // ── Components ──
