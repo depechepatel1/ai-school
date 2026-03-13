@@ -19,6 +19,8 @@ interface DualWaveformProps {
   isPlayingModel: boolean;
   /** Whether the student is currently recording */
   isRecording: boolean;
+  /** When available (Aliyun TTS), word-level timestamps for precise karaoke sync. */
+  modelTimestamps?: { word: string; startMs: number; endMs: number }[] | null;
 }
 
 function WaveformTrack({
@@ -116,10 +118,17 @@ export default memo(function DualWaveform({
   studentAudioUrl,
   isPlayingModel,
   isRecording,
+  modelTimestamps = null,
 }: DualWaveformProps) {
   return (
     <div className="w-full rounded-2xl overflow-hidden bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.2)]">
       {/* Model waveform */}
+      {/* ── Model waveform (future: Aliyun TTS) ──
+         When modelAudioUrl points to a real Aliyun TTS file, decode it into
+         an AudioBuffer, extract the amplitude envelope, and render a precise
+         waveform. modelTimestamps can drive karaoke-synced highlighting.
+         The current WaveSurfer-based rendering remains as the default path.
+         TODO: Implement when Aliyun DashScope TTS is integrated. */}
       <div className="border-b border-white/[0.06]">
         <WaveformTrack
           audioUrl={modelAudioUrl}
