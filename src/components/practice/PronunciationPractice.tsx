@@ -14,9 +14,8 @@ import { useAudioCapture } from "@/hooks/useAudioCapture";
 import { fetchPronunciationItems, type PronunciationItem } from "@/services/pronunciation-shadowing";
 import { speak, type TTSHandle } from "@/lib/tts-provider";
 import { parseProsody, type WordData } from "@/lib/prosody";
-import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 import ProsodyVisualizer from "@/components/speaking/ProsodyVisualizer";
-import PronunciationVisualizer from "@/components/speaking/PronunciationVisualizer";
+import DualWaveform from "@/components/speaking/DualWaveform";
 import CountdownTimer from "@/components/speaking/CountdownTimer";
 import PageShell from "@/components/PageShell";
 import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
@@ -58,7 +57,6 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const courseWeek = useCourseWeek(userId);
   const progress = useStudentProgress({ userId, courseType, moduleType: "tongue-twisters" });
   const timerSettings = useTimerSettings(courseType, "shadowing-pronunciation");
-  const pronunciationTimings = usePronunciationTimings();
   const config = COURSE_CONFIG[courseType];
 
   const { accent, setAccent } = useAccent(userId);
@@ -66,10 +64,8 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
-  const [targetProgress, setTargetProgress] = useState(0);
   const [isPlayingModel, setIsPlayingModel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [sentenceKey, setSentenceKey] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
   const summaryShownRef = useRef(false);
 
@@ -96,17 +92,8 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
   useEffect(() => {
     if (!currentTwister) return;
     setProsodyData(parseProsody(currentTwister.text));
-    setTargetProgress(0); setActiveWordIndex(-1); setSentenceKey((k) => k + 1);
+    setActiveWordIndex(-1);
   }, [currentTwister?.text]);
-
-  const computeTargetProgress = useCallback((wordIdx: number) => {
-    if (prosodyData.length === 0) return 0;
-    const allSyl = prosodyData.flatMap((d) => d.syllables);
-    if (allSyl.length === 0) return 0;
-    let sylCount = 0;
-    for (let i = 0; i <= wordIdx && i < prosodyData.length; i++) sylCount += prosodyData[i].syllables.length;
-    return Math.min(1, sylCount / allSyl.length);
-  }, [prosodyData]);
 
   const navigateTo = useCallback(async (newIndex: number) => {
     const wrappedIndex = ((newIndex % twisters.length) + twisters.length) % twisters.length;
@@ -116,16 +103,16 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
 
   const handlePrev = () => navigateTo(currentIndex - 1);
   const handleNext = () => navigateTo(currentIndex + 1);
-  const handleRepeat = () => { clearRecording(); setSentenceKey((k) => k + 1); setTargetProgress(0); setActiveWordIndex(-1); };
+  const handleRepeat = () => { clearRecording(); setActiveWordIndex(-1); };
 
   const handlePlayModel = async () => {
     if (!currentTwister) return;
     if (isPlayingModel) { ttsHandleRef.current?.stop(); setIsPlayingModel(false); setActiveWordIndex(-1); return; }
-    setIsPlayingModel(true); setActiveWordIndex(0); setTargetProgress(0);
+    setIsPlayingModel(true); setActiveWordIndex(0);
     ttsHandleRef.current = speak(currentTwister.text, accent, {
       rate: 0.8, pitch: 1.1,
-      onBoundary: (charIndex) => { const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar); if (idx !== -1) { setActiveWordIndex(idx); setTargetProgress(computeTargetProgress(idx)); } },
-      onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); setTargetProgress(1); },
+      onBoundary: (charIndex) => { const idx = prosodyData.findIndex((w) => w.startChar <= charIndex && charIndex < w.endChar); if (idx !== -1) { setActiveWordIndex(idx); } },
+      onEnd: () => { setIsPlayingModel(false); setActiveWordIndex(-1); },
     });
   };
 
@@ -133,8 +120,6 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     if (isRecording) { setIsRecording(false); stopMediaRecorder(); }
     else { setIsRecording(true); clearRecording(); await startMediaRecorder(); }
   };
-
-  const stopRecordingCb = useCallback(() => { setIsRecording(false); stopMediaRecorder(); }, [stopMediaRecorder]);
 
   useEffect(() => {
     if (practiceTimer.isComplete && !summaryShownRef.current) { summaryShownRef.current = true; setShowSummary(true); }
@@ -188,9 +173,9 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
           </button>
         </div>
 
-        {/* Bottom bar: karaoke text + visualizer */}
+        {/* Bottom bar: karaoke text + waveform */}
         <div className="absolute bottom-0 left-0 right-16 pb-4 pt-8 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/50 to-transparent">
-          <div key={sentenceKey} className="mb-2 w-full text-center relative z-10 animate-fade-in">
+          <div key={currentIndex} className="mb-2 w-full text-center relative z-10 animate-fade-in">
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
@@ -200,15 +185,8 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
               <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
                 <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentIndex + 1) / twisters.length) * 100}%` }} />
               </div>
-              <div onClick={handlePlayModel} className="relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group cursor-pointer bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_0_30px_-5px_rgba(34,211,238,0.3)]">
-                <div className="absolute top-2 left-4 flex items-center gap-3 z-10">
-                  <span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.2em] opacity-70">Target</span>
-                  <span className="text-[10px] font-black uppercase text-green-300 tracking-[0.2em] opacity-70">Live</span>
-                </div>
-                <div className="absolute inset-0 px-8 py-2">
-                  <PronunciationVisualizer isRecording={isRecording} isPlayingModel={isPlayingModel} activeWordIndex={activeWordIndex} prosodyData={prosodyData} targetProgress={targetProgress} sentenceKey={sentenceKey} onAutoStop={stopRecordingCb} onPitchContour={() => {}} measuredDurationMs={pronunciationTimings.getDuration(currentTwister?.text ?? "")} />
-                </div>
-              </div>
+              {/* Waveform comparison */}
+              <DualWaveform modelAudioUrl={null} studentAudioUrl={lastRecordingUrl} isPlayingModel={isPlayingModel} isRecording={isRecording} />
             </div>
             {/* Item counter pill */}
             <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
