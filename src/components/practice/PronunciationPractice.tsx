@@ -188,7 +188,7 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
                 <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentIndex + 1) / twisters.length) * 100}%` }} />
               </div>
               {/* Waveform comparison */}
-              <DualWaveform modelAudioUrl={null} studentAudioUrl={lastRecordingUrl} isPlayingModel={isPlayingModel} isRecording={isRecording} />
+              <DualWaveform prosodyData={prosodyData} activeWordIndex={activeWordIndex} isPlayingModel={isPlayingModel} isRecording={isRecording} activeStream={activeStream} />
             </div>
             {/* Item counter pill */}
             <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
