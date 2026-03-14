@@ -67,6 +67,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   const config = COURSE_CONFIG[courseType];
 
   const { accent, setAccent } = useAccent(userId);
+  const fluencyTimings = useFluencyTimings(courseType);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [targetProgress, setTargetProgress] = useState(0);
