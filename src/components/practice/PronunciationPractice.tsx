@@ -27,6 +27,7 @@ import FloatingInfoPanel from "@/components/speaking/FloatingInfoPanel";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
 import { preloadStressDict } from "@/lib/stress-dictionary";
+import { usePronunciationTimings } from "@/hooks/useTTSTimings";
 
 type CourseType = "ielts" | "igcse";
 
