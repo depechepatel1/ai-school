@@ -123,6 +123,7 @@ export default memo(function OverlaidWaveform({
     try {
       const ctx = audioCtxRef.current || new AudioContext();
       audioCtxRef.current = ctx;
+      if (ctx.state === "suspended") ctx.resume();
       const source = ctx.createMediaStreamSource(activeStream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
