@@ -28,6 +28,7 @@ import FluencyEndPopup from "./FluencyEndPopup";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
 import { preloadStressDict } from "@/lib/stress-dictionary";
+import { useFluencyTimings } from "@/hooks/useTTSTimings";
 
 type CourseType = "ielts" | "igcse";
 
@@ -66,6 +67,7 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   const config = COURSE_CONFIG[courseType];
 
   const { accent, setAccent } = useAccent(userId);
+  const fluencyTimings = useFluencyTimings(courseType);
   const [prosodyData, setProsodyData] = useState<WordData[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [targetProgress, setTargetProgress] = useState(0);
@@ -126,6 +128,8 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
   };
 
   const stopRecordingCb = useCallback(() => { setIsRecording(false); stopMediaRecorder(); }, [stopMediaRecorder]);
+
+  const currentDurationMs = currentText ? fluencyTimings.getDuration(currentText) : null;
 
   const isLastChunkOfAnswer = useCallback(() => {
     if (shadowCurriculum.chunks.length === 0) return false;
@@ -199,20 +203,18 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
         {/* Bottom bar: karaoke text + visualizer */}
         <div className="absolute bottom-0 left-0 right-16 pb-4 pt-8 px-8 flex flex-col items-center z-40 bg-gradient-to-t from-black/85 via-black/50 to-transparent">
-          <div key={sentenceKey} className="mb-2 w-full text-center relative z-10 animate-fade-in">
+          <div key={sentenceKey} className="mb-2 w-full max-w-5xl text-center relative z-10 animate-fade-in">
             <ProsodyVisualizer data={prosodyData} activeWordIndex={activeWordIndex} />
           </div>
 
-          <div className="w-full max-w-3xl flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              {/* Progress indicator */}
-              <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
-                <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((shadowCurriculum.currentIndex + 1) / shadowCurriculum.totalChunks) * 100}%` }} />
-              </div>
-              <DualWaveform prosodyData={prosodyData} activeWordIndex={activeWordIndex} isPlayingModel={isPlayingModel} isRecording={isRecording} activeStream={activeStream} />
+          <div className="w-full max-w-5xl relative">
+            {/* Progress indicator */}
+            <div className="w-full h-[2px] bg-white/[0.06] rounded-full mb-1 overflow-hidden">
+              <div className="h-full bg-cyan-400/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${((shadowCurriculum.currentIndex + 1) / shadowCurriculum.totalChunks) * 100}%` }} />
             </div>
-            {/* Chunk counter pill */}
-            <div className="bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center flex-shrink-0">
+            <DualWaveform prosodyData={prosodyData} activeWordIndex={activeWordIndex} isPlayingModel={isPlayingModel} isRecording={isRecording} activeStream={activeStream} modelDurationMs={currentDurationMs} onRecordingComplete={stopRecordingCb} />
+            {/* Chunk counter pill – absolute so it doesn't shrink the visualizer */}
+            <div className="absolute -right-20 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-3 py-2 text-center">
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 block">Chunk</span>
               <span className="text-lg font-bold text-white/90">{shadowCurriculum.currentIndex + 1}</span>
               <span className="text-white/30 text-sm font-medium"> / {shadowCurriculum.totalChunks}</span>

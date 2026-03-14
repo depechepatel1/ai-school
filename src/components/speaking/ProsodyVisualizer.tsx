@@ -7,7 +7,7 @@ interface Props {
 
 export default function ProsodyVisualizer({ data, activeWordIndex }: Props) {
   return (
-    <div className="relative min-h-[2.5rem] w-full max-w-4xl mx-auto flex flex-wrap items-end justify-center gap-x-2 gap-y-1 px-6">
+    <div className="relative min-h-[2.5rem] w-full mx-auto flex flex-wrap items-end justify-center gap-x-2 gap-y-1 px-6">
       {data.map((item, i) => {
         const isActive = i === activeWordIndex;
         const activeScale = isActive ? "scale-110" : "scale-100";
