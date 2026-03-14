@@ -273,7 +273,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
 
         // Fire word 0 boundary immediately on start (don't wait for fallback detection)
         if (opts.onBoundary) {
-          opts.onBoundary!(0);
+          emitBoundary(0);
         }
 
         // Start fallback timer for browsers that don't fire onboundary
