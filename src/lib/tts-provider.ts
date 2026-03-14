@@ -271,7 +271,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
         if (cancelled) { resolve(); return; }
         console.log("[TTS] Speaking:", text.substring(0, 50), "| voice:", voice?.name ?? "default");
         speechSynthesis.speak(utterance);
-      }, 60);
+      }, 10);
     };
 
     attemptSpeak(0);
