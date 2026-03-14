@@ -217,7 +217,7 @@ export default memo(function OverlaidWaveform({
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
         const rms = Math.sqrt(sum / dataArray.length) / 255;
-        const ampY = h * 0.85 - rms * h * 1.4;
+        const ampY = h * 0.85 - rms * h * 2.1; // +50% vertical movement
         const clampedY = Math.max(PAD, Math.min(h - PAD, ampY));
         const elapsed = Date.now() - recordStartRef.current;
         // Use pre-measured duration if available, then last model playback, then fallback
