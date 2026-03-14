@@ -236,20 +236,21 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       utterance.onstart = () => {
         opts.onStart?.();
 
+        // Fire word 0 boundary immediately on start (don't wait for fallback detection)
+        if (opts.onBoundary) {
+          opts.onBoundary!(0);
+        }
+
         // Start fallback timer for browsers that don't fire onboundary
         if (opts.onBoundary) {
+          const DETECTION_DELAY = 400;
           fallbackTimeoutId = setTimeout(() => {
             if (realBoundaryFired || cancelled) return;
             console.log("[TTS] No onboundary detected, starting timer-based fallback");
             const timings = estimateWordTimings(cleanText, opts.rate ?? 0.9);
-            const startTime = Date.now();
-            let nextIdx = 0;
-
-            // Fire first word immediately
-            if (timings.length > 0) {
-              opts.onBoundary!(timings[0].charIndex);
-              nextIdx = 1;
-            }
+            // Offset startTime back by detection delay since speech already started
+            const startTime = Date.now() - DETECTION_DELAY;
+            let nextIdx = 1; // word 0 already fired above
 
             fallbackTimerId = setInterval(() => {
               if (cancelled || nextIdx >= timings.length) {
@@ -262,7 +263,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
                 nextIdx++;
               }
             }, 50);
-          }, 400);
+          }, DETECTION_DELAY);
         }
       };
 
