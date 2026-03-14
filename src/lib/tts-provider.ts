@@ -294,7 +294,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
               }
               const elapsed = Date.now() - startTime;
               while (nextIdx < timings.length && elapsed >= timings[nextIdx].timeMs) {
-                opts.onBoundary!(timings[nextIdx].charIndex);
+                emitBoundary(timings[nextIdx].charIndex);
                 nextIdx++;
               }
             }, 50);
