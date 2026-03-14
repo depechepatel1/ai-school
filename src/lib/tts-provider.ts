@@ -263,7 +263,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
           if (e.name === "word") {
             realBoundaryFired = true;
             clearFallbackTimers();
-            opts.onBoundary!(e.charIndex);
+            emitBoundary(e.charIndex);
           }
         };
       }
