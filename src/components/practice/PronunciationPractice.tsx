@@ -125,6 +125,10 @@ export default function PronunciationPractice({ courseType }: PronunciationPract
     else { setIsRecording(true); clearRecording(); await startMediaRecorder(); }
   };
 
+  const stopRecordingCb = useCallback(() => { setIsRecording(false); stopMediaRecorder(); }, [stopMediaRecorder]);
+
+  const currentDurationMs = currentTwister ? pronTimings.getDuration(currentTwister.text) : null;
+
   useEffect(() => {
     if (practiceTimer.isComplete && !summaryShownRef.current) { summaryShownRef.current = true; setShowSummary(true); }
   }, [practiceTimer.isComplete]);
