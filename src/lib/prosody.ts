@@ -171,13 +171,25 @@ export function parseProsody(text: string): WordData[] {
 
 /** Find the word index matching a charIndex from SpeechSynthesis onBoundary */
 export function matchCharIndex(data: WordData[], charIndex: number): number {
-  const exact = data.findIndex((w) => charIndex >= w.startChar && charIndex <= w.endChar + 1);
-  if (exact !== -1) return exact;
+  if (data.length === 0) return -1;
+
+  // Map to word ranges by startChar → next word's startChar.
+  // This prevents boundary indexes at spaces (e.g. next word start) from sticking to the previous word.
+  for (let i = 0; i < data.length; i++) {
+    const start = data[i].startChar;
+    const nextStart = i < data.length - 1 ? data[i + 1].startChar : Number.POSITIVE_INFINITY;
+    if (charIndex >= start && charIndex < nextStart) return i;
+  }
+
+  // Fallback to closest start index
   let closest = 0;
   let minDist = Infinity;
   for (let i = 0; i < data.length; i++) {
     const dist = Math.abs(charIndex - data[i].startChar);
-    if (dist < minDist) { minDist = dist; closest = i; }
+    if (dist < minDist) {
+      minDist = dist;
+      closest = i;
+    }
   }
   return closest;
 }
