@@ -123,6 +123,36 @@ function estimateWordTimings(text: string, rate: number): { charIndex: number; t
   });
 }
 
+function buildCharIndexMap(originalText: string, cleanedText: string): number[] {
+  if (!cleanedText.length) return [];
+  const map = new Array<number>(cleanedText.length);
+  let originalIdx = 0;
+
+  for (let cleanIdx = 0; cleanIdx < cleanedText.length; cleanIdx++) {
+    const cleanChar = cleanedText[cleanIdx];
+
+    if (/\s/.test(cleanChar)) {
+      while (originalIdx < originalText.length && !/\s/.test(originalText[originalIdx])) originalIdx++;
+      map[cleanIdx] = originalIdx < originalText.length ? originalIdx : Math.max(0, originalText.length - 1);
+      while (originalIdx < originalText.length && /\s/.test(originalText[originalIdx])) originalIdx++;
+      continue;
+    }
+
+    const target = cleanChar.toLowerCase();
+    while (originalIdx < originalText.length && originalText[originalIdx].toLowerCase() !== target) originalIdx++;
+    map[cleanIdx] = originalIdx < originalText.length ? originalIdx : Math.max(0, originalText.length - 1);
+    if (originalIdx < originalText.length) originalIdx++;
+  }
+
+  return map;
+}
+
+function mapToOriginalCharIndex(cleanedCharIndex: number, charIndexMap: number[]): number {
+  if (!charIndexMap.length) return Math.max(0, cleanedCharIndex);
+  const safeIdx = Math.max(0, Math.min(cleanedCharIndex, charIndexMap.length - 1));
+  return charIndexMap[safeIdx] ?? safeIdx;
+}
+
 // ── Browser speak with auto-retry ─────────────────────────────
 
 function createUtterance(
