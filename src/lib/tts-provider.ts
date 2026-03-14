@@ -218,6 +218,11 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       }
 
       const utterance = createUtterance(cleanText, voice, opts);
+      const charIndexMap = buildCharIndexMap(text, cleanText);
+      const emitBoundary = (cleanedCharIndex: number) => {
+        if (!opts.onBoundary) return;
+        opts.onBoundary(mapToOriginalCharIndex(cleanedCharIndex, charIndexMap));
+      };
       let realBoundaryFired = false;
 
       utterance.onend = () => {
