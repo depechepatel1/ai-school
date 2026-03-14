@@ -129,6 +129,8 @@ export default function FluencyPractice({ courseType }: FluencyPracticeProps) {
 
   const stopRecordingCb = useCallback(() => { setIsRecording(false); stopMediaRecorder(); }, [stopMediaRecorder]);
 
+  const currentDurationMs = currentText ? fluencyTimings.getDuration(currentText) : null;
+
   const isLastChunkOfAnswer = useCallback(() => {
     if (shadowCurriculum.chunks.length === 0) return false;
     const nextIdx = shadowCurriculum.currentIndex + 1;
