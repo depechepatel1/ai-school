@@ -174,7 +174,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
     const attemptSpeak = (voiceIndex: number) => {
       if (cancelled) { resolve(); return; }
 
-      speechSynthesis.cancel();
+      if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
 
       if (!voicesReady) ensureVoices();
       const voiceList = cachedVoices[accent] ?? findVoices(accent);
