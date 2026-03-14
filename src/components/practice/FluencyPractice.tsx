@@ -28,6 +28,7 @@ import FluencyEndPopup from "./FluencyEndPopup";
 import AccentSelector from "@/components/speaking/AccentSelector";
 import { useAccent } from "@/hooks/useAccent";
 import { preloadStressDict } from "@/lib/stress-dictionary";
+import { useFluencyTimings } from "@/hooks/useTTSTimings";
 
 type CourseType = "ielts" | "igcse";
 
