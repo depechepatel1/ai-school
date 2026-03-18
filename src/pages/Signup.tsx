@@ -12,6 +12,7 @@ import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
 import { z } from "zod";
+import { analytics } from "@/services/analytics";
 
 type AppRole = "student" | "teacher" | "parent";
 
