@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { getWeekNumber, getWeekDateRange, TIME_TARGETS, SCHOOL_DAYS_PER_WEEK } from "@/lib/semester";
 import { useLanguage } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, TrendingUp, Flame, ChevronLeft, ChevronRight, Download, MessageSquare } from "lucide-react";
+import { ArrowLeft, Users, Clock, TrendingUp, Flame, ChevronLeft, ChevronRight, Download, MessageSquare, ClipboardCheck } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import StudentTranscriptPanel from "./StudentTranscriptPanel";
+import StudentMockTestPanel from "./StudentMockTestPanel";
 
 interface StudentEngagement {
   user_id: string;
@@ -55,6 +56,7 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
   const [viewingTranscript, setViewingTranscript] = useState<{ id: string; name: string } | null>(null);
+  const [viewingMockTests, setViewingMockTests] = useState<{ id: string; name: string } | null>(null);
   const { t } = useLanguage();
 
   const currentWeek = getWeekNumber();
@@ -113,6 +115,16 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  if (viewingMockTests) {
+    return (
+      <StudentMockTestPanel
+        studentId={viewingMockTests.id}
+        studentName={viewingMockTests.name}
+        onBack={() => setViewingMockTests(null)}
+      />
+    );
+  }
 
   if (viewingTranscript) {
     return (
@@ -243,6 +255,14 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
               <span className="text-[10px] text-gray-400 tabular-nums">{formatTime(s.total_seconds)} / {formatTime(weeklyTarget)}</span>
               <span className="text-[10px] text-gray-600 tabular-nums">{s.session_count} sessions</span>
               <span className="text-[10px] text-gray-600 shrink-0">{timeAgo(s.last_active)}</span>
+              {/* View mock tests button */}
+              <button
+                onClick={() => setViewingMockTests({ id: s.user_id, name: s.display_name })}
+                className="p-1.5 rounded-lg text-gray-600 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all"
+                title="View mock test history"
+              >
+                <ClipboardCheck className="w-3.5 h-3.5" />
+              </button>
               {/* View transcripts button */}
               <button
                 onClick={() => setViewingTranscript({ id: s.user_id, name: s.display_name })}
