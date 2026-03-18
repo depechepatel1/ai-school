@@ -32,6 +32,7 @@ export default function AdminDashboard() {
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "analytics", label: "Analytics", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+    { id: "events", label: "Events", icon: <Sparkles className="w-3.5 h-3.5" /> },
     { id: "users", label: "Users", icon: <Users className="w-3.5 h-3.5" /> },
     { id: "classes", label: "Classes", icon: <BookOpen className="w-3.5 h-3.5" /> },
     { id: "practice", label: "Logs", icon: <BarChart3 className="w-3.5 h-3.5" /> },
