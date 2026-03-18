@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { getWeekNumber, getWeekDateRange, TIME_TARGETS, SCHOOL_DAYS_PER_WEEK } from "@/lib/semester";
 import { useLanguage } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, TrendingUp, Flame, ChevronLeft, ChevronRight, Download, MessageSquare } from "lucide-react";
+import { ArrowLeft, Users, Clock, TrendingUp, Flame, ChevronLeft, ChevronRight, Download, MessageSquare, ClipboardCheck } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import StudentTranscriptPanel from "./StudentTranscriptPanel";
+import StudentMockTestPanel from "./StudentMockTestPanel";
 
 interface StudentEngagement {
   user_id: string;
