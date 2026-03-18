@@ -45,9 +45,9 @@ export default function MockTestActive({
   const lastTeacherMsg = [...messages].reverse().find((m) => m.role === "teacher");
 
   return (
-    <div className="absolute inset-0 z-[100] flex flex-col animate-fade-in">
+    <div className="absolute inset-0 z-[200] flex flex-col animate-fade-in">
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 pt-4 z-10">
+      <div className="flex items-center justify-between px-4 pt-4 z-[210] relative">
         <div className="flex items-center gap-3">
           {/* Completed parts indicators */}
           <div className="flex gap-1">
