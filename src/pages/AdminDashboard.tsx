@@ -15,6 +15,7 @@ const ClassesPanel = lazy(() => import("@/components/admin/AdminClassesPanel"));
 const PracticePanel = lazy(() => import("@/components/admin/AdminPracticePanel"));
 const ConversationsPanel = lazy(() => import("@/components/admin/AdminConversationsPanel"));
 const AuditPanel = lazy(() => import("@/components/admin/AdminAuditPanel"));
+const EventsPanel = lazy(() => import("@/components/admin/AdminEventsPanel"));
 
 const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
