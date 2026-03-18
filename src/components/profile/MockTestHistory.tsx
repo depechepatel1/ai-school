@@ -70,7 +70,7 @@ export default function MockTestHistory({ userId }: Props) {
             >
               <div className="flex items-center gap-3">
                 <div className="shrink-0 w-10 h-10">
-                  <BandScoreDonut band={band} size={40} strokeWidth={3} />
+                  <BandScoreDonut score={band} size={40} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
