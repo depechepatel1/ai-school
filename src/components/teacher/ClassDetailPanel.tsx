@@ -116,6 +116,16 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
     URL.revokeObjectURL(url);
   };
 
+  if (viewingMockTests) {
+    return (
+      <StudentMockTestPanel
+        studentId={viewingMockTests.id}
+        studentName={viewingMockTests.name}
+        onBack={() => setViewingMockTests(null)}
+      />
+    );
+  }
+
   if (viewingTranscript) {
     return (
       <StudentTranscriptPanel
