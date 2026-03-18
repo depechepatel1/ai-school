@@ -19,7 +19,7 @@ const EventsPanel = lazy(() => import("@/components/admin/AdminEventsPanel"));
 
 const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
-type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
+type Tab = "analytics" | "events" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
