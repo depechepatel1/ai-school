@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { analytics } from "@/services/analytics";
 
 interface StreakData {
   currentStreak: number;
