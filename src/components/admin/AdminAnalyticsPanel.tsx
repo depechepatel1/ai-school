@@ -309,6 +309,26 @@ export default function AnalyticsPanel() {
               </div>
             ))}
           </div>
+
+          {/* Mock Test Analytics */}
+          <div className="grid grid-cols-3 gap-2">
+            <KpiCard icon={<GraduationCap className="w-4 h-4" />} label="Mock Tests" value={String(stats.totalMockTests)} color="text-violet-300" />
+            <KpiCard icon={<Users className="w-4 h-4" />} label="Test Takers" value={String(stats.mockTestUsers)} color="text-rose-300" />
+            <KpiCard icon={<Activity className="w-4 h-4" />} label="Avg Band" value={stats.avgBand} color="text-amber-300" />
+          </div>
+
+          {stats.bandDistData.length > 0 && (
+            <ChartCard title="Mock Test Band Distribution">
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={stats.bandDistData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                  <XAxis dataKey="band" tick={{ fontSize: 9, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 8, fill: "#6b7280" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 10, color: "#fff" }} />
+                  <Bar dataKey="count" fill="#a855f7" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          )}
         </>
       )}
     </div>
