@@ -75,6 +75,7 @@ const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
   "/ielts/pronunciation": [pageImports.IELTSPronunciation],
   "/ielts/fluency": [pageImports.IELTSFluency],
   "/ielts/speaking": [pageImports.IELTSSpeaking],
+  "/ielts/mock-test": [pageImports.IELTSMockTest],
   "/igcse/pronunciation": [pageImports.IGCSEPronunciation],
   "/igcse/fluency": [pageImports.IGCSEFluency],
   "/igcse/speaking": [pageImports.IGCSESpeaking],
