@@ -59,5 +59,14 @@ export function useStreak(userId: string | null): StreakData {
     },
   });
 
+  // Track streak milestones
+  const lastTrackedRef = useRef(0);
+  useEffect(() => {
+    if (currentStreak > 0 && currentStreak !== lastTrackedRef.current) {
+      lastTrackedRef.current = currentStreak;
+      analytics.trackStreakMilestone(currentStreak);
+    }
+  }, [currentStreak]);
+
   return { currentStreak, loading };
 }
