@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { SEMESTER_START, SEMESTER_WEEKS } from "@/lib/semester";
-import { Clock, Users, Activity, CalendarIcon } from "lucide-react";
+import { Clock, Users, Activity, CalendarIcon, GraduationCap } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -61,7 +61,21 @@ export default function AnalyticsPanel() {
     staleTime: 300_000,
   });
 
-  const loading = logsLoading || profilesLoading;
+  const { data: mockTests = [], isLoading: mockLoading } = useQuery({
+    queryKey: ["admin-mock-tests", rangeStart, rangeEnd],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mock_test_sessions")
+        .select("id, user_id, overall_band, duration_seconds, created_at, week_number")
+        .gte("created_at", rangeStart)
+        .lte("created_at", rangeEnd)
+        .order("created_at", { ascending: true });
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  const loading = logsLoading || profilesLoading || mockLoading;
 
   const stats = useMemo(() => {
     if (!logs.length) return null;
@@ -127,8 +141,24 @@ export default function AnalyticsPanel() {
       courseMap[ct] = (courseMap[ct] || 0) + (l.active_seconds || 0);
     }
 
-    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap };
-  }, [logs, profiles]);
+    // Mock test stats
+    const totalMockTests = mockTests.length;
+    const mockTestUsers = new Set(mockTests.map((m) => m.user_id)).size;
+    const avgBand = mockTests.length
+      ? (mockTests.reduce((s, m) => s + (parseFloat(m.overall_band || "0") || 0), 0) / mockTests.length).toFixed(1)
+      : "—";
+
+    const bandDistMap: Record<string, number> = {};
+    for (const m of mockTests) {
+      const band = m.overall_band || "N/A";
+      bandDistMap[band] = (bandDistMap[band] || 0) + 1;
+    }
+    const bandDistData = Object.entries(bandDistMap)
+      .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
+      .map(([band, count]) => ({ band, count }));
+
+    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap, totalMockTests, mockTestUsers, avgBand, bandDistData };
+  }, [logs, profiles, mockTests]);
 
   if (loading) return <LoadingSpinner variant="chart" />;
 
@@ -279,6 +309,26 @@ export default function AnalyticsPanel() {
               </div>
             ))}
           </div>
+
+          {/* Mock Test Analytics */}
+          <div className="grid grid-cols-3 gap-2">
+            <KpiCard icon={<GraduationCap className="w-4 h-4" />} label="Mock Tests" value={String(stats.totalMockTests)} color="text-violet-300" />
+            <KpiCard icon={<Users className="w-4 h-4" />} label="Test Takers" value={String(stats.mockTestUsers)} color="text-rose-300" />
+            <KpiCard icon={<Activity className="w-4 h-4" />} label="Avg Band" value={stats.avgBand} color="text-amber-300" />
+          </div>
+
+          {stats.bandDistData.length > 0 && (
+            <ChartCard title="Mock Test Band Distribution">
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={stats.bandDistData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                  <XAxis dataKey="band" tick={{ fontSize: 9, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 8, fill: "#6b7280" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 10, color: "#fff" }} />
+                  <Bar dataKey="count" fill="#a855f7" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          )}
         </>
       )}
     </div>
