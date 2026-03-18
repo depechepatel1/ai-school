@@ -1,19 +1,20 @@
 /**
  * Practice Mode Selector Grid
  * Shows 3 practice modes (Pronunciation, Fluency, Speaking)
+ * + Mock Test for IELTS students
  * Routes are course-aware (IELTS vs IGCSE)
  */
 import { memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Headphones, AudioWaveform, MessageSquare, Loader2 } from "lucide-react";
+import { Headphones, AudioWaveform, MessageSquare, ClipboardCheck, Loader2 } from "lucide-react";
 
 interface PracticeModeGridProps {
   courseType: "ielts" | "igcse" | null;
   loading?: boolean;
 }
 
-const MODES = [
+const BASE_MODES = [
   {
     key: "pronunciation",
     label: "Pronunciation",
@@ -43,9 +44,24 @@ const MODES = [
   },
 ] as const;
 
+const MOCK_TEST_MODE = {
+  key: "mock-test",
+  label: "Mock Test",
+  sublabel: "Full Exam",
+  icon: ClipboardCheck,
+  color: "from-emerald-500/80 to-teal-500/80",
+  glow: "rgba(16,185,129,0.4)",
+  border: "border-emerald-400/30",
+} as const;
+
 export default memo(function PracticeModeGrid({ courseType, loading }: PracticeModeGridProps) {
   const navigate = useNavigate();
   const prefix = useMemo(() => courseType === "ielts" ? "/ielts" : "/igcse", [courseType]);
+  const modes = useMemo(() => {
+    const list: Array<typeof BASE_MODES[number] | typeof MOCK_TEST_MODE> = [...BASE_MODES];
+    if (courseType === "ielts") list.push(MOCK_TEST_MODE);
+    return list;
+  }, [courseType]);
 
   if (loading || !courseType) {
     return (
@@ -55,7 +71,7 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
     );
   }
 
-  
+  const cols = modes.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3";
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -64,8 +80,8 @@ export default memo(function PracticeModeGrid({ courseType, loading }: PracticeM
           Choose Practice Mode
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-3 w-full max-w-md">
-        {MODES.map((mode, i) => {
+      <div className={`grid ${cols} gap-3 w-full max-w-lg`}>
+        {modes.map((mode, i) => {
           const Icon = mode.icon;
           return (
             <motion.button
