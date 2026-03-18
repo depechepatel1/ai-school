@@ -264,6 +264,48 @@ export type Database = {
           },
         ]
       }
+      mock_test_sessions: {
+        Row: {
+          accent: string
+          created_at: string
+          criteria_scores: Json | null
+          duration_seconds: number | null
+          id: string
+          overall_band: string | null
+          parts_completed: string[]
+          transcript: string | null
+          user_id: string
+          vocabulary_suggestions: string[] | null
+          week_number: number | null
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          criteria_scores?: Json | null
+          duration_seconds?: number | null
+          id?: string
+          overall_band?: string | null
+          parts_completed?: string[]
+          transcript?: string | null
+          user_id: string
+          vocabulary_suggestions?: string[] | null
+          week_number?: number | null
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          criteria_scores?: Json | null
+          duration_seconds?: number | null
+          id?: string
+          overall_band?: string | null
+          parts_completed?: string[]
+          transcript?: string | null
+          user_id?: string
+          vocabulary_suggestions?: string[] | null
+          week_number?: number | null
+        }
+        Relationships: []
+      }
       parent_student_links: {
         Row: {
           id: string

@@ -33,6 +33,7 @@ const pageImports = {
   IELTSPronunciation: () => import("./pages/IELTSPronunciation"),
   IELTSFluency: () => import("./pages/IELTSFluency"),
   IELTSSpeaking: () => import("./pages/IELTSSpeaking"),
+  IELTSMockTest: () => import("./pages/IELTSMockTest"),
   IGCSEPronunciation: () => import("./pages/IGCSEPronunciation"),
   IGCSEFluency: () => import("./pages/IGCSEFluency"),
   IGCSESpeaking: () => import("./pages/IGCSESpeaking"),
@@ -56,6 +57,7 @@ const WeekSelection = lazy(pageImports.WeekSelection);
 const IELTSPronunciation = lazy(pageImports.IELTSPronunciation);
 const IELTSFluency = lazy(pageImports.IELTSFluency);
 const IELTSSpeaking = lazy(pageImports.IELTSSpeaking);
+const IELTSMockTest = lazy(pageImports.IELTSMockTest);
 const IGCSEPronunciation = lazy(pageImports.IGCSEPronunciation);
 const IGCSEFluency = lazy(pageImports.IGCSEFluency);
 const IGCSESpeaking = lazy(pageImports.IGCSESpeaking);
@@ -73,6 +75,7 @@ const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
   "/ielts/pronunciation": [pageImports.IELTSPronunciation],
   "/ielts/fluency": [pageImports.IELTSFluency],
   "/ielts/speaking": [pageImports.IELTSSpeaking],
+  "/ielts/mock-test": [pageImports.IELTSMockTest],
   "/igcse/pronunciation": [pageImports.IGCSEPronunciation],
   "/igcse/fluency": [pageImports.IGCSEFluency],
   "/igcse/speaking": [pageImports.IGCSESpeaking],
@@ -115,6 +118,7 @@ const App = () => {
             <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSSpeaking /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/ielts/mock-test" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSMockTest /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSESpeaking /></ErrorBoundary></ProtectedRoute>} />
