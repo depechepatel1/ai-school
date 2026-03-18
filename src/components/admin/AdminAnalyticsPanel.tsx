@@ -141,8 +141,24 @@ export default function AnalyticsPanel() {
       courseMap[ct] = (courseMap[ct] || 0) + (l.active_seconds || 0);
     }
 
-    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap };
-  }, [logs, profiles]);
+    // Mock test stats
+    const totalMockTests = mockTests.length;
+    const mockTestUsers = new Set(mockTests.map((m) => m.user_id)).size;
+    const avgBand = mockTests.length
+      ? (mockTests.reduce((s, m) => s + (parseFloat(m.overall_band || "0") || 0), 0) / mockTests.length).toFixed(1)
+      : "—";
+
+    const bandDistMap: Record<string, number> = {};
+    for (const m of mockTests) {
+      const band = m.overall_band || "N/A";
+      bandDistMap[band] = (bandDistMap[band] || 0) + 1;
+    }
+    const bandDistData = Object.entries(bandDistMap)
+      .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
+      .map(([band, count]) => ({ band, count }));
+
+    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap, totalMockTests, mockTestUsers, avgBand, bandDistData };
+  }, [logs, profiles, mockTests]);
 
   if (loading) return <LoadingSpinner variant="chart" />;
 
