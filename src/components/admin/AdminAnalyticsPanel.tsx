@@ -61,7 +61,21 @@ export default function AnalyticsPanel() {
     staleTime: 300_000,
   });
 
-  const loading = logsLoading || profilesLoading;
+  const { data: mockTests = [], isLoading: mockLoading } = useQuery({
+    queryKey: ["admin-mock-tests", rangeStart, rangeEnd],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mock_test_sessions")
+        .select("id, user_id, overall_band, duration_seconds, created_at, week_number")
+        .gte("created_at", rangeStart)
+        .lte("created_at", rangeEnd)
+        .order("created_at", { ascending: true });
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  const loading = logsLoading || profilesLoading || mockLoading;
 
   const stats = useMemo(() => {
     if (!logs.length) return null;
