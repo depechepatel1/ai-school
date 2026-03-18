@@ -157,7 +157,18 @@ export default function AnalyticsPanel() {
       .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
       .map(([band, count]) => ({ band, count }));
 
-    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap, totalMockTests, mockTestUsers, avgBand, bandDistData };
+    const weeklyMockMap = new Map<number, number>();
+    for (let w = 1; w <= SEMESTER_WEEKS; w++) weeklyMockMap.set(w, 0);
+    for (const m of mockTests) {
+      const wk = m.week_number || 1;
+      weeklyMockMap.set(wk, (weeklyMockMap.get(wk) || 0) + 1);
+    }
+    const weeklyMockData = Array.from(weeklyMockMap.entries()).map(([week, count]) => ({
+      week: `W${week}`,
+      tests: count,
+    }));
+
+    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap, totalMockTests, mockTestUsers, avgBand, bandDistData, weeklyMockData };
   }, [logs, profiles, mockTests]);
 
   if (loading) return <LoadingSpinner variant="chart" />;
@@ -329,6 +340,23 @@ export default function AnalyticsPanel() {
               </ResponsiveContainer>
             </ChartCard>
           )}
+
+          <ChartCard title="Mock Tests Per Week">
+            <ResponsiveContainer width="100%" height={120}>
+              <AreaChart data={stats.weeklyMockData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                <defs>
+                  <linearGradient id="mockGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="week" tick={{ fontSize: 8, fill: "#6b7280" }} interval={3} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 8, fill: "#6b7280" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 10, color: "#fff" }} />
+                <Area type="monotone" dataKey="tests" stroke="#a855f7" fill="url(#mockGrad)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </>
       )}
     </div>
