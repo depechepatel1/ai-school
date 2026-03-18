@@ -57,6 +57,7 @@ const WeekSelection = lazy(pageImports.WeekSelection);
 const IELTSPronunciation = lazy(pageImports.IELTSPronunciation);
 const IELTSFluency = lazy(pageImports.IELTSFluency);
 const IELTSSpeaking = lazy(pageImports.IELTSSpeaking);
+const IELTSMockTest = lazy(pageImports.IELTSMockTest);
 const IGCSEPronunciation = lazy(pageImports.IGCSEPronunciation);
 const IGCSEFluency = lazy(pageImports.IGCSEFluency);
 const IGCSESpeaking = lazy(pageImports.IGCSESpeaking);
