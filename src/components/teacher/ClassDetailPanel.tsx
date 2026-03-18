@@ -255,6 +255,14 @@ export default function ClassDetailPanel({ classId, className, courseType, onBac
               <span className="text-[10px] text-gray-400 tabular-nums">{formatTime(s.total_seconds)} / {formatTime(weeklyTarget)}</span>
               <span className="text-[10px] text-gray-600 tabular-nums">{s.session_count} sessions</span>
               <span className="text-[10px] text-gray-600 shrink-0">{timeAgo(s.last_active)}</span>
+              {/* View mock tests button */}
+              <button
+                onClick={() => setViewingMockTests({ id: s.user_id, name: s.display_name })}
+                className="p-1.5 rounded-lg text-gray-600 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all"
+                title="View mock test history"
+              >
+                <ClipboardCheck className="w-3.5 h-3.5" />
+              </button>
               {/* View transcripts button */}
               <button
                 onClick={() => setViewingTranscript({ id: s.user_id, name: s.display_name })}
