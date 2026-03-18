@@ -2,7 +2,7 @@ import { useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, ClipboardList, Film, Timer, Upload } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, ClipboardList, Film, Timer, Upload, Sparkles } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { LoadingSpinner } from "@/components/admin/admin-shared";
