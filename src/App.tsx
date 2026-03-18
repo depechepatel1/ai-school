@@ -33,6 +33,7 @@ const pageImports = {
   IELTSPronunciation: () => import("./pages/IELTSPronunciation"),
   IELTSFluency: () => import("./pages/IELTSFluency"),
   IELTSSpeaking: () => import("./pages/IELTSSpeaking"),
+  IELTSMockTest: () => import("./pages/IELTSMockTest"),
   IGCSEPronunciation: () => import("./pages/IGCSEPronunciation"),
   IGCSEFluency: () => import("./pages/IGCSEFluency"),
   IGCSESpeaking: () => import("./pages/IGCSESpeaking"),
