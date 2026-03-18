@@ -157,7 +157,18 @@ export default function AnalyticsPanel() {
       .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
       .map(([band, count]) => ({ band, count }));
 
-    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap, totalMockTests, mockTestUsers, avgBand, bandDistData };
+    const weeklyMockMap = new Map<number, number>();
+    for (let w = 1; w <= SEMESTER_WEEKS; w++) weeklyMockMap.set(w, 0);
+    for (const m of mockTests) {
+      const wk = m.week_number || 1;
+      weeklyMockMap.set(wk, (weeklyMockMap.get(wk) || 0) + 1);
+    }
+    const weeklyMockData = Array.from(weeklyMockMap.entries()).map(([week, count]) => ({
+      week: `W${week}`,
+      tests: count,
+    }));
+
+    return { totalSeconds, uniqueUsers, totalSessions, weeklyData, weeklyUsersData, activityData, growthData, courseMap, totalMockTests, mockTestUsers, avgBand, bandDistData, weeklyMockData };
   }, [logs, profiles, mockTests]);
 
   if (loading) return <LoadingSpinner variant="chart" />;
