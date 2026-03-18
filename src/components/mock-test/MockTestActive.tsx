@@ -59,11 +59,11 @@ export default function MockTestActive({
             {partLabel}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <CountdownRing timeLeft={timeLeft} totalTime={totalTime} size={64} strokeWidth={4} />
+        <div className="flex items-center gap-3 mr-14">
           <button onClick={onStopTest} className="p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="End Test">
             <Square className="w-4 h-4" />
           </button>
+          <CountdownRing timeLeft={timeLeft} totalTime={totalTime} size={64} strokeWidth={4} />
         </div>
       </div>
 
