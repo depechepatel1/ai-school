@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { analytics } from "@/services/analytics";
 
 interface StreakData {
   currentStreak: number;
@@ -56,6 +58,15 @@ export function useStreak(userId: string | null): StreakData {
       return computeStreak((data ?? []).map((r) => r.session_date));
     },
   });
+
+  // Track streak milestones
+  const lastTrackedRef = useRef(0);
+  useEffect(() => {
+    if (currentStreak > 0 && currentStreak !== lastTrackedRef.current) {
+      lastTrackedRef.current = currentStreak;
+      analytics.trackStreakMilestone(currentStreak);
+    }
+  }, [currentStreak]);
 
   return { currentStreak, loading };
 }

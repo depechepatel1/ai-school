@@ -12,6 +12,7 @@ import PageShell from "@/components/PageShell";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/lib/i18n";
 import { z } from "zod";
+import { analytics } from "@/services/analytics";
 
 type AppRole = "student" | "teacher" | "parent";
 
@@ -202,6 +203,7 @@ export default function Signup() {
     setIsLoading(true);
     try {
       await signUp(result.data.email, result.data.password, result.data.displayName, selectedRole);
+      analytics.trackSignup("email", selectedRole);
       toast({ title: t("signup.created"), description: t("signup.verifyEmail") });
       navigate("/login");
     } catch (err: any) {
