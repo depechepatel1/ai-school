@@ -171,6 +171,15 @@ export function usePracticeTimer({
   const isComplete = activeSeconds >= targetSeconds;
   const isOvertime = activeSeconds > targetSeconds;
 
+  // Track practice_completed when target is first reached
+  const completedTrackedRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !completedTrackedRef.current && courseType) {
+      completedTrackedRef.current = true;
+      analytics.trackPracticeCompleted(activityType, activeSeconds, targetSeconds, courseType, weekNumber);
+    }
+  }, [isComplete, activityType, activeSeconds, targetSeconds, courseType, weekNumber]);
+
   const pause = useCallback(() => {
     setManualPause(true);
     setIsRunning(false);
