@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TIME_TARGETS } from "@/lib/semester";
+import { analytics } from "@/services/analytics";
 
 export type ActivityType = "shadowing" | "pronunciation" | "speaking";
 
