@@ -118,6 +118,7 @@ const App = () => {
             <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSSpeaking /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/ielts/mock-test" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSMockTest /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSESpeaking /></ErrorBoundary></ProtectedRoute>} />
