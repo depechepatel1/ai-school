@@ -474,6 +474,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_events: {
+        Row: {
+          app_version: string | null
+          country: string | null
+          course_type: string | null
+          created_at: string
+          deployment_region: string
+          device_id: string | null
+          event_name: string
+          id: string
+          metadata: Json | null
+          platform: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          country?: string | null
+          course_type?: string | null
+          created_at?: string
+          deployment_region?: string
+          device_id?: string | null
+          event_name: string
+          id?: string
+          metadata?: Json | null
+          platform?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          country?: string | null
+          course_type?: string | null
+          created_at?: string
+          deployment_region?: string
+          device_id?: string | null
+          event_name?: string
+          id?: string
+          metadata?: Json | null
+          platform?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
