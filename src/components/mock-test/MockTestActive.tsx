@@ -24,6 +24,8 @@ interface Props {
   onSkipPrep: () => void;
   onNextQuestion: () => void;
   onStopTest: () => void;
+  examinerText?: string;
+  examinerCharIndex?: number;
   activeStream?: MediaStream | null;
   micDenied?: boolean;
   onToggleRecord?: () => void;
