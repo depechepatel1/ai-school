@@ -42,6 +42,7 @@ export default function MockTestActive({
   currentPart, timeLeft, status, completedParts, partLabel,
   isRecording, isAiThinking, liveTranscript, liveInterim, messages,
   onAdvance, onSkipPrep, onNextQuestion, onStopTest,
+  examinerText, examinerCharIndex,
   activeStream, micDenied, onToggleRecord,
 }: Props) {
   const totalTime = currentPart ? PART_DURATIONS[currentPart] || 300 : 300;
