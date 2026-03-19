@@ -184,7 +184,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
           <span className="text-white font-bold flex items-center gap-2 text-outline text-sm">
             <NeuralLogo />
-            <span className="tracking-wide">Teacher Li</span>
+            <span className="tracking-wide">Miss Li</span>
           </span>
           <button onClick={onClose}>
             <X className="w-4 h-4 text-white/70 hover:text-white transition-colors" />
