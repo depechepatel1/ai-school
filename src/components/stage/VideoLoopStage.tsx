@@ -56,6 +56,7 @@ export default function VideoLoopStage({
   const refB = useRef<HTMLVideoElement>(null);
   const isMutedRef = useRef(isMuted);
   const consecutiveErrorsRef = useRef(0);
+  const swappingRef = useRef(false); // prevent double-swap
 
   // Keep muted ref in sync
   useEffect(() => {
@@ -125,39 +126,65 @@ export default function VideoLoopStage({
     setIntroFinished(true);
   };
 
-  // Instant swap when active player ends
-  const handlePlayerEnded = useCallback(
-    (player: "A" | "B") => {
-      if (shouldLoop) return;
+  // Perform the actual swap — shared by onEnded and error recovery
+  const doSwap = useCallback(
+    (fromPlayer: "A" | "B") => {
+      if (swappingRef.current) return;
+      swappingRef.current = true;
 
-      consecutiveErrorsRef.current = 0; // successful play resets error counter
+      consecutiveErrorsRef.current = 0;
 
-      const nextPlayer = player === "A" ? "B" : "A";
+      const nextPlayer = fromPlayer === "A" ? "B" : "A";
       const nextRef = nextPlayer === "A" ? refA : refB;
-      const currentRef = player === "A" ? refA : refB;
+      const currentRef = fromPlayer === "A" ? refA : refB;
 
       const nextEl = nextRef.current;
-      if (!nextEl) return;
+      if (!nextEl) { swappingRef.current = false; return; }
 
-      const doSwap = () => {
+      const performSwap = () => {
         nextEl.muted = isMutedRef.current;
         setActivePlayer(nextPlayer);
         safePlay(nextEl);
 
+        // Preload the NEXT clip on the now-inactive player
         const inactiveEl = currentRef.current;
         if (inactiveEl) {
+          inactiveEl.pause();
           inactiveEl.src = getNextClip();
           inactiveEl.load();
         }
+        swappingRef.current = false;
       };
 
       if (nextEl.readyState >= 2) {
-        doSwap();
+        performSwap();
       } else {
-        nextEl.addEventListener("canplay", doSwap, { once: true });
+        // Wait for buffer, but with a timeout fallback to avoid freezing
+        const timeout = setTimeout(() => {
+          // Still not ready — force play anyway (may cause a brief stutter but won't freeze)
+          performSwap();
+        }, 2000);
+
+        nextEl.addEventListener(
+          "canplay",
+          () => {
+            clearTimeout(timeout);
+            performSwap();
+          },
+          { once: true }
+        );
       }
     },
-    [shouldLoop, safePlay, getNextClip]
+    [safePlay, getNextClip]
+  );
+
+  // Instant swap when active player ends
+  const handlePlayerEnded = useCallback(
+    (player: "A" | "B") => {
+      if (shouldLoop) return;
+      doSwap(player);
+    },
+    [shouldLoop, doSwap]
   );
 
   // Error recovery: skip broken clips instead of freezing
@@ -181,11 +208,8 @@ export default function VideoLoopStage({
         el.src = getNextClip();
         el.load();
       }
-
-      // Swap to the other player if it's ready
-      handlePlayerEnded(player);
     },
-    [shouldLoop, getNextClip, handlePlayerEnded]
+    [shouldLoop, getNextClip]
   );
 
   // When intro finishes (or no intro) AND videos are loaded, start Player A
