@@ -35,9 +35,10 @@ export default function IELTSMockTest() {
   }, [test.isRecording, startMediaRecorder, stopMediaRecorder]);
 
   const videoPosition = test.phase === "config" ? "20% 45%" : "center center";
+  const videoScale = test.phase === "config" ? "auth-video-scale" : undefined;
 
   return (
-    <PageShell fullWidth loopVideos={videoList} hideFooter objectPosition={videoPosition}>
+    <PageShell fullWidth loopVideos={videoList} hideFooter objectPosition={videoPosition} scaleClass={videoScale}>
       <div className="relative w-full h-full text-foreground font-outfit select-none animate-fade-in-up">
 
         {test.phase === "config" && (
