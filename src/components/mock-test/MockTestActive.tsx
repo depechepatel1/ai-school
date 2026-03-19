@@ -115,6 +115,23 @@ export default function MockTestActive({
         )}
       </div>
 
+      {/* Student live transcript — above mic controls */}
+      {status === "running" && (currentPart === "part1" || currentPart === "part2_speak" || currentPart === "part3") && (liveTranscript || liveInterim || isRecording) && (
+        <div className="absolute bottom-[10rem] left-1/2 -translate-x-1/2 z-[215] w-full max-w-lg px-4">
+          <div className="bg-card/60 backdrop-blur-2xl border border-border rounded-xl px-4 py-2.5 shadow-lg">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 block mb-0.5">You</span>
+            {(liveTranscript || liveInterim) ? (
+              <p className="text-sm leading-relaxed text-foreground/90 font-light">
+                {liveTranscript}
+                {liveInterim && <span className="italic text-muted-foreground/50 ml-1">{liveInterim}</span>}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground/30 italic">Listening…</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Mic controls — floating above karaoke bar */}
       {status === "running" && (currentPart === "part1" || currentPart === "part2_speak" || currentPart === "part3") && (
         <div className="absolute bottom-[5.5rem] left-1/2 -translate-x-1/2 z-[220] flex items-center gap-3">
@@ -126,9 +143,9 @@ export default function MockTestActive({
             size="xl"
             shape="circle"
           />
-          {(currentPart === "part1" || currentPart === "part3") && isRecording && (
+          {(currentPart === "part1" || currentPart === "part3") && !isAiThinking && (
             <button onClick={onNextQuestion}
-              className="p-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-lg min-w-[56px] min-h-[56px] flex items-center justify-center"
+              className="p-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-lg min-w-[56px] min-h-[56px] flex items-center justify-center animate-bounce-gentle"
               title="Next Question"
             >
               <ChevronRight className="w-6 h-6" />
