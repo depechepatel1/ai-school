@@ -10,7 +10,7 @@ interface Props {
  * Glassmorphic karaoke bar that highlights words as the examiner speaks.
  * Words before charIndex are "spoken" (cyan glow), the current word pulses.
  */
-function ExaminerKaraoke({ text, charIndex }: Props) {
+function ExaminerKaraoke({ text, charIndex, isThinking }: Props) {
   const words = useMemo(() => {
     if (!text) return [];
     const result: { word: string; start: number; end: number }[] = [];
