@@ -27,8 +27,8 @@ export default function MockTestConfig({
   const anySelected = selectedParts.part1 || selectedParts.part2 || selectedParts.part3;
 
   return (
-    <div className="absolute inset-0 z-[200] flex items-center justify-center p-4 animate-fade-in">
-      <div className="w-full max-w-lg bg-card/80 backdrop-blur-[60px] border border-border rounded-3xl p-6 md:p-8 shadow-[0_0_60px_-10px_hsl(var(--primary)/0.2)]">
+    <div className="absolute inset-0 z-[200] flex items-center justify-end pr-6 md:pr-10 p-4 animate-fade-in">
+      <div className="w-full max-w-md bg-card/80 backdrop-blur-[60px] border border-border rounded-3xl p-5 md:p-6 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button onClick={onBack} className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">

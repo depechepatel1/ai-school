@@ -68,10 +68,10 @@ export default function MockTestActive({
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 relative">
+      <div className="flex-1 flex flex-col items-end justify-center px-4 relative">
         {/* Part 2 Prep: Cue card + notepad */}
         {currentPart === "part2_prep" && (
-          <div className="flex flex-col lg:flex-row gap-4 w-full max-w-4xl items-start justify-center">
+          <div className="flex flex-col lg:flex-row gap-4 w-full max-w-md items-start justify-end mr-6">
             <div className="flex-1 min-w-0">
               <CueCard topic={PART2_TOPIC} />
             </div>
@@ -92,7 +92,7 @@ export default function MockTestActive({
           <>
             {/* AI Question floating panel */}
             {lastTeacherMsg && (
-              <div className="absolute top-4 left-4 max-w-sm bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-lg animate-fade-in">
+              <div className="absolute top-4 right-6 max-w-xs bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl animate-fade-in">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Examiner</span>
                 <p className="text-sm text-foreground leading-relaxed">
                   {isAiThinking ? (
@@ -106,7 +106,7 @@ export default function MockTestActive({
 
             {/* Part 2 cue card on left during speaking */}
             {currentPart === "part2_speak" && (
-              <div className="absolute bottom-32 left-4 w-64 opacity-60 scale-90 origin-bottom-left">
+              <div className="absolute bottom-32 right-6 w-56 opacity-60 scale-90 origin-bottom-right">
                 <CueCard topic={PART2_TOPIC} />
               </div>
             )}
