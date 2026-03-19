@@ -12,7 +12,7 @@ interface PageShellProps {
   scaleClass?: string;
 }
 
-export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, objectPosition }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, objectPosition, scaleClass }: PageShellProps) {
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
