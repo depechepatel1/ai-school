@@ -22,10 +22,10 @@ function ExaminerKaraoke({ text, charIndex, isThinking }: Props) {
     return result;
   }, [text]);
 
-  if (!text && !isThinking) return null;
+  const isEmpty = !text && !isThinking;
 
   return (
-    <div className="w-full bg-card/70 backdrop-blur-2xl border-t border-border shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.4)] px-5 py-3 animate-fade-in">
+    <div className="w-full bg-card/70 backdrop-blur-2xl border-t border-border shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.4)] px-5 py-3">
       <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary/60 block mb-1">
         Miss Li
       </span>
@@ -38,6 +38,8 @@ function ExaminerKaraoke({ text, charIndex, isThinking }: Props) {
           </span>
           <span className="text-sm text-muted-foreground/70 italic">Thinking…</span>
         </div>
+      ) : isEmpty ? (
+        <p className="text-sm text-muted-foreground/30 italic py-1">Listening…</p>
       ) : (
       <p className="text-base leading-relaxed font-light flex flex-wrap gap-x-1.5 gap-y-0.5">
         {words.map((w, i) => {

@@ -1,4 +1,4 @@
-import { ChevronRight, Square, Loader2 } from "lucide-react";
+import { ChevronRight, Square } from "lucide-react";
 import type { TestPart } from "@/types/speaking";
 import type { ChatMsg } from "@/types/speaking";
 import CountdownRing from "./CountdownRing";
@@ -6,7 +6,7 @@ import ExaminerKaraoke from "./ExaminerKaraoke";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
-import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
+
 import { PART2_TOPIC } from "@/types/speaking";
 
 interface Props {
@@ -114,41 +114,31 @@ export default function MockTestActive({
         )}
       </div>
 
-      {/* Bottom controls */}
-      <div className="px-4 pb-4 z-10">
-        {/* Examiner Karaoke Bar */}
-        {(examinerText || isAiThinking) && (
-          <ExaminerKaraoke text={examinerText ?? ""} charIndex={examinerCharIndex ?? -1} isThinking={isAiThinking} />
-        )}
+      {/* Mic controls — floating above karaoke bar */}
+      {status === "running" && (currentPart === "part1" || currentPart === "part2_speak" || currentPart === "part3") && (
+        <div className="absolute bottom-[5.5rem] left-1/2 -translate-x-1/2 z-[220] flex items-center gap-3">
+          <MicRecordButton
+            isRecording={isRecording}
+            micDenied={micDenied ?? false}
+            onToggle={onToggleRecord ?? (() => {})}
+            stream={activeStream ?? null}
+            size="xl"
+            shape="circle"
+          />
+          {(currentPart === "part1" || currentPart === "part3") && isRecording && (
+            <button onClick={onNextQuestion}
+              className="p-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-lg min-w-[56px] min-h-[56px] flex items-center justify-center"
+              title="Next Question"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+      )}
 
-        {/* Live Transcript */}
-        <LiveTranscriptBar
-          transcript={liveTranscript}
-          interim={liveInterim}
-          isRecording={isRecording}
-        />
-
-        {/* Mic controls */}
-        {status === "running" && (currentPart === "part1" || currentPart === "part2_speak" || currentPart === "part3") && (
-          <div className="flex items-center justify-center gap-3 mt-3">
-            <MicRecordButton
-              isRecording={isRecording}
-              micDenied={micDenied ?? false}
-              onToggle={onToggleRecord ?? (() => {})}
-              stream={activeStream ?? null}
-              size="xl"
-              shape="circle"
-            />
-            {(currentPart === "part1" || currentPart === "part3") && isRecording && (
-              <button onClick={onNextQuestion}
-                className="p-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-lg min-w-[56px] min-h-[56px] flex items-center justify-center"
-                title="Next Question"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            )}
-          </div>
-        )}
+      {/* Examiner Karaoke Bar — anchored to bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-[210]">
+        <ExaminerKaraoke text={examinerText ?? ""} charIndex={examinerCharIndex ?? -1} isThinking={isAiThinking} />
       </div>
     </div>
   );
