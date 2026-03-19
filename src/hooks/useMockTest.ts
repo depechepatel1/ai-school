@@ -484,6 +484,7 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
   }, [stopSTT]);
 
   const resetTest = useCallback(() => {
+    chainGenRef.current++;
     setPhase("config");
     setStatus("idle");
     setCurrentPart(null);
