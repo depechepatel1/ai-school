@@ -84,7 +84,7 @@ export default function MockTestConfig({
 
           {/* Accent */}
           <div className="bg-muted/30 rounded-2xl p-3 border border-transparent">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Accent</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2 text-center">Accent</span>
             <div className="flex gap-1">
               {(["UK", "US"] as const).map((a) => (
                 <button key={a} onClick={() => onAccentChange(a)}
