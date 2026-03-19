@@ -493,6 +493,8 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
 
   const stopTestEarly = useCallback(() => {
     chainGenRef.current++;
+    ttsHandleRef.current?.stop();
+    ttsHandleRef.current = null;
     stopSpeaking();
     const speech = (currentTranscriptRef.current + " " + interimTranscriptRef.current).trim();
     if (speech) setMessages((prev) => [...prev, { role: "student", text: speech }]);
