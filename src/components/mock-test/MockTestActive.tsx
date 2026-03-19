@@ -50,7 +50,10 @@ export default function MockTestActive({
 
   return (
     <div className="absolute inset-0 z-[200] flex flex-col animate-fade-in">
-      {/* Top Bar */}
+      {/* Stop button — right side, vertically centered */}
+      <button onClick={onStopTest} className="absolute right-6 top-1/2 -translate-y-1/2 z-[220] p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center" title="End Test">
+        <Square className="w-5 h-5" />
+      </button>
       <div className="flex items-center justify-between px-4 pt-4 z-[210] relative">
         <div className="flex items-center gap-3">
           {/* Completed parts indicators */}
