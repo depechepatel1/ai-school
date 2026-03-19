@@ -25,7 +25,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             <BackgroundStage
               videoList={loopVideos}
               playIntro={playIntroVideo}
-              objectPosition={objectPosition ?? (fullWidth ? "center center" : "20% 45%")}
+              objectPosition={objectPosition ?? (fullWidth ? "center center" : "30% 15%")}
               scaleClass={scaleClass ?? (fullWidth ? undefined : "auth-video-scale")}
             />
           )}
