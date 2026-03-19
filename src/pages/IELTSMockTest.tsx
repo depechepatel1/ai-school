@@ -34,11 +34,12 @@ export default function IELTSMockTest() {
     }
   }, [test.isRecording, startMediaRecorder, stopMediaRecorder]);
 
+  const videoPosition = test.phase === "config" ? "33% center" : "center center";
+
   return (
-    <PageShell fullWidth loopVideos={videoList} hideFooter>
+    <PageShell fullWidth loopVideos={videoList} hideFooter objectPosition={videoPosition}>
       <div className="relative w-full h-full text-foreground font-outfit select-none animate-fade-in-up">
 
-        {/* Phase 1: Config */}
         {test.phase === "config" && (
           <MockTestConfig
             selectedParts={test.selectedParts}
