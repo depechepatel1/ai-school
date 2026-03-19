@@ -43,7 +43,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         const convos = await fetchConversations(session.user.id);
         let convo = convos[0]; // most recent
         if (!convo) {
-          convo = await createConversation(session.user.id, "Teacher Li Chat");
+          convo = await createConversation(session.user.id, "Miss Li Chat");
         }
         setConversationId(convo.id);
 
