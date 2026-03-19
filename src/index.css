@@ -172,3 +172,11 @@
   0% { transform: scaleY(0.4); opacity: 0.4; }
   100% { transform: scaleY(1); opacity: 0.8; }
 }
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-bounce-gentle {
+  animation: bounce-gentle 1.5s ease-in-out infinite;
+}

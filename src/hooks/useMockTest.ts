@@ -8,7 +8,7 @@ import type { Accent } from "@/lib/tts-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
 import { createPauseTracker, stripPauseMarkers, reinsertPauseMarkers } from "@/lib/speech-annotations";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchPart1Script, buildPart1Sequence, type Part1Sequence } from "@/services/mock-part1-curriculum";
+import { fetchPart1Script, buildPart1Sequence, stripBracketPrompts, type Part1Sequence } from "@/services/mock-part1-curriculum";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -203,10 +203,12 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
 
     // Helper: speak a line, then auto-chain if it's not a question
     const speakLineAndMaybeChain = (line: string): boolean => {
-      setMessages((prev) => [...prev, { role: "teacher", text: line }]);
-      speakText(line);
+      // Strip bracket prompts like [Why/Why not?] from TTS
+      const { clean: ttsLine } = stripBracketPrompts(line);
+      setMessages((prev) => [...prev, { role: "teacher", text: ttsLine }]);
+      speakText(ttsLine);
 
-      const isQuestion = line.includes("?");
+      const isQuestion = ttsLine.includes("?");
       if (!isQuestion) {
         // Auto-chain: wait for TTS to finish, then speak next line
         ttsHandleRef.current?.finished.then(() => {
@@ -491,6 +493,8 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
 
   const stopTestEarly = useCallback(() => {
     chainGenRef.current++;
+    ttsHandleRef.current?.stop();
+    ttsHandleRef.current = null;
     stopSpeaking();
     const speech = (currentTranscriptRef.current + " " + interimTranscriptRef.current).trim();
     if (speech) setMessages((prev) => [...prev, { role: "student", text: speech }]);

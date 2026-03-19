@@ -106,6 +106,19 @@ function pickN<T>(arr: T[], n: number): T[] {
  * @param script  The full Part 1 JSON
  * @param placeholders  Values for {examiner_name}, {country}, etc.
  */
+/**
+ * Strip square-bracket prompts like [Why/Why not?] from a question string.
+ * Returns the cleaned question for TTS and the extracted follow-up prompt (if any).
+ */
+export function stripBracketPrompts(text: string): { clean: string; followUp: string | null } {
+  const match = text.match(/\s*\[([^\]]+)\]\s*$/);
+  if (!match) return { clean: text, followUp: null };
+  return {
+    clean: text.slice(0, match.index).trimEnd(),
+    followUp: match[1], // e.g. "Why/Why not?"
+  };
+}
+
 export function buildPart1Sequence(
   script: Part1Script,
   placeholders: Record<string, string> = {}
