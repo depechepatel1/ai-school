@@ -203,10 +203,12 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
 
     // Helper: speak a line, then auto-chain if it's not a question
     const speakLineAndMaybeChain = (line: string): boolean => {
-      setMessages((prev) => [...prev, { role: "teacher", text: line }]);
-      speakText(line);
+      // Strip bracket prompts like [Why/Why not?] from TTS
+      const { clean: ttsLine } = stripBracketPrompts(line);
+      setMessages((prev) => [...prev, { role: "teacher", text: ttsLine }]);
+      speakText(ttsLine);
 
-      const isQuestion = line.includes("?");
+      const isQuestion = ttsLine.includes("?");
       if (!isQuestion) {
         // Auto-chain: wait for TTS to finish, then speak next line
         ttsHandleRef.current?.finished.then(() => {
