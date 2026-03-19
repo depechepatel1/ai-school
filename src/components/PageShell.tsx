@@ -9,9 +9,10 @@ interface PageShellProps {
   bgImage?: string;
   hideFooter?: boolean;
   objectPosition?: string;
+  scaleClass?: string;
 }
 
-export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, objectPosition }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, objectPosition, scaleClass }: PageShellProps) {
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
@@ -25,7 +26,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               videoList={loopVideos}
               playIntro={playIntroVideo}
               objectPosition={objectPosition ?? (fullWidth ? "center center" : "20% 45%")}
-              scaleClass={fullWidth ? undefined : "auth-video-scale"}
+              scaleClass={scaleClass ?? (fullWidth ? undefined : "auth-video-scale")}
             />
           )}
         </div>
