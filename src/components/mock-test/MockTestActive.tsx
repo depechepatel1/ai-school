@@ -106,7 +106,7 @@ export default function MockTestActive({
 
             {/* Part 2 cue card on left during speaking */}
             {currentPart === "part2_speak" && (
-              <div className="absolute bottom-32 left-4 w-64 opacity-60 scale-90 origin-bottom-left">
+              <div className="absolute bottom-32 right-6 w-56 opacity-60 scale-90 origin-bottom-right">
                 <CueCard topic={PART2_TOPIC} />
               </div>
             )}
