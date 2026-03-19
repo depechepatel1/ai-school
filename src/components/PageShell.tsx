@@ -36,7 +36,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               videoList={loopVideos}
               playIntro={playIntroVideo}
               objectPosition="center center"
-              scaleClass={scaleClass ?? (shiftLeft ? "auth-video-scale" : undefined)}
+              scaleClass={scaleClass ?? undefined}
             />
           )}
         </div>
