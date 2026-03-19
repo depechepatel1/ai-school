@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ChevronDown, AlertTriangle, Zap, Check,
-  Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare,
+  Book, PenTool, Headphones, Edit, CloudDownload, AudioWaveform, MessageSquare, ClipboardCheck,
 } from "lucide-react";
 import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 import { useAuth } from "@/lib/auth";
