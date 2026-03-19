@@ -70,7 +70,7 @@ export default function MockTestConfig({
         <div className="flex gap-3 mb-6">
           {/* Week Selector */}
           <div className="flex-1 bg-muted/30 rounded-2xl p-3 border border-transparent">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Cue Card Week</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Lesson Week</span>
             <div className="flex items-center justify-between">
               <button onClick={() => onWeekChange(Math.max(1, selectedWeek - 1))} className="p-1.5 rounded-lg hover:bg-accent transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
                 <ChevronLeft className="w-4 h-4 text-muted-foreground" />
