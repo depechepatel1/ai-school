@@ -168,15 +168,38 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     const seq = part1SequenceRef.current;
     if (!seq) return false;
 
+    // Capture current generation so we can bail if test state changes
+    const gen = chainGenRef.current;
+
+    // Helper: speak a line, then auto-chain if it's not a question
+    const speakLineAndMaybeChain = (line: string): boolean => {
+      setMessages((prev) => [...prev, { role: "teacher", text: line }]);
+      speakText(line);
+
+      const isQuestion = line.includes("?");
+      if (!isQuestion) {
+        // Auto-chain: wait for TTS to finish, then speak next line
+        ttsHandleRef.current?.finished.then(() => {
+          // Guard: bail if test was stopped/changed
+          if (chainGenRef.current !== gen) return;
+          if (currentPartRef.current !== "part1") return;
+          if (statusRef.current !== "running") return;
+          trackTimeout(setTimeout(() => {
+            if (chainGenRef.current !== gen) return;
+            speakNextPart1Question();
+          }, 800));
+        });
+      }
+      return true;
+    };
+
     // Still in introduction phase? Speak intro lines first
     if (part1IntroPhaseRef.current) {
       const idx = part1IntroIndexRef.current;
       if (idx < seq.introduction.length) {
         const line = seq.introduction[idx];
         part1IntroIndexRef.current = idx + 1;
-        setMessages((prev) => [...prev, { role: "teacher", text: line }]);
-        speakText(line);
-        return true;
+        return speakLineAndMaybeChain(line);
       }
       // Done with introduction — move to segments
       part1IntroPhaseRef.current = false;
@@ -189,11 +212,9 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
 
     // Speak segment intro before first question
     if (qIdx === 0 && segment.intro) {
-      setMessages((prev) => [...prev, { role: "teacher", text: segment.intro }]);
-      speakText(segment.intro);
-      // Don't advance qIdx yet — next call will ask Q0
+      // After intro, start at Q0
       part1StepRef.current = { segIdx, qIdx: -1 }; // sentinel: intro spoken
-      return true;
+      return speakLineAndMaybeChain(segment.intro);
     }
 
     const effectiveQIdx = qIdx === -1 ? 0 : qIdx; // after intro, start at Q0
@@ -205,10 +226,8 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
 
     const question = segment.questions[effectiveQIdx];
     part1StepRef.current = { segIdx, qIdx: effectiveQIdx + 1 };
-    setMessages((prev) => [...prev, { role: "teacher", text: question }]);
-    speakText(question);
-    return true;
-  }, [speakText]);
+    return speakLineAndMaybeChain(question);
+  }, [speakText, trackTimeout]);
 
   // ── Timer ──
   useEffect(() => {
