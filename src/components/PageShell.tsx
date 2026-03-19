@@ -11,7 +11,7 @@ interface PageShellProps {
   objectPosition?: string;
 }
 
-export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, objectPosition }: PageShellProps) {
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
