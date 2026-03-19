@@ -399,7 +399,7 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
       try {
         const script = await fetchPart1Script();
         const sequence = buildPart1Sequence(script, {
-          examiner_name: "Teacher Li",
+          examiner_name: "Miss Li",
           country: "your country",
         });
         part1SequenceRef.current = sequence;

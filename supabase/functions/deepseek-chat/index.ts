@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are Teacher Li — a friendly, patient, and encouraging English language tutor helping students prepare for IELTS and IGCSE Speaking exams.
+const SYSTEM_PROMPT = `You are Miss Li — a friendly, patient, and encouraging English language tutor helping students prepare for IELTS and IGCSE Speaking exams.
 
 Guidelines:
 - Keep responses concise (2-4 sentences when possible)
