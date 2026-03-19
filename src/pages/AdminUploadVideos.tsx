@@ -176,7 +176,7 @@ export default function AdminUploadVideos() {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && file.type === "video/mp4") {
-      uploadFile(file, slot);
+      enqueueUpload(file, slot);
     } else {
       toast({ title: "Please drop an .mp4 file", variant: "destructive" });
     }
