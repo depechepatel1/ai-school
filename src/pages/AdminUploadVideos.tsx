@@ -109,6 +109,22 @@ export default function AdminUploadVideos() {
     }
   }, []);
 
+  const processQueue = useCallback(async () => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
+    while (uploadQueue.current.length > 0) {
+      const item = uploadQueue.current.shift()!;
+      await uploadFile(item.file, item.slot);
+    }
+    isProcessing.current = false;
+  }, [uploadFile]);
+
+  const enqueueUpload = useCallback((file: File, slot: VideoSlot) => {
+    uploadQueue.current.push({ file, slot });
+    setStatuses((s) => ({ ...s, [slot.path]: s[slot.path] === "idle" ? "idle" : s[slot.path] }));
+    processQueue();
+  }, [processQueue]);
+
   const deleteLoopClip = useCallback(async (slot: VideoSlot) => {
     if (!slot.path.startsWith("loop-stack/")) return;
     if (!confirm(`Delete ${slot.label} from storage? This cannot be undone.`)) return;
