@@ -1,5 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import BackgroundStage from "@/components/stage/BackgroundStage";
+import { VIDEO_PRESET_MAP, type VideoPreset } from "@/lib/videoFraming";
 
 interface PageShellProps {
   children: React.ReactNode;
@@ -8,7 +9,8 @@ interface PageShellProps {
   fullWidth?: boolean;
   bgImage?: string;
   hideFooter?: boolean;
-  objectPosition?: string;
+  /** Use a typed preset instead of raw strings to prevent drift */
+  videoPreset?: VideoPreset;
   scaleClass?: string;
 }
 
