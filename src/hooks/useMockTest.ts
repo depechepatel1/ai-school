@@ -415,23 +415,12 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     setQueue(parts);
     setCurrentPartIndex(0);
     setCompletedParts([]);
-
-    // Use Part 1 intro line if available, otherwise generic greeting
-    const greeting = part1SequenceRef.current
-      ? part1SequenceRef.current.introduction[0] || "Good day. Let's begin your IELTS Speaking test."
-      : "Good day. Let's begin your IELTS Speaking test.";
-
-    setMessages([{ role: "teacher", text: greeting }]);
-    speakText(greeting);
-
-    // If using scripted intro, mark first line as spoken
-    if (part1SequenceRef.current) {
-      part1IntroIndexRef.current = 1;
-    }
+    setMessages([]);
+    chainGenRef.current++;
 
     setPhase("countdown");
     setCountdown(3);
-  }, [selectedParts, speakText]);
+  }, [selectedParts]);
 
   // Countdown effect
   useEffect(() => {
