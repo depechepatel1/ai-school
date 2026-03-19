@@ -22,13 +22,23 @@ function ExaminerKaraoke({ text, charIndex, isThinking }: Props) {
     return result;
   }, [text]);
 
-  if (!text) return null;
+  if (!text && !isThinking) return null;
 
   return (
     <div className="w-full bg-card/70 backdrop-blur-2xl border-t border-border shadow-[0_-4px_30px_-8px_rgba(0,0,0,0.4)] px-5 py-3 animate-fade-in">
       <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary/60 block mb-1">
         Miss Li
       </span>
+      {isThinking ? (
+        <div className="flex items-center gap-2 py-1">
+          <span className="flex gap-1">
+            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
+            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
+            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
+          </span>
+          <span className="text-sm text-muted-foreground/70 italic">Thinking…</span>
+        </div>
+      ) : (
       <p className="text-base leading-relaxed font-light flex flex-wrap gap-x-1.5 gap-y-0.5">
         {words.map((w, i) => {
           const isSpoken = charIndex >= w.end;
