@@ -131,6 +131,9 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     sttHandleRef.current = null;
   }, []);
 
+  // ── Auto-chain generation counter (to cancel stale chains) ──
+  const chainGenRef = useRef(0);
+
   // ── TTS ──
   const speakText = useCallback((text: string) => {
     ttsHandleRef.current?.stop();
