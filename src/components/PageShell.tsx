@@ -24,7 +24,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
 
         {/* Background Stage */}
-        <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900">
+        <div className="absolute inset-0 z-0 overflow-hidden bg-gray-900" style={{ width: '120%', left: '-10%' }}>
           {bgImage ? (
             <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
