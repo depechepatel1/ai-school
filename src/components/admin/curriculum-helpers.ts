@@ -22,6 +22,7 @@ export const MODULE_OPTIONS = [
   { value: "shadowing-fluency", label: "Shadowing Fluency", path: "shadowing-fluency.json" },
   { value: "shadowing-pronunciation", label: "Shadowing Pronunciation", path: "tongue-twisters.json" },
   { value: "speaking", label: "Speaking Questions", path: "speaking-questions.json" },
+  { value: "mock-part1", label: "Mock Test Part 1", path: "mock-part1-questions.json" },
 ];
 
 export const TIMING_PATHS = [
