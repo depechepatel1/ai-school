@@ -117,7 +117,7 @@
 @media (min-width: 1280px) {
   .auth-video-scale {
     transform: scale(1.25);
-    transform-origin: 120% 45%;
+    transform-origin: 125% 45%;
   }
 }
 
