@@ -241,7 +241,7 @@ export default function VideoLoopStage({
     return <div className="absolute inset-0 bg-gray-900" />;
   }
 
-  const videoBase = `absolute inset-0 w-full h-full object-cover ${scaleClass ?? ""}`;
+  const videoBase = `absolute inset-0 w-full h-full object-cover transition-[object-position] duration-700 ease-in-out ${scaleClass ?? ""}`;
 
   return (
     <>
