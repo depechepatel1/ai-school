@@ -63,6 +63,10 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   const [result, setResult] = useState<MockTestResult | null>(null);
   const [scoringStep, setScoringStep] = useState(0);
 
+  // ── Examiner karaoke state ──
+  const [examinerText, setExaminerText] = useState("");
+  const [examinerCharIndex, setExaminerCharIndex] = useState(-1);
+
   // ── Part 1 script ──
   const part1SequenceRef = useRef<Part1Sequence | null>(null);
   const part1StepRef = useRef<{ segIdx: number; qIdx: number }>({ segIdx: 0, qIdx: 0 });
@@ -137,7 +141,13 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   // ── TTS ──
   const speakText = useCallback((text: string) => {
     ttsHandleRef.current?.stop();
-    ttsHandleRef.current = speak(text, accent, { rate: 1.0 });
+    setExaminerText(text);
+    setExaminerCharIndex(-1);
+    ttsHandleRef.current = speak(text, accent, {
+      rate: 1.0,
+      onBoundary: (charIdx) => setExaminerCharIndex(charIdx),
+      onEnd: () => setExaminerCharIndex(text.length),
+    });
   }, [accent]);
 
   // ── AI (for Parts 2/3) ──
@@ -526,6 +536,7 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     currentPart, timeLeft, status, completedParts, queue, currentPartIndex,
     messages, isAiThinking, isRecording, liveTranscript, liveInterim,
     result, scoringStep,
+    examinerText, examinerCharIndex,
     startTest, advancePart, skipPrep, handleNextQuestion, stopTestEarly, resetTest, saveSession,
     partLabel,
   };

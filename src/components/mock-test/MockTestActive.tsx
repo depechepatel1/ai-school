@@ -2,6 +2,7 @@ import { ChevronRight, Square, Loader2 } from "lucide-react";
 import type { TestPart } from "@/types/speaking";
 import type { ChatMsg } from "@/types/speaking";
 import CountdownRing from "./CountdownRing";
+import ExaminerKaraoke from "./ExaminerKaraoke";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
@@ -23,6 +24,8 @@ interface Props {
   onSkipPrep: () => void;
   onNextQuestion: () => void;
   onStopTest: () => void;
+  examinerText?: string;
+  examinerCharIndex?: number;
   activeStream?: MediaStream | null;
   micDenied?: boolean;
   onToggleRecord?: () => void;
@@ -39,6 +42,7 @@ export default function MockTestActive({
   currentPart, timeLeft, status, completedParts, partLabel,
   isRecording, isAiThinking, liveTranscript, liveInterim, messages,
   onAdvance, onSkipPrep, onNextQuestion, onStopTest,
+  examinerText, examinerCharIndex,
   activeStream, micDenied, onToggleRecord,
 }: Props) {
   const totalTime = currentPart ? PART_DURATIONS[currentPart] || 300 : 300;
@@ -90,20 +94,6 @@ export default function MockTestActive({
         {/* Part 1, 2 speak, 3: Question + mic */}
         {(currentPart === "part1" || currentPart === "part2_speak" || currentPart === "part3") && (
           <>
-            {/* AI Question floating panel */}
-            {lastTeacherMsg && (
-              <div className="absolute top-4 right-6 max-w-xs bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl animate-fade-in">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Examiner</span>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {isAiThinking ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Thinking...
-                    </span>
-                  ) : lastTeacherMsg.text}
-                </p>
-              </div>
-            )}
-
             {/* Part 2 cue card on left during speaking */}
             {currentPart === "part2_speak" && (
               <div className="absolute bottom-32 right-6 w-56 opacity-60 scale-90 origin-bottom-right">
@@ -126,6 +116,11 @@ export default function MockTestActive({
 
       {/* Bottom controls */}
       <div className="px-4 pb-4 z-10">
+        {/* Examiner Karaoke Bar */}
+        {examinerText && (
+          <ExaminerKaraoke text={examinerText} charIndex={examinerCharIndex ?? -1} />
+        )}
+
         {/* Live Transcript */}
         <LiveTranscriptBar
           transcript={liveTranscript}
