@@ -5,7 +5,7 @@
  */
 
 /** Auth screens, mock-test config, week-selection — teacher shifted far left */
-export const AUTH_SETUP_OBJECT_POSITION = "110% 15%";
+export const AUTH_SETUP_OBJECT_POSITION = "120% 15%";
 
 /** Active test / full-width centered screens */
 export const CENTER_OBJECT_POSITION = "center center";
