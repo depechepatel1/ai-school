@@ -63,6 +63,10 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   const [result, setResult] = useState<MockTestResult | null>(null);
   const [scoringStep, setScoringStep] = useState(0);
 
+  // ── Examiner karaoke state ──
+  const [examinerText, setExaminerText] = useState("");
+  const [examinerCharIndex, setExaminerCharIndex] = useState(-1);
+
   // ── Part 1 script ──
   const part1SequenceRef = useRef<Part1Sequence | null>(null);
   const part1StepRef = useRef<{ segIdx: number; qIdx: number }>({ segIdx: 0, qIdx: 0 });
