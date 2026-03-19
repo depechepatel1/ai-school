@@ -92,7 +92,7 @@ export default function MockTestActive({
           <>
             {/* AI Question floating panel */}
             {lastTeacherMsg && (
-              <div className="absolute top-4 left-4 max-w-sm bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-lg animate-fade-in">
+              <div className="absolute top-4 right-6 max-w-xs bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl animate-fade-in">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Examiner</span>
                 <p className="text-sm text-foreground leading-relaxed">
                   {isAiThinking ? (
