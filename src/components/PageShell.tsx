@@ -14,7 +14,8 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, videoPreset, scaleClass }: PageShellProps) {
-  const isAuth = !fullWidth;
+  // Shift video left when on auth screens OR when videoPreset is "authSetup" (e.g. mock test config)
+  const shiftLeft = !fullWidth || videoPreset === "authSetup";
 
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
