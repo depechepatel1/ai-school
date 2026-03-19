@@ -6,6 +6,7 @@ import ExaminerKaraoke from "./ExaminerKaraoke";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
+import LiveTranscriptBar from "@/components/speaking/LiveTranscriptBar";
 
 import { PART2_TOPIC } from "@/types/speaking";
 
