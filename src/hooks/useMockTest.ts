@@ -8,6 +8,7 @@ import type { Accent } from "@/lib/tts-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
 import { createPauseTracker, stripPauseMarkers, reinsertPauseMarkers } from "@/lib/speech-annotations";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchPart1Script, buildPart1Sequence, type Part1Sequence } from "@/services/mock-part1-curriculum";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -61,6 +62,12 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   // ── Results ──
   const [result, setResult] = useState<MockTestResult | null>(null);
   const [scoringStep, setScoringStep] = useState(0);
+
+  // ── Part 1 script ──
+  const part1SequenceRef = useRef<Part1Sequence | null>(null);
+  const part1StepRef = useRef<{ segIdx: number; qIdx: number }>({ segIdx: 0, qIdx: 0 });
+  const part1IntroIndexRef = useRef(0);
+  const part1IntroPhaseRef = useRef(true); // true = still doing introduction lines
 
   // ── Refs ──
   const ttsHandleRef = useRef<TTSHandle | null>(null);
@@ -130,7 +137,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     ttsHandleRef.current = speak(text, accent, { rate: 1.0 });
   }, [accent]);
 
-  // ── AI ──
+  // ── AI (for Parts 2/3) ──
   const triggerAIQuestion = useCallback(async () => {
     setIsAiThinking(true);
     try {
@@ -153,6 +160,53 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     }
   }, [messages, speakText]);
 
+  // ── Part 1 scripted question flow ──
+  const speakNextPart1Question = useCallback(() => {
+    const seq = part1SequenceRef.current;
+    if (!seq) return false;
+
+    // Still in introduction phase? Speak intro lines first
+    if (part1IntroPhaseRef.current) {
+      const idx = part1IntroIndexRef.current;
+      if (idx < seq.introduction.length) {
+        const line = seq.introduction[idx];
+        part1IntroIndexRef.current = idx + 1;
+        setMessages((prev) => [...prev, { role: "teacher", text: line }]);
+        speakText(line);
+        return true;
+      }
+      // Done with introduction — move to segments
+      part1IntroPhaseRef.current = false;
+    }
+
+    const { segIdx, qIdx } = part1StepRef.current;
+    if (segIdx >= seq.segments.length) return false; // all done
+
+    const segment = seq.segments[segIdx];
+
+    // Speak segment intro before first question
+    if (qIdx === 0 && segment.intro) {
+      setMessages((prev) => [...prev, { role: "teacher", text: segment.intro }]);
+      speakText(segment.intro);
+      // Don't advance qIdx yet — next call will ask Q0
+      part1StepRef.current = { segIdx, qIdx: -1 }; // sentinel: intro spoken
+      return true;
+    }
+
+    const effectiveQIdx = qIdx === -1 ? 0 : qIdx; // after intro, start at Q0
+    if (effectiveQIdx >= segment.questions.length) {
+      // Move to next segment
+      part1StepRef.current = { segIdx: segIdx + 1, qIdx: 0 };
+      return speakNextPart1Question(); // recurse into next segment
+    }
+
+    const question = segment.questions[effectiveQIdx];
+    part1StepRef.current = { segIdx, qIdx: effectiveQIdx + 1 };
+    setMessages((prev) => [...prev, { role: "teacher", text: question }]);
+    speakText(question);
+    return true;
+  }, [speakText]);
+
   // ── Timer ──
   useEffect(() => {
     if (status !== "running" || timeLeft <= 0) return;
@@ -164,7 +218,6 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
           return 0;
         }
         if (next === 0 && (currentPartRef.current === "part1" || currentPartRef.current === "part3" || currentPartRef.current === "part2_speak")) {
-          // Capture speech and pause at boundary
           const speech = (currentTranscriptRef.current + " " + interimTranscriptRef.current).trim();
           if (speech) setMessages((m) => [...m, { role: "student", text: speech }]);
           setIsRecording(false);
@@ -200,15 +253,17 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
       trackTimeout(setTimeout(() => {
         setIsRecording(true);
         startSTT();
-        if (part === "part1" || part === "part3") {
+        if (part === "part1") {
+          // Use scripted questions for Part 1
+          trackTimeout(setTimeout(() => speakNextPart1Question(), 1500));
+        } else if (part === "part3") {
           trackTimeout(setTimeout(() => triggerAIQuestion(), 1500));
         }
       }, 300));
     }
-  }, [startSTT, triggerAIQuestion, trackTimeout]);
+  }, [startSTT, triggerAIQuestion, speakNextPart1Question, trackTimeout]);
 
   const advancePart = useCallback(() => {
-    // Record completed part
     if (currentPart === "part1") setCompletedParts((p) => [...p, "Part 1"]);
     else if (currentPart === "part2_speak") setCompletedParts((p) => [...p, "Part 2"]);
     else if (currentPart === "part3") setCompletedParts((p) => [...p, "Part 3"]);
@@ -223,7 +278,6 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
         beginPart(nextPart as TestPart, 300);
       }
     } else {
-      // All parts done — go to scoring
       setIsRecording(false);
       stopSTT();
       setStatus("completed");
@@ -243,7 +297,6 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
       else clearInterval(interval);
     }, 1200);
 
-    // Request AI scoring
     const transcript = messages
       .map((m) => `${m.role === "student" ? "Student" : "Examiner"}: ${m.text}`)
       .join("\n");
@@ -282,22 +335,12 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
               transcript,
             });
           } catch {
-            setResult({
-              overallBand: "N/A",
-              criteria: [],
-              vocabularySuggestions: [],
-              transcript,
-            });
+            setResult({ overallBand: "N/A", criteria: [], vocabularySuggestions: [], transcript });
           }
           setPhase("report");
         })
         .catch(() => {
-          setResult({
-            overallBand: "N/A",
-            criteria: [],
-            vocabularySuggestions: [],
-            transcript,
-          });
+          setResult({ overallBand: "N/A", criteria: [], vocabularySuggestions: [], transcript });
           setPhase("report");
         });
     });
@@ -322,18 +365,48 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
   }, [userId, result, selectedWeek, completedParts, accent]);
 
   // ── Public actions ──
-  const startTest = useCallback(() => {
+  const startTest = useCallback(async () => {
     const parts: string[] = [];
     if (selectedParts.part1) parts.push("part1");
     if (selectedParts.part2) parts.push("part2");
     if (selectedParts.part3) parts.push("part3");
     if (parts.length === 0) return;
 
+    // Pre-fetch Part 1 script if Part 1 is selected
+    if (selectedParts.part1) {
+      try {
+        const script = await fetchPart1Script();
+        const sequence = buildPart1Sequence(script, {
+          examiner_name: "Teacher Li",
+          country: "your country",
+        });
+        part1SequenceRef.current = sequence;
+        part1IntroIndexRef.current = 0;
+        part1IntroPhaseRef.current = true;
+        part1StepRef.current = { segIdx: 0, qIdx: 0 };
+      } catch (err) {
+        console.warn("Failed to fetch Part 1 script, falling back to AI:", err);
+        part1SequenceRef.current = null;
+      }
+    }
+
     setQueue(parts);
     setCurrentPartIndex(0);
     setCompletedParts([]);
-    setMessages([{ role: "teacher", text: "Good day. Let's begin your IELTS Speaking test." }]);
-    speakText("Good day. Let's begin your IELTS Speaking test.");
+
+    // Use Part 1 intro line if available, otherwise generic greeting
+    const greeting = part1SequenceRef.current
+      ? part1SequenceRef.current.introduction[0] || "Good day. Let's begin your IELTS Speaking test."
+      : "Good day. Let's begin your IELTS Speaking test.";
+
+    setMessages([{ role: "teacher", text: greeting }]);
+    speakText(greeting);
+
+    // If using scripted intro, mark first line as spoken
+    if (part1SequenceRef.current) {
+      part1IntroIndexRef.current = 1;
+    }
+
     setPhase("countdown");
     setCountdown(3);
   }, [selectedParts, speakText]);
@@ -348,7 +421,6 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     if (countdown === 0) {
       setCountdown(null);
       setPhase("active");
-      // Start first part
       const firstPart = queue[0];
       if (firstPart === "part2") {
         beginPart("part2_prep", 60);
@@ -372,10 +444,22 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     pauseTracker.current.reset();
     setLiveTranscript("");
     setLiveInterim("");
-    await triggerAIQuestion();
+
+    // Use scripted questions for Part 1, AI for Part 3
+    if (currentPartRef.current === "part1" && part1SequenceRef.current) {
+      const hasMore = speakNextPart1Question();
+      if (!hasMore) {
+        // All Part 1 questions exhausted — auto-advance
+        setStatus("paused_boundary");
+        return;
+      }
+    } else {
+      await triggerAIQuestion();
+    }
+
     setIsRecording(true);
     startSTT();
-  }, [stopSTT, startSTT, triggerAIQuestion]);
+  }, [stopSTT, startSTT, triggerAIQuestion, speakNextPart1Question]);
 
   const stopTestEarly = useCallback(() => {
     stopSpeaking();
@@ -402,6 +486,7 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     setLiveInterim("");
     currentTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    part1SequenceRef.current = null;
   }, []);
 
   const partLabel = (part: TestPart | null) => {
@@ -423,16 +508,11 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
   }, [selectedParts]);
 
   return {
-    // Phase
     phase, countdown,
-    // Config
     selectedParts, setSelectedParts, selectedWeek, setSelectedWeek, estimatedMinutes,
-    // Active test
     currentPart, timeLeft, status, completedParts, queue, currentPartIndex,
     messages, isAiThinking, isRecording, liveTranscript, liveInterim,
-    // Results
     result, scoringStep,
-    // Actions
     startTest, advancePart, skipPrep, handleNextQuestion, stopTestEarly, resetTest, saveSession,
     partLabel,
   };
