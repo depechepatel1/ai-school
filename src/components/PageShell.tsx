@@ -25,7 +25,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
         <div
           className="absolute inset-0 z-0 overflow-hidden bg-gray-900"
           style={shiftLeft
-            ? { width: '130%', transform: 'translateX(-15%)' }
+            ? { width: '150%', transform: 'translateX(-35%)' }
             : { width: '120%', left: '-10%' }
           }
         >
