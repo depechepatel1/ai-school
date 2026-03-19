@@ -141,7 +141,13 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   // ── TTS ──
   const speakText = useCallback((text: string) => {
     ttsHandleRef.current?.stop();
-    ttsHandleRef.current = speak(text, accent, { rate: 1.0 });
+    setExaminerText(text);
+    setExaminerCharIndex(-1);
+    ttsHandleRef.current = speak(text, accent, {
+      rate: 1.0,
+      onBoundary: (charIdx) => setExaminerCharIndex(charIdx),
+      onEnd: () => setExaminerCharIndex(text.length),
+    });
   }, [accent]);
 
   // ── AI (for Parts 2/3) ──
