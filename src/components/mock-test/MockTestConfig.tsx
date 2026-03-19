@@ -75,7 +75,7 @@ export default function MockTestConfig({
               <button onClick={() => onWeekChange(Math.max(1, selectedWeek - 1))} className="p-1.5 rounded-lg hover:bg-accent transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
                 <ChevronLeft className="w-4 h-4 text-muted-foreground" />
               </button>
-              <span className="font-bold text-foreground">Week {selectedWeek}</span>
+              <span className="font-bold text-foreground text-center flex-1">Week {selectedWeek}</span>
               <button onClick={() => onWeekChange(Math.min(20, selectedWeek + 1))} className="p-1.5 rounded-lg hover:bg-accent transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </button>
