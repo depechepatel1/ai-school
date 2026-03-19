@@ -13,7 +13,7 @@ export default function OmniMicButton({ teacherHint }: OmniMicButtonProps) {
     <div className="absolute bottom-24 right-8 z-50 flex flex-col items-end gap-2">
       {teacherHint && !chatOpen && (
         <div className="bg-teal-600 text-white text-xs p-3 rounded-xl rounded-br-none shadow-lg animate-fade-in-up max-w-[200px] relative mb-2">
-          <div className="font-bold mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> Teacher Li</div>
+          <div className="font-bold mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> Miss Li</div>
           {teacherHint}
         </div>
       )}
