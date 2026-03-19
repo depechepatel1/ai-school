@@ -95,6 +95,26 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   useEffect(() => { statusRef.current = status; }, [status]);
   useEffect(() => { currentPartRef.current = currentPart; }, [currentPart]);
 
+  // Pre-fetch Part 1 script eagerly during config phase
+  useEffect(() => {
+    if (phase !== "config") return;
+    fetchPart1Script()
+      .then((script) => {
+        const sequence = buildPart1Sequence(script, {
+          examiner_name: "Miss Li",
+          country: "your country",
+        });
+        part1SequenceRef.current = sequence;
+        part1IntroIndexRef.current = 0;
+        part1IntroPhaseRef.current = true;
+        part1StepRef.current = { segIdx: 0, qIdx: 0 };
+      })
+      .catch((err) => {
+        console.warn("Failed to pre-fetch Part 1 script:", err);
+        part1SequenceRef.current = null;
+      });
+  }, [phase]);
+
   // ── Punctuation ──
   const debouncedPunctuate = useMemo(
     () => createDebouncedPunctuate((punctuated) => {
@@ -282,16 +302,14 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     setLiveInterim("");
 
     if (["part1", "part2_speak", "part3"].includes(part)) {
-      trackTimeout(setTimeout(() => {
-        setIsRecording(true);
-        startSTT();
-        if (part === "part1") {
-          // Use scripted questions for Part 1
-          trackTimeout(setTimeout(() => speakNextPart1Question(), 1500));
-        } else if (part === "part3") {
-          trackTimeout(setTimeout(() => triggerAIQuestion(), 1500));
-        }
-      }, 300));
+      // Start STT and TTS in parallel with minimal delay
+      setIsRecording(true);
+      startSTT();
+      if (part === "part1") {
+        trackTimeout(setTimeout(() => speakNextPart1Question(), 500));
+      } else if (part === "part3") {
+        trackTimeout(setTimeout(() => triggerAIQuestion(), 500));
+      }
     }
   }, [startSTT, triggerAIQuestion, speakNextPart1Question, trackTimeout]);
 
@@ -404,22 +422,11 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     if (selectedParts.part3) parts.push("part3");
     if (parts.length === 0) return;
 
-    // Pre-fetch Part 1 script if Part 1 is selected
-    if (selectedParts.part1) {
-      try {
-        const script = await fetchPart1Script();
-        const sequence = buildPart1Sequence(script, {
-          examiner_name: "Miss Li",
-          country: "your country",
-        });
-        part1SequenceRef.current = sequence;
-        part1IntroIndexRef.current = 0;
-        part1IntroPhaseRef.current = true;
-        part1StepRef.current = { segIdx: 0, qIdx: 0 };
-      } catch (err) {
-        console.warn("Failed to fetch Part 1 script, falling back to AI:", err);
-        part1SequenceRef.current = null;
-      }
+    // Reset Part 1 script pointers (script already pre-fetched)
+    if (selectedParts.part1 && part1SequenceRef.current) {
+      part1IntroIndexRef.current = 0;
+      part1IntroPhaseRef.current = true;
+      part1StepRef.current = { segIdx: 0, qIdx: 0 };
     }
 
     setQueue(parts);

@@ -34,7 +34,7 @@ export default function IELTSMockTest() {
     }
   }, [test.isRecording, startMediaRecorder, stopMediaRecorder]);
 
-  const videoPosition = test.phase === "config" ? "33% center" : "center center";
+  const videoPosition = test.phase === "config" ? "25% center" : "center center";
 
   return (
     <PageShell fullWidth loopVideos={videoList} hideFooter objectPosition={videoPosition}>
