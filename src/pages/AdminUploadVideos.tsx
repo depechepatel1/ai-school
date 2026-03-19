@@ -28,6 +28,8 @@ export default function AdminUploadVideos() {
   const [statuses, setStatuses] = useState<Record<string, UploadStatus>>({});
   const [progress, setProgress] = useState<Record<string, number>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const uploadQueue = useRef<{ file: File; slot: VideoSlot }[]>([]);
+  const isProcessing = useRef(false);
 
   // Discover existing loop-stack files from storage
   useEffect(() => {
