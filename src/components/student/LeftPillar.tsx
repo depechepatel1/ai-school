@@ -95,11 +95,12 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
       {courseType && (
         <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-3 shadow-lg">
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 block text-center mb-2.5">Practice Modes</span>
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid gap-2 ${courseType === "ielts" ? "grid-cols-2" : "grid-cols-3"}`}>
             {[
               { key: "pronunciation", label: "Pronun.", icon: Headphones, color: "#0ea5e9", bgClass: "bg-sky-500/15 border-sky-400/25", hoverClass: "hover:bg-sky-500/25 hover:border-sky-400/40", progress: pronPct },
               { key: "fluency", label: "Fluency", icon: AudioWaveform, color: "#8b5cf6", bgClass: "bg-violet-500/15 border-violet-400/25", hoverClass: "hover:bg-violet-500/25 hover:border-violet-400/40", progress: fluPct },
               { key: "speaking", label: "Speak", icon: MessageSquare, color: "#f59e0b", bgClass: "bg-amber-500/15 border-amber-400/25", hoverClass: "hover:bg-amber-500/25 hover:border-amber-400/40", progress: speakPct },
+              ...(courseType === "ielts" ? [{ key: "mock-test", label: "Mock", icon: ClipboardCheck, color: "#10b981", bgClass: "bg-emerald-500/15 border-emerald-400/25", hoverClass: "hover:bg-emerald-500/25 hover:border-emerald-400/40", progress: 0 }] : []),
             ].map((mode) => {
               const Icon = mode.icon;
               const prefix = courseType === "ielts" ? "/ielts" : "/igcse";
