@@ -2,6 +2,7 @@ import { ChevronRight, Square, Loader2 } from "lucide-react";
 import type { TestPart } from "@/types/speaking";
 import type { ChatMsg } from "@/types/speaking";
 import CountdownRing from "./CountdownRing";
+import ExaminerKaraoke from "./ExaminerKaraoke";
 import CueCard from "@/components/speaking/CueCard";
 import FreehandNotePad from "@/components/speaking/FreehandNotePad";
 import MicRecordButton from "@/components/speaking/MicRecordButton";
