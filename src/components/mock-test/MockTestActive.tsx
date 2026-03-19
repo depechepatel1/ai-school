@@ -1,4 +1,4 @@
-import { ChevronRight, Square, Loader2 } from "lucide-react";
+import { ChevronRight, Square } from "lucide-react";
 import type { TestPart } from "@/types/speaking";
 import type { ChatMsg } from "@/types/speaking";
 import CountdownRing from "./CountdownRing";
