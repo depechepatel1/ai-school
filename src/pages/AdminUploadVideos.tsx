@@ -169,7 +169,7 @@ export default function AdminUploadVideos() {
 
   const handleFileSelect = (slot: VideoSlot, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadFile(file, slot);
+    if (file) enqueueUpload(file, slot);
   };
 
   const handleDrop = (slot: VideoSlot, e: React.DragEvent) => {
