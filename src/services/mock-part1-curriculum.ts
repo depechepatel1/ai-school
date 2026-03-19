@@ -113,7 +113,7 @@ export function buildPart1Sequence(
   const fill = (text: string) => {
     let out = text;
     for (const [key, val] of Object.entries(placeholders)) {
-      out = out.replaceAll(`{${key}}`, val);
+      out = out.split(`{${key}}`).join(val);
     }
     // Replace any remaining "Good morning/afternoon/evening" with time-appropriate greeting
     if (out.includes("morning/afternoon/evening")) {
