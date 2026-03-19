@@ -28,6 +28,8 @@ export default function AdminUploadVideos() {
   const [statuses, setStatuses] = useState<Record<string, UploadStatus>>({});
   const [progress, setProgress] = useState<Record<string, number>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const uploadQueue = useRef<{ file: File; slot: VideoSlot }[]>([]);
+  const isProcessing = useRef(false);
 
   // Discover existing loop-stack files from storage
   useEffect(() => {
@@ -107,6 +109,22 @@ export default function AdminUploadVideos() {
     }
   }, []);
 
+  const processQueue = useCallback(async () => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
+    while (uploadQueue.current.length > 0) {
+      const item = uploadQueue.current.shift()!;
+      await uploadFile(item.file, item.slot);
+    }
+    isProcessing.current = false;
+  }, [uploadFile]);
+
+  const enqueueUpload = useCallback((file: File, slot: VideoSlot) => {
+    uploadQueue.current.push({ file, slot });
+    setStatuses((s) => ({ ...s, [slot.path]: s[slot.path] === "idle" ? "idle" : s[slot.path] }));
+    processQueue();
+  }, [processQueue]);
+
   const deleteLoopClip = useCallback(async (slot: VideoSlot) => {
     if (!slot.path.startsWith("loop-stack/")) return;
     if (!confirm(`Delete ${slot.label} from storage? This cannot be undone.`)) return;
@@ -151,14 +169,14 @@ export default function AdminUploadVideos() {
 
   const handleFileSelect = (slot: VideoSlot, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadFile(file, slot);
+    if (file) enqueueUpload(file, slot);
   };
 
   const handleDrop = (slot: VideoSlot, e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && file.type === "video/mp4") {
-      uploadFile(file, slot);
+      enqueueUpload(file, slot);
     } else {
       toast({ title: "Please drop an .mp4 file", variant: "destructive" });
     }
