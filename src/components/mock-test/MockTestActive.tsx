@@ -71,7 +71,7 @@ export default function MockTestActive({
       <div className="flex-1 flex flex-col items-end justify-center px-4 relative">
         {/* Part 2 Prep: Cue card + notepad */}
         {currentPart === "part2_prep" && (
-          <div className="flex flex-col lg:flex-row gap-4 w-full max-w-4xl items-start justify-center">
+          <div className="flex flex-col lg:flex-row gap-4 w-full max-w-md items-start justify-end mr-6">
             <div className="flex-1 min-w-0">
               <CueCard topic={PART2_TOPIC} />
             </div>
