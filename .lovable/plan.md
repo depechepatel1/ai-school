@@ -1,29 +1,31 @@
 
 
-## Analysis
+## Diagnosis: Concurrent Video Uploads Failing
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+**Root cause**: When multiple large video files are uploaded simultaneously, each request to the `upload-video-file` edge function must:
+1. Boot a new isolate (~30ms each, visible in logs)
+2. Buffer the entire video file in memory via `req.formData()` + `file.arrayBuffer()`
+3. Re-upload to storage
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+Edge functions have a **~150MB memory limit** and **~60s timeout**. Multiple concurrent large video uploads exhaust these limits, causing silent crashes (the logs show only boot/shutdown cycles with no request-level output).
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
-
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
-
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+**Solution**: Serialize uploads on the client side so only one file uploads at a time.
 
 ---
 
-## Changes -- `src/components/PageShell.tsx`
+### Changes
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+**File: `src/pages/AdminUploadVideos.tsx`**
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+1. Add an upload queue mechanism:
+   - Track a `queue` of `{ file, slot }` pairs in a ref
+   - Track an `isProcessing` flag ref
+   - When the user selects/drops a file, push it onto the queue and call `processQueue()`
+   - `processQueue()` picks one item at a time, calls `uploadFile`, then recurses until the queue is empty
+
+2. This replaces the current behavior where each `handleFileSelect` / `handleDrop` immediately calls `uploadFile` — allowing N concurrent requests.
+
+3. No edge function changes needed. No database changes needed.
+
+**Key detail**: The queue drains sequentially — each upload completes (success or error) before the next begins. The UI remains responsive since each slot still shows its own progress/status independently.
 
