@@ -114,11 +114,8 @@
   }
 }
 
-@media (min-width: 1280px) {
-  .auth-video-scale {
-    object-position: 20% top;
-  }
-}
+/* .auth-video-scale: positioning is now handled via inline styles
+   from src/lib/videoFraming.ts — do NOT add object-position here */
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }

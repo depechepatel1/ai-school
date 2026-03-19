@@ -1,5 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import BackgroundStage from "@/components/stage/BackgroundStage";
+import { VIDEO_PRESET_MAP, type VideoPreset } from "@/lib/videoFraming";
 
 interface PageShellProps {
   children: React.ReactNode;
@@ -8,11 +9,16 @@ interface PageShellProps {
   fullWidth?: boolean;
   bgImage?: string;
   hideFooter?: boolean;
-  objectPosition?: string;
+  /** Use a typed preset instead of raw strings to prevent drift */
+  videoPreset?: VideoPreset;
   scaleClass?: string;
 }
 
-export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, objectPosition, scaleClass }: PageShellProps) {
+export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, videoPreset, scaleClass }: PageShellProps) {
+  const resolvedPosition = videoPreset
+    ? VIDEO_PRESET_MAP[videoPreset]
+    : (fullWidth ? VIDEO_PRESET_MAP.center : VIDEO_PRESET_MAP.authSetup);
+
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
       <div className="relative w-full h-full bg-black overflow-hidden select-none">
@@ -25,7 +31,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
             <BackgroundStage
               videoList={loopVideos}
               playIntro={playIntroVideo}
-              objectPosition={objectPosition ?? (fullWidth ? "center center" : "85% 15%")}
+              objectPosition={resolvedPosition}
               scaleClass={scaleClass ?? (fullWidth ? undefined : "auth-video-scale")}
             />
           )}
