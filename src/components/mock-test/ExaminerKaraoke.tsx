@@ -3,6 +3,7 @@ import { useMemo, memo } from "react";
 interface Props {
   text: string;
   charIndex: number;
+  isThinking?: boolean;
 }
 
 /**
