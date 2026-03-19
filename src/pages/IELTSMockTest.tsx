@@ -75,6 +75,8 @@ export default function IELTSMockTest() {
             onSkipPrep={test.skipPrep}
             onNextQuestion={test.handleNextQuestion}
             onStopTest={test.stopTestEarly}
+            examinerText={test.examinerText}
+            examinerCharIndex={test.examinerCharIndex}
             activeStream={activeStream}
             micDenied={micDenied}
             onToggleRecord={handleToggleRecord}
