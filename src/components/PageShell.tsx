@@ -14,7 +14,8 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false, videoPreset, scaleClass }: PageShellProps) {
-  const isAuth = !fullWidth;
+  // Shift video left when on auth screens OR when videoPreset is "authSetup" (e.g. mock test config)
+  const shiftLeft = !fullWidth || videoPreset === "authSetup";
 
   return (
     <div className="h-screen w-full font-outfit overflow-hidden">
@@ -23,7 +24,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
         {/* Background Stage — auth screens use translateX to shift video left */}
         <div
           className="absolute inset-0 z-0 overflow-hidden bg-gray-900"
-          style={isAuth
+          style={shiftLeft
             ? { width: '130%', transform: 'translateX(-15%)' }
             : { width: '120%', left: '-10%' }
           }
@@ -35,7 +36,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
               videoList={loopVideos}
               playIntro={playIntroVideo}
               objectPosition="center center"
-              scaleClass={scaleClass ?? (isAuth ? "auth-video-scale" : undefined)}
+              scaleClass={scaleClass ?? (shiftLeft ? "auth-video-scale" : undefined)}
             />
           )}
         </div>
