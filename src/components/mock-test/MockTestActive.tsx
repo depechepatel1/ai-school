@@ -94,20 +94,6 @@ export default function MockTestActive({
         {/* Part 1, 2 speak, 3: Question + mic */}
         {(currentPart === "part1" || currentPart === "part2_speak" || currentPart === "part3") && (
           <>
-            {/* AI Question floating panel */}
-            {lastTeacherMsg && (
-              <div className="absolute top-4 right-6 max-w-xs bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl animate-fade-in">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Examiner</span>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {isAiThinking ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Thinking...
-                    </span>
-                  ) : lastTeacherMsg.text}
-                </p>
-              </div>
-            )}
-
             {/* Part 2 cue card on left during speaking */}
             {currentPart === "part2_speak" && (
               <div className="absolute bottom-32 right-6 w-56 opacity-60 scale-90 origin-bottom-right">
