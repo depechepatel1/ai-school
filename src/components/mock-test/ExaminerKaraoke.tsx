@@ -59,6 +59,7 @@ function ExaminerKaraoke({ text, charIndex, isThinking }: Props) {
           );
         })}
       </p>
+      )}
     </div>
   );
 }

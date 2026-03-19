@@ -117,8 +117,8 @@ export default function MockTestActive({
       {/* Bottom controls */}
       <div className="px-4 pb-4 z-10">
         {/* Examiner Karaoke Bar */}
-        {examinerText && (
-          <ExaminerKaraoke text={examinerText} charIndex={examinerCharIndex ?? -1} />
+        {(examinerText || isAiThinking) && (
+          <ExaminerKaraoke text={examinerText ?? ""} charIndex={examinerCharIndex ?? -1} isThinking={isAiThinking} />
         )}
 
         {/* Live Transcript */}
