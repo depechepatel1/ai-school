@@ -68,7 +68,7 @@ export default function MockTestActive({
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 relative">
+      <div className="flex-1 flex flex-col items-end justify-center px-4 relative">
         {/* Part 2 Prep: Cue card + notepad */}
         {currentPart === "part2_prep" && (
           <div className="flex flex-col lg:flex-row gap-4 w-full max-w-4xl items-start justify-center">
