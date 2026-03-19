@@ -83,6 +83,7 @@ export function normaliseCurriculumText(raw: string, moduleType: string): string
 
 export function getFilePath(course: string, module: string) {
   if (module === "shadowing-pronunciation") return "shared/tongue-twisters.json";
+  if (module === "mock-part1") return "ielts/mock-part1-questions.json";
   const moduleInfo = MODULE_OPTIONS.find((m) => m.value === module);
   return `${course}/${moduleInfo?.path ?? `${module}.json`}`;
 }
