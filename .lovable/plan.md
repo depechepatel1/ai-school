@@ -1,29 +1,57 @@
 
 
-## Analysis
+## Fix Part 1 Examiner Script Sequence
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+### Problem
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+The scripted Part 1 flow only speaks one line at a time and always waits for the student to click "Next Question" — even for non-question lines like greetings ("Good afternoon", "My name is Teacher Li") and segment transitions ("Let's talk about your hometown"). These should auto-chain after TTS finishes, with the examiner only pausing on actual questions that need a student response.
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+Additionally, the first intro line is spoken during the countdown phase (before the test starts), which means it may be missed or feel disconnected from the sequence.
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+### Correct Examiner Sequence (from the JSON)
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+```text
+1. [auto] "Good afternoon."
+2. [auto] "My name is Teacher Li."
+3. [wait] "Can you tell me your full name, please?"
+4. [wait] "Thank you. And what shall I call you?"
+5. [wait] "And can you tell me where you're from?"
+6. [auto] "Now, in this first part, I'd like to ask you some questions about yourself."
+7. [auto] "Let's talk about your hometown."  ← segment intro
+8. [wait] "Is your hometown a city, a town, or a village?"
+9. [wait] "What do you like about your hometown?"
+10. [wait] ...more questions...
+11. [auto] "Let's talk about playing video games."  ← next segment intro
+12. [wait] questions...
+```
 
----
+Lines marked `[auto]` chain automatically after TTS ends. Lines marked `[wait]` pause for the student to respond (click Next Question).
 
-## Changes -- `src/components/PageShell.tsx`
+### Changes
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+**File: `src/hooks/useMockTest.ts`**
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+1. **Remove early intro speak from `startTest`**: Don't speak the first intro line during countdown. Instead, let the full intro sequence begin when Part 1 actually starts.
+
+2. **Rewrite `speakNextPart1Question` to auto-chain non-question lines**: After speaking a line, check if it's a question (contains `?`). If not, use `ttsHandleRef.current.finished.then(...)` to auto-call itself after a short delay (~800ms pause). If it is a question, stop and wait for the student to click Next.
+
+3. **Apply the same auto-chain logic to segment intros**: When a segment intro is spoken (e.g. "Let's talk about..."), auto-advance to the first question after TTS finishes.
+
+4. **Guard against cancelled state**: If the test is stopped or the part changes during an auto-chain, bail out to prevent ghost speech.
+
+### Technical Detail
+
+The TTS provider already returns a `TTSHandle` with a `finished: Promise<void>`. The `speakText` function stores the handle in `ttsHandleRef`. The auto-chain logic will:
+
+```
+speakNextPart1Question():
+  get next line from sequence
+  add to messages, speak via TTS
+  if line contains "?" → return true (wait for user)
+  else → ttsHandleRef.current.finished.then(() => {
+    if still in part1 and running → speakNextPart1Question()
+  })
+```
+
+No new files. No database changes. Single file edit to `useMockTest.ts`.
 
