@@ -8,6 +8,7 @@ interface PageShellProps {
   fullWidth?: boolean;
   bgImage?: string;
   hideFooter?: boolean;
+  objectPosition?: string;
 }
 
 export default function PageShell({ children, playIntroVideo = false, loopVideos, fullWidth = false, bgImage, hideFooter = false }: PageShellProps) {
