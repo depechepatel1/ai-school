@@ -536,6 +536,7 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
     currentPart, timeLeft, status, completedParts, queue, currentPartIndex,
     messages, isAiThinking, isRecording, liveTranscript, liveInterim,
     result, scoringStep,
+    examinerText, examinerCharIndex,
     startTest, advancePart, skipPrep, handleNextQuestion, stopTestEarly, resetTest, saveSession,
     partLabel,
   };
