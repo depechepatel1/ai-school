@@ -8,7 +8,7 @@ import type { Accent } from "@/lib/tts-provider";
 import { createDebouncedPunctuate } from "@/lib/punctuate";
 import { createPauseTracker, stripPauseMarkers, reinsertPauseMarkers } from "@/lib/speech-annotations";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchPart1Script, buildPart1Sequence, type Part1Sequence } from "@/services/mock-part1-curriculum";
+import { fetchPart1Script, buildPart1Sequence, stripBracketPrompts, type Part1Sequence } from "@/services/mock-part1-curriculum";
 
 // ── Types ──────────────────────────────────────────────────────
 
