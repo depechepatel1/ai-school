@@ -282,16 +282,14 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     setLiveInterim("");
 
     if (["part1", "part2_speak", "part3"].includes(part)) {
-      trackTimeout(setTimeout(() => {
-        setIsRecording(true);
-        startSTT();
-        if (part === "part1") {
-          // Use scripted questions for Part 1
-          trackTimeout(setTimeout(() => speakNextPart1Question(), 1500));
-        } else if (part === "part3") {
-          trackTimeout(setTimeout(() => triggerAIQuestion(), 1500));
-        }
-      }, 300));
+      // Start STT and TTS in parallel with minimal delay
+      setIsRecording(true);
+      startSTT();
+      if (part === "part1") {
+        trackTimeout(setTimeout(() => speakNextPart1Question(), 500));
+      } else if (part === "part3") {
+        trackTimeout(setTimeout(() => triggerAIQuestion(), 500));
+      }
     }
   }, [startSTT, triggerAIQuestion, speakNextPart1Question, trackTimeout]);
 
