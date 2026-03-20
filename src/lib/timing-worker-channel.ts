@@ -47,21 +47,58 @@ export interface TimingStartAckMessage {
   requestId: string;
 }
 
+export interface TimingJobStartedMessage {
+  type: "JOB_STARTED";
+  jobLabel: string;
+  jobIndex: number;
+  totalJobs: number;
+}
+
+export interface TimingQueueCompleteMessage {
+  type: "QUEUE_COMPLETE";
+  completedJobs: number;
+  totalJobs: number;
+}
+
 export type TimingWorkerMessage =
   | TimingProgressMessage
   | TimingCompleteMessage
   | TimingCancelledMessage
   | TimingErrorMessage
   | TimingReadyMessage
-  | TimingStartAckMessage;
+  | TimingStartAckMessage
+  | TimingJobStartedMessage
+  | TimingQueueCompleteMessage;
 
 let workerWindow: Window | null = null;
 
 /**
- * Launch the timing worker popup and send it a job config.
- * Uses retry + ack handshake to avoid race conditions.
+ * Ensure the popup window is open, returning it.
  */
-export function launchTimingWorker(config: TimingWorkerConfig): void {
+function ensurePopup(): Window {
+  if (workerWindow && !workerWindow.closed) {
+    workerWindow.focus();
+    return workerWindow;
+  }
+
+  const w = window.open(
+    `/timing-worker.html?t=${Date.now()}`,
+    "tts-timing-worker",
+    "width=500,height=600,scrollbars=yes,resizable=yes"
+  );
+
+  if (!w) throw new Error("Popup blocked — please allow popups for this site");
+  workerWindow = w;
+  return w;
+}
+
+/**
+ * Send a message to the popup with retry+ack handshake.
+ */
+function sendWithAck(
+  msgFactory: (requestId: string) => Record<string, unknown>,
+  onTimeout?: () => void
+): void {
   const channel = new BroadcastChannel(CHANNEL_NAME);
   const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let acknowledged = false;
@@ -78,16 +115,15 @@ export function launchTimingWorker(config: TimingWorkerConfig): void {
     channel.close();
   };
 
-  const sendStart = () => {
-    channel.postMessage({ type: "START", config, requestId });
+  const send = () => {
+    channel.postMessage({ ...msgFactory(requestId), requestId });
   };
 
-  const onMessage = (e: MessageEvent<TimingWorkerMessage>) => {
+  const onMessage = (e: MessageEvent) => {
     if (e.data?.type === "READY") {
-      sendStart();
+      send();
       return;
     }
-
     if (e.data?.type === "START_ACK" && e.data.requestId === requestId) {
       acknowledged = true;
       cleanup();
@@ -96,34 +132,37 @@ export function launchTimingWorker(config: TimingWorkerConfig): void {
 
   channel.addEventListener("message", onMessage);
 
-  if (workerWindow && !workerWindow.closed) {
-    workerWindow.focus();
-  } else {
-    workerWindow = window.open(
-      `/timing-worker.html?t=${Date.now()}`,
-      "tts-timing-worker",
-      "width=500,height=600,scrollbars=yes,resizable=yes"
-    );
-  }
-
-  if (!workerWindow) {
-    cleanup();
-    throw new Error("Popup blocked — please allow popups for this site");
-  }
-
-  sendStart();
+  send();
   retryHandle = window.setInterval(() => {
-    if (!acknowledged) sendStart();
+    if (!acknowledged) send();
   }, 600);
 
   timeoutHandle = window.setTimeout(() => {
     if (acknowledged) return;
+    onTimeout?.();
     channel.postMessage({
       type: "ERROR",
-      error: "Worker did not acknowledge START. Keep popup open and try again.",
+      error: "Worker did not acknowledge. Keep popup open and try again.",
     });
     cleanup();
   }, 8000);
+}
+
+/**
+ * Launch the timing worker popup and send it a single job config.
+ */
+export function launchTimingWorker(config: TimingWorkerConfig): void {
+  ensurePopup();
+  sendWithAck((requestId) => ({ type: "START", config, requestId }));
+}
+
+/**
+ * Launch the timing worker popup and send it a queue of jobs to run sequentially.
+ */
+export function launchTimingWorkerQueue(configs: TimingWorkerConfig[]): void {
+  if (configs.length === 0) return;
+  ensurePopup();
+  sendWithAck((requestId) => ({ type: "START_QUEUE", configs, requestId }));
 }
 
 /**

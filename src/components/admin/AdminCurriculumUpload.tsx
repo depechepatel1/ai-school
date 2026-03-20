@@ -31,9 +31,11 @@ import {
 import { clearPronunciationCache } from "@/services/pronunciation-shadowing";
 import {
   launchTimingWorker,
+  launchTimingWorkerQueue,
   cancelTimingWorker,
   onTimingWorkerMessage,
   type TimingWorkerMessage,
+  type TimingWorkerConfig,
 } from "@/lib/timing-worker-channel";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -65,13 +67,24 @@ export default function AdminCurriculumUpload() {
         case "PROGRESS":
           setMeasureProgress({ current: msg.current, total: msg.total });
           break;
+        case "JOB_STARTED":
+          setMeasureLabel(`${msg.jobLabel} (${msg.jobIndex + 1}/${msg.totalJobs})`);
+          setMeasureProgress({ current: 0, total: 0 });
+          break;
         case "COMPLETE":
+          clearTimingsCache();
+          checkTimingStatus();
+          toast({ title: "Job Complete", description: `Measured ${msg.count} chunks for ${msg.storagePath}.` });
+          break;
+        case "QUEUE_COMPLETE":
           setIsMeasuring(false);
           setMeasureProgress({ current: 0, total: 0 });
           setMeasureLabel("");
           clearTimingsCache();
           checkTimingStatus();
-          toast({ title: "TTS Timing Complete", description: `Measured ${msg.count} chunks for ${msg.storagePath}.` });
+          if (msg.completedJobs === msg.totalJobs) {
+            toast({ title: "All timing jobs complete", description: `${msg.completedJobs} job(s) finished successfully.` });
+          }
           break;
         case "CANCELLED":
           setIsMeasuring(false);
@@ -224,23 +237,51 @@ export default function AdminCurriculumUpload() {
     }
   };
 
-  const TIMING_JOBS = [
+  const TIMING_JOBS_META = [
     {
       label: "Time IELTS Fluency",
       path: "ielts/timings-shadowing-fluency.json",
-      run: () => launchTimingJob("Time IELTS Fluency", "ielts/timings-shadowing-fluency.json", () => getFluencyChunkTexts("ielts")),
+      getChunks: () => getFluencyChunkTexts("ielts"),
+      accent: "uk",
+      rate: 0.8,
     },
     {
       label: "Time IGCSE Fluency",
       path: "igcse/timings-shadowing-fluency.json",
-      run: () => launchTimingJob("Time IGCSE Fluency", "igcse/timings-shadowing-fluency.json", () => getFluencyChunkTexts("igcse")),
+      getChunks: () => getFluencyChunkTexts("igcse"),
+      accent: "uk",
+      rate: 0.8,
     },
     {
       label: "Time Pronunciation",
       path: "shared/timings-shadowing-pronunciation.json",
-      run: () => launchTimingJob("Time Pronunciation", "shared/timings-shadowing-pronunciation.json", () => getPronunciationChunkTexts()),
+      getChunks: () => getPronunciationChunkTexts(),
+      accent: "uk",
+      rate: 0.8,
     },
   ];
+
+  // Build a TimingWorkerConfig from a job meta
+  const buildConfig = async (job: typeof TIMING_JOBS_META[number]): Promise<TimingWorkerConfig> => {
+    const chunks = await job.getChunks();
+    if (chunks.length === 0) throw new Error(`No chunks found for ${job.label}`);
+    return {
+      chunks,
+      accent: job.accent,
+      rate: job.rate,
+      storagePath: job.path,
+      supabaseUrl: SUPABASE_URL,
+      anonKey: ANON_KEY,
+      jobLabel: job.label,
+    };
+  };
+
+  // For CurriculumTimingControls compatibility
+  const TIMING_JOBS = TIMING_JOBS_META.map((meta) => ({
+    label: meta.label,
+    path: meta.path,
+    run: () => launchTimingJob(meta.label, meta.path, meta.getChunks, meta.accent, meta.rate),
+  }));
 
   const handleMeasureSingle = async (jobIndex: number) => {
     const job = TIMING_JOBS[jobIndex];
@@ -252,16 +293,17 @@ export default function AdminCurriculumUpload() {
     if (isMeasuring) return;
     clearTimingsCache();
 
-    let pending = TIMING_JOBS;
+    let pending = TIMING_JOBS_META;
     if (!force) {
-      pending = [];
-      for (const job of TIMING_JOBS) {
+      const filtered = [];
+      for (const job of TIMING_JOBS_META) {
         const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
         if (data?.publicUrl) {
           try { const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" }); if (res.ok) continue; } catch {}
         }
-        pending.push(job);
+        filtered.push(job);
       }
+      pending = filtered;
     }
 
     if (pending.length === 0) {
@@ -269,11 +311,17 @@ export default function AdminCurriculumUpload() {
       return;
     }
 
-    // Launch the first pending job — subsequent ones need manual trigger
-    // (popup can only run one job at a time)
-    await pending[0].run();
-    if (pending.length > 1) {
-      toast({ title: `${pending.length} jobs need timing`, description: `Started "${pending[0].label}". Run remaining jobs after this completes.` });
+    setIsMeasuring(true);
+    setMeasureLabel(`Queue: ${pending.length} job(s)`);
+
+    try {
+      const configs = await Promise.all(pending.map(buildConfig));
+      launchTimingWorkerQueue(configs);
+      toast({ title: `Queued ${configs.length} timing job(s)`, description: `Running sequentially in background popup.` });
+    } catch (err) {
+      setIsMeasuring(false);
+      setMeasureLabel("");
+      toast({ title: "Failed to start timing queue", description: String(err), variant: "destructive" });
     }
   };
 
