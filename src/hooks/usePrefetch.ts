@@ -8,7 +8,7 @@ const prefetchMap: Record<string, () => Promise<unknown>> = {
   "/reset-password": () => import("@/pages/ResetPassword"),
   "/select-week": () => import("@/pages/WeekSelection"),
   "/student": () => import("@/pages/StudentPractice"),
-  "/speaking": () => import("@/pages/SpeakingStudio"),
+  
   "/ielts/pronunciation": () => import("@/pages/IELTSPronunciation"),
   "/ielts/fluency": () => import("@/pages/IELTSFluency"),
   "/ielts/speaking": () => import("@/pages/IELTSSpeaking"),
