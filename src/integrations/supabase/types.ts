@@ -264,6 +264,48 @@ export type Database = {
           },
         ]
       }
+      mock_test_sessions: {
+        Row: {
+          accent: string
+          created_at: string
+          criteria_scores: Json | null
+          duration_seconds: number | null
+          id: string
+          overall_band: string | null
+          parts_completed: string[]
+          transcript: string | null
+          user_id: string
+          vocabulary_suggestions: string[] | null
+          week_number: number | null
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          criteria_scores?: Json | null
+          duration_seconds?: number | null
+          id?: string
+          overall_band?: string | null
+          parts_completed?: string[]
+          transcript?: string | null
+          user_id: string
+          vocabulary_suggestions?: string[] | null
+          week_number?: number | null
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          criteria_scores?: Json | null
+          duration_seconds?: number | null
+          id?: string
+          overall_band?: string | null
+          parts_completed?: string[]
+          transcript?: string | null
+          user_id?: string
+          vocabulary_suggestions?: string[] | null
+          week_number?: number | null
+        }
+        Relationships: []
+      }
       parent_student_links: {
         Row: {
           id: string
@@ -471,6 +513,51 @@ export type Database = {
           module_type?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      user_events: {
+        Row: {
+          app_version: string | null
+          country: string | null
+          course_type: string | null
+          created_at: string
+          deployment_region: string
+          device_id: string | null
+          event_name: string
+          id: string
+          metadata: Json | null
+          platform: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          country?: string | null
+          course_type?: string | null
+          created_at?: string
+          deployment_region?: string
+          device_id?: string | null
+          event_name: string
+          id?: string
+          metadata?: Json | null
+          platform?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          country?: string | null
+          course_type?: string | null
+          created_at?: string
+          deployment_region?: string
+          device_id?: string | null
+          event_name?: string
+          id?: string
+          metadata?: Json | null
+          platform?: string
+          session_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

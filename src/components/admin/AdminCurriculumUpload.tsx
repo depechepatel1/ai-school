@@ -24,11 +24,22 @@ import {
   FORMATTING_GUIDE,
 } from "./curriculum-helpers";
 import {
-  generateAndUploadFluencyTimings,
-  generateAndUploadPronunciationTimings,
   clearTimingsCache,
+  getFluencyChunkTexts,
+  getPronunciationChunkTexts,
 } from "@/services/tts-timings-storage";
 import { clearPronunciationCache } from "@/services/pronunciation-shadowing";
+import {
+  launchTimingWorker,
+  launchTimingWorkerQueue,
+  cancelTimingWorker,
+  onTimingWorkerMessage,
+  type TimingWorkerMessage,
+  type TimingWorkerConfig,
+} from "@/lib/timing-worker-channel";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export default function AdminCurriculumUpload() {
   const { user } = useAuth();
@@ -47,7 +58,52 @@ export default function AdminCurriculumUpload() {
   const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
   const [measureLabel, setMeasureLabel] = useState("");
   const cancelRef = useRef(false);
-  const [timingStatus, setTimingStatus] = useState<Record<string, boolean | null>>({});
+  const [timingStatus, setTimingStatus] = useState<Record<string, "complete" | "partial" | "missing" | null>>({});
+  const [timingPartialInfo, setTimingPartialInfo] = useState<Record<string, { measured: number } | null>>({});
+
+  // Listen for worker messages
+  useEffect(() => {
+    const cleanup = onTimingWorkerMessage((msg: TimingWorkerMessage) => {
+      switch (msg.type) {
+        case "PROGRESS":
+          setMeasureProgress({ current: msg.current, total: msg.total });
+          break;
+        case "JOB_STARTED":
+          setMeasureLabel(`${msg.jobLabel} (${msg.jobIndex + 1}/${msg.totalJobs})`);
+          setMeasureProgress({ current: 0, total: 0 });
+          break;
+        case "COMPLETE":
+          clearTimingsCache();
+          checkTimingStatus();
+          toast({ title: "Job Complete", description: `Measured ${msg.count} chunks for ${msg.storagePath}.` });
+          break;
+        case "QUEUE_COMPLETE":
+          setIsMeasuring(false);
+          setMeasureProgress({ current: 0, total: 0 });
+          setMeasureLabel("");
+          clearTimingsCache();
+          checkTimingStatus();
+          if (msg.completedJobs === msg.totalJobs) {
+            toast({ title: "All timing jobs complete", description: `${msg.completedJobs} job(s) finished successfully.` });
+          }
+          break;
+        case "CANCELLED":
+          setIsMeasuring(false);
+          setMeasureProgress({ current: 0, total: 0 });
+          setMeasureLabel("");
+          checkTimingStatus();
+          toast({ title: "Timing cancelled", description: `Partial progress saved (${msg.measured}/${msg.total}).` });
+          break;
+        case "ERROR":
+          setIsMeasuring(false);
+          setMeasureProgress({ current: 0, total: 0 });
+          setMeasureLabel("");
+          toast({ title: "Timing failed", description: msg.error, variant: "destructive" });
+          break;
+      }
+    });
+    return cleanup;
+  }, []);
 
   const loadMetadata = async () => {
     const { data } = await supabase
@@ -60,21 +116,33 @@ export default function AdminCurriculumUpload() {
   };
 
   const checkTimingStatus = useCallback(async () => {
-    const status: Record<string, boolean | null> = {};
-    for (const p of TIMING_PATHS) status[p] = null;
+    const status: Record<string, "complete" | "partial" | "missing" | null> = {};
+    const partialInfo: Record<string, { measured: number } | null> = {};
+    for (const p of TIMING_PATHS) { status[p] = null; partialInfo[p] = null; }
     setTimingStatus({ ...status });
+    setTimingPartialInfo({ ...partialInfo });
 
     await Promise.all(
       TIMING_PATHS.map(async (path) => {
         const { data } = supabase.storage.from("curriculums").getPublicUrl(path);
-        if (!data?.publicUrl) { status[path] = false; return; }
+        if (!data?.publicUrl) { status[path] = "missing"; return; }
         try {
-          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
-          status[path] = res.ok;
-        } catch { status[path] = false; }
+          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`);
+          if (!res.ok) { status[path] = "missing"; return; }
+          const json = await res.json();
+          if (json?.partial === true) {
+            status[path] = "partial";
+            partialInfo[path] = { measured: Object.keys(json.timings ?? {}).length };
+          } else if (json?.timings) {
+            status[path] = "complete";
+          } else {
+            status[path] = "missing";
+          }
+        } catch { status[path] = "missing"; }
       })
     );
     setTimingStatus({ ...status });
+    setTimingPartialInfo({ ...partialInfo });
   }, []);
 
   useEffect(() => { loadMetadata(); checkTimingStatus(); }, []);
@@ -149,57 +217,146 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
-  // --- Timing jobs ---
-  const TIMING_JOBS = [
-    { label: "Time IELTS Fluency", path: "ielts/timings-shadowing-fluency.json", run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}) },
-    { label: "Time IGCSE Fluency", path: "igcse/timings-shadowing-fluency.json", run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}) },
-    { label: "Time Pronunciation", path: "shared/timings-shadowing-pronunciation.json", run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}) },
+  // --- Timing jobs (now launch popup worker) ---
+  const launchTimingJob = async (
+    label: string,
+    storagePath: string,
+    getChunks: () => Promise<string[]>,
+    accent = "uk",
+    rate = 0.8
+  ) => {
+    if (isMeasuring) return;
+    setIsMeasuring(true);
+    setMeasureLabel(label);
+    clearTimingsCache();
+
+    try {
+      const chunks = await getChunks();
+      if (chunks.length === 0) throw new Error("No chunks found");
+
+      launchTimingWorker({
+        chunks,
+        accent,
+        rate,
+        storagePath,
+        supabaseUrl: SUPABASE_URL,
+        anonKey: ANON_KEY,
+        jobLabel: label,
+      });
+    } catch (err) {
+      setIsMeasuring(false);
+      setMeasureLabel("");
+      toast({ title: "Failed to start timing", description: String(err), variant: "destructive" });
+    }
+  };
+
+  const TIMING_JOBS_META = [
+    {
+      label: "Time IELTS Fluency",
+      path: "ielts/timings-shadowing-fluency.json",
+      getChunks: () => getFluencyChunkTexts("ielts"),
+      accent: "uk",
+      rate: 0.8,
+    },
+    {
+      label: "Time IGCSE Fluency",
+      path: "igcse/timings-shadowing-fluency.json",
+      getChunks: () => getFluencyChunkTexts("igcse"),
+      accent: "uk",
+      rate: 0.8,
+    },
+    {
+      label: "Time Pronunciation",
+      path: "shared/timings-shadowing-pronunciation.json",
+      getChunks: () => getPronunciationChunkTexts(),
+      accent: "uk",
+      rate: 0.8,
+    },
   ];
 
+  // Build a TimingWorkerConfig from a job meta
+  const buildConfig = async (job: typeof TIMING_JOBS_META[number]): Promise<TimingWorkerConfig> => {
+    const chunks = await job.getChunks();
+    if (chunks.length === 0) throw new Error(`No chunks found for ${job.label}`);
+    return {
+      chunks,
+      accent: job.accent,
+      rate: job.rate,
+      storagePath: job.path,
+      supabaseUrl: SUPABASE_URL,
+      anonKey: ANON_KEY,
+      jobLabel: job.label,
+    };
+  };
+
+  // For CurriculumTimingControls compatibility
+  const TIMING_JOBS = TIMING_JOBS_META.map((meta) => ({
+    label: meta.label,
+    path: meta.path,
+    run: () => launchTimingJob(meta.label, meta.path, meta.getChunks, meta.accent, meta.rate),
+  }));
+
   const handleMeasureSingle = async (jobIndex: number) => {
-    if (isMeasuring) return;
     const job = TIMING_JOBS[jobIndex];
     if (!job) return;
-    setIsMeasuring(true); cancelRef.current = false; clearTimingsCache(); setMeasureLabel(job.label);
-    try {
-      await job.run();
-      toast({ title: cancelRef.current ? "Measurement cancelled" : "TTS Timing Complete", description: cancelRef.current ? `Stopped during ${job.label}.` : `Re-measured ${job.label}.` });
-    } catch (err) {
-      if (!cancelRef.current) toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
-    } finally {
-      cancelRef.current = false; setIsMeasuring(false); setMeasureProgress({ current: 0, total: 0 }); setMeasureLabel(""); checkTimingStatus();
-    }
+    await job.run();
   };
 
   const handleMeasureAll = async (force: boolean) => {
     if (isMeasuring) return;
-    setIsMeasuring(true); cancelRef.current = false; clearTimingsCache();
+    clearTimingsCache();
+
+    let pending = TIMING_JOBS_META;
+    if (!force) {
+      const filtered = [];
+      for (const job of TIMING_JOBS_META) {
+        const s = timingStatus[job.path];
+        if (s === "complete") continue; // skip complete, include partial + missing
+        filtered.push(job);
+      }
+      pending = filtered;
+    }
+
+    if (pending.length === 0) {
+      toast({ title: "All timings already exist", description: "No missing or partial timing files to measure." });
+      return;
+    }
+
+    setIsMeasuring(true);
+    setMeasureLabel(`Queue: ${pending.length} job(s)`);
+
     try {
-      let pending = TIMING_JOBS;
-      if (!force) {
-        pending = [];
-        for (const job of TIMING_JOBS) {
-          const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
-          if (data?.publicUrl) {
-            try { const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" }); if (res.ok) continue; } catch {}
-          }
-          pending.push(job);
-        }
-      }
-      if (pending.length === 0) {
-        toast({ title: "All timings already exist", description: "No missing timing files to measure." });
-      } else {
-        for (const job of pending) {
-          if (cancelRef.current) break;
-          setMeasureLabel(job.label);
-          await job.run();
-        }
-        toast({ title: cancelRef.current ? "Measurement cancelled" : "TTS Timings Complete", description: cancelRef.current ? "Stopped by user." : `Measured ${pending.length} timing file(s).` });
-      }
+      const configs = await Promise.all(pending.map(buildConfig));
+      launchTimingWorkerQueue(configs);
+      toast({ title: `Queued ${configs.length} timing job(s)`, description: `Running sequentially in background popup. Partial files will resume automatically.` });
     } catch (err) {
-      if (!cancelRef.current) toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
-    } finally {
-      cancelRef.current = false; setIsMeasuring(false); setMeasureProgress({ current: 0, total: 0 }); setMeasureLabel(""); checkTimingStatus();
+      setIsMeasuring(false);
+      setMeasureLabel("");
+      toast({ title: "Failed to start timing queue", description: String(err), variant: "destructive" });
+    }
+  };
+
+  const handleResumePartial = async () => {
+    if (isMeasuring) return;
+    clearTimingsCache();
+
+    const partialJobs = TIMING_JOBS_META.filter((job) => timingStatus[job.path] === "partial");
+    if (partialJobs.length === 0) {
+      toast({ title: "No partial files", description: "No interrupted timing jobs to resume." });
+      return;
+    }
+
+    setIsMeasuring(true);
+    setMeasureLabel(`Resuming ${partialJobs.length} job(s)`);
+
+    try {
+      const configs = await Promise.all(partialJobs.map(buildConfig));
+      launchTimingWorkerQueue(configs);
+      toast({ title: `Resuming ${configs.length} partial job(s)`, description: `The worker will continue from where it left off.` });
+    } catch (err) {
+      setIsMeasuring(false);
+      setMeasureLabel("");
+      toast({ title: "Failed to resume", description: String(err), variant: "destructive" });
     }
   };
 
@@ -257,12 +414,20 @@ export default function AdminCurriculumUpload() {
             measureLabel={measureLabel}
             measureProgress={measureProgress}
             timingStatus={timingStatus}
+            timingPartialInfo={timingPartialInfo}
             timingJobs={TIMING_JOBS}
             onMeasureAll={handleMeasureAll}
             onMeasureSingle={handleMeasureSingle}
-            onCancel={() => { cancelRef.current = true; }}
+            onResumePartial={handleResumePartial}
+            onCancel={() => { cancelTimingWorker(); }}
           />
         </div>
+
+        {isMeasuring && (
+          <p className="text-[10px] text-amber-300/60 animate-pulse">
+            ⏳ Running in background popup — you can continue working here
+          </p>
+        )}
       </div>
 
       <CurriculumVersionsTable metadata={metadata} />

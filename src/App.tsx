@@ -8,9 +8,10 @@ import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import DevNav from "@/components/DevNav";
-import GlobalOmniChat from "@/components/GlobalOmniChat";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
+
+const DevNav = lazy(() => import("@/components/DevNav"));
+const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
 
 // Lazy-loaded route pages — each becomes its own chunk
 // We store the import functions so we can prefetch them eagerly
@@ -33,6 +34,7 @@ const pageImports = {
   IELTSPronunciation: () => import("./pages/IELTSPronunciation"),
   IELTSFluency: () => import("./pages/IELTSFluency"),
   IELTSSpeaking: () => import("./pages/IELTSSpeaking"),
+  IELTSMockTest: () => import("./pages/IELTSMockTest"),
   IGCSEPronunciation: () => import("./pages/IGCSEPronunciation"),
   IGCSEFluency: () => import("./pages/IGCSEFluency"),
   IGCSESpeaking: () => import("./pages/IGCSESpeaking"),
@@ -56,6 +58,7 @@ const WeekSelection = lazy(pageImports.WeekSelection);
 const IELTSPronunciation = lazy(pageImports.IELTSPronunciation);
 const IELTSFluency = lazy(pageImports.IELTSFluency);
 const IELTSSpeaking = lazy(pageImports.IELTSSpeaking);
+const IELTSMockTest = lazy(pageImports.IELTSMockTest);
 const IGCSEPronunciation = lazy(pageImports.IGCSEPronunciation);
 const IGCSEFluency = lazy(pageImports.IGCSEFluency);
 const IGCSESpeaking = lazy(pageImports.IGCSESpeaking);
@@ -73,6 +76,7 @@ const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
   "/ielts/pronunciation": [pageImports.IELTSPronunciation],
   "/ielts/fluency": [pageImports.IELTSFluency],
   "/ielts/speaking": [pageImports.IELTSSpeaking],
+  "/ielts/mock-test": [pageImports.IELTSMockTest],
   "/igcse/pronunciation": [pageImports.IGCSEPronunciation],
   "/igcse/fluency": [pageImports.IGCSEFluency],
   "/igcse/speaking": [pageImports.IGCSESpeaking],
@@ -115,6 +119,7 @@ const App = () => {
             <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSSpeaking /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/ielts/mock-test" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSMockTest /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSEFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/igcse/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IGCSESpeaking /></ErrorBoundary></ProtectedRoute>} />

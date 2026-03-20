@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, User, Check, Loader2, Lock } from "lucide-react";
+import { ArrowLeft, Camera, User, Check, Loader2, Lock, ClipboardCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import PageShell from "@/components/PageShell";
 import { useVideoLoopStack } from "@/hooks/useVideoLoopStack";
@@ -8,9 +8,11 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { fetchProfile } from "@/services/db";
-import { useEffect } from "react";
+import MockTestHistory from "@/components/profile/MockTestHistory";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+type Tab = "profile" | "history";
 
 export default function StudentProfile() {
   const { videoList } = useVideoLoopStack();
@@ -23,6 +25,7 @@ export default function StudentProfile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [tab, setTab] = useState<Tab>("profile");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -100,6 +103,11 @@ export default function StudentProfile() {
     setSaving(false);
   };
 
+  const TABS: { key: Tab; label: string; icon: typeof User }[] = [
+    { key: "profile", label: "Profile", icon: User },
+    { key: "history", label: "Mock Tests", icon: ClipboardCheck },
+  ];
+
   return (
     <PageShell fullWidth loopVideos={videoList} hideFooter>
       <div className="absolute inset-4 z-10 flex items-center justify-center">
@@ -107,11 +115,11 @@ export default function StudentProfile() {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="relative w-full max-w-[440px] rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden"
+          className="relative w-full max-w-[480px] rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
-          <div className="relative z-10 p-6 flex flex-col items-center gap-6">
+          <div className="relative z-10 p-6 flex flex-col gap-5">
             {/* Header */}
             <div className="w-full flex items-center justify-between">
               <button onClick={() => navigate("/student")} className="flex items-center gap-2 text-white/60 hover:text-white transition-all">
@@ -122,69 +130,101 @@ export default function StudentProfile() {
               <div className="w-16" />
             </div>
 
-            {/* Avatar */}
-            <div className="relative group">
-              <div className="w-28 h-28 rounded-full bg-white/10 border-2 border-white/15 overflow-hidden flex items-center justify-center shadow-xl">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-12 h-12 text-white/30" />
-                )}
-              </div>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/25 transition-all shadow-lg"
-              >
-                {uploading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Camera className="w-4 h-4" />
-                )}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
+            {/* Tabs */}
+            <div className="flex gap-1 bg-white/[0.04] rounded-xl p-1">
+              {TABS.map((t) => {
+                const Icon = t.icon;
+                const active = tab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                      active
+                        ? "bg-white/10 text-white shadow-sm"
+                        : "text-white/40 hover:text-white/60"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {t.label}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Display Name */}
-            <div className="w-full space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 pl-1">
-                Display Name
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  maxLength={100}
-                  placeholder="Enter your name"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-teal-400/40 transition-all"
-                />
-                <button
-                  onClick={handleSaveName}
-                  disabled={saving || !displayName.trim()}
-                  className="px-4 py-3 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white hover:shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+            {/* Profile Tab */}
+            {tab === "profile" && (
+              <div className="flex flex-col items-center gap-6">
+                {/* Avatar */}
+                <div className="relative group">
+                  <div className="w-28 h-28 rounded-full bg-white/10 border-2 border-white/15 overflow-hidden flex items-center justify-center shadow-xl">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-white/30" />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/25 transition-all shadow-lg"
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </div>
 
-            {/* Email (read-only) */}
-            <div className="w-full space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 pl-1">
-                Email
-              </label>
-              <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/40 opacity-60 flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-white/30 shrink-0" />
-                {user?.email ?? "—"}
+                {/* Display Name */}
+                <div className="w-full space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 pl-1">
+                    Display Name
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      maxLength={100}
+                      placeholder="Enter your name"
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-teal-400/40 transition-all"
+                    />
+                    <button
+                      onClick={handleSaveName}
+                      disabled={saving || !displayName.trim()}
+                      className="px-4 py-3 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white hover:shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Email (read-only) */}
+                <div className="w-full space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 pl-1">
+                    Email
+                  </label>
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/40 opacity-60 flex items-center gap-2">
+                    <Lock className="w-3.5 h-3.5 text-white/30 shrink-0" />
+                    {user?.email ?? "—"}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Mock Test History Tab */}
+            {tab === "history" && (
+              <MockTestHistory userId={user?.id} />
+            )}
           </div>
         </motion.div>
       </div>

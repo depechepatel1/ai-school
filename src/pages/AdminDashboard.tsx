@@ -2,7 +2,7 @@ import { useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
-import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, ClipboardList, Film, Timer, Upload } from "lucide-react";
+import { Shield, Users, BookOpen, BarChart3, MessageSquare, LogOut, TrendingUp, ClipboardList, Film, Timer, Upload, Sparkles } from "lucide-react";
 import NeuralLogo from "@/components/NeuralLogo";
 import PageShell from "@/components/PageShell";
 import { LoadingSpinner } from "@/components/admin/admin-shared";
@@ -15,10 +15,11 @@ const ClassesPanel = lazy(() => import("@/components/admin/AdminClassesPanel"));
 const PracticePanel = lazy(() => import("@/components/admin/AdminPracticePanel"));
 const ConversationsPanel = lazy(() => import("@/components/admin/AdminConversationsPanel"));
 const AuditPanel = lazy(() => import("@/components/admin/AdminAuditPanel"));
+const EventsPanel = lazy(() => import("@/components/admin/AdminEventsPanel"));
 
 const DASHBOARD_BG = "/images/dashboard-bg.jpg";
 
-type Tab = "analytics" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
+type Tab = "analytics" | "events" | "users" | "classes" | "practice" | "conversations" | "audit" | "timers" | "curriculum";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "analytics", label: "Analytics", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+    { id: "events", label: "Events", icon: <Sparkles className="w-3.5 h-3.5" /> },
     { id: "users", label: "Users", icon: <Users className="w-3.5 h-3.5" /> },
     { id: "classes", label: "Classes", icon: <BookOpen className="w-3.5 h-3.5" /> },
     { id: "practice", label: "Logs", icon: <BarChart3 className="w-3.5 h-3.5" /> },
@@ -96,6 +98,7 @@ export default function AdminDashboard() {
             <div className="flex-1 min-h-0 overflow-y-auto">
               <Suspense fallback={<LoadingSpinner variant="chart" />}>
                 {activeTab === "analytics" && <AnalyticsPanel />}
+                {activeTab === "events" && <EventsPanel />}
                 {activeTab === "users" && <UsersPanel />}
                 {activeTab === "classes" && <ClassesPanel />}
                 {activeTab === "practice" && <PracticePanel />}

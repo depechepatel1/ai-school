@@ -114,12 +114,8 @@
   }
 }
 
-@media (min-width: 1280px) {
-  .auth-video-scale {
-    transform: scale(1.25);
-    transform-origin: 100% 45%;
-  }
-}
+/* .auth-video-scale: positioning is now handled via inline styles
+   from src/lib/videoFraming.ts — do NOT add object-position here */
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
@@ -170,4 +166,12 @@
 @keyframes waveBar {
   0% { transform: scaleY(0.4); opacity: 0.4; }
   100% { transform: scaleY(1); opacity: 0.8; }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-bounce-gentle {
+  animation: bounce-gentle 1.5s ease-in-out infinite;
 }

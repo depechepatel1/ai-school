@@ -1,0 +1,984 @@
+{
+  "metadata": {
+    "test_section": "IELTS Speaking Part 1",
+    "title": "Introduction and Interview",
+    "duration_minutes": "4-5",
+    "version": "1.0",
+    "created": "2026-03-19",
+    "description": "Complete IELTS Speaking Part 1 question bank for mock test curriculum. The AI examiner follows the sequence: Introduction -> Opening Frame (R1 or R2) -> Two Topic Frames (from topic_frames pool).",
+    "notation_guide": {
+      "square_brackets": "Optional follow-up prompts or examples the examiner may use, e.g. [Why/Why not?]",
+      "curly_braces_in_questions": "Dynamic placeholders the app fills in at runtime, e.g. {country}",
+      "ellipsis_dots": "The examiner supplies relevant information from context"
+    },
+    "user_type_default": "student",
+    "total_r1_variants": 5,
+    "total_r2_variants": 5,
+    "total_topic_frames": 56
+  },
+
+  "test_flow": {
+    "step_1_introduction": {
+      "instruction": "Greet the candidate and collect their name. This is NOT timed as part of the 4-5 minutes.",
+      "script": [
+        "Good morning/afternoon/evening.",
+        "My name is {examiner_name}.",
+        "Can you tell me your full name, please?",
+        "Thank you. And what shall I call you?",
+        "And can you tell me where you're from?",
+        "Now, in this first part, I'd like to ask you some questions about yourself."
+      ]
+    },
+    "step_2_opening_frame": {
+      "instruction": "Choose ONE R1 variant OR ONE R2 variant at random. Ask all questions in the chosen variant (typically 3).",
+      "questions_to_ask": 3,
+      "for_students": "Always use the 'study' path questions from R2. The 'work' path is hidden.",
+      "for_adults": "Present the R2 opening question 'Do you work or are you a student?' and branch to the appropriate path."
+    },
+    "step_3_topic_frames": {
+      "instruction": "Randomly select TWO topic frames from the topic_frames pool. Ask 3-4 questions from each frame.",
+      "frame_1_questions": "3 or 4",
+      "frame_2_questions": "3 or 4 (adjust based on remaining time to stay within 4-5 minutes total)",
+      "intro_phrase": "Each frame has an 'intro' field. The examiner says this before asking the questions."
+    }
+  },
+
+  "opening_frames": {
+    "R1_variants": [
+      {
+        "variant_id": "R1_A",
+        "topic": "Your Home Town",
+        "intro": "Let's talk about your home town — your home in {country}, or where you live now.",
+        "questions": [
+          "Where is your home town?",
+          "Did you learn about the history of your home town when you were at school? [Why/Why not?]",
+          "What is your home town famous for today?"
+        ]
+      },
+      {
+        "variant_id": "R1_B",
+        "topic": "Where You Live Now",
+        "intro": "Let's talk about where you live now.",
+        "questions": [
+          "Do you live in a town, a city or the countryside? [Why?]",
+          "What do you like best about living there? [Why?]",
+          "Would you recommend living there to other people? [Why/Why not?]"
+        ]
+      },
+      {
+        "variant_id": "R1_C",
+        "topic": "Your Hometown",
+        "intro": "Let's talk about your hometown.",
+        "questions": [
+          "Is your hometown a city, a town, or a village?",
+          "What do you like about your hometown?",
+          "Is your hometown suitable for young people? [Why/Why not?]"
+        ]
+      },
+      {
+        "variant_id": "R1_D",
+        "topic": "Your Home",
+        "intro": "Let's talk about the house or apartment you're living in now.",
+        "questions": [
+          "How long have you been living in your current home? [Why?]",
+          "What do you like most about your home? [Why?]",
+          "What kind of home would you like to live in in the future? [Why?]"
+        ]
+      },
+      {
+        "variant_id": "R1_E",
+        "topic": "Your Area",
+        "intro": "Let's talk about where you live now.",
+        "questions": [
+          "How long have you lived in your area? [Why?]",
+          "What do you like about it? [Why?]",
+          "Is there anything you would like to change about where you live? [Why/Why not?]"
+        ]
+      }
+    ],
+
+    "R2_variants": [
+      {
+        "variant_id": "R2_A",
+        "topic": "Work or Study",
+        "intro": "Let's talk about what you do. Do you work or are you a student?",
+        "study_questions": [
+          "How do you usually spend your day when you're studying? [Why?]",
+          "Do you find it easy to organise your study time? [Why/Why not?]",
+          "Who helps you most in your studies? [Why?]"
+        ],
+        "work_questions": [
+          "How do you usually spend your day at work? [Why?]",
+          "Do you find it easy to organise your time at work? [Why/Why not?]",
+          "Who helps you most in your work? [Why?]"
+        ]
+      },
+      {
+        "variant_id": "R2_B",
+        "topic": "Work or Study",
+        "intro": "Let's talk about what you do. Do you work or are you a student?",
+        "study_questions": [
+          "What do you enjoy most about your studies? [Why?]",
+          "Do you prefer to study at home or to go to a library? [Why?]",
+          "Is there something that you would like to study in the future? [Why/Why not?]"
+        ],
+        "work_questions": [
+          "What do you enjoy most about your work? [Why?]",
+          "Would you prefer to work from home or to go out to work? [Why?]",
+          "Is there a job that you would like to do in the future? [Why/Why not?]"
+        ]
+      },
+      {
+        "variant_id": "R2_C",
+        "topic": "Your Studies",
+        "intro": "Let's talk about your studies.",
+        "study_questions": [
+          "Where is your place of study?",
+          "What kind of transport do you use to get to your school? [Why?]",
+          "How do you feel when your study day ends? [Why?]"
+        ],
+        "work_questions": [
+          "What kind of work do you do?",
+          "How do you usually get to your workplace? [Why?]",
+          "How do you feel at the end of a working day? [Why?]"
+        ]
+      },
+      {
+        "variant_id": "R2_D",
+        "topic": "Your Studies",
+        "intro": "Let's talk about what you study.",
+        "study_questions": [
+          "Which subjects are you currently studying?",
+          "How popular are your subjects in {country}? [Why?]",
+          "How important is it for you to study a subject that you enjoy? [Why?]"
+        ],
+        "work_questions": [
+          "What kind of work do you do?",
+          "How popular is your type of work in {country}? [Why?]",
+          "How important is it for you to enjoy the work that you do? [Why?]"
+        ]
+      },
+      {
+        "variant_id": "R2_E",
+        "topic": "Work or Study",
+        "intro": "Let's talk about what you do. Do you work or are you a student?",
+        "study_questions": [
+          "What subject or subjects are you studying?",
+          "How do you usually organise your day when you have classes? [Why?]",
+          "Do you study better in the morning or later in the day? [Why?]"
+        ],
+        "work_questions": [
+          "What kind of work do you do?",
+          "How do you usually spend a typical workday? [Why?]",
+          "Do you prefer working in the morning or the afternoon? [Why?]"
+        ]
+      }
+    ]
+  },
+
+  "topic_frames": [
+    {
+      "frame_id": 1,
+      "topic": "Playing Video Games",
+      "intro": "Let's talk about playing video games.",
+      "questions": [
+        "Have you ever played a video game? [Why/Why not?]",
+        "Are you interested in watching other people play video games? [Why/Why not?]",
+        "Do you think some people spend too much time playing video games? [Why/Why not?]",
+        "Would you prefer to play a video game on your own or with others? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 2,
+      "topic": "Advertising and Adverts",
+      "intro": "Let's talk about advertising and adverts.",
+      "questions": [
+        "Do you enjoy watching adverts on TV or the internet? [Why/Why not?]",
+        "Is there an advert that you really remember from when you were younger? [What/Why?]",
+        "Do you notice advertising in public places, for example on trains or in the street? [Why/Why not?]",
+        "Would you like to work in advertising? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 3,
+      "topic": "Remembering to Do Things",
+      "intro": "Let's talk about remembering to do things.",
+      "questions": [
+        "What do you need to remember to do every day? [Why?]",
+        "Is it easy for you to remember to do things? [Why/Why not?]",
+        "What do you do to help you remember to do things? [Why?]",
+        "Have you ever forgotten to do something important? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 4,
+      "topic": "Famous People in the News",
+      "intro": "Let's talk about famous people in the news.",
+      "questions": [
+        "Which famous people from {country} are often in the news? [Why?]",
+        "Do you enjoy hearing news about famous people? [Why/Why not?]",
+        "Do you believe everything you read about famous people? [Why/Why not?]",
+        "Would you like to be famous and in the news? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 5,
+      "topic": "Cakes and Other Sweet Things",
+      "intro": "Let's talk about cakes and other sweet things.",
+      "questions": [
+        "Did you enjoy cakes and sweet things when you were a child? [Why/Why not?]",
+        "When do people in your culture eat special cakes or sweet things? [Why?]",
+        "Have you ever made a cake yourself? [Why/Why not?]",
+        "How often do you have something sweet at the end of a meal? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 6,
+      "topic": "Social Media",
+      "intro": "Let's talk about social media, for example Instagram, WhatsApp, or WeChat.",
+      "questions": [
+        "Do most of your friends and family use social media? [Why/Why not?]",
+        "When did you start using social media? [Why?]",
+        "Do you think you spend too much time using social media? [Why/Why not?]",
+        "Do you think people in {country} find social media useful? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 7,
+      "topic": "Crowded Places",
+      "intro": "Let's talk about crowded places — that is, places where there are a lot of people.",
+      "questions": [
+        "Are there many crowded places where you live? [Where/Why?]",
+        "When was the last time you were in a crowded place? [Why?]",
+        "Would you prefer to have a holiday in a crowded place or a quiet place? [Why?]",
+        "Do people in {country} often celebrate as part of a crowd, for example at New Year? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 8,
+      "topic": "Sunglasses",
+      "intro": "Let's talk about sunglasses.",
+      "questions": [
+        "How often do you wear sunglasses? [Why/Why not?]",
+        "Would you spend a lot of money on sunglasses? [Why/Why not?]",
+        "Would you buy sunglasses for someone else as a gift? [Why/Why not?]",
+        "Have you ever lost any sunglasses? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 9,
+      "topic": "Singing",
+      "intro": "Let's talk about singing.",
+      "questions": [
+        "Do you enjoy singing songs? [Why/Why not?]",
+        "Did you learn to sing any songs when you were a child? [Why/Why not?]",
+        "Do people in {country} often sing songs? [Why/Why not?]",
+        "Which singers do you enjoy listening to? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 10,
+      "topic": "Different Stages in Life",
+      "intro": "Let's talk about different stages in life.",
+      "questions": [
+        "What did you enjoy most about your childhood?",
+        "What's the best thing about being the age you are now? [Why?]",
+        "What do you hope you'll be doing in five years' time? [Why?]",
+        "How can people remember all the different stages in their lives? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 11,
+      "topic": "Feeling Bored",
+      "intro": "Let's talk about feeling bored.",
+      "questions": [
+        "Do you often feel bored? [Why/Why not?]",
+        "What sort of things do you find most boring? [Why?]",
+        "What do you do to stop yourself feeling bored? [Why?]",
+        "Do you get bored more often now than when you were younger? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 12,
+      "topic": "Colours",
+      "intro": "Let's talk about colours.",
+      "questions": [
+        "What colours do you like most? [Why?]",
+        "Is colour important to you when you buy clothes? [Why/Why not?]",
+        "Do any colours have a special meaning in {country}? [Why/Why not?]",
+        "What colour would you choose if you were buying a new car? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 13,
+      "topic": "Money and Paying for Things",
+      "intro": "Let's talk about money and paying for things.",
+      "questions": [
+        "Do you generally prefer to spend money or save money? [Why?]",
+        "How often do you use a credit card to pay for things? [Why/Why not?]",
+        "How do you feel about using a phone app to pay for things? [Why/Why not?]",
+        "Will you use cash more often in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 14,
+      "topic": "Watching Sport",
+      "intro": "Let's talk about watching sport.",
+      "questions": [
+        "Do you enjoy watching sport on TV? [Why/Why not?]",
+        "Have you ever been to watch a live sports event, for example in a stadium? [Why/Why not?]",
+        "Is there a sports event you might like to watch in the future? [Why/Why not?]",
+        "Do you think it's more enjoyable to watch sports alone or with other people? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 15,
+      "topic": "Daily Routine",
+      "intro": "Let's talk about your daily routine — what you do every day.",
+      "questions": [
+        "What do you usually do in the mornings before starting your work or studies?",
+        "Do you prefer to go to bed early or late? [Why/Why not?]",
+        "Do you like to do the same things every weekend? [Why/Why not?]",
+        "Is your daily routine going to change in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 16,
+      "topic": "Mobile Phones",
+      "intro": "Let's talk about mobile phones.",
+      "questions": [
+        "Do you like using a mobile phone? [Why/Why not?]",
+        "Do you send many text messages? [Why/Why not?]",
+        "When did you first have a mobile phone?",
+        "Are there any places where you would not use a mobile phone? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 17,
+      "topic": "Art",
+      "intro": "Let's talk about art.",
+      "questions": [
+        "Did you learn to draw or paint when you were younger? [Why/Why not?]",
+        "Have you ever visited an art gallery? [Why/Why not?]",
+        "Do you like looking at drawings or paintings? [Why/Why not?]",
+        "Would you like to learn more about art in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 18,
+      "topic": "Mirrors",
+      "intro": "Let's talk about mirrors.",
+      "questions": [
+        "How often do you look at yourself in a mirror? [Why/Why not?]",
+        "Have you ever bought a mirror? [Why/Why not?]",
+        "Would you buy clothes without checking yourself in a mirror first? [Why/Why not?]",
+        "Do you think mirrors are a good way to decorate a room? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 19,
+      "topic": "Shopping at Street Markets",
+      "intro": "Let's talk about shopping at street markets.",
+      "questions": [
+        "What are the best things to buy at street markets in {country}? [Why?]",
+        "When was the last time you went to a street market? [Why/Why not?]",
+        "Do you like going to street markets when you're on holiday? [Why/Why not?]",
+        "Which do you prefer: shopping at a street market or shopping at a shopping centre? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 20,
+      "topic": "Taking Photos",
+      "intro": "Let's talk about taking photos.",
+      "questions": [
+        "How often do you take photos? [Why/Why not?]",
+        "Do you like taking photos of yourself? [Why/Why not?]",
+        "Do you have a favourite family photo? [Why/Why not?]",
+        "Would you like to learn how to take better photos? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 21,
+      "topic": "Email",
+      "intro": "Let's talk about email.",
+      "questions": [
+        "Is email popular with everyone in {country}? [Why/Why not?]",
+        "Do you send a lot of emails? [Why/Why not?]",
+        "Do you prefer to email people or speak to them on the phone? [Why/Why not?]",
+        "Do you think people will use email more or less in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 22,
+      "topic": "Dreams",
+      "intro": "Let's talk about dreams.",
+      "questions": [
+        "How often do you remember your dreams after you wake up?",
+        "Do you like hearing about other people's dreams? [Why/Why not?]",
+        "Do you think dreams can have special meanings? [Why/Why not?]",
+        "Would you like to learn more about the subject of dreams? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 23,
+      "topic": "Finding and Losing Things",
+      "intro": "Let's talk about finding and losing things.",
+      "questions": [
+        "What kinds of lost things have you found in a public place?",
+        "What would you do if you found something valuable, for example a phone? [Why/Why not?]",
+        "Have you ever lost something which was found by a stranger? [What was it/Why?]",
+        "Would you ever ask for help on social media to find something you'd lost? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 24,
+      "topic": "Cars",
+      "intro": "Let's talk about cars.",
+      "questions": [
+        "Did you enjoy travelling by car when you were a child? [Why/Why not?]",
+        "Would you generally prefer to be a driver or a passenger in a car? [Why/Why not?]",
+        "How important is the colour of a car to you? [Why/Why not?]",
+        "What type of car would you most like to have in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 25,
+      "topic": "Going to the Cinema",
+      "intro": "Let's talk about going to the cinema.",
+      "questions": [
+        "Did you go to the cinema a lot when you were a child? [Why/Why not?]",
+        "Do you still like the same films that you liked when you were a child? [Why/Why not?]",
+        "Do you prefer to go to the cinema with friends or on your own? [Why/Why not?]",
+        "Which is more popular in {country}: watching films at the cinema, or watching films at home? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 26,
+      "topic": "Websites",
+      "intro": "Let's talk about websites.",
+      "questions": [
+        "What kinds of websites do you use most often? [Why?]",
+        "Do you prefer to get information from websites or books? [Why/Why not?]",
+        "Does your favourite website look the same now as when you first used it? [Why/Why not?]",
+        "Which is more important to you: what a website looks like, or how easy it is to use? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 27,
+      "topic": "Feeling Calm and Relaxed",
+      "intro": "Let's talk about feeling calm and relaxed.",
+      "questions": [
+        "Have you visited a place recently where you felt calm and relaxed? [Where/Why?]",
+        "Do you find listening to music a relaxing thing to do? [Why/Why not?]",
+        "Would you ever do exercise to help you feel calm and relaxed? [Why/Why not?]",
+        "Are you usually a calm and relaxed person? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 28,
+      "topic": "Teachers",
+      "intro": "Let's talk about teachers.",
+      "questions": [
+        "Do you have a favourite teacher at school? [Why/Why not?]",
+        "How have teachers helped you? [Why?]",
+        "Are you still in contact with any of your teachers from primary school? [Why/Why not?]",
+        "Would you like to be a teacher? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 29,
+      "topic": "Bicycles",
+      "intro": "Let's talk about bicycles.",
+      "questions": [
+        "Did you ride a bicycle when you were a child? [Why/Why not?]",
+        "Do you have a bicycle now? [Why/Why not?]",
+        "Are bicycles popular in {country}? [Why/Why not?]",
+        "Do you think bicycles will be more or less popular in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 30,
+      "topic": "Meeting New People",
+      "intro": "Let's talk about meeting new people.",
+      "questions": [
+        "Do you like meeting new people? [Why/Why not?]",
+        "Have you met anyone new recently? [Who/Why not?]",
+        "Did you meet new people more often when you were younger? [Why/Why not?]",
+        "What do you usually talk about when you meet someone for the first time? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 31,
+      "topic": "Coins",
+      "intro": "Let's talk about coins — money made of metal, like cents or pennies.",
+      "questions": [
+        "Do you like to have some coins with you when you go out? [Why/Why not?]",
+        "Did you use coins more often in the past? [Why/Why not?]",
+        "When you were a child, did you ever save coins in a money box? [Why/Why not?]",
+        "Do you think that collecting unusual coins is an interesting hobby to have? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 32,
+      "topic": "Laughing and Things That Are Funny",
+      "intro": "Let's talk about laughing and things that are funny.",
+      "questions": [
+        "Do you enjoy watching films that are funny? [Why/Why not?]",
+        "When was the last time something made you laugh? [What was it/Why?]",
+        "Are you good at making people laugh? [Why/Why not?]",
+        "Do you think it's always good to make people laugh? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 33,
+      "topic": "Roads and Streets",
+      "intro": "Let's talk about roads and streets.",
+      "questions": [
+        "Are the roads and streets very busy near where you live? [Why/Why not?]",
+        "How easy is it to cross the roads in your area? [Why?]",
+        "Is there anything you would like to change about the roads in your area? [What/Why/Why not?]",
+        "Is there a road or street in {country} that is very famous? [What/Why?]"
+      ]
+    },
+    {
+      "frame_id": 34,
+      "topic": "Childhood",
+      "intro": "Let's talk about childhood.",
+      "questions": [
+        "Where did you like to play when you were a child? [Why?]",
+        "Who did you spend most time with when you were a child? [Why?]",
+        "Is there anything you enjoyed doing as a child that you still enjoy now? [What/Why/Why not?]",
+        "What do you think is the best thing about being a child? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 35,
+      "topic": "Views People Enjoy",
+      "intro": "Let's talk about views people enjoy looking at.",
+      "questions": [
+        "Are there any places with a good view where you live? [Why/Why not?]",
+        "What's the best view you've ever seen? [Why?]",
+        "Do you always take photos when you see a good view? [Why/Why not?]",
+        "Do you try to have a room with a good view when you're on holiday? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 36,
+      "topic": "Perfume",
+      "intro": "Let's talk about perfume.",
+      "questions": [
+        "Do you like to wear perfume or aftershave? [Why/Why not?]",
+        "Have you ever bought a bottle of perfume as a present? [Why/Why not?]",
+        "Do you have a favourite type of perfume? [What/Why/Why not?]",
+        "Would you pay a lot for a bottle of perfume? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 37,
+      "topic": "Fish and Fishing",
+      "intro": "Let's talk about fish and fishing.",
+      "questions": [
+        "Did you ever go fishing when you were a child? [Why/Why not?]",
+        "How popular is fishing as a hobby in {country}? [Why/Why not?]",
+        "Do you like eating fish? [Why/Why not?]",
+        "Have you ever been to a fish market? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 38,
+      "topic": "Working in Groups",
+      "intro": "Let's talk about working or studying in groups.",
+      "questions": [
+        "Did you work in groups when you were a child at primary school? [Why/Why not?]",
+        "Do you often work or study in a group now? [Why/Why not?]",
+        "How have you benefited from working in groups? [Why?]",
+        "Is there anything you don't like about working in groups? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 39,
+      "topic": "T-shirts",
+      "intro": "Let's talk about T-shirts.",
+      "questions": [
+        "How often do you wear a T-shirt? [Why/Why not?]",
+        "Did you wear T-shirts when you were a child? [Why/Why not?]",
+        "Would you ever give someone a T-shirt as a present? [Who/Why/Why not?]",
+        "Do you often look at the T-shirts that other people are wearing? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 40,
+      "topic": "Tea and Coffee",
+      "intro": "Let's talk about tea and coffee.",
+      "questions": [
+        "Is drinking tea and coffee common in your area? [Why/Why not?]",
+        "Do you ever go out just for tea or coffee? [Why/Why not?]",
+        "When was the last time you had tea or coffee? [Why?]",
+        "Would you serve tea or coffee to a guest? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 41,
+      "topic": "Music and Musical Instruments",
+      "intro": "Let's talk about music.",
+      "questions": [
+        "Can you play any musical instruments? [Why/Why not?]",
+        "Do you find learning an instrument easy? [Why/Why not?]",
+        "Did you study music much at school? [Why/Why not?]",
+        "Should every child get music education at school? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 42,
+      "topic": "Robots",
+      "intro": "Let's talk about robots.",
+      "questions": [
+        "How interested are you in robots? [Why/Why not?]",
+        "As a child, did you like films with robots in them? [Why/Why not?]",
+        "Would you want a robot assistant at home? [Why/Why not?]",
+        "Would you be comfortable in a robot-driven vehicle? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 43,
+      "topic": "Chatting with Friends",
+      "intro": "Let's talk about chatting with friends.",
+      "questions": [
+        "Do you chat with friends regularly? [Why/Why not?]",
+        "Which kind of chatting do you like more: in person or on social media? [Why/Why not?]",
+        "What's more fun for you: group chats or one-on-one chats? [Why/Why not?]",
+        "Have you ever disagreed with a friend during a chat? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 44,
+      "topic": "Clothes",
+      "intro": "Let's talk about clothes.",
+      "questions": [
+        "What do you prefer: comfortable clothes or formal clothes? [Why?]",
+        "Do you take much time picking out outfits each morning? [Why/Why not?]",
+        "As a child, did you get to choose your own clothes? [Why/Why not?]",
+        "What do you do with clothes you don't wear anymore? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 45,
+      "topic": "Running",
+      "intro": "Let's talk about running.",
+      "questions": [
+        "Were you into running as a child? [Why/Why not?]",
+        "When did you last go running? [Why?]",
+        "What's your opinion on running for fitness? [Why?]",
+        "Are there any good places to run in your area? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 46,
+      "topic": "Films and Movies",
+      "intro": "Let's talk about films and movies.",
+      "questions": [
+        "What kind of films do you like most? [Why?]",
+        "Is watching movies a good activity to do with friends? [Why/Why not?]",
+        "Have you ever thought of making a video yourself? [Why/Why not?]",
+        "Do you prefer watching films at home or at the cinema? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 47,
+      "topic": "Loud Noise",
+      "intro": "Let's talk about noise.",
+      "questions": [
+        "Are there any loud noises around your home? [Why/Why not?]",
+        "Would you like a quieter living environment? [Why/Why not?]",
+        "Do you enjoy playing loud music? [Why/Why not?]",
+        "Is it acceptable for people to be noisy in public areas? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 48,
+      "topic": "Maps",
+      "intro": "Let's talk about maps.",
+      "questions": [
+        "How often do you use maps on your mobile phone? [Why/Why not?]",
+        "Would you ever consider using a paper map? [Why/Why not?]",
+        "Is it easy for you to read a map? [Why/Why not?]",
+        "Have you ever thought of hanging a map on a wall at home? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 49,
+      "topic": "Studying Geography",
+      "intro": "Let's talk about geography.",
+      "questions": [
+        "Did you like geography at school? [Why/Why not?]",
+        "Is your geography knowledge useful today? [Why/Why not?]",
+        "Are you interested in the geography of foreign countries? [Why/Why not?]",
+        "Have you ever thought of being a geography teacher? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 50,
+      "topic": "Presents and Gifts",
+      "intro": "Let's talk about presents and gifts.",
+      "questions": [
+        "Have you ever received an amazing gift? [What was it?]",
+        "Are you good at selecting gifts for others? [Why/Why not?]",
+        "What kind of gift would you give a friend? [Why?]",
+        "Have you ever given a handmade present? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 51,
+      "topic": "Helping People",
+      "intro": "Let's talk about helping people.",
+      "questions": [
+        "In what ways do you help others? [Why?]",
+        "Did your parents encourage you to be helpful? [Why/Why not?]",
+        "Do you enjoy helping others? [Why/Why not?]",
+        "When did someone last help you out? [How?]"
+      ]
+    },
+    {
+      "frame_id": 52,
+      "topic": "Ambitions and Dreams",
+      "intro": "Let's talk about ambitions and dreams.",
+      "questions": [
+        "What job did you want to do when you were a child? [Why?]",
+        "What job do you want in the future? [Why?]",
+        "Are you a person with big goals? [Why/Why not?]",
+        "Do you have any personal dreams you'd like to achieve? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 53,
+      "topic": "Fixing Things",
+      "intro": "Let's talk about fixing things.",
+      "questions": [
+        "Do you try to fix things that are broken? [Why/Why not?]",
+        "Did someone teach you how to fix things? [Who/Why?]",
+        "What do you do with things you can't fix? [Why?]",
+        "Should everyone learn to fix things? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 54,
+      "topic": "How You Spend Your Week",
+      "intro": "Let's talk about how you spend your week.",
+      "questions": [
+        "Which day of the week do you like the most? [Why?]",
+        "Do you do the same things on the same days every week? [Why/Why not?]",
+        "Which day is the busiest for you? [Why?]",
+        "Is there anything you would like to change about your weekly routine? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 55,
+      "topic": "Ice Cream",
+      "intro": "Let's talk about ice cream.",
+      "questions": [
+        "Do you eat ice cream a lot? [Why/Why not?]",
+        "Did you eat more ice cream when you were a child? [Why/Why not?]",
+        "Is there a good place to buy ice cream where you live? [Why?]",
+        "Would you like to learn how to make ice cream yourself? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 56,
+      "topic": "Rain",
+      "intro": "Let's talk about rain.",
+      "questions": [
+        "Does it rain a lot where you live? [Why/Why not?]",
+        "Would you prefer to live somewhere wet or somewhere dry? [Why?]",
+        "Do you like going out when it's raining? [Why/Why not?]",
+        "Has rain ever changed your plans? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 57,
+      "topic": "Wild Animals",
+      "intro": "Let's talk about wild animals.",
+      "questions": [
+        "Are there many wild animals in {country}? [Why/Why not?]",
+        "Have you seen any programmes about wild animals on TV? [Which ones?]",
+        "Would you go to a zoo? [Why/Why not?]",
+        "Which wild animal would you most like to see in nature? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 58,
+      "topic": "Keeping Healthy",
+      "intro": "Let's talk about keeping healthy.",
+      "questions": [
+        "How do you try to stay healthy?",
+        "What kind of exercise do you enjoy? [Why?]",
+        "Did you learn about staying healthy at school? [How?]",
+        "Is it easy for people in your area to stay healthy? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 59,
+      "topic": "Bags",
+      "intro": "Let's talk about bags.",
+      "questions": [
+        "Did you have a bag for school when you were young? [Why/Why not?]",
+        "Do you carry a bag with you now? [Why/Why not?]",
+        "What kind of bag do you use when you travel? [Why?]",
+        "Would you like to receive a bag as a gift? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 60,
+      "topic": "Learning Languages",
+      "intro": "Let's talk about learning languages.",
+      "questions": [
+        "What languages did you study at school? [Why?]",
+        "Did you enjoy language classes? [Why/Why not?]",
+        "Do you think people should learn other languages? [Why/Why not?]",
+        "Would you like to learn a new language in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 61,
+      "topic": "Friends",
+      "intro": "Let's talk about friends.",
+      "questions": [
+        "What do you like to do with your friends? [Why?]",
+        "Is it easy for you to see your friends regularly? [Why/Why not?]",
+        "Have you had some friends for a long time? [Why/Why not?]",
+        "How important are friends to you? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 62,
+      "topic": "Concentrating",
+      "intro": "Let's talk about concentrating.",
+      "questions": [
+        "Did you find it easy to pay attention at school? [Why/Why not?]",
+        "Can you focus well in noisy places? [Why/Why not?]",
+        "What do you do to help yourself concentrate better?",
+        "Would you like a job where you need to concentrate a lot? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 63,
+      "topic": "Days Off",
+      "intro": "Let's talk about having a day off.",
+      "questions": [
+        "When was your last day off? [What did you do?]",
+        "What do you usually do on your days off? [Why?]",
+        "Do you prefer to spend your days off with friends or family? [Why?]",
+        "What would you do if you had tomorrow off? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 64,
+      "topic": "Learning About Science",
+      "intro": "Let's talk about science.",
+      "questions": [
+        "Did you enjoy science classes when you were at school? [Why/Why not?]",
+        "Would you like to learn more about science? [Why/Why not?]",
+        "Do you watch science-related programmes on TV? [Why/Why not?]",
+        "Are science museums popular in {country}? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 65,
+      "topic": "Watches",
+      "intro": "Let's talk about watches.",
+      "questions": [
+        "Did you wear a watch when you were a child? [Why/Why not?]",
+        "Have you ever been given a watch as a gift? [Who gave it to you?]",
+        "Do you wear a watch now? [Why/Why not?]",
+        "Why do you think some people prefer expensive watches?"
+      ]
+    },
+    {
+      "frame_id": 66,
+      "topic": "Sport and Physical Activities",
+      "intro": "Let's talk about sport and physical activities.",
+      "questions": [
+        "Did you learn to play any sports when you were a child? [Which ones?]",
+        "Do you think all children should play sports at school? [Why/Why not?]",
+        "What sports do you enjoy playing or watching? [Why?]",
+        "Are there any sports you would like to try in the future? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 67,
+      "topic": "Computers and Tablets",
+      "intro": "Let's talk about computers and tablets.",
+      "questions": [
+        "What do you mostly use a computer or tablet for? [Why?]",
+        "Do you remember when you first used a computer or tablet? [When was it?]",
+        "Do you ever find computers or tablets difficult to use? [Why/Why not?]",
+        "How would your life be different if computers didn't exist?"
+      ]
+    },
+    {
+      "frame_id": 68,
+      "topic": "Personal Talents and Skills",
+      "intro": "Let's talk about skills and talents.",
+      "questions": [
+        "What are some things you think you are good at? [Why?]",
+        "Do you have a talent that someone else in your family also has? [Why/Why not?]",
+        "Is there a skill or talent you would like to improve? [Why?]",
+        "Do you think your talents will help you in your future career? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 69,
+      "topic": "Old Buildings",
+      "intro": "Let's talk about old buildings.",
+      "questions": [
+        "Have you ever visited an important old building? [Why/Why not?]",
+        "Is there an old building you would like to visit one day? [Why/Why not?]",
+        "Do you think it's important to protect old buildings? [Why/Why not?]",
+        "Would you rather live in an old building or a modern one? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 70,
+      "topic": "Books and Reading",
+      "intro": "Let's talk about books and reading.",
+      "questions": [
+        "Do you read more or less now than when you were younger? [Why?]",
+        "Have you ever watched a film and then read the book it was based on? [Why/Why not?]",
+        "When do you usually find time to read? [Why?]",
+        "How often do you buy books? [Why?]"
+      ]
+    },
+    {
+      "frame_id": 71,
+      "topic": "Evenings",
+      "intro": "Let's talk about what you do in the evenings.",
+      "questions": [
+        "What do you usually do in the evening? [Why?]",
+        "Do you spend your evenings differently on weekdays compared to weekends? [Why/Why not?]",
+        "How did you spend your evenings when you were a child? [Why?]",
+        "Is there anything you dislike doing in the evening? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 72,
+      "topic": "Keeping Things",
+      "intro": "Let's talk about things you keep.",
+      "questions": [
+        "Do you still have many things from your childhood? [Why/Why not?]",
+        "Do you prefer keeping things for a long time, or throwing them away? [Why?]",
+        "Where do you usually keep things you use every day, like keys or money? [Why?]",
+        "Do you like to keep all the photos you take? [Why/Why not?]"
+      ]
+    },
+    {
+      "frame_id": 73,
+      "topic": "Sitting",
+      "intro": "Let's talk about sitting down.",
+      "questions": [
+        "Do you often have to sit for long periods? [Why/Why not?]",
+        "When you were a child, did you enjoy sitting on the floor? [Why/Why not?]",
+        "Can you fall asleep easily while sitting in a chair? [Why/Why not?]",
+        "Do you have a favourite place to sit? [Why/Why not?]"
+      ]
+    }
+  ]
+}

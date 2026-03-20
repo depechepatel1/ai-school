@@ -123,6 +123,36 @@ function estimateWordTimings(text: string, rate: number): { charIndex: number; t
   });
 }
 
+function buildCharIndexMap(originalText: string, cleanedText: string): number[] {
+  if (!cleanedText.length) return [];
+  const map = new Array<number>(cleanedText.length);
+  let originalIdx = 0;
+
+  for (let cleanIdx = 0; cleanIdx < cleanedText.length; cleanIdx++) {
+    const cleanChar = cleanedText[cleanIdx];
+
+    if (/\s/.test(cleanChar)) {
+      while (originalIdx < originalText.length && !/\s/.test(originalText[originalIdx])) originalIdx++;
+      map[cleanIdx] = originalIdx < originalText.length ? originalIdx : Math.max(0, originalText.length - 1);
+      while (originalIdx < originalText.length && /\s/.test(originalText[originalIdx])) originalIdx++;
+      continue;
+    }
+
+    const target = cleanChar.toLowerCase();
+    while (originalIdx < originalText.length && originalText[originalIdx].toLowerCase() !== target) originalIdx++;
+    map[cleanIdx] = originalIdx < originalText.length ? originalIdx : Math.max(0, originalText.length - 1);
+    if (originalIdx < originalText.length) originalIdx++;
+  }
+
+  return map;
+}
+
+function mapToOriginalCharIndex(cleanedCharIndex: number, charIndexMap: number[]): number {
+  if (!charIndexMap.length) return Math.max(0, cleanedCharIndex);
+  const safeIdx = Math.max(0, Math.min(cleanedCharIndex, charIndexMap.length - 1));
+  return charIndexMap[safeIdx] ?? safeIdx;
+}
+
 // ── Browser speak with auto-retry ─────────────────────────────
 
 function createUtterance(
@@ -174,7 +204,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
     const attemptSpeak = (voiceIndex: number) => {
       if (cancelled) { resolve(); return; }
 
-      speechSynthesis.cancel();
+      if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
 
       if (!voicesReady) ensureVoices();
       const voiceList = cachedVoices[accent] ?? findVoices(accent);
@@ -188,6 +218,11 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       }
 
       const utterance = createUtterance(cleanText, voice, opts);
+      const charIndexMap = buildCharIndexMap(text, cleanText);
+      const emitBoundary = (cleanedCharIndex: number) => {
+        if (!opts.onBoundary) return;
+        opts.onBoundary(mapToOriginalCharIndex(cleanedCharIndex, charIndexMap));
+      };
       let realBoundaryFired = false;
 
       utterance.onend = () => {
@@ -228,7 +263,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
           if (e.name === "word") {
             realBoundaryFired = true;
             clearFallbackTimers();
-            opts.onBoundary!(e.charIndex);
+            emitBoundary(e.charIndex);
           }
         };
       }
@@ -236,20 +271,21 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
       utterance.onstart = () => {
         opts.onStart?.();
 
+        // Fire word 0 boundary immediately on start (don't wait for fallback detection)
+        if (opts.onBoundary) {
+          emitBoundary(0);
+        }
+
         // Start fallback timer for browsers that don't fire onboundary
         if (opts.onBoundary) {
+          const DETECTION_DELAY = 400;
           fallbackTimeoutId = setTimeout(() => {
             if (realBoundaryFired || cancelled) return;
             console.log("[TTS] No onboundary detected, starting timer-based fallback");
             const timings = estimateWordTimings(cleanText, opts.rate ?? 0.9);
-            const startTime = Date.now();
-            let nextIdx = 0;
-
-            // Fire first word immediately
-            if (timings.length > 0) {
-              opts.onBoundary!(timings[0].charIndex);
-              nextIdx = 1;
-            }
+            // Offset startTime back by detection delay since speech already started
+            const startTime = Date.now() - DETECTION_DELAY;
+            let nextIdx = 1; // word 0 already fired above
 
             fallbackTimerId = setInterval(() => {
               if (cancelled || nextIdx >= timings.length) {
@@ -258,11 +294,11 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
               }
               const elapsed = Date.now() - startTime;
               while (nextIdx < timings.length && elapsed >= timings[nextIdx].timeMs) {
-                opts.onBoundary!(timings[nextIdx].charIndex);
+                emitBoundary(timings[nextIdx].charIndex);
                 nextIdx++;
               }
             }, 50);
-          }, 400);
+          }, DETECTION_DELAY);
         }
       };
 
@@ -270,7 +306,7 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
         if (cancelled) { resolve(); return; }
         console.log("[TTS] Speaking:", text.substring(0, 50), "| voice:", voice?.name ?? "default");
         speechSynthesis.speak(utterance);
-      }, 60);
+      }, 10);
     };
 
     attemptSpeak(0);

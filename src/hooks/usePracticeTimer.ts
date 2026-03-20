@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TIME_TARGETS } from "@/lib/semester";
+import { analytics } from "@/services/analytics";
 
 export type ActivityType = "shadowing" | "pronunciation" | "speaking";
 
@@ -169,6 +170,15 @@ export function usePracticeTimer({
   const remaining = targetSeconds - activeSeconds;
   const isComplete = activeSeconds >= targetSeconds;
   const isOvertime = activeSeconds > targetSeconds;
+
+  // Track practice_completed when target is first reached
+  const completedTrackedRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !completedTrackedRef.current && courseType) {
+      completedTrackedRef.current = true;
+      analytics.trackPracticeCompleted(activityType, activeSeconds, targetSeconds, courseType, weekNumber);
+    }
+  }, [isComplete, activityType, activeSeconds, targetSeconds, courseType, weekNumber]);
 
   const pause = useCallback(() => {
     setManualPause(true);

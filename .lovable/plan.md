@@ -1,29 +1,58 @@
 
 
-## Analysis
+# Performance Audit: Admin Dashboard
 
-### Problem 1: Video not moving
-The videos use `object-fit: cover` with `object-position: 30% center`. The `object-position` property only shifts the focal point when the video is being cropped by `object-cover`. If the video's native aspect ratio is close to the viewport's aspect ratio, there is very little or no cropping happening, so changing the percentage has almost no visible effect.
+## Findings
 
-**Fix**: Instead of relying on `object-position`, apply a CSS `transform: translateX()` to the background stage container itself. This physically moves the entire video left, guaranteeing visible movement regardless of aspect ratio. The container will also need to be made wider than the viewport to avoid revealing empty space on the right.
+### Measured Metrics
+- **First Contentful Paint**: 4080ms (poor — target is <1800ms)
+- **DOM Content Loaded**: 3989ms
+- **75 script requests** loaded during page init, averaging ~389ms each
+- **4 video files** fetched on admin page (unnecessary — admin uses a static `bgImage`)
+- **Live2D Cubism SDK** loaded as render-blocking script in `index.html` (400ms)
+- **150 total network requests** on page load
 
-### Problem 2: The vertical line with one-sided fade
-The compliance footer (line 78) has `right-[40%]` which creates a `bg-gradient-to-t from-black/90 to-transparent` overlay covering only the left ~60% of the screen. The right edge of this overlay at the 40% mark creates a hard vertical line -- dark/faded to the left, no fade to the right. This is the line visible on the teacher's shoulder.
+### Root Causes (ordered by impact)
 
-Additionally, the glass card's `backdrop-blur-xl` and `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` create additional blur boundaries and dark halos.
+1. **Render-blocking Live2D script** (`index.html` line 16): `live2dcubismcore.min.js` blocks parsing for 400ms. The avatar provider is set to `"video"` — Live2D is unused.
 
-**Fix**: On auth screens (non-fullWidth), remove the footer gradient entirely or make it transparent. The fade overlays should only appear on speaking/shadowing screens (which already use `fullWidth` + `hideFooter`).
+2. **Videos loaded on admin page**: `PageShell` renders `BackgroundStage > VideoLoopStage` which preloads 13 video URLs and starts fetching loop-stack mp4s. The admin page passes `bgImage` which should skip this, but `VideoLoopStage` still mounts briefly and triggers fetches.
+
+3. **DevNav and GlobalOmniChat always mounted**: Both are eagerly imported in `App.tsx` (not lazy), loaded on every route including admin. DevNav imports framer-motion, supabase, and prefetch utilities. GlobalOmniChat imports the full OmniChatModal tree.
+
+4. **No query limit on analytics**: `AdminAnalyticsPanel` fetches ALL `student_practice_logs` for the semester with no `.limit()` — could be thousands of rows fetched on first tab render.
+
+5. **Waterfall of module imports**: Vite dev server serves each file individually. The deep import chain (App → AuthProvider → db.ts → supabase client) creates sequential waterfalls. `db.ts` alone takes 870ms due to its position in the chain.
 
 ---
 
-## Changes -- `src/components/PageShell.tsx`
+## Plan
 
-### 1. Shift video left using transform instead of object-position
-- On the background stage wrapper (line 63), when `!fullWidth`, apply `style={{ transform: 'translateX(-15%)', width: '130%' }}` to physically shift the video left and widen it to fill the gap on the right
-- Remove the `objectPosition` variable and pass `"center center"` to BackgroundStage always (the transform handles the shift now)
+### Fix 1 — Remove render-blocking Live2D script
+In `index.html`, change the Live2D `<script>` to `async` or remove it entirely since the avatar provider is `"video"`. This saves ~400ms off TTFB-to-FCP.
 
-### 2. Remove fade effects on auth screens
-- Remove the bottom gradient footer entirely when `!fullWidth` (auth screens) -- the footer currently uses `bg-gradient-to-t from-black/90` with `right-[40%]` which creates the hard vertical line
-- Keep footer behavior for `fullWidth` screens unchanged
-- Reduce the glass card shadow from `shadow-[0_30px_60px_-10px_rgba(0,0,0,0.7)]` to a subtler `shadow-2xl` to eliminate the dark halo bleeding onto the video
+### Fix 2 — Skip video loading on bgImage pages
+In `PageShell.tsx`, when `bgImage` is provided, don't render `BackgroundStage` at all (it's already behind the `bgImage` branch, but verify `VideoLoopStage` isn't mounted). Additionally, in `VideoLoopStage`, guard against mounting when not visible.
+
+### Fix 3 — Lazy-load DevNav and GlobalOmniChat
+In `App.tsx`, convert `DevNav` and `GlobalOmniChat` from eager imports to `React.lazy()`. These are not needed for initial render.
+
+### Fix 4 — Add pagination/limit to admin analytics queries
+In `AdminAnalyticsPanel.tsx`, add `.limit(1000)` to the practice logs query (it already caps at 1000 by default, but make it explicit). Consider server-side aggregation for semester-wide stats.
+
+### Fix 5 — Defer CurriculumUpload timing status checks
+In `AdminCurriculumUpload.tsx`, `checkTimingStatus` fires 3 HEAD requests on mount. Since this panel is lazy-loaded and only visible when the "Curriculum" tab is active, this is already deferred — no change needed.
+
+### Technical Details
+
+```text
+Files to edit:
+├── index.html                          (Fix 1: async Live2D script)
+├── src/App.tsx                         (Fix 3: lazy DevNav + GlobalOmniChat)
+├── src/components/PageShell.tsx        (Fix 2: verify no video on bgImage)
+└── src/components/admin/
+    └── AdminAnalyticsPanel.tsx         (Fix 4: explicit query limit)
+```
+
+**Expected improvement**: FCP should drop from ~4s to ~2.5–3s. The render-blocking script removal alone saves 400ms, lazy-loading global components saves another 300–500ms of JS parsing, and eliminating unnecessary video fetches removes 4+ wasted network requests.
 

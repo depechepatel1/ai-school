@@ -96,6 +96,22 @@ function extractFluencyChunks(data: CurriculumData): string[] {
 }
 
 /**
+ * Get fluency chunk texts for a course type (for the background worker).
+ */
+export async function getFluencyChunkTexts(courseType: "ielts" | "igcse"): Promise<string[]> {
+  const data = await fetchCurriculumJSON(courseType);
+  return extractFluencyChunks(data);
+}
+
+/**
+ * Get pronunciation chunk texts (for the background worker).
+ */
+export async function getPronunciationChunkTexts(): Promise<string[]> {
+  const twisters = await fetchPronunciationItems();
+  return twisters.map((t) => t.text);
+}
+
+/**
  * Measure and upload fluency timings for a course type.
  */
 export async function generateAndUploadFluencyTimings(

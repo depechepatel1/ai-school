@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo } from "react";
+import { useRef, useEffect, memo, useCallback } from "react";
 import type { WordData } from "@/lib/prosody";
 
 interface OverlaidWaveformProps {
@@ -7,7 +7,11 @@ interface OverlaidWaveformProps {
   isPlayingModel: boolean;
   isRecording: boolean;
   activeStream: MediaStream | null;
-  /** When available (Aliyun TTS), real model audio for waveform display. Falls back to prosody contour when null. */
+  /** Pre-measured model duration in ms — used to scale student line speed */
+  modelDurationMs?: number | null;
+  /** Fired ~1s after the student line reaches the end of the visualizer */
+  onRecordingComplete?: () => void;
+  /** When available (Aliyun TTS), real model audio for waveform display. */
   modelAudioUrl?: string | null;
   /** When available (Aliyun TTS), word-level timestamps for precise karaoke sync. */
   modelTimestamps?: { word: string; startMs: number; endMs: number }[] | null;
@@ -73,6 +77,8 @@ export default memo(function OverlaidWaveform({
   isPlayingModel,
   isRecording,
   activeStream,
+  modelDurationMs = null,
+  onRecordingComplete,
   modelAudioUrl = null,
   modelTimestamps = null,
 }: OverlaidWaveformProps) {
@@ -88,6 +94,12 @@ export default memo(function OverlaidWaveform({
   const recordStartRef = useRef(0);
   const lastModelDurationRef = useRef(0);
   const modelStartRef = useRef(0);
+  const autoStopFiredRef = useRef(false);
+  const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stableOnRecordingComplete = useCallback(() => {
+    onRecordingComplete?.();
+  }, [onRecordingComplete]);
 
   useEffect(() => {
     if (isPlayingModel) modelStartRef.current = Date.now();
@@ -95,6 +107,12 @@ export default memo(function OverlaidWaveform({
       lastModelDurationRef.current = Date.now() - modelStartRef.current;
     }
   }, [isPlayingModel]);
+
+  // Reset auto-stop when recording starts/stops
+  useEffect(() => {
+    autoStopFiredRef.current = false;
+    if (autoStopTimerRef.current) { clearTimeout(autoStopTimerRef.current); autoStopTimerRef.current = null; }
+  }, [isRecording]);
 
   useEffect(() => {
     if (prosodyData.length === 0) { targetModelProgress.current = 0; return; }
@@ -123,6 +141,7 @@ export default memo(function OverlaidWaveform({
     try {
       const ctx = audioCtxRef.current || new AudioContext();
       audioCtxRef.current = ctx;
+      if (ctx.state === "suspended") ctx.resume();
       const source = ctx.createMediaStreamSource(activeStream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
@@ -198,13 +217,22 @@ export default memo(function OverlaidWaveform({
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
         const rms = Math.sqrt(sum / dataArray.length) / 255;
-        const ampY = h * 0.85 - rms * h * 1.4;
+        const ampY = h * 0.85 - rms * h * 2.1; // +50% vertical movement
         const clampedY = Math.max(PAD, Math.min(h - PAD, ampY));
         const elapsed = Date.now() - recordStartRef.current;
-        const duration = lastModelDurationRef.current > 0 ? lastModelDurationRef.current : 5000;
+        // Use pre-measured duration if available, then last model playback, then fallback
+        const duration = modelDurationMs ?? (lastModelDurationRef.current > 0 ? lastModelDurationRef.current : 5000);
         const x = Math.min(w - PAD, (elapsed / duration) * (w - PAD * 2) + PAD);
         studentPointsRef.current.push({ x, y: clampedY });
         if (studentPointsRef.current.length > 600) studentPointsRef.current = studentPointsRef.current.slice(-500);
+
+        // Auto-stop: fire callback 1s after line reaches end
+        if (x >= w - PAD && !autoStopFiredRef.current) {
+          autoStopFiredRef.current = true;
+          autoStopTimerRef.current = setTimeout(() => {
+            stableOnRecordingComplete();
+          }, 1000);
+        }
       }
 
       if (studentPointsRef.current.length > 1) {
@@ -220,7 +248,7 @@ export default memo(function OverlaidWaveform({
     };
     rafRef.current = requestAnimationFrame(render);
     return () => { running = false; cancelAnimationFrame(rafRef.current); };
-  }, [prosodyData, isPlayingModel, isRecording]);
+  }, [prosodyData, isPlayingModel, isRecording, modelDurationMs, stableOnRecordingComplete]);
 
   useEffect(() => {
     studentPointsRef.current = [];

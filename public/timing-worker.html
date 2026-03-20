@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TTS Timing Worker</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: system-ui, sans-serif; padding: 24px; min-height: 100vh; }
+  h1 { font-size: 16px; color: #fbbf24; margin-bottom: 16px; }
+  .status { font-size: 13px; color: #999; margin-bottom: 8px; }
+  .queue-info { font-size: 12px; color: #a78bfa; margin-bottom: 8px; font-weight: bold; }
+  .progress-bar { width: 100%; height: 24px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 0.3s; border-radius: 12px; }
+  .log { font-size: 11px; color: #666; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; margin-top: 12px; }
+  .done { color: #34d399; font-weight: bold; }
+  .error { color: #f87171; font-weight: bold; }
+  .cancel-btn { margin-top: 12px; padding: 8px 16px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  .cancel-btn:hover { background: rgba(239,68,68,0.35); }
+</style>
+</head>
+<body>
+<h1>🎤 TTS Timing Worker</h1>
+<div id="queueInfo" class="queue-info" style="display:none"></div>
+<div id="statusText" class="status">Waiting for config…</div>
+<div class="progress-bar"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
+<div id="progressLabel" class="status"></div>
+<button id="cancelBtn" class="cancel-btn" style="display:none">Cancel</button>
+<div id="logArea" class="log"></div>
+
+<script>
+const CHANNEL_NAME = "tts-timing-worker";
+const BATCH_SIZE = 10;
+const BATCH_REST_MS = 3000;
+const INTER_UTTERANCE_MS = 500;
+const SAVE_EVERY = 10;
+
+const channel = new BroadcastChannel(CHANNEL_NAME);
+let cancelled = false;
+let isRunning = false;
+
+const statusEl = document.getElementById("statusText");
+const fillEl = document.getElementById("progressFill");
+const labelEl = document.getElementById("progressLabel");
+const logEl = document.getElementById("logArea");
+const cancelBtn = document.getElementById("cancelBtn");
+const queueInfoEl = document.getElementById("queueInfo");
+
+cancelBtn.onclick = () => { cancelled = true; statusEl.textContent = "Cancelling…"; };
+
+function log(msg) {
+  const line = `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+  logEl.textContent += line;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function updateProgress(current, total) {
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+  fillEl.style.width = pct + "%";
+  labelEl.textContent = `${current} / ${total} chunks (${pct}%)`;
+  channel.postMessage({ type: "PROGRESS", current, total, pct });
+}
+
+// --- SpeechSynthesis measurement ---
+
+function findVoice(accent) {
+  const voices = speechSynthesis.getVoices();
+  const langPrefix = accent === "uk" ? "en-GB" : accent === "us" ? "en-US" : "zh-CN";
+  const natural = voices.filter(v => v.name.includes("Natural") && v.lang.startsWith(langPrefix));
+  if (natural.length) return natural[0];
+  const match = voices.filter(v => v.lang.startsWith(langPrefix));
+  if (match.length) return match[0];
+  return voices.find(v => v.lang.startsWith("en")) || voices[0] || null;
+}
+
+function measureSingle(text, voice, rate, timeoutMs = 15000) {
+  return new Promise(resolve => {
+    const u = new SpeechSynthesisUtterance(text);
+    if (voice) u.voice = voice;
+    u.rate = rate; u.pitch = 1; u.volume = 0.01;
+    let start = 0;
+    const t = setTimeout(() => { speechSynthesis.cancel(); resolve(timeoutMs); }, timeoutMs);
+    u.onstart = () => { start = performance.now(); };
+    u.onend = () => { clearTimeout(t); resolve(Math.round(performance.now() - start)); };
+    u.onerror = () => { clearTimeout(t); resolve(timeoutMs); };
+    speechSynthesis.speak(u);
+  });
+}
+
+async function uploadTimings(path, result, supabaseUrl, anonKey) {
+  const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
+  const body = JSON.stringify(result, null, 2);
+  let res = await fetch(url, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+    body
+  });
+  if (!res.ok) {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+      body
+    });
+  }
+  if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
+}
+
+/**
+ * Run a single timing job. Returns true if completed, false if cancelled.
+ */
+async function runSingleJob(config) {
+  const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, jobLabel } = config;
+  cancelled = false;
+  cancelBtn.style.display = "inline-block";
+  statusEl.textContent = `Measuring: ${jobLabel}`;
+  log(`Starting ${jobLabel}: ${chunks.length} chunks, accent=${accent}, rate=${rate}`);
+
+  // Wait for voices
+  let voices = speechSynthesis.getVoices();
+  if (!voices.length) {
+    log("Waiting for voices…");
+    await new Promise(r => { speechSynthesis.addEventListener("voiceschanged", () => r(), { once: true }); setTimeout(r, 3000); });
+    voices = speechSynthesis.getVoices();
+  }
+
+  const voice = findVoice(accent);
+  log(`Voice: ${voice?.name || "null"} (${voice?.lang || ""})`);
+
+  // Try to load existing partial timings
+  let timings = {};
+  try {
+    const existingUrl = `${supabaseUrl}/storage/v1/object/public/curriculums/${storagePath}?t=${Date.now()}`;
+    const existRes = await fetch(existingUrl);
+    if (existRes.ok) {
+      const existing = await existRes.json();
+      if (existing?.timings) { timings = existing.timings; log(`Loaded ${Object.keys(timings).length} existing timings (resuming)`); }
+    }
+  } catch { /* no existing file, start fresh */ }
+
+  const uniqueChunks = [...new Set(chunks)];
+  const remaining = uniqueChunks.filter(c => !timings[c]);
+  log(`Total unique: ${uniqueChunks.length}, already done: ${uniqueChunks.length - remaining.length}, remaining: ${remaining.length}`);
+  
+  const doneOffset = uniqueChunks.length - remaining.length;
+  updateProgress(doneOffset, uniqueChunks.length);
+
+  let savedCount = 0;
+
+  for (let batchStart = 0; batchStart < remaining.length; batchStart += BATCH_SIZE) {
+    if (cancelled) break;
+
+    const batchEnd = Math.min(batchStart + BATCH_SIZE, remaining.length);
+    const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1;
+    const totalBatches = Math.ceil(remaining.length / BATCH_SIZE);
+    log(`Batch ${batchNum}/${totalBatches}`);
+
+    speechSynthesis.cancel();
+    await new Promise(r => setTimeout(r, 200));
+    await measureSingle(".", voice, 1, 3000);
+    await new Promise(r => setTimeout(r, 300));
+
+    for (let i = batchStart; i < batchEnd; i++) {
+      if (cancelled) break;
+      const text = remaining[i];
+      if (i > batchStart) await new Promise(r => setTimeout(r, INTER_UTTERANCE_MS));
+
+      speechSynthesis.cancel();
+      await new Promise(r => setTimeout(r, 50));
+
+      let duration = await measureSingle(text, voice, rate);
+      if (duration >= 15000) {
+        log(`Timeout on "${text.substring(0, 30)}…", retrying`);
+        speechSynthesis.cancel();
+        await new Promise(r => setTimeout(r, 1000));
+        duration = await measureSingle(text, voice, rate);
+      }
+
+      timings[text] = duration;
+      savedCount++;
+      updateProgress(doneOffset + i + 1, uniqueChunks.length);
+
+      if (savedCount % SAVE_EVERY === 0) {
+        try {
+          const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
+          await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+          log(`Incremental save at ${doneOffset + i + 1}/${uniqueChunks.length}`);
+        } catch (err) { log(`Incremental save failed: ${err.message}`); }
+      }
+    }
+
+    if (batchStart + BATCH_SIZE < remaining.length && !cancelled) {
+      speechSynthesis.cancel();
+      await new Promise(r => setTimeout(r, BATCH_REST_MS));
+    }
+  }
+
+  speechSynthesis.cancel();
+
+  if (cancelled) {
+    try {
+      const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
+      await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+      log("Saved partial progress before cancel");
+    } catch (err) { log(`Save on cancel failed: ${err.message}`); }
+    
+    statusEl.textContent = "Cancelled — partial progress saved";
+    statusEl.className = "status error";
+    channel.postMessage({ type: "CANCELLED", measured: Object.keys(timings).length, total: uniqueChunks.length });
+    return false;
+  } else {
+    try {
+      const finalResult = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1 };
+      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey);
+      log("Final upload complete!");
+      statusEl.textContent = `✅ Done — ${Object.keys(timings).length} timings saved`;
+      statusEl.className = "status done";
+      channel.postMessage({ type: "COMPLETE", storagePath, count: Object.keys(timings).length });
+    } catch (err) {
+      log(`Final upload error: ${err.message}`);
+      statusEl.textContent = `❌ Upload failed: ${err.message}`;
+      statusEl.className = "status error";
+      channel.postMessage({ type: "ERROR", error: err.message });
+      return false;
+    }
+    return true;
+  }
+}
+
+/**
+ * Process a queue of jobs sequentially.
+ */
+async function runQueue(configs) {
+  if (isRunning) {
+    log("Already running — ignoring new queue request");
+    return;
+  }
+  isRunning = true;
+  const totalJobs = configs.length;
+  let completedJobs = 0;
+
+  log(`=== Queue: ${totalJobs} job(s) ===`);
+
+  for (let i = 0; i < configs.length; i++) {
+    if (cancelled) break;
+    const config = configs[i];
+
+    queueInfoEl.style.display = "block";
+    queueInfoEl.textContent = `📋 Queue: Job ${i + 1} of ${totalJobs} — ${config.jobLabel}`;
+    channel.postMessage({ type: "JOB_STARTED", jobLabel: config.jobLabel, jobIndex: i, totalJobs });
+
+    const ok = await runSingleJob(config);
+    if (!ok) break; // cancelled or error
+    completedJobs++;
+
+    // Brief pause between jobs
+    if (i < configs.length - 1) {
+      log("Pausing 2s before next job…");
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
+  cancelBtn.style.display = "none";
+  isRunning = false;
+
+  if (completedJobs === totalJobs) {
+    queueInfoEl.textContent = `✅ Queue complete — ${completedJobs} job(s) finished`;
+    statusEl.textContent = `All ${totalJobs} timing job(s) done!`;
+    statusEl.className = "status done";
+  } else {
+    queueInfoEl.textContent = `Queue stopped — ${completedJobs}/${totalJobs} completed`;
+  }
+
+  channel.postMessage({ type: "QUEUE_COMPLETE", completedJobs, totalJobs });
+}
+
+// Listen for messages from main app
+channel.onmessage = (e) => {
+  if (e.data?.type === "START") {
+    const requestId = e.data.requestId || "legacy";
+    channel.postMessage({ type: "START_ACK", requestId });
+    runQueue([e.data.config]);
+  } else if (e.data?.type === "START_QUEUE") {
+    const requestId = e.data.requestId || "legacy";
+    channel.postMessage({ type: "START_ACK", requestId });
+    runQueue(e.data.configs || []);
+  } else if (e.data?.type === "CANCEL") {
+    cancelled = true;
+    statusEl.textContent = "Cancelling…";
+  }
+};
+
+// Signal that we're ready
+channel.postMessage({ type: "READY" });
+statusEl.textContent = "Worker ready — waiting for job…";
+log("Worker window opened, waiting for START message");
+</script>
+</body>
+</html>
