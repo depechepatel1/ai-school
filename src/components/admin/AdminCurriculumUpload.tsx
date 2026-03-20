@@ -116,21 +116,33 @@ export default function AdminCurriculumUpload() {
   };
 
   const checkTimingStatus = useCallback(async () => {
-    const status: Record<string, boolean | null> = {};
-    for (const p of TIMING_PATHS) status[p] = null;
+    const status: Record<string, "complete" | "partial" | "missing" | null> = {};
+    const partialInfo: Record<string, { measured: number } | null> = {};
+    for (const p of TIMING_PATHS) { status[p] = null; partialInfo[p] = null; }
     setTimingStatus({ ...status });
+    setTimingPartialInfo({ ...partialInfo });
 
     await Promise.all(
       TIMING_PATHS.map(async (path) => {
         const { data } = supabase.storage.from("curriculums").getPublicUrl(path);
-        if (!data?.publicUrl) { status[path] = false; return; }
+        if (!data?.publicUrl) { status[path] = "missing"; return; }
         try {
-          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
-          status[path] = res.ok;
-        } catch { status[path] = false; }
+          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`);
+          if (!res.ok) { status[path] = "missing"; return; }
+          const json = await res.json();
+          if (json?.partial === true) {
+            status[path] = "partial";
+            partialInfo[path] = { measured: Object.keys(json.timings ?? {}).length };
+          } else if (json?.timings) {
+            status[path] = "complete";
+          } else {
+            status[path] = "missing";
+          }
+        } catch { status[path] = "missing"; }
       })
     );
     setTimingStatus({ ...status });
+    setTimingPartialInfo({ ...partialInfo });
   }, []);
 
   useEffect(() => { loadMetadata(); checkTimingStatus(); }, []);
