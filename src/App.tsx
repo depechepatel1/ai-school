@@ -22,7 +22,7 @@ const pageImports = {
   ForgotPassword: () => import("./pages/ForgotPassword"),
   ResetPassword: () => import("./pages/ResetPassword"),
   StudentPractice: () => import("./pages/StudentPractice"),
-  SpeakingStudio: () => import("./pages/SpeakingStudio"),
+  
   TeacherDashboard: () => import("./pages/TeacherDashboard"),
   ParentDashboard: () => import("./pages/ParentDashboard"),
   AdminDashboard: () => import("./pages/AdminDashboard"),
@@ -46,7 +46,7 @@ const Signup = lazy(pageImports.Signup);
 const ForgotPassword = lazy(pageImports.ForgotPassword);
 const ResetPassword = lazy(pageImports.ResetPassword);
 const StudentPractice = lazy(pageImports.StudentPractice);
-const SpeakingStudio = lazy(pageImports.SpeakingStudio);
+
 const TeacherDashboard = lazy(pageImports.TeacherDashboard);
 const ParentDashboard = lazy(pageImports.ParentDashboard);
 const AdminDashboard = lazy(pageImports.AdminDashboard);
@@ -72,7 +72,7 @@ const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
   "/reset-password": [pageImports.ResetPassword],
   "/select-week": [pageImports.WeekSelection, pageImports.StudentPractice],
   "/student": [pageImports.StudentPractice],
-  "/speaking": [pageImports.SpeakingStudio],
+  
   "/ielts/pronunciation": [pageImports.IELTSPronunciation],
   "/ielts/fluency": [pageImports.IELTSFluency],
   "/ielts/speaking": [pageImports.IELTSSpeaking],
@@ -115,7 +115,7 @@ const App = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/select-week" element={<ProtectedRoute allowedRoles={["student"]}><WeekSelection /></ProtectedRoute>} />
             <Route path="/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentPractice /></ProtectedRoute>} />
-            <Route path="/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><SpeakingStudio /></ErrorBoundary></ProtectedRoute>} />
+            
             <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSSpeaking /></ErrorBoundary></ProtectedRoute>} />
