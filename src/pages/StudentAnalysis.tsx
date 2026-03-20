@@ -319,7 +319,7 @@ function ExtendedLeaderboardPanel({ entries, loading, currentUserId }: { entries
   if (loading) return <div className="text-white/30 text-[11px] text-center py-4 animate-pulse">Loading…</div>;
   if (entries.length === 0) return <div className="text-white/30 text-[11px] text-center py-4">No extended practice data</div>;
 
-  const maxSeconds = Math.max(...entries.map((e) => e.extended_seconds), 1);
+  const maxSeconds = entries.length === 0 ? 1 : Math.max(...entries.map((e) => e.extended_seconds), 1);
 
   return (
     <div className="px-2 py-2 space-y-1">

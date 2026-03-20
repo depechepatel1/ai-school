@@ -386,7 +386,8 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
               vocabularySuggestions: parsed.vocabularySuggestions || [],
               transcript,
             });
-          } catch {
+          } catch (parseErr) {
+            console.error("[MockTest] AI returned invalid JSON:", res.content, parseErr);
             setResult({ overallBand: "N/A", criteria: [], vocabularySuggestions: [], transcript });
           }
           setPhase("report");
