@@ -46,7 +46,8 @@ export default function AnalyticsPanel() {
         .select("user_id, activity_type, course_type, week_number, active_seconds, created_at")
         .gte("created_at", rangeStart)
         .lte("created_at", rangeEnd)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(1000);
       return data ?? [];
     },
     staleTime: 60_000,
