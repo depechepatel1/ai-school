@@ -43,10 +43,6 @@ const cancelBtn = document.getElementById("cancelBtn");
 
 cancelBtn.onclick = () => { cancelled = true; statusEl.textContent = "Cancelling…"; };
 
-channel.onmessage = (e) => {
-  if (e.data?.type === "CANCEL") { cancelled = true; statusEl.textContent = "Cancelling…"; }
-};
-
 function log(msg) {
   const line = `[${new Date().toLocaleTimeString()}] ${msg}\n`;
   logEl.textContent += line;

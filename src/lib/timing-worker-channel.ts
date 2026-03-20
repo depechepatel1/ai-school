@@ -57,15 +57,19 @@ let workerWindow: Window | null = null;
  */
 export function launchTimingWorker(config: TimingWorkerConfig): void {
   const channel = new BroadcastChannel(CHANNEL_NAME);
+  let sent = false;
 
   const sendStart = () => {
+    if (sent) return;
+    sent = true;
     channel.postMessage({ type: "START", config });
+    // Don't close immediately — give the message time to be delivered
+    setTimeout(() => channel.close(), 500);
   };
 
   // If existing popup is still open, send directly
   if (workerWindow && !workerWindow.closed) {
     sendStart();
-    channel.close();
     return;
   }
 
@@ -86,17 +90,15 @@ export function launchTimingWorker(config: TimingWorkerConfig): void {
     if (e.data?.type === "READY") {
       channel.removeEventListener("message", readyHandler);
       sendStart();
-      channel.close();
     }
   };
   channel.addEventListener("message", readyHandler);
 
-  // Fallback: send after 2s in case READY was missed
+  // Fallback: send after 3s in case READY was missed
   setTimeout(() => {
     channel.removeEventListener("message", readyHandler);
     sendStart();
-    channel.close();
-  }, 2000);
+  }, 3000);
 }
 
 /**
