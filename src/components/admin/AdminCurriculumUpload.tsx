@@ -31,9 +31,11 @@ import {
 import { clearPronunciationCache } from "@/services/pronunciation-shadowing";
 import {
   launchTimingWorker,
+  launchTimingWorkerQueue,
   cancelTimingWorker,
   onTimingWorkerMessage,
   type TimingWorkerMessage,
+  type TimingWorkerConfig,
 } from "@/lib/timing-worker-channel";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
