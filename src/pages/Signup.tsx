@@ -59,12 +59,12 @@ function PrivacyContent() {
         <h2 className="text-sm font-semibold text-foreground">3. 第三方SDK信息披露矩阵</h2>
         <p className="text-xs text-foreground/90 leading-relaxed">为保障应用运行及提供AI服务，我们接入了以下第三方SDK：</p>
         <div className="space-y-2">
-          <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-0.5 text-[11px]">
+          <div className="rounded-lg border border-border bg-white/[0.03] p-3 space-y-0.5 text-[11px]">
             <p className="text-foreground"><strong>SDK名称：</strong>Memfire</p>
             <p className="text-foreground/70"><strong>处理目的：</strong>用户身份认证与境内数据存储</p>
             <p className="text-foreground/70"><strong>收集数据：</strong>手机号、设备标识符、应用日志</p>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-0.5 text-[11px]">
+          <div className="rounded-lg border border-border bg-white/[0.03] p-3 space-y-0.5 text-[11px]">
             <p className="text-foreground"><strong>SDK名称：</strong>阿里云 (Aliyun)</p>
             <p className="text-foreground/70"><strong>处理目的：</strong>提供生成式大语言模型(LLM)驱动的口语评分与对话服务</p>
             <p className="text-foreground/70"><strong>收集数据：</strong>语音输入流、文本交互记录</p>
@@ -130,16 +130,16 @@ function LegalModal({ type, onClose }: { type: "privacy" | "terms"; onClose: () 
       transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[100] flex items-center justify-center"
     >
-      <div className="absolute inset-0 bg-black/80" />
+      <div className="absolute inset-0 bg-background/80" />
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-4xl mx-6 max-h-[85vh] rounded-3xl bg-black/60 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden"
+        className="relative z-10 w-full max-w-4xl mx-6 max-h-[85vh] rounded-3xl bg-card/60 backdrop-blur-3xl border border-border shadow-[0_30px_60px_-10px_hsl(var(--background)/0.9)] flex flex-col overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-        <div className="shrink-0 z-20 flex items-center justify-between px-6 py-5 pt-6 bg-black/40 backdrop-blur-md border-b border-white/5">
+        <div className="shrink-0 z-20 flex items-center justify-between px-6 py-5 pt-6 bg-background/40 backdrop-blur-md border-b border-border/30">
           <button onClick={onClose} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" />
             返回注册
@@ -230,12 +230,12 @@ export default function Signup() {
         <motion.div variants={fadeUp} className="text-center mb-4">
           <div className="flex justify-center items-center gap-2 mb-1.5">
             <NeuralLogo />
-            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-teal-200/70">{t("brand.subtitle")}</span>
+            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-accent-foreground/70">{t("brand.subtitle")}</span>
           </div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 leading-tight">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-foreground to-primary leading-tight">
             {t("brand.title")}
           </h1>
-          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-teal-500/10 border border-teal-400/15 text-[10px] font-semibold tracking-widest uppercase text-teal-300/80">
+          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-primary/10 border border-primary/15 text-[10px] font-semibold tracking-widest uppercase text-primary/80">
             {t("brand.edition")}
           </span>
         </motion.div>
@@ -249,8 +249,8 @@ export default function Signup() {
               onClick={() => setSelectedRole(r.value)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                 selectedRole === r.value
-                  ? "bg-teal-500/20 text-teal-200 border border-teal-400/30 shadow-[0_0_12px_rgba(20,184,166,0.15)]"
-                  : "bg-white/[0.03] text-gray-500 border border-white/[0.06] hover:border-white/15 hover:text-gray-400"
+                  ? "bg-primary/20 text-accent-foreground border border-primary/30 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
+                  : "bg-white/[0.03] text-muted-foreground border border-border hover:border-border/80 hover:text-foreground/60"
               }`}
             >
               {r.icon}
@@ -267,9 +267,9 @@ export default function Signup() {
                 placeholder={t("signup.displayName")}
                 value={displayName}
                 onChange={(e) => { setDisplayName(e.target.value); setErrors((p) => ({ ...p, displayName: "" })); }}
-                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-500 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.displayName ? "border-red-500/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-white/[0.06] transition-all ${errors.displayName ? "border-destructive/60" : "border-border focus:border-primary/40"}`}
               />
-              {errors.displayName && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.displayName}</p>}
+              {errors.displayName && <p className="text-[10px] text-destructive pl-1 mt-0.5">{errors.displayName}</p>}
             </div>
             <div>
               <input
@@ -277,9 +277,9 @@ export default function Signup() {
                 placeholder={t("signup.email")}
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
-                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-500 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-red-500/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-white/[0.06] transition-all ${errors.email ? "border-destructive/60" : "border-border focus:border-primary/40"}`}
               />
-              {errors.email && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.email}</p>}
+              {errors.email && <p className="text-[10px] text-destructive pl-1 mt-0.5">{errors.email}</p>}
             </div>
             <div>
               <input
@@ -287,26 +287,26 @@ export default function Signup() {
                 placeholder={t("signup.password")}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
-                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-white placeholder:text-gray-500 focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-red-500/60" : "border-white/[0.08] focus:border-teal-400/40"}`}
+                className={`w-full h-11 px-4 rounded-xl bg-white/[0.04] border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-white/[0.06] transition-all ${errors.password ? "border-destructive/60" : "border-border focus:border-primary/40"}`}
               />
-              {errors.password && <p className="text-[10px] text-red-400 pl-1 mt-0.5">{errors.password}</p>}
+              {errors.password && <p className="text-[10px] text-destructive pl-1 mt-0.5">{errors.password}</p>}
             </div>
           </div>
 
           {/* PRC Consent */}
-          <div className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+          <div className="space-y-2 rounded-xl border border-border bg-white/[0.03] p-3">
             <div className="flex items-start gap-2">
               <Checkbox id="agree" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} className="mt-0.5" />
-              <label htmlFor="agree" className="text-[11px] leading-snug text-gray-400 cursor-pointer">
+              <label htmlFor="agree" className="text-[11px] leading-snug text-muted-foreground cursor-pointer">
                 我已阅读并同意{" "}
-                <button type="button" onClick={() => setLegalModal("terms")} className="text-teal-400 hover:underline">《用户协议》</button>
+                <button type="button" onClick={() => setLegalModal("terms")} className="text-primary hover:underline">《用户协议》</button>
                 {" "}和{" "}
-                <button type="button" onClick={() => setLegalModal("privacy")} className="text-teal-400 hover:underline">《隐私政策》</button>
+                <button type="button" onClick={() => setLegalModal("privacy")} className="text-primary hover:underline">《隐私政策》</button>
               </label>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-500">{t("signup.minorMode")}</span>
+              <span className="text-[10px] text-muted-foreground">{t("signup.minorMode")}</span>
               <Switch
                 id="minor-mode"
                 checked={isMinor}
@@ -324,9 +324,9 @@ export default function Signup() {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="flex items-start gap-2 pt-2 border-t border-white/5">
+                  <div className="flex items-start gap-2 pt-2 border-t border-border/30">
                     <Checkbox id="guardian-agree" checked={guardianAgreed} onCheckedChange={(v) => setGuardianAgreed(v === true)} className="mt-0.5" />
-                    <label htmlFor="guardian-agree" className="text-[11px] leading-snug text-gray-400 cursor-pointer">
+                    <label htmlFor="guardian-agree" className="text-[11px] leading-snug text-muted-foreground cursor-pointer">
                       我已获得监护人同意，且监护人已阅读并同意上述协议
                     </label>
                   </div>
@@ -341,7 +341,7 @@ export default function Signup() {
           <button
             type="submit"
             disabled={isLoading || !canSubmit}
-            className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_25px_rgba(20,184,166,0.25)]"
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-primary via-primary to-ring text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_25px_hsl(var(--primary)/0.25)]"
           >
             <UserPlus className="w-4 h-4" />
             {isLoading ? t("signup.creating") : t("signup.createAccount")}
@@ -349,13 +349,13 @@ export default function Signup() {
 
           {/* Sign-in link + ICP */}
           <div className="text-center space-y-2 pt-1">
-            <p className="text-[11px] text-gray-500">
+            <p className="text-[11px] text-muted-foreground">
               {t("signup.alreadyHaveAccount")}{" "}
-              <Link to="/login" className="text-teal-400 hover:underline">{t("signup.signIn")}</Link>
+              <Link to="/login" className="text-primary hover:underline">{t("signup.signIn")}</Link>
             </p>
-            <div className="pt-2 border-t border-white/[0.04] space-y-0.5">
-              <p className="text-[8px] text-gray-600/60">ICP备案号：京ICP备2026XXXXXXXX号</p>
-              <p className="text-[8px] text-gray-600/60">APP备案号：京ICP备2026XXXXXXXX号A</p>
+            <div className="pt-2 border-t border-border/30 space-y-0.5">
+              <p className="text-[8px] text-muted-foreground/40">ICP备案号：京ICP备2026XXXXXXXX号</p>
+              <p className="text-[8px] text-muted-foreground/40">APP备案号：京ICP备2026XXXXXXXX号A</p>
             </div>
           </div>
         </motion.form>
