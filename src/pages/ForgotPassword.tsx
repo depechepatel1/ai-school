@@ -54,28 +54,28 @@ export default function ForgotPassword() {
           <div className="flex justify-center mb-3">
             <NeuralLogo />
           </div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-white to-teal-300 leading-tight">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-foreground to-primary leading-tight">
             {t("brand.title")}
           </h1>
-          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-teal-500/10 border border-teal-400/15 text-[10px] font-semibold tracking-widest uppercase text-teal-300/80">
+          <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-primary/10 border border-primary/15 text-[10px] font-semibold tracking-widest uppercase text-primary/80">
             {t("brand.edition")}
           </span>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             {sent ? t("forgot.sent") : t("forgot.subtitle")}
           </p>
         </motion.div>
 
         {sent ? (
           <motion.div variants={fadeUp} className="text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-400/20 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(20,184,166,0.2)]">
-              <Mail className="w-8 h-8 text-teal-400" />
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+              <Mail className="w-8 h-8 text-primary" />
             </div>
             <div className="space-y-2">
-              <p className="text-sm text-gray-300">{t("forgot.emailSentTo")} <span className="text-white font-medium">{email}</span></p>
-              <p className="text-xs text-gray-500">{t("forgot.checkSpam")}</p>
+              <p className="text-sm text-foreground/80">{t("forgot.emailSentTo")} <span className="text-foreground font-medium">{email}</span></p>
+              <p className="text-xs text-muted-foreground">{t("forgot.checkSpam")}</p>
             </div>
             <Link to="/login">
-              <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-semibold text-gray-300 hover:text-white hover:bg-white/[0.08] transition-all">
+              <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.04] border border-border text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-white/[0.08] transition-all">
                 <ArrowLeft className="w-3.5 h-3.5" />
                 {t("forgot.backToLogin")}
               </button>
@@ -84,23 +84,23 @@ export default function ForgotPassword() {
         ) : (
           <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 pl-1">{t("forgot.emailLabel")}</label>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground pl-1">{t("forgot.emailLabel")}</label>
               <input
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-teal-400/40 focus:bg-white/[0.06] transition-all"
+                className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 focus:bg-white/[0.06] transition-all"
               />
             </div>
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(20,184,166,0.25)]"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-primary via-primary to-ring text-primary-foreground text-sm font-bold flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_hsl(var(--primary)/0.25)]"
             >
               {isLoading ? (
-                <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="w-4 h-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
               ) : (
                 <>
                   {t("forgot.send")}
@@ -114,7 +114,7 @@ export default function ForgotPassword() {
         {/* Back link */}
         {!sent && (
           <motion.div variants={fadeUp} className="mt-6 text-center">
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors">
+            <Link to="/login" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground/80 transition-colors">
               <ArrowLeft className="w-3.5 h-3.5" /> {t("forgot.backToLogin")}
             </Link>
           </motion.div>

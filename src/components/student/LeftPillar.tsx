@@ -21,11 +21,11 @@ interface LeftPillarProps {
 function SectionDivider({ label }: { label: string }) {
   return (
     <div className="relative flex items-center py-1">
-      <div className="flex-1 h-px bg-white/[0.06]" />
-      <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/35 bg-black/40 rounded-full">
+      <div className="flex-1 h-px bg-border/40" />
+      <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-foreground/35 bg-background/40 rounded-full">
         {label}
       </span>
-      <div className="flex-1 h-px bg-white/[0.06]" />
+      <div className="flex-1 h-px bg-border/40" />
     </div>
   );
 }
@@ -52,27 +52,27 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
   return (
     <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
       {/* Profile Card */}
-      <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 flex items-center gap-4 shadow-lg cursor-pointer hover:bg-black/60 transition-all relative z-50" onClick={onShowSkills}>
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 p-[2px] flex-shrink-0">
-          <div className="w-full h-full rounded-full bg-gradient-to-br from-teal-600 to-cyan-700 flex items-center justify-center text-white text-xl font-bold">
+      <div className="bg-background/40 backdrop-blur-xl border border-border rounded-3xl p-4 flex items-center gap-4 shadow-lg cursor-pointer hover:bg-background/60 transition-all relative z-50" onClick={onShowSkills}>
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-ring p-[2px] flex-shrink-0">
+          <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/80 to-ring/80 flex items-center justify-center text-primary-foreground text-xl font-bold">
             雪
           </div>
         </div>
         <div>
-          <div className="font-sans text-lg leading-tight text-white" style={{ textShadow: '0 0 10px rgba(255,255,255,0.5)' }}>李雪 (Lǐ Xuě)</div>
-          <div className="text-sm font-bold text-teal-100">Snow Li</div>
-          <div className="text-sm text-teal-200 flex items-center gap-1 mt-1 bg-teal-500/20 px-2 py-0.5 rounded-full w-fit">
+          <div className="font-sans text-lg leading-tight text-foreground" style={{ textShadow: '0 0 10px hsl(var(--foreground) / 0.5)' }}>李雪 (Lǐ Xuě)</div>
+          <div className="text-sm font-bold text-accent-foreground">Snow Li</div>
+          <div className="text-sm text-accent-foreground flex items-center gap-1 mt-1 bg-primary/20 px-2 py-0.5 rounded-full w-fit">
             Band 6.5 <ChevronDown className="w-3 h-3" />
           </div>
         </div>
         {showSkills && (
-          <div className="absolute top-full left-0 w-full mt-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-xs shadow-2xl animate-fade-in-up ring-1 ring-white/10">
-            <h4 className="text-gray-400 uppercase tracking-widest text-[10px] mb-2 font-bold border-b border-gray-700 pb-1">IELTS Breakdown</h4>
+          <div className="absolute top-full left-0 w-full mt-2 bg-background/80 backdrop-blur-xl border border-border rounded-2xl p-4 text-xs shadow-2xl animate-fade-in-up ring-1 ring-border">
+            <h4 className="text-muted-foreground uppercase tracking-widest text-[10px] mb-2 font-bold border-b border-border pb-1">IELTS Breakdown</h4>
             <div className="space-y-2">
-              <div className="flex justify-between items-center"><span className="text-gray-300">Speaking</span><span className="font-mono font-bold text-green-400 bg-green-400/10 px-1.5 rounded">6.0</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-300">Writing</span><span className="font-mono font-bold text-green-400 bg-green-400/10 px-1.5 rounded">6.5</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-300">Reading</span><span className="font-mono font-bold text-yellow-400 bg-yellow-400/10 px-1.5 rounded">6.0</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-300">Listening</span><span className="font-mono font-bold text-green-400 bg-green-400/10 px-1.5 rounded">7.0</span></div>
+              <div className="flex justify-between items-center"><span className="text-foreground/80">Speaking</span><span className="font-mono font-bold text-emerald-400 bg-emerald-400/10 px-1.5 rounded">6.0</span></div>
+              <div className="flex justify-between items-center"><span className="text-foreground/80">Writing</span><span className="font-mono font-bold text-emerald-400 bg-emerald-400/10 px-1.5 rounded">6.5</span></div>
+              <div className="flex justify-between items-center"><span className="text-foreground/80">Reading</span><span className="font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 rounded">6.0</span></div>
+              <div className="flex justify-between items-center"><span className="text-foreground/80">Listening</span><span className="font-mono font-bold text-emerald-400 bg-emerald-400/10 px-1.5 rounded">7.0</span></div>
             </div>
           </div>
         )}
@@ -83,7 +83,7 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
         <div className="flex items-center justify-center">
           <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] border ${
             courseType === "ielts"
-              ? "bg-teal-500/15 border-teal-400/25 text-teal-300"
+              ? "bg-primary/15 border-primary/25 text-accent-foreground"
               : "bg-amber-500/15 border-amber-400/25 text-amber-300"
           }`}>
             {courseType === "ielts" ? "IELTS" : "IGCSE"} Course
@@ -93,8 +93,8 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
 
       {/* Practice Mode Buttons */}
       {courseType && (
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-3 shadow-lg">
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 block text-center mb-2.5">Practice Modes</span>
+        <div className="bg-background/40 backdrop-blur-xl border border-border rounded-3xl p-3 shadow-lg">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 block text-center mb-2.5">Practice Modes</span>
           <div className={`grid gap-2 ${courseType === "ielts" ? "grid-cols-2" : "grid-cols-3"}`}>
             {[
               { key: "pronunciation", label: "Pronun.", icon: Headphones, color: "#0ea5e9", bgClass: "bg-sky-500/15 border-sky-400/25", hoverClass: "hover:bg-sky-500/25 hover:border-sky-400/40", progress: pronPct },
@@ -118,7 +118,6 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
                   whileTap={{ scale: 0.97 }}
                   className={`relative flex flex-col items-center justify-center gap-1.5 min-h-[64px] py-3 rounded-2xl border transition-colors duration-200 group ${mode.bgClass} ${mode.hoverClass}`}
                 >
-                  {/* Circular progress ring — centered via viewBox */}
                   <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 64 72" preserveAspectRatio="xMidYMid meet">
                     <circle cx="32" cy="36" r={r} fill="none" stroke={mode.color} strokeOpacity="0.12" strokeWidth={bgStrokeWidth} />
                     {hasProgress && (
@@ -133,14 +132,13 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
                       />
                     )}
                   </svg>
-                  {/* Completion tick — matches SatelliteWidget style */}
                   {mode.progress >= 100 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900 animate-bounce z-50">
-                      <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg border-2 border-background animate-bounce z-50">
+                      <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[4]" />
                     </div>
                   )}
-                  <Icon className="w-5 h-5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all relative z-10" />
-                  <span className="text-[10px] font-bold text-white/50 group-hover:text-white/80 uppercase tracking-wider relative z-10">{mode.label}</span>
+                  <Icon className="w-5 h-5 text-foreground/70 group-hover:text-foreground group-hover:scale-110 transition-all relative z-10" />
+                  <span className="text-[10px] font-bold text-foreground/50 group-hover:text-foreground/80 uppercase tracking-wider relative z-10">{mode.label}</span>
                 </motion.button>
               );
             })}
@@ -149,23 +147,22 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
       )}
 
       {/* Tasks / Messages Panel */}
-      <div className="flex-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
+      <div className="flex-1 bg-background/40 backdrop-blur-xl border border-border rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
         {/* ── Sliding pill tab bar ── */}
         <div className="relative flex bg-white/[0.04] rounded-full p-0.5 mb-1">
-          {/* sliding pill */}
           <div
             className="absolute top-0.5 bottom-0.5 w-1/2 rounded-full bg-white/10 transition-transform duration-300 ease-out will-change-transform"
             style={{ transform: activeTab === 'tasks' ? 'translateX(0)' : 'translateX(100%)' }}
           />
           <button
             onClick={() => setActiveTab('tasks')}
-            className={`relative z-10 flex-1 text-[11px] font-bold text-center py-1.5 rounded-full transition-colors duration-200 ${activeTab === 'tasks' ? 'text-white' : 'text-white/35'}`}
+            className={`relative z-10 flex-1 text-[11px] font-bold text-center py-1.5 rounded-full transition-colors duration-200 ${activeTab === 'tasks' ? 'text-foreground' : 'text-foreground/35'}`}
           >
             Tasks
           </button>
           <button
             onClick={() => setActiveTab('messages')}
-            className={`relative z-10 flex-1 text-[11px] font-bold text-center py-1.5 rounded-full transition-colors duration-200 ${activeTab === 'messages' ? 'text-white' : 'text-white/35'}`}
+            className={`relative z-10 flex-1 text-[11px] font-bold text-center py-1.5 rounded-full transition-colors duration-200 ${activeTab === 'messages' ? 'text-foreground' : 'text-foreground/35'}`}
           >
             Messages
           </button>
@@ -192,8 +189,8 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
                   <div className="flex items-center gap-3">
                     <div className={`${item.iconBg} p-2 rounded-lg`}><item.icon className={`w-4 h-4 ${item.iconColor}`} /></div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-white">{item.label}</div>
-                      <div className="text-[10px] text-white/40 truncate">{item.sub}</div>
+                      <div className="text-sm font-bold text-foreground">{item.label}</div>
+                      <div className="text-[10px] text-foreground/40 truncate">{item.sub}</div>
                     </div>
                   </div>
                   {item.pct > 0 && <MicroProgress pct={item.pct} color={item.accent} />}
@@ -203,9 +200,9 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
               {/* Upcoming */}
               <SectionDivider label="Upcoming" />
               {[
-                { icon: Book, label: "Reading", sub: "Passage 3 (Due Tmr)", accent: "hsl(174 84% 40% / 0.4)", pct: 0, hint: null, iconBg: "bg-teal-500/20", iconColor: "text-teal-300", extra: <CloudDownload className="w-3.5 h-3.5 text-green-400 opacity-40 group-hover:opacity-100 transition-opacity" />, delay: 200 },
-                { icon: PenTool, label: "Grammar", sub: "Present Perfect Tense", accent: "hsl(140 60% 40% / 0.4)", pct: 20, hint: "Past tense can be tricky. Want a quick review?", iconBg: "bg-green-500/20", iconColor: "text-green-300", extra: null, delay: 250 },
-                { icon: Headphones, label: "Listening", sub: "Part 3 Practice", accent: "hsl(170 60% 40% / 0.4)", pct: 0, hint: null, iconBg: "bg-teal-500/20", iconColor: "text-teal-300", extra: null, delay: 300 },
+                { icon: Book, label: "Reading", sub: "Passage 3 (Due Tmr)", accent: "hsl(174 84% 40% / 0.4)", pct: 0, hint: null, iconBg: "bg-primary/20", iconColor: "text-accent-foreground", extra: <CloudDownload className="w-3.5 h-3.5 text-emerald-400 opacity-40 group-hover:opacity-100 transition-opacity" />, delay: 200 },
+                { icon: PenTool, label: "Grammar", sub: "Present Perfect Tense", accent: "hsl(140 60% 40% / 0.4)", pct: 20, hint: "Past tense can be tricky. Want a quick review?", iconBg: "bg-emerald-500/20", iconColor: "text-emerald-300", extra: null, delay: 250 },
+                { icon: Headphones, label: "Listening", sub: "Part 3 Practice", accent: "hsl(170 60% 40% / 0.4)", pct: 0, hint: null, iconBg: "bg-primary/20", iconColor: "text-accent-foreground", extra: null, delay: 300 },
                 { icon: Edit, label: "Writing", sub: "Task 2 Outline", accent: "hsl(330 70% 50% / 0.4)", pct: 0, hint: "Need help brainstorming ideas for writing?", iconBg: "bg-pink-500/20", iconColor: "text-pink-300", extra: null, delay: 350 },
               ].map((item, i) => (
                 <div
@@ -218,8 +215,8 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
                   <div className="flex items-center gap-3">
                     <div className={`${item.iconBg} p-2 rounded-lg`}><item.icon className={`w-4 h-4 ${item.iconColor}`} /></div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-white">{item.label}</div>
-                      <div className="text-[10px] text-white/40 truncate">{item.sub}</div>
+                      <div className="text-sm font-bold text-foreground">{item.label}</div>
+                      <div className="text-[10px] text-foreground/40 truncate">{item.sub}</div>
                     </div>
                     {item.extra}
                   </div>
