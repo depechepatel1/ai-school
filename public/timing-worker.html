@@ -272,13 +272,21 @@ async function runQueue(configs) {
   channel.postMessage({ type: "QUEUE_COMPLETE", completedJobs, totalJobs });
 }
 
+// Broadcast READY every 500ms until a job arrives
+let readyInterval = setInterval(() => {
+  channel.postMessage({ type: "READY" });
+}, 500);
+channel.postMessage({ type: "READY" });
+
 // Listen for messages from main app
 channel.onmessage = (e) => {
   if (e.data?.type === "START") {
+    if (readyInterval) { clearInterval(readyInterval); readyInterval = null; }
     const requestId = e.data.requestId || "legacy";
     channel.postMessage({ type: "START_ACK", requestId });
     runQueue([e.data.config]);
   } else if (e.data?.type === "START_QUEUE") {
+    if (readyInterval) { clearInterval(readyInterval); readyInterval = null; }
     const requestId = e.data.requestId || "legacy";
     channel.postMessage({ type: "START_ACK", requestId });
     runQueue(e.data.configs || []);
@@ -288,8 +296,6 @@ channel.onmessage = (e) => {
   }
 };
 
-// Signal that we're ready
-channel.postMessage({ type: "READY" });
 statusEl.textContent = "Worker ready — waiting for job…";
 log("Worker window opened, waiting for START message");
 </script>

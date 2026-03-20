@@ -43,8 +43,11 @@ function browserListen(
   recognition.interimResults = true;
 
   let stopped = false;
+  let retryCount = 0;
+  const MAX_RETRIES = 3;
 
   recognition.onresult = (event: any) => {
+    retryCount = 0; // reset on successful recognition
     let finalText = "";
     let interimText = "";
     for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -64,12 +67,22 @@ function browserListen(
 
   recognition.onend = () => {
     if (!stopped) {
-      // Auto-restart for continuous mode
-      try {
-        setTimeout(() => {
-          if (!stopped) recognition.start();
-        }, 500);
-      } catch {}
+      if (retryCount >= MAX_RETRIES) {
+        console.warn("[STT] Max restart retries reached, stopping.");
+        callbacks.onError?.("max-retries");
+        callbacks.onEnd?.();
+        return;
+      }
+      retryCount++;
+      setTimeout(() => {
+        if (!stopped) {
+          try { recognition.start(); } catch {
+            console.warn("[STT] Failed to restart recognition.");
+            callbacks.onError?.("restart-failed");
+            callbacks.onEnd?.();
+          }
+        }
+      }, 500);
     } else {
       callbacks.onEnd?.();
     }
