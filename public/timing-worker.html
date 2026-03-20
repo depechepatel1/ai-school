@@ -272,13 +272,24 @@ async function runQueue(configs) {
   channel.postMessage({ type: "QUEUE_COMPLETE", completedJobs, totalJobs });
 }
 
+// Signal that we're ready — repeat every 500ms until we receive a job,
+// so the parent window never misses the READY event due to timing.
+let readyInterval = setInterval(() => {
+  if (!isRunning) channel.postMessage({ type: "READY" });
+}, 500);
+channel.postMessage({ type: "READY" });
+statusEl.textContent = "Worker ready — waiting for job…";
+log("Worker window opened, waiting for START message");
+
 // Listen for messages from main app
 channel.onmessage = (e) => {
   if (e.data?.type === "START") {
+    if (readyInterval) { clearInterval(readyInterval); readyInterval = null; }
     const requestId = e.data.requestId || "legacy";
     channel.postMessage({ type: "START_ACK", requestId });
     runQueue([e.data.config]);
   } else if (e.data?.type === "START_QUEUE") {
+    if (readyInterval) { clearInterval(readyInterval); readyInterval = null; }
     const requestId = e.data.requestId || "legacy";
     channel.postMessage({ type: "START_ACK", requestId });
     runQueue(e.data.configs || []);
@@ -287,11 +298,6 @@ channel.onmessage = (e) => {
     statusEl.textContent = "Cancelling…";
   }
 };
-
-// Signal that we're ready
-channel.postMessage({ type: "READY" });
-statusEl.textContent = "Worker ready — waiting for job…";
-log("Worker window opened, waiting for START message");
 </script>
 </body>
 </html>

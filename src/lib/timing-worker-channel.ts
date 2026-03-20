@@ -74,11 +74,12 @@ let workerWindow: Window | null = null;
 
 /**
  * Ensure the popup window is open, returning it.
+ * Waits for the window to fully load before resolving.
  */
-function ensurePopup(): Window {
+function ensurePopup(): Promise<Window> {
   if (workerWindow && !workerWindow.closed) {
     workerWindow.focus();
-    return workerWindow;
+    return Promise.resolve(workerWindow);
   }
 
   const w = window.open(
@@ -89,13 +90,41 @@ function ensurePopup(): Window {
 
   if (!w) throw new Error("Popup blocked — please allow popups for this site");
   workerWindow = w;
-  return w;
+
+  // Wait for the popup's BroadcastChannel READY signal rather than the
+  // load event, since the BroadcastChannel listener is set up at the end
+  // of the popup's <script> block.
+  return new Promise<Window>((resolve) => {
+    const ch = new BroadcastChannel(CHANNEL_NAME);
+    let resolved = false;
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type === "READY" && !resolved) {
+        resolved = true;
+        ch.removeEventListener("message", onMsg);
+        ch.close();
+        resolve(w);
+      }
+    };
+    ch.addEventListener("message", onMsg);
+    // Safety timeout — if READY never arrives, resolve anyway so
+    // sendWithAck can still retry.
+    setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        ch.removeEventListener("message", onMsg);
+        ch.close();
+        resolve(w);
+      }
+    }, 10000);
+  });
 }
 
 /**
  * Send a message to the popup with retry+ack handshake.
+ * Waits for the popup to be ready before sending.
  */
 function sendWithAck(
+  popupReady: Promise<Window>,
   msgFactory: (requestId: string) => Record<string, unknown>,
   onTimeout?: () => void
 ): void {
@@ -121,6 +150,7 @@ function sendWithAck(
 
   const onMessage = (e: MessageEvent) => {
     if (e.data?.type === "READY") {
+      // Popup signalled it's ready — send immediately
       send();
       return;
     }
@@ -132,28 +162,32 @@ function sendWithAck(
 
   channel.addEventListener("message", onMessage);
 
-  send();
-  retryHandle = window.setInterval(() => {
-    if (!acknowledged) send();
-  }, 600);
+  // Only start sending once the popup is loaded
+  popupReady.then(() => {
+    if (acknowledged || cleaned) return;
+    send();
+    retryHandle = window.setInterval(() => {
+      if (!acknowledged) send();
+    }, 600);
 
-  timeoutHandle = window.setTimeout(() => {
-    if (acknowledged) return;
-    onTimeout?.();
-    channel.postMessage({
-      type: "ERROR",
-      error: "Worker did not acknowledge. Keep popup open and try again.",
-    });
-    cleanup();
-  }, 8000);
+    timeoutHandle = window.setTimeout(() => {
+      if (acknowledged) return;
+      onTimeout?.();
+      channel.postMessage({
+        type: "ERROR",
+        error: "Worker did not acknowledge. Keep popup open and try again.",
+      });
+      cleanup();
+    }, 15000);
+  });
 }
 
 /**
  * Launch the timing worker popup and send it a single job config.
  */
 export function launchTimingWorker(config: TimingWorkerConfig): void {
-  ensurePopup();
-  sendWithAck((requestId) => ({ type: "START", config, requestId }));
+  const popupReady = ensurePopup();
+  sendWithAck(popupReady, (requestId) => ({ type: "START", config, requestId }));
 }
 
 /**
@@ -161,8 +195,8 @@ export function launchTimingWorker(config: TimingWorkerConfig): void {
  */
 export function launchTimingWorkerQueue(configs: TimingWorkerConfig[]): void {
   if (configs.length === 0) return;
-  ensurePopup();
-  sendWithAck((requestId) => ({ type: "START_QUEUE", configs, requestId }));
+  const popupReady = ensurePopup();
+  sendWithAck(popupReady, (requestId) => ({ type: "START_QUEUE", configs, requestId }));
 }
 
 /**
