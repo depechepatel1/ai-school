@@ -67,13 +67,24 @@ export default function AdminCurriculumUpload() {
         case "PROGRESS":
           setMeasureProgress({ current: msg.current, total: msg.total });
           break;
+        case "JOB_STARTED":
+          setMeasureLabel(`${msg.jobLabel} (${msg.jobIndex + 1}/${msg.totalJobs})`);
+          setMeasureProgress({ current: 0, total: 0 });
+          break;
         case "COMPLETE":
+          clearTimingsCache();
+          checkTimingStatus();
+          toast({ title: "Job Complete", description: `Measured ${msg.count} chunks for ${msg.storagePath}.` });
+          break;
+        case "QUEUE_COMPLETE":
           setIsMeasuring(false);
           setMeasureProgress({ current: 0, total: 0 });
           setMeasureLabel("");
           clearTimingsCache();
           checkTimingStatus();
-          toast({ title: "TTS Timing Complete", description: `Measured ${msg.count} chunks for ${msg.storagePath}.` });
+          if (msg.completedJobs === msg.totalJobs) {
+            toast({ title: "All timing jobs complete", description: `${msg.completedJobs} job(s) finished successfully.` });
+          }
           break;
         case "CANCELLED":
           setIsMeasuring(false);
