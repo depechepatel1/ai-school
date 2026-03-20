@@ -414,9 +414,11 @@ export default function AdminCurriculumUpload() {
             measureLabel={measureLabel}
             measureProgress={measureProgress}
             timingStatus={timingStatus}
+            timingPartialInfo={timingPartialInfo}
             timingJobs={TIMING_JOBS}
             onMeasureAll={handleMeasureAll}
             onMeasureSingle={handleMeasureSingle}
+            onResumePartial={handleResumePartial}
             onCancel={() => { cancelTimingWorker(); }}
           />
         </div>
