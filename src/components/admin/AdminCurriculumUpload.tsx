@@ -324,7 +324,6 @@ export default function AdminCurriculumUpload() {
       toast({ title: "Failed to start timing queue", description: String(err), variant: "destructive" });
     }
   };
-  };
 
   if (loading) {
     return (
