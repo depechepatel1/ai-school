@@ -22,7 +22,7 @@ const routes = [
   { path: "/select-week", label: "Week Select", role: "student" },
   { path: "/student", label: "Student (IGCSE)", role: "student" },
   { path: "/student", label: "Student (IELTS)", role: "student-ielts" },
-  { path: "/speaking", label: "Speaking", role: "student" },
+  
   { path: "/igcse/fluency", label: "IGCSE Fluency", role: "student" },
   { path: "/igcse/pronunciation", label: "IGCSE Pronun.", role: "student" },
   { path: "/igcse/speaking", label: "IGCSE Speaking", role: "student" },
