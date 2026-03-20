@@ -115,7 +115,7 @@ const App = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/select-week" element={<ProtectedRoute allowedRoles={["student"]}><WeekSelection /></ProtectedRoute>} />
             <Route path="/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentPractice /></ProtectedRoute>} />
-            <Route path="/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><SpeakingStudio /></ErrorBoundary></ProtectedRoute>} />
+            
             <Route path="/ielts/pronunciation" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSPronunciation /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/fluency" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSFluency /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/ielts/speaking" element={<ProtectedRoute allowedRoles={["student"]}><ErrorBoundary><IELTSSpeaking /></ErrorBoundary></ProtectedRoute>} />
