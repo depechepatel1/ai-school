@@ -58,7 +58,8 @@ export default function AdminCurriculumUpload() {
   const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
   const [measureLabel, setMeasureLabel] = useState("");
   const cancelRef = useRef(false);
-  const [timingStatus, setTimingStatus] = useState<Record<string, boolean | null>>({});
+  const [timingStatus, setTimingStatus] = useState<Record<string, "complete" | "partial" | "missing" | null>>({});
+  const [timingPartialInfo, setTimingPartialInfo] = useState<Record<string, { measured: number } | null>>({});
 
   // Listen for worker messages
   useEffect(() => {
