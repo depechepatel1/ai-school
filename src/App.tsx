@@ -46,7 +46,7 @@ const Signup = lazy(pageImports.Signup);
 const ForgotPassword = lazy(pageImports.ForgotPassword);
 const ResetPassword = lazy(pageImports.ResetPassword);
 const StudentPractice = lazy(pageImports.StudentPractice);
-const SpeakingStudio = lazy(pageImports.SpeakingStudio);
+
 const TeacherDashboard = lazy(pageImports.TeacherDashboard);
 const ParentDashboard = lazy(pageImports.ParentDashboard);
 const AdminDashboard = lazy(pageImports.AdminDashboard);
