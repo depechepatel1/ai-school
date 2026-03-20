@@ -1,34 +1,53 @@
 
+Goal: stop constant timeout loops in “Time IELTS Fluency” popup and make timing measurement reliable.
 
-# Fix: "Worker did not acknowledge" in TTS Timing
+Why this is happening now:
+1. The chunks that timeout are short (e.g., “To begin with, I want to talk about my uncle,”), so this is not a “text too long” issue.
+2. In `public/timing-worker.html`, `measureSingle()` returns `15000` both on real timeout and on any `onerror`, but the log always labels it as “Timeout”, hiding the true failure cause.
+3. The worker picks one voice via `findVoice()` and retries the same text mostly with the same voice; no robust voice failover exists.
+4. Current available voices are Microsoft “Online (Natural)” voices, which are more likely to fail in popup/background/sandbox contexts. Since worker lacks blacklist/fallback logic, it keeps producing 15s sentinel results.
 
-## Root Cause
+Implementation plan:
+1. Harden worker voice strategy
+- Replace single-voice `findVoice()` with a prioritized candidate list (local natural first, then online, then any matching accent, then any English).
+- Add a `failedVoiceNames` blacklist in worker session.
+- On `synthesis-failed`/`network`/repeated no-start, mark current voice failed and switch to next candidate.
 
-The timing worker uses `BroadcastChannel` for communication between the main app and a popup window. This fails because:
+2. Improve measurement result model in worker
+- Change `measureSingle()` to return structured output: `{ duration, status, errorType, started, voiceName }`.
+- Distinguish:
+  - `ok` (real duration),
+  - `error` (speech synthesis error type),
+  - `timeout_no_start`,
+  - `timeout_after_start`.
+- Log exact error types in popup UI.
 
-1. **Origin mismatch in preview**: The Lovable preview runs inside an iframe. When `window.open()` is called from within the iframe, the popup may load on a slightly different origin, and `BroadcastChannel` only works same-origin.
-2. **Fallback gap**: The 8-second timeout is too short if the popup loads slowly, and there's no fallback communication mechanism.
+3. Retry and fallback flow
+- For each chunk:
+  - attempt with selected voice,
+  - on failure, rotate to next voice and retry (bounded attempts),
+  - final fallback: measure using system default voice (no explicit `utterance.voice`),
+  - if everything fails, do not silently store raw 15000 as “normal”; mark as fallback-estimated or skipped.
+- Keep existing batch rest/warmup/cancel behavior.
 
-## Fix
+4. Safe timeout policy
+- Replace fixed 15s with adaptive timeout based on cleaned text length (with min/max bounds).
+- Keep current warmup and cancel delays, but add no-start detection timer so failed starts rotate faster.
 
-Replace `BroadcastChannel` with direct `window.postMessage()` between the parent and popup window. This works cross-origin and is more reliable for popup communication.
+5. Data quality + UI feedback
+- Store metadata in output JSON for troubleshooting (e.g., failure count, fallback used).
+- In popup log, show voice name and reason (e.g., `network`, `synthesis-failed`) instead of generic “Timeout”.
+- In parent toast/status, summarize if any chunks used fallback estimation.
 
-### Changes
+Technical details:
+- Files to update:
+  - `public/timing-worker.html` (main reliability fix, logging, retry/fallback)
+  - Optional alignment update in `src/lib/tts-measure.ts` to keep non-popup timing path behavior consistent
+- No database schema or backend changes required.
+- Keep `postMessage` worker channel as-is; issue is in speech synthesis execution and voice failover inside popup.
 
-**`src/lib/timing-worker-channel.ts`**:
-- Replace all `BroadcastChannel` usage with `window.postMessage()` to the popup window reference (already stored in `workerWindow`)
-- Listen for replies via `window.addEventListener("message", ...)` with origin checking
-- Keep the same retry/ack handshake logic, just swap the transport
-
-**`public/timing-worker.html`**:
-- Replace `BroadcastChannel` with `window.opener.postMessage()` for sending messages back to parent
-- Listen via `window.addEventListener("message", ...)` for incoming commands
-- Keep the READY interval broadcasting via `window.opener.postMessage()`
-- Add `window.opener` null check with fallback error display
-
-### Files to edit
-| File | Change |
-|------|--------|
-| `src/lib/timing-worker-channel.ts` | Switch from BroadcastChannel to window.postMessage |
-| `public/timing-worker.html` | Switch from BroadcastChannel to window.opener.postMessage |
-
+Validation checklist:
+1. Run “Time IELTS Fluency” and verify first 20 chunks no longer all land at 15000ms.
+2. Confirm popup logs include explicit failure reason + voice switching when failures occur.
+3. Verify partial save/final upload still works.
+4. Re-run full IELTS timing and check duration distribution looks realistic (not dominated by a single sentinel value).
