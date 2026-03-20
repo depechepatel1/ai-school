@@ -24,11 +24,20 @@ import {
   FORMATTING_GUIDE,
 } from "./curriculum-helpers";
 import {
-  generateAndUploadFluencyTimings,
-  generateAndUploadPronunciationTimings,
   clearTimingsCache,
+  getFluencyChunkTexts,
+  getPronunciationChunkTexts,
 } from "@/services/tts-timings-storage";
 import { clearPronunciationCache } from "@/services/pronunciation-shadowing";
+import {
+  launchTimingWorker,
+  cancelTimingWorker,
+  onTimingWorkerMessage,
+  type TimingWorkerMessage,
+} from "@/lib/timing-worker-channel";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export default function AdminCurriculumUpload() {
   const { user } = useAuth();
@@ -48,6 +57,39 @@ export default function AdminCurriculumUpload() {
   const [measureLabel, setMeasureLabel] = useState("");
   const cancelRef = useRef(false);
   const [timingStatus, setTimingStatus] = useState<Record<string, boolean | null>>({});
+
+  // Listen for worker messages
+  useEffect(() => {
+    const cleanup = onTimingWorkerMessage((msg: TimingWorkerMessage) => {
+      switch (msg.type) {
+        case "PROGRESS":
+          setMeasureProgress({ current: msg.current, total: msg.total });
+          break;
+        case "COMPLETE":
+          setIsMeasuring(false);
+          setMeasureProgress({ current: 0, total: 0 });
+          setMeasureLabel("");
+          clearTimingsCache();
+          checkTimingStatus();
+          toast({ title: "TTS Timing Complete", description: `Measured ${msg.count} chunks for ${msg.storagePath}.` });
+          break;
+        case "CANCELLED":
+          setIsMeasuring(false);
+          setMeasureProgress({ current: 0, total: 0 });
+          setMeasureLabel("");
+          checkTimingStatus();
+          toast({ title: "Timing cancelled", description: `Partial progress saved (${msg.measured}/${msg.total}).` });
+          break;
+        case "ERROR":
+          setIsMeasuring(false);
+          setMeasureProgress({ current: 0, total: 0 });
+          setMeasureLabel("");
+          toast({ title: "Timing failed", description: msg.error, variant: "destructive" });
+          break;
+      }
+    });
+    return cleanup;
+  }, []);
 
   const loadMetadata = async () => {
     const { data } = await supabase
@@ -149,57 +191,89 @@ export default function AdminCurriculumUpload() {
     URL.revokeObjectURL(url);
   };
 
-  // --- Timing jobs ---
+  // --- Timing jobs (now launch popup worker) ---
+  const launchTimingJob = async (
+    label: string,
+    storagePath: string,
+    getChunks: () => Promise<string[]>,
+    accent = "uk",
+    rate = 0.8
+  ) => {
+    if (isMeasuring) return;
+    setIsMeasuring(true);
+    setMeasureLabel(label);
+    clearTimingsCache();
+
+    try {
+      const chunks = await getChunks();
+      if (chunks.length === 0) throw new Error("No chunks found");
+
+      launchTimingWorker({
+        chunks,
+        accent,
+        rate,
+        storagePath,
+        supabaseUrl: SUPABASE_URL,
+        anonKey: ANON_KEY,
+        jobLabel: label,
+      });
+    } catch (err) {
+      setIsMeasuring(false);
+      setMeasureLabel("");
+      toast({ title: "Failed to start timing", description: String(err), variant: "destructive" });
+    }
+  };
+
   const TIMING_JOBS = [
-    { label: "Time IELTS Fluency", path: "ielts/timings-shadowing-fluency.json", run: () => generateAndUploadFluencyTimings("ielts", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}) },
-    { label: "Time IGCSE Fluency", path: "igcse/timings-shadowing-fluency.json", run: () => generateAndUploadFluencyTimings("igcse", "uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}) },
-    { label: "Time Pronunciation", path: "shared/timings-shadowing-pronunciation.json", run: () => generateAndUploadPronunciationTimings("uk", (c, t) => setMeasureProgress({ current: c, total: t }), cancelRef).then(() => {}) },
+    {
+      label: "Time IELTS Fluency",
+      path: "ielts/timings-shadowing-fluency.json",
+      run: () => launchTimingJob("Time IELTS Fluency", "ielts/timings-shadowing-fluency.json", () => getFluencyChunkTexts("ielts")),
+    },
+    {
+      label: "Time IGCSE Fluency",
+      path: "igcse/timings-shadowing-fluency.json",
+      run: () => launchTimingJob("Time IGCSE Fluency", "igcse/timings-shadowing-fluency.json", () => getFluencyChunkTexts("igcse")),
+    },
+    {
+      label: "Time Pronunciation",
+      path: "shared/timings-shadowing-pronunciation.json",
+      run: () => launchTimingJob("Time Pronunciation", "shared/timings-shadowing-pronunciation.json", () => getPronunciationChunkTexts()),
+    },
   ];
 
   const handleMeasureSingle = async (jobIndex: number) => {
-    if (isMeasuring) return;
     const job = TIMING_JOBS[jobIndex];
     if (!job) return;
-    setIsMeasuring(true); cancelRef.current = false; clearTimingsCache(); setMeasureLabel(job.label);
-    try {
-      await job.run();
-      toast({ title: cancelRef.current ? "Measurement cancelled" : "TTS Timing Complete", description: cancelRef.current ? `Stopped during ${job.label}.` : `Re-measured ${job.label}.` });
-    } catch (err) {
-      if (!cancelRef.current) toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
-    } finally {
-      cancelRef.current = false; setIsMeasuring(false); setMeasureProgress({ current: 0, total: 0 }); setMeasureLabel(""); checkTimingStatus();
-    }
+    await job.run();
   };
 
   const handleMeasureAll = async (force: boolean) => {
     if (isMeasuring) return;
-    setIsMeasuring(true); cancelRef.current = false; clearTimingsCache();
-    try {
-      let pending = TIMING_JOBS;
-      if (!force) {
-        pending = [];
-        for (const job of TIMING_JOBS) {
-          const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
-          if (data?.publicUrl) {
-            try { const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" }); if (res.ok) continue; } catch {}
-          }
-          pending.push(job);
+    clearTimingsCache();
+
+    let pending = TIMING_JOBS;
+    if (!force) {
+      pending = [];
+      for (const job of TIMING_JOBS) {
+        const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
+        if (data?.publicUrl) {
+          try { const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" }); if (res.ok) continue; } catch {}
         }
+        pending.push(job);
       }
-      if (pending.length === 0) {
-        toast({ title: "All timings already exist", description: "No missing timing files to measure." });
-      } else {
-        for (const job of pending) {
-          if (cancelRef.current) break;
-          setMeasureLabel(job.label);
-          await job.run();
-        }
-        toast({ title: cancelRef.current ? "Measurement cancelled" : "TTS Timings Complete", description: cancelRef.current ? "Stopped by user." : `Measured ${pending.length} timing file(s).` });
-      }
-    } catch (err) {
-      if (!cancelRef.current) toast({ title: "Measurement failed", description: String(err), variant: "destructive" });
-    } finally {
-      cancelRef.current = false; setIsMeasuring(false); setMeasureProgress({ current: 0, total: 0 }); setMeasureLabel(""); checkTimingStatus();
+    }
+
+    if (pending.length === 0) {
+      toast({ title: "All timings already exist", description: "No missing timing files to measure." });
+      return;
+    }
+
+    // Launch the first pending job — subsequent ones need manual trigger
+    // (popup can only run one job at a time)
+    await pending[0].run();
+    if (pending.length > 1) {
+      toast({ title: `${pending.length} jobs need timing`, description: `Started "${pending[0].label}". Run remaining jobs after this completes.` });
     }
   };
 
@@ -260,9 +334,15 @@ export default function AdminCurriculumUpload() {
             timingJobs={TIMING_JOBS}
             onMeasureAll={handleMeasureAll}
             onMeasureSingle={handleMeasureSingle}
-            onCancel={() => { cancelRef.current = true; }}
+            onCancel={() => { cancelTimingWorker(); }}
           />
         </div>
+
+        {isMeasuring && (
+          <p className="text-[10px] text-amber-300/60 animate-pulse">
+            ⏳ Running in background popup — you can continue working here
+          </p>
+        )}
       </div>
 
       <CurriculumVersionsTable metadata={metadata} />
