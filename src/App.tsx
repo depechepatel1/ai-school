@@ -22,7 +22,7 @@ const pageImports = {
   ForgotPassword: () => import("./pages/ForgotPassword"),
   ResetPassword: () => import("./pages/ResetPassword"),
   StudentPractice: () => import("./pages/StudentPractice"),
-  SpeakingStudio: () => import("./pages/SpeakingStudio"),
+  
   TeacherDashboard: () => import("./pages/TeacherDashboard"),
   ParentDashboard: () => import("./pages/ParentDashboard"),
   AdminDashboard: () => import("./pages/AdminDashboard"),
