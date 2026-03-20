@@ -9,6 +9,7 @@
   h1 { font-size: 16px; color: #fbbf24; margin-bottom: 16px; }
   .status { font-size: 13px; color: #999; margin-bottom: 8px; }
   .queue-info { font-size: 12px; color: #a78bfa; margin-bottom: 8px; font-weight: bold; }
+  .voice-info { font-size: 11px; color: #60a5fa; margin-bottom: 8px; }
   .progress-bar { width: 100%; height: 24px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 0.3s; border-radius: 12px; }
   .log { font-size: 11px; color: #666; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; margin-top: 12px; }
@@ -21,6 +22,7 @@
 <body>
 <h1>🎤 TTS Timing Worker</h1>
 <div id="queueInfo" class="queue-info" style="display:none"></div>
+<div id="voiceInfo" class="voice-info"></div>
 <div id="statusText" class="status">Waiting for config…</div>
 <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
 <div id="progressLabel" class="status"></div>
@@ -34,10 +36,16 @@ const BATCH_SIZE = 10;
 const BATCH_REST_MS = 3000;
 const INTER_UTTERANCE_MS = 500;
 const SAVE_EVERY = 10;
+const MAX_VOICE_RETRIES = 3;
+const CHAR_RATE_MS = 65; // approximate ms per character for estimation fallback
 
 let cancelled = false;
 let isRunning = false;
 const opener = window.opener;
+
+// --- Voice blacklist (session-level) ---
+const failedVoiceNames = new Set();
+let currentVoiceName = "";
 
 const statusEl = document.getElementById("statusText");
 const fillEl = document.getElementById("progressFill");
@@ -45,6 +53,7 @@ const labelEl = document.getElementById("progressLabel");
 const logEl = document.getElementById("logArea");
 const cancelBtn = document.getElementById("cancelBtn");
 const queueInfoEl = document.getElementById("queueInfo");
+const voiceInfoEl = document.getElementById("voiceInfo");
 
 if (!opener) {
   statusEl.textContent = "❌ No parent window found. Open this from the admin panel.";
@@ -72,42 +81,170 @@ function updateProgress(current, total) {
   sendToParent({ type: "PROGRESS", current, total, pct });
 }
 
-// --- SpeechSynthesis measurement ---
+// --- Voice selection with prioritization and blacklisting ---
 
-function findVoice(accent) {
+function getVoiceCandidates(accent) {
   const voices = speechSynthesis.getVoices();
   const langPrefix = accent === "uk" ? "en-GB" : accent === "us" ? "en-US" : "zh-CN";
-  const natural = voices.filter(v => v.name.includes("Natural") && v.lang.startsWith(langPrefix));
-  if (natural.length) return natural[0];
-  const match = voices.filter(v => v.lang.startsWith(langPrefix));
-  if (match.length) return match[0];
-  return voices.find(v => v.lang.startsWith("en")) || voices[0] || null;
+
+  // Categorize voices
+  const localNatural = [];
+  const onlineNatural = [];
+  const localOther = [];
+  const onlineOther = [];
+  const anyEnglish = [];
+
+  for (const v of voices) {
+    if (failedVoiceNames.has(v.name)) continue;
+    const matchesLang = v.lang.startsWith(langPrefix);
+    const isOnline = v.name.includes("Online");
+    const isNatural = v.name.includes("Natural");
+
+    if (matchesLang) {
+      if (isNatural && !isOnline) localNatural.push(v);
+      else if (isNatural && isOnline) onlineNatural.push(v);
+      else if (!isOnline) localOther.push(v);
+      else onlineOther.push(v);
+    } else if (v.lang.startsWith("en")) {
+      anyEnglish.push(v);
+    }
+  }
+
+  // Priority: local natural > local other > online natural > online other > any English > null (system default)
+  return [...localNatural, ...localOther, ...onlineNatural, ...onlineOther, ...anyEnglish, null];
 }
 
-// Strip Chinese chars and parenthetical annotations that stall SpeechSynthesis
+function pickBestVoice(accent) {
+  const candidates = getVoiceCandidates(accent);
+  const voice = candidates.length > 0 ? candidates[0] : null;
+  currentVoiceName = voice?.name || "(system default)";
+  voiceInfoEl.textContent = `🔊 Voice: ${currentVoiceName}${failedVoiceNames.size > 0 ? ` (${failedVoiceNames.size} blacklisted)` : ""}`;
+  return voice;
+}
+
+function blacklistVoice(voiceName, reason) {
+  if (voiceName && voiceName !== "(system default)") {
+    failedVoiceNames.add(voiceName);
+    log(`⛔ Blacklisted voice "${voiceName}" — reason: ${reason}`);
+  }
+}
+
+// --- Strip Chinese chars and parenthetical annotations ---
+
 function cleanForTTS(text) {
   return text
-    .replace(/\([^)]*[\u4e00-\u9fff][^)]*\)/g, '') // remove (中文) annotations
-    .replace(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/g, '') // remove stray CJK chars
+    .replace(/\([^)]*[\u4e00-\u9fff][^)]*\)/g, '')
+    .replace(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
-function measureSingle(text, voice, rate, timeoutMs = 15000) {
+// --- Adaptive timeout based on text length ---
+
+function getTimeout(text) {
+  const len = cleanForTTS(text).length;
+  // min 4s, max 20s, ~80ms per char
+  return Math.max(4000, Math.min(20000, len * 80));
+}
+
+// --- Structured measurement ---
+
+function measureSingle(text, voice, rate) {
+  const NO_START_MS = 3000; // if onstart doesn't fire within 3s, it's stuck
   return new Promise(resolve => {
     const cleaned = cleanForTTS(text);
-    if (!cleaned) { resolve(500); return; } // fallback for fully-CJK text
+    if (!cleaned) {
+      resolve({ duration: Math.max(500, cleaned.length * CHAR_RATE_MS), status: "estimated", errorType: null, voiceName: voice?.name || null });
+      return;
+    }
+
+    const timeoutMs = getTimeout(text);
     const u = new SpeechSynthesisUtterance(cleaned);
     if (voice) u.voice = voice;
-    u.rate = rate; u.pitch = 1; u.volume = 0.01;
-    let start = 0;
-    const t = setTimeout(() => { speechSynthesis.cancel(); resolve(timeoutMs); }, timeoutMs);
-    u.onstart = () => { start = performance.now(); };
-    u.onend = () => { clearTimeout(t); resolve(Math.round(performance.now() - start)); };
-    u.onerror = () => { clearTimeout(t); resolve(timeoutMs); };
+    u.rate = rate;
+    u.pitch = 1;
+    u.volume = 0.01;
+    let started = false;
+    let startTime = 0;
+
+    // No-start detection: if onstart never fires, voice is broken
+    const noStartTimer = setTimeout(() => {
+      if (!started) {
+        speechSynthesis.cancel();
+        resolve({ duration: 0, status: "error", errorType: "timeout_no_start", voiceName: voice?.name || null });
+      }
+    }, NO_START_MS);
+
+    // Overall timeout
+    const overallTimer = setTimeout(() => {
+      speechSynthesis.cancel();
+      if (started) {
+        resolve({ duration: Math.round(performance.now() - startTime), status: "error", errorType: "timeout_after_start", voiceName: voice?.name || null });
+      }
+      // if not started, noStartTimer handles it
+    }, timeoutMs);
+
+    u.onstart = () => {
+      started = true;
+      startTime = performance.now();
+      clearTimeout(noStartTimer);
+    };
+
+    u.onend = () => {
+      clearTimeout(noStartTimer);
+      clearTimeout(overallTimer);
+      const dur = started ? Math.round(performance.now() - startTime) : 0;
+      resolve({ duration: dur, status: "ok", errorType: null, voiceName: voice?.name || null });
+    };
+
+    u.onerror = (ev) => {
+      clearTimeout(noStartTimer);
+      clearTimeout(overallTimer);
+      const errType = ev?.error || "synthesis-failed";
+      resolve({ duration: 0, status: "error", errorType: errType, voiceName: voice?.name || null });
+    };
+
     speechSynthesis.speak(u);
   });
 }
+
+// --- Measure with voice rotation retry ---
+
+async function measureWithRetry(text, accent, rate) {
+  for (let attempt = 0; attempt < MAX_VOICE_RETRIES; attempt++) {
+    const voice = pickBestVoice(accent);
+
+    speechSynthesis.cancel();
+    await new Promise(r => setTimeout(r, 50));
+
+    const result = await measureSingle(text, voice, rate);
+
+    if (result.status === "ok" && result.duration > 0) {
+      return result;
+    }
+
+    if (result.status === "estimated") {
+      return result;
+    }
+
+    // Error — blacklist this voice and try next
+    const reason = result.errorType || "unknown";
+    log(`⚠️ Attempt ${attempt + 1}: "${text.substring(0, 35)}…" failed (${reason}) on voice "${result.voiceName || "default"}"`);
+    blacklistVoice(result.voiceName, reason);
+
+    // Brief pause before retry
+    speechSynthesis.cancel();
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  // All retries exhausted — estimate from text length
+  const cleaned = cleanForTTS(text);
+  const estimated = Math.max(500, cleaned.length * CHAR_RATE_MS);
+  log(`📐 Estimated "${text.substring(0, 35)}…" → ${estimated}ms (all voices failed)`);
+  return { duration: estimated, status: "fallback_estimated", errorType: "all_voices_failed", voiceName: null };
+}
+
+// --- Upload ---
 
 async function uploadTimings(path, result, supabaseUrl, anonKey) {
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
@@ -127,6 +264,8 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
 }
 
+// --- Single job runner ---
+
 async function runSingleJob(config) {
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, jobLabel } = config;
   cancelled = false;
@@ -141,10 +280,12 @@ async function runSingleJob(config) {
     voices = speechSynthesis.getVoices();
   }
 
-  const voice = findVoice(accent);
-  log(`Voice: ${voice?.name || "null"} (${voice?.lang || ""})`);
+  const voice = pickBestVoice(accent);
+  log(`Initial voice: ${voice?.name || "system default"} (${voice?.lang || ""}) — ${voices.length} total voices available`);
 
   let timings = {};
+  let meta = { fallbackCount: 0, errorCount: 0, estimatedCount: 0 };
+
   try {
     const existingUrl = `${supabaseUrl}/storage/v1/object/public/curriculums/${storagePath}?t=${Date.now()}`;
     const existRes = await fetch(existingUrl);
@@ -152,12 +293,12 @@ async function runSingleJob(config) {
       const existing = await existRes.json();
       if (existing?.timings) { timings = existing.timings; log(`Loaded ${Object.keys(timings).length} existing timings (resuming)`); }
     }
-  } catch { /* no existing file, start fresh */ }
+  } catch { /* no existing file */ }
 
   const uniqueChunks = [...new Set(chunks)];
   const remaining = uniqueChunks.filter(c => !timings[c]);
   log(`Total unique: ${uniqueChunks.length}, already done: ${uniqueChunks.length - remaining.length}, remaining: ${remaining.length}`);
-  
+
   const doneOffset = uniqueChunks.length - remaining.length;
   updateProgress(doneOffset, uniqueChunks.length);
 
@@ -171,9 +312,10 @@ async function runSingleJob(config) {
     const totalBatches = Math.ceil(remaining.length / BATCH_SIZE);
     log(`Batch ${batchNum}/${totalBatches}`);
 
+    // Warm up engine
     speechSynthesis.cancel();
     await new Promise(r => setTimeout(r, 200));
-    await measureSingle(".", voice, 1, 3000);
+    await measureSingle(".", pickBestVoice(accent), 1);
     await new Promise(r => setTimeout(r, 300));
 
     for (let i = batchStart; i < batchEnd; i++) {
@@ -181,24 +323,19 @@ async function runSingleJob(config) {
       const text = remaining[i];
       if (i > batchStart) await new Promise(r => setTimeout(r, INTER_UTTERANCE_MS));
 
-      speechSynthesis.cancel();
-      await new Promise(r => setTimeout(r, 50));
+      const result = await measureWithRetry(text, accent, rate);
+      timings[text] = result.duration;
 
-      let duration = await measureSingle(text, voice, rate);
-      if (duration >= 15000) {
-        log(`Timeout on "${text.substring(0, 30)}…", retrying`);
-        speechSynthesis.cancel();
-        await new Promise(r => setTimeout(r, 1000));
-        duration = await measureSingle(text, voice, rate);
-      }
+      if (result.status === "fallback_estimated") meta.fallbackCount++;
+      if (result.status === "estimated") meta.estimatedCount++;
+      if (result.status === "error") meta.errorCount++;
 
-      timings[text] = duration;
       savedCount++;
       updateProgress(doneOffset + i + 1, uniqueChunks.length);
 
       if (savedCount % SAVE_EVERY === 0) {
         try {
-          const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
+          const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
           await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
           log(`Incremental save at ${doneOffset + i + 1}/${uniqueChunks.length}`);
         } catch (err) { log(`Incremental save failed: ${err.message}`); }
@@ -215,23 +352,29 @@ async function runSingleJob(config) {
 
   if (cancelled) {
     try {
-      const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
+      const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
       await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
       log("Saved partial progress before cancel");
     } catch (err) { log(`Save on cancel failed: ${err.message}`); }
-    
+
     statusEl.textContent = "Cancelled — partial progress saved";
     statusEl.className = "status error";
     sendToParent({ type: "CANCELLED", measured: Object.keys(timings).length, total: uniqueChunks.length });
     return false;
   } else {
     try {
-      const finalResult = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1 };
+      const finalResult = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, meta };
       await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey);
-      log("Final upload complete!");
-      statusEl.textContent = `✅ Done — ${Object.keys(timings).length} timings saved`;
+      const summary = `✅ Done — ${Object.keys(timings).length} timings saved`;
+      const warnings = [];
+      if (meta.fallbackCount > 0) warnings.push(`${meta.fallbackCount} estimated (voice failures)`);
+      if (meta.estimatedCount > 0) warnings.push(`${meta.estimatedCount} estimated (empty text)`);
+      if (failedVoiceNames.size > 0) warnings.push(`${failedVoiceNames.size} voices blacklisted`);
+      const fullSummary = warnings.length ? `${summary} ⚠️ ${warnings.join(", ")}` : summary;
+      log(fullSummary);
+      statusEl.textContent = fullSummary;
       statusEl.className = "status done";
-      sendToParent({ type: "COMPLETE", storagePath, count: Object.keys(timings).length });
+      sendToParent({ type: "COMPLETE", storagePath, count: Object.keys(timings).length, meta });
     } catch (err) {
       log(`Final upload error: ${err.message}`);
       statusEl.textContent = `❌ Upload failed: ${err.message}`;
@@ -242,6 +385,8 @@ async function runSingleJob(config) {
     return true;
   }
 }
+
+// --- Queue runner ---
 
 async function runQueue(configs) {
   if (isRunning) {
@@ -286,13 +431,13 @@ async function runQueue(configs) {
   sendToParent({ type: "QUEUE_COMPLETE", completedJobs, totalJobs });
 }
 
-// Broadcast READY every 500ms until a job arrives
+// --- Broadcast READY ---
 let readyInterval = setInterval(() => {
   sendToParent({ type: "READY" });
 }, 500);
 sendToParent({ type: "READY" });
 
-// Listen for messages from parent via postMessage
+// --- Listen for messages from parent ---
 window.addEventListener("message", (e) => {
   if (e.data?._source !== PARENT_SOURCE) return;
 
