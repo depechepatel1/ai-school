@@ -58,7 +58,8 @@ export default function AdminCurriculumUpload() {
   const [measureProgress, setMeasureProgress] = useState({ current: 0, total: 0 });
   const [measureLabel, setMeasureLabel] = useState("");
   const cancelRef = useRef(false);
-  const [timingStatus, setTimingStatus] = useState<Record<string, boolean | null>>({});
+  const [timingStatus, setTimingStatus] = useState<Record<string, "complete" | "partial" | "missing" | null>>({});
+  const [timingPartialInfo, setTimingPartialInfo] = useState<Record<string, { measured: number } | null>>({});
 
   // Listen for worker messages
   useEffect(() => {
@@ -115,21 +116,33 @@ export default function AdminCurriculumUpload() {
   };
 
   const checkTimingStatus = useCallback(async () => {
-    const status: Record<string, boolean | null> = {};
-    for (const p of TIMING_PATHS) status[p] = null;
+    const status: Record<string, "complete" | "partial" | "missing" | null> = {};
+    const partialInfo: Record<string, { measured: number } | null> = {};
+    for (const p of TIMING_PATHS) { status[p] = null; partialInfo[p] = null; }
     setTimingStatus({ ...status });
+    setTimingPartialInfo({ ...partialInfo });
 
     await Promise.all(
       TIMING_PATHS.map(async (path) => {
         const { data } = supabase.storage.from("curriculums").getPublicUrl(path);
-        if (!data?.publicUrl) { status[path] = false; return; }
+        if (!data?.publicUrl) { status[path] = "missing"; return; }
         try {
-          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" });
-          status[path] = res.ok;
-        } catch { status[path] = false; }
+          const res = await fetch(`${data.publicUrl}?t=${Date.now()}`);
+          if (!res.ok) { status[path] = "missing"; return; }
+          const json = await res.json();
+          if (json?.partial === true) {
+            status[path] = "partial";
+            partialInfo[path] = { measured: Object.keys(json.timings ?? {}).length };
+          } else if (json?.timings) {
+            status[path] = "complete";
+          } else {
+            status[path] = "missing";
+          }
+        } catch { status[path] = "missing"; }
       })
     );
     setTimingStatus({ ...status });
+    setTimingPartialInfo({ ...partialInfo });
   }, []);
 
   useEffect(() => { loadMetadata(); checkTimingStatus(); }, []);
@@ -297,17 +310,15 @@ export default function AdminCurriculumUpload() {
     if (!force) {
       const filtered = [];
       for (const job of TIMING_JOBS_META) {
-        const { data } = supabase.storage.from("curriculums").getPublicUrl(job.path);
-        if (data?.publicUrl) {
-          try { const res = await fetch(`${data.publicUrl}?t=${Date.now()}`, { method: "HEAD" }); if (res.ok) continue; } catch {}
-        }
+        const s = timingStatus[job.path];
+        if (s === "complete") continue; // skip complete, include partial + missing
         filtered.push(job);
       }
       pending = filtered;
     }
 
     if (pending.length === 0) {
-      toast({ title: "All timings already exist", description: "No missing timing files to measure." });
+      toast({ title: "All timings already exist", description: "No missing or partial timing files to measure." });
       return;
     }
 
@@ -317,11 +328,35 @@ export default function AdminCurriculumUpload() {
     try {
       const configs = await Promise.all(pending.map(buildConfig));
       launchTimingWorkerQueue(configs);
-      toast({ title: `Queued ${configs.length} timing job(s)`, description: `Running sequentially in background popup.` });
+      toast({ title: `Queued ${configs.length} timing job(s)`, description: `Running sequentially in background popup. Partial files will resume automatically.` });
     } catch (err) {
       setIsMeasuring(false);
       setMeasureLabel("");
       toast({ title: "Failed to start timing queue", description: String(err), variant: "destructive" });
+    }
+  };
+
+  const handleResumePartial = async () => {
+    if (isMeasuring) return;
+    clearTimingsCache();
+
+    const partialJobs = TIMING_JOBS_META.filter((job) => timingStatus[job.path] === "partial");
+    if (partialJobs.length === 0) {
+      toast({ title: "No partial files", description: "No interrupted timing jobs to resume." });
+      return;
+    }
+
+    setIsMeasuring(true);
+    setMeasureLabel(`Resuming ${partialJobs.length} job(s)`);
+
+    try {
+      const configs = await Promise.all(partialJobs.map(buildConfig));
+      launchTimingWorkerQueue(configs);
+      toast({ title: `Resuming ${configs.length} partial job(s)`, description: `The worker will continue from where it left off.` });
+    } catch (err) {
+      setIsMeasuring(false);
+      setMeasureLabel("");
+      toast({ title: "Failed to resume", description: String(err), variant: "destructive" });
     }
   };
 
@@ -379,9 +414,11 @@ export default function AdminCurriculumUpload() {
             measureLabel={measureLabel}
             measureProgress={measureProgress}
             timingStatus={timingStatus}
+            timingPartialInfo={timingPartialInfo}
             timingJobs={TIMING_JOBS}
             onMeasureAll={handleMeasureAll}
             onMeasureSingle={handleMeasureSingle}
+            onResumePartial={handleResumePartial}
             onCancel={() => { cancelTimingWorker(); }}
           />
         </div>
