@@ -72,7 +72,7 @@ const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
   "/reset-password": [pageImports.ResetPassword],
   "/select-week": [pageImports.WeekSelection, pageImports.StudentPractice],
   "/student": [pageImports.StudentPractice],
-  "/speaking": [pageImports.SpeakingStudio],
+  
   "/ielts/pronunciation": [pageImports.IELTSPronunciation],
   "/ielts/fluency": [pageImports.IELTSFluency],
   "/ielts/speaking": [pageImports.IELTSSpeaking],
