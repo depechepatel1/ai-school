@@ -68,7 +68,7 @@ const SatelliteWidget = forwardRef<HTMLDivElement, SatelliteWidgetProps>(({ onNa
           <circle cx="50%" cy="50%" r={centerR} fill="none" stroke="#115e59" strokeWidth="4" strokeOpacity="0.3" />
           <circle cx="50%" cy="50%" r={centerR} fill="none" stroke="#14b8a6" strokeWidth="4" strokeDasharray={centerCirc} strokeDashoffset={centerDashOffset} strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(20,184,166,0.8)]" />
         </svg>
-        <div onClick={() => navigate("/speaking")} className="relative w-24 h-24 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(20,184,166,0.6)] border-2 border-white/20 group transition-all hover:scale-105 active:scale-95 cursor-pointer z-30 hover:shadow-[0_0_80px_rgba(20,184,166,1)]">
+        <div onClick={() => navigate("/student")} className="relative w-24 h-24 rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(20,184,166,0.6)] border-2 border-white/20 group transition-all hover:scale-105 active:scale-95 cursor-pointer z-30 hover:shadow-[0_0_80px_rgba(20,184,166,1)]">
           <div className="absolute -inset-4 rounded-full bg-teal-500/20 animate-ping" style={{ animationDuration: '3s' }} />
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-white/20 to-transparent blur-md animate-pulse" />
           <Mic className="relative z-10 w-8 h-8 text-white drop-shadow-md group-hover:scale-110 transition-transform" />
