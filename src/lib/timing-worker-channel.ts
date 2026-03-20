@@ -1,8 +1,6 @@
 /**
- * BroadcastChannel wrapper for communicating with the TTS timing popup worker.
+ * postMessage wrapper for communicating with the TTS timing popup worker.
  */
-
-const CHANNEL_NAME = "tts-timing-worker";
 
 export interface TimingWorkerConfig {
   chunks: string[];
@@ -70,6 +68,9 @@ export type TimingWorkerMessage =
   | TimingJobStartedMessage
   | TimingQueueCompleteMessage;
 
+const MSG_SOURCE = "tts-timing-parent";
+const WORKER_SOURCE = "tts-timing-worker";
+
 let workerWindow: Window | null = null;
 
 /**
@@ -93,13 +94,13 @@ function ensurePopup(): Window {
 }
 
 /**
- * Send a message to the popup with retry+ack handshake.
+ * Send a message to the popup with retry+ack handshake via postMessage.
  */
 function sendWithAck(
   msgFactory: (requestId: string) => Record<string, unknown>,
   onTimeout?: () => void
 ): void {
-  const channel = new BroadcastChannel(CHANNEL_NAME);
+  const popup = ensurePopup();
   const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let acknowledged = false;
   let cleaned = false;
@@ -111,15 +112,16 @@ function sendWithAck(
     cleaned = true;
     if (retryHandle !== null) window.clearInterval(retryHandle);
     if (timeoutHandle !== null) window.clearTimeout(timeoutHandle);
-    channel.removeEventListener("message", onMessage);
-    channel.close();
+    window.removeEventListener("message", onMessage);
   };
 
   const send = () => {
-    channel.postMessage({ ...msgFactory(requestId), requestId });
+    if (popup.closed) { cleanup(); return; }
+    popup.postMessage({ ...msgFactory(requestId), requestId, _source: MSG_SOURCE }, "*");
   };
 
   const onMessage = (e: MessageEvent) => {
+    if (e.data?._source !== WORKER_SOURCE) return;
     if (e.data?.type === "READY") {
       send();
       return;
@@ -130,7 +132,7 @@ function sendWithAck(
     }
   };
 
-  channel.addEventListener("message", onMessage);
+  window.addEventListener("message", onMessage);
 
   send();
   retryHandle = window.setInterval(() => {
@@ -140,12 +142,8 @@ function sendWithAck(
   timeoutHandle = window.setTimeout(() => {
     if (acknowledged) return;
     onTimeout?.();
-    channel.postMessage({
-      type: "ERROR",
-      error: "Worker did not acknowledge. Keep popup open and try again.",
-    });
     cleanup();
-  }, 8000);
+  }, 12000);
 }
 
 /**
@@ -169,9 +167,9 @@ export function launchTimingWorkerQueue(configs: TimingWorkerConfig[]): void {
  * Cancel the running timing worker.
  */
 export function cancelTimingWorker(): void {
-  const channel = new BroadcastChannel(CHANNEL_NAME);
-  channel.postMessage({ type: "CANCEL" });
-  channel.close();
+  if (workerWindow && !workerWindow.closed) {
+    workerWindow.postMessage({ type: "CANCEL", _source: MSG_SOURCE }, "*");
+  }
 }
 
 /**
@@ -181,14 +179,13 @@ export function cancelTimingWorker(): void {
 export function onTimingWorkerMessage(
   callback: (msg: TimingWorkerMessage) => void
 ): () => void {
-  const channel = new BroadcastChannel(CHANNEL_NAME);
   const handler = (e: MessageEvent) => {
-    const data = e.data as TimingWorkerMessage;
+    if (e.data?._source !== WORKER_SOURCE) return;
+    const data = e.data as TimingWorkerMessage & { _source?: string };
     if (data?.type) callback(data);
   };
-  channel.addEventListener("message", handler);
+  window.addEventListener("message", handler);
   return () => {
-    channel.removeEventListener("message", handler);
-    channel.close();
+    window.removeEventListener("message", handler);
   };
 }
