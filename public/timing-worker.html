@@ -34,6 +34,8 @@ const SAVE_EVERY = 10;
 
 const channel = new BroadcastChannel(CHANNEL_NAME);
 let cancelled = false;
+let isRunning = false;
+let activeRequestId = "";
 
 const statusEl = document.getElementById("statusText");
 const fillEl = document.getElementById("progressFill");
@@ -101,132 +103,147 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
 }
 
-async function run(config) {
+async function run(config, requestId) {
+  if (isRunning) {
+    if (requestId === activeRequestId) return;
+    log("Received a new START while another job is running — ignoring");
+    return;
+  }
+
+  isRunning = true;
+  activeRequestId = requestId;
+
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, jobLabel } = config;
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
   log(`Starting ${jobLabel}: ${chunks.length} chunks, accent=${accent}, rate=${rate}`);
 
-  // Wait for voices
-  let voices = speechSynthesis.getVoices();
-  if (!voices.length) {
-    log("Waiting for voices…");
-    await new Promise(r => { speechSynthesis.addEventListener("voiceschanged", () => r(), { once: true }); setTimeout(r, 3000); });
-    voices = speechSynthesis.getVoices();
-  }
-
-  const voice = findVoice(accent);
-  log(`Voice: ${voice?.name || "null"} (${voice?.lang || ""})`);
-
-  // Try to load existing partial timings
-  let timings = {};
   try {
-    const existingUrl = `${supabaseUrl}/storage/v1/object/public/curriculums/${storagePath}?t=${Date.now()}`;
-    const existRes = await fetch(existingUrl);
-    if (existRes.ok) {
-      const existing = await existRes.json();
-      if (existing?.timings) { timings = existing.timings; log(`Loaded ${Object.keys(timings).length} existing timings (resuming)`); }
-    }
-  } catch { /* no existing file, start fresh */ }
-
-  const uniqueChunks = [...new Set(chunks)];
-  const remaining = uniqueChunks.filter(c => !timings[c]);
-  log(`Total unique: ${uniqueChunks.length}, already done: ${uniqueChunks.length - remaining.length}, remaining: ${remaining.length}`);
-  
-  const doneOffset = uniqueChunks.length - remaining.length;
-  updateProgress(doneOffset, uniqueChunks.length);
-
-  let savedCount = 0;
-
-  for (let batchStart = 0; batchStart < remaining.length; batchStart += BATCH_SIZE) {
-    if (cancelled) break;
-
-    const batchEnd = Math.min(batchStart + BATCH_SIZE, remaining.length);
-    const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1;
-    const totalBatches = Math.ceil(remaining.length / BATCH_SIZE);
-    log(`Batch ${batchNum}/${totalBatches}`);
-
-    // Warm up
-    speechSynthesis.cancel();
-    await new Promise(r => setTimeout(r, 200));
-    await measureSingle(".", voice, 1, 3000);
-    await new Promise(r => setTimeout(r, 300));
-
-    for (let i = batchStart; i < batchEnd; i++) {
-      if (cancelled) break;
-      const text = remaining[i];
-      if (i > batchStart) await new Promise(r => setTimeout(r, INTER_UTTERANCE_MS));
-
-      speechSynthesis.cancel();
-      await new Promise(r => setTimeout(r, 50));
-
-      let duration = await measureSingle(text, voice, rate);
-      if (duration >= 15000) {
-        log(`Timeout on "${text.substring(0, 30)}…", retrying`);
-        speechSynthesis.cancel();
-        await new Promise(r => setTimeout(r, 1000));
-        duration = await measureSingle(text, voice, rate);
-      }
-
-      timings[text] = duration;
-      savedCount++;
-      updateProgress(doneOffset + i + 1, uniqueChunks.length);
-
-      // Incremental save every SAVE_EVERY chunks
-      if (savedCount % SAVE_EVERY === 0) {
-        try {
-          const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
-          await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
-          log(`Incremental save at ${doneOffset + i + 1}/${uniqueChunks.length}`);
-        } catch (err) { log(`Incremental save failed: ${err.message}`); }
-      }
+    // Wait for voices
+    let voices = speechSynthesis.getVoices();
+    if (!voices.length) {
+      log("Waiting for voices…");
+      await new Promise(r => { speechSynthesis.addEventListener("voiceschanged", () => r(), { once: true }); setTimeout(r, 3000); });
+      voices = speechSynthesis.getVoices();
     }
 
-    // Batch rest
-    if (batchStart + BATCH_SIZE < remaining.length && !cancelled) {
-      speechSynthesis.cancel();
-      await new Promise(r => setTimeout(r, BATCH_REST_MS));
-    }
-  }
+    const voice = findVoice(accent);
+    log(`Voice: ${voice?.name || "null"} (${voice?.lang || ""})`);
 
-  speechSynthesis.cancel();
-
-  if (cancelled) {
-    // Save what we have so far
+    // Try to load existing partial timings
+    let timings = {};
     try {
-      const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
-      await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
-      log("Saved partial progress before cancel");
-    } catch (err) { log(`Save on cancel failed: ${err.message}`); }
+      const existingUrl = `${supabaseUrl}/storage/v1/object/public/curriculums/${storagePath}?t=${Date.now()}`;
+      const existRes = await fetch(existingUrl);
+      if (existRes.ok) {
+        const existing = await existRes.json();
+        if (existing?.timings) { timings = existing.timings; log(`Loaded ${Object.keys(timings).length} existing timings (resuming)`); }
+      }
+    } catch { /* no existing file, start fresh */ }
+
+    const uniqueChunks = [...new Set(chunks)];
+    const remaining = uniqueChunks.filter(c => !timings[c]);
+    log(`Total unique: ${uniqueChunks.length}, already done: ${uniqueChunks.length - remaining.length}, remaining: ${remaining.length}`);
     
-    statusEl.textContent = "Cancelled — partial progress saved";
-    statusEl.className = "status error";
-    channel.postMessage({ type: "CANCELLED", measured: Object.keys(timings).length, total: uniqueChunks.length });
-  } else {
-    // Final upload (remove partial flag)
-    try {
-      const final = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1 };
-      await uploadTimings(storagePath, final, supabaseUrl, anonKey);
-      log("Final upload complete!");
-      statusEl.textContent = `✅ Done — ${Object.keys(timings).length} timings saved`;
-      statusEl.className = "status done";
-      channel.postMessage({ type: "COMPLETE", storagePath, count: Object.keys(timings).length });
-    } catch (err) {
-      log(`Final upload error: ${err.message}`);
-      statusEl.textContent = `❌ Upload failed: ${err.message}`;
-      statusEl.className = "status error";
-      channel.postMessage({ type: "ERROR", error: err.message });
-    }
-  }
+    const doneOffset = uniqueChunks.length - remaining.length;
+    updateProgress(doneOffset, uniqueChunks.length);
 
-  cancelBtn.style.display = "none";
+    let savedCount = 0;
+
+    for (let batchStart = 0; batchStart < remaining.length; batchStart += BATCH_SIZE) {
+      if (cancelled) break;
+
+      const batchEnd = Math.min(batchStart + BATCH_SIZE, remaining.length);
+      const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(remaining.length / BATCH_SIZE);
+      log(`Batch ${batchNum}/${totalBatches}`);
+
+      // Warm up
+      speechSynthesis.cancel();
+      await new Promise(r => setTimeout(r, 200));
+      await measureSingle(".", voice, 1, 3000);
+      await new Promise(r => setTimeout(r, 300));
+
+      for (let i = batchStart; i < batchEnd; i++) {
+        if (cancelled) break;
+        const text = remaining[i];
+        if (i > batchStart) await new Promise(r => setTimeout(r, INTER_UTTERANCE_MS));
+
+        speechSynthesis.cancel();
+        await new Promise(r => setTimeout(r, 50));
+
+        let duration = await measureSingle(text, voice, rate);
+        if (duration >= 15000) {
+          log(`Timeout on "${text.substring(0, 30)}…", retrying`);
+          speechSynthesis.cancel();
+          await new Promise(r => setTimeout(r, 1000));
+          duration = await measureSingle(text, voice, rate);
+        }
+
+        timings[text] = duration;
+        savedCount++;
+        updateProgress(doneOffset + i + 1, uniqueChunks.length);
+
+        // Incremental save every SAVE_EVERY chunks
+        if (savedCount % SAVE_EVERY === 0) {
+          try {
+            const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
+            await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+            log(`Incremental save at ${doneOffset + i + 1}/${uniqueChunks.length}`);
+          } catch (err) { log(`Incremental save failed: ${err.message}`); }
+        }
+      }
+
+      // Batch rest
+      if (batchStart + BATCH_SIZE < remaining.length && !cancelled) {
+        speechSynthesis.cancel();
+        await new Promise(r => setTimeout(r, BATCH_REST_MS));
+      }
+    }
+
+    speechSynthesis.cancel();
+
+    if (cancelled) {
+      // Save what we have so far
+      try {
+        const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1, partial: true };
+        await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+        log("Saved partial progress before cancel");
+      } catch (err) { log(`Save on cancel failed: ${err.message}`); }
+      
+      statusEl.textContent = "Cancelled — partial progress saved";
+      statusEl.className = "status error";
+      channel.postMessage({ type: "CANCELLED", measured: Object.keys(timings).length, total: uniqueChunks.length });
+    } else {
+      // Final upload (remove partial flag)
+      try {
+        const final = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 1 };
+        await uploadTimings(storagePath, final, supabaseUrl, anonKey);
+        log("Final upload complete!");
+        statusEl.textContent = `✅ Done — ${Object.keys(timings).length} timings saved`;
+        statusEl.className = "status done";
+        channel.postMessage({ type: "COMPLETE", storagePath, count: Object.keys(timings).length });
+      } catch (err) {
+        log(`Final upload error: ${err.message}`);
+        statusEl.textContent = `❌ Upload failed: ${err.message}`;
+        statusEl.className = "status error";
+        channel.postMessage({ type: "ERROR", error: err.message });
+      }
+    }
+  } finally {
+    cancelBtn.style.display = "none";
+    isRunning = false;
+    activeRequestId = "";
+  }
 }
 
 // Listen for config from main app
 channel.onmessage = (e) => {
   if (e.data?.type === "START") {
-    run(e.data.config);
+    const requestId = e.data.requestId || "legacy";
+    channel.postMessage({ type: "START_ACK", requestId });
+    run(e.data.config, requestId);
   } else if (e.data?.type === "CANCEL") {
     cancelled = true;
     statusEl.textContent = "Cancelling…";
