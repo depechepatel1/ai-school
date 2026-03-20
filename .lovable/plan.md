@@ -1,53 +1,58 @@
 
 
-## Background TTS Timing Process
+# Performance Audit: Admin Dashboard
 
-### Problem
-The TTS timing measurement uses `SpeechSynthesis`, a browser-only API. It runs in the main page, so any navigation or HMR refresh kills the process. The user wants to keep working while timings run.
+## Findings
 
-### Solution: Popup Window Runner
-Open a minimal standalone popup window that runs the timing measurement independently. The main app stays fully usable. The popup communicates progress back via `BroadcastChannel` and uploads results directly to storage.
+### Measured Metrics
+- **First Contentful Paint**: 4080ms (poor — target is <1800ms)
+- **DOM Content Loaded**: 3989ms
+- **75 script requests** loaded during page init, averaging ~389ms each
+- **4 video files** fetched on admin page (unnecessary — admin uses a static `bgImage`)
+- **Live2D Cubism SDK** loaded as render-blocking script in `index.html` (400ms)
+- **150 total network requests** on page load
 
-### How it works
+### Root Causes (ordered by impact)
+
+1. **Render-blocking Live2D script** (`index.html` line 16): `live2dcubismcore.min.js` blocks parsing for 400ms. The avatar provider is set to `"video"` — Live2D is unused.
+
+2. **Videos loaded on admin page**: `PageShell` renders `BackgroundStage > VideoLoopStage` which preloads 13 video URLs and starts fetching loop-stack mp4s. The admin page passes `bgImage` which should skip this, but `VideoLoopStage` still mounts briefly and triggers fetches.
+
+3. **DevNav and GlobalOmniChat always mounted**: Both are eagerly imported in `App.tsx` (not lazy), loaded on every route including admin. DevNav imports framer-motion, supabase, and prefetch utilities. GlobalOmniChat imports the full OmniChatModal tree.
+
+4. **No query limit on analytics**: `AdminAnalyticsPanel` fetches ALL `student_practice_logs` for the semester with no `.limit()` — could be thousands of rows fetched on first tab render.
+
+5. **Waterfall of module imports**: Vite dev server serves each file individually. The deep import chain (App → AuthProvider → db.ts → supabase client) creates sequential waterfalls. `db.ts` alone takes 870ms due to its position in the chain.
+
+---
+
+## Plan
+
+### Fix 1 — Remove render-blocking Live2D script
+In `index.html`, change the Live2D `<script>` to `async` or remove it entirely since the avatar provider is `"video"`. This saves ~400ms off TTFB-to-FCP.
+
+### Fix 2 — Skip video loading on bgImage pages
+In `PageShell.tsx`, when `bgImage` is provided, don't render `BackgroundStage` at all (it's already behind the `bgImage` branch, but verify `VideoLoopStage` isn't mounted). Additionally, in `VideoLoopStage`, guard against mounting when not visible.
+
+### Fix 3 — Lazy-load DevNav and GlobalOmniChat
+In `App.tsx`, convert `DevNav` and `GlobalOmniChat` from eager imports to `React.lazy()`. These are not needed for initial render.
+
+### Fix 4 — Add pagination/limit to admin analytics queries
+In `AdminAnalyticsPanel.tsx`, add `.limit(1000)` to the practice logs query (it already caps at 1000 by default, but make it explicit). Consider server-side aggregation for semester-wide stats.
+
+### Fix 5 — Defer CurriculumUpload timing status checks
+In `AdminCurriculumUpload.tsx`, `checkTimingStatus` fires 3 HEAD requests on mount. Since this panel is lazy-loaded and only visible when the "Curriculum" tab is active, this is already deferred — no change needed.
+
+### Technical Details
 
 ```text
-Main App (Admin)                    Popup Window
-─────────────────                   ─────────────
-Click "Time IELTS"  ──────────►    Opens /timing-worker.html
-                                    Loads timing script
-                                    Runs SpeechSynthesis loop
-Progress bar updates ◄──────────   Sends progress via BroadcastChannel
-                                    Uploads JSON to storage on completion
-"Done" toast         ◄──────────   Sends completion message
+Files to edit:
+├── index.html                          (Fix 1: async Live2D script)
+├── src/App.tsx                         (Fix 3: lazy DevNav + GlobalOmniChat)
+├── src/components/PageShell.tsx        (Fix 2: verify no video on bgImage)
+└── src/components/admin/
+    └── AdminAnalyticsPanel.tsx         (Fix 4: explicit query limit)
 ```
 
-### Changes
-
-1. **`public/timing-worker.html`** (new) — Minimal standalone HTML page with inline JS that:
-   - Receives config (courseType, accent, rate, chunks) via URL params or `BroadcastChannel`
-   - Runs the `SpeechSynthesis` measurement loop (same logic as `tts-measure.ts`)
-   - Posts progress updates back via `BroadcastChannel`
-   - Uploads the final JSON to storage using the Supabase REST API directly
-   - Saves progress incrementally (every 10 chunks) so partial results survive even if the popup closes
-   - Shows a simple progress display in the popup itself
-
-2. **`src/lib/timing-worker-channel.ts`** (new) — Thin wrapper around `BroadcastChannel` for type-safe messaging between main app and popup:
-   - `launchTimingWorker(config)` — opens popup, sends config
-   - `onTimingProgress(callback)` — listen for progress updates
-   - `onTimingComplete(callback)` — listen for completion
-
-3. **`src/components/admin/AdminCurriculumUpload.tsx`** — Update timing job handlers:
-   - Replace direct `generateAndUploadFluencyTimings()` calls with `launchTimingWorker()`
-   - Listen for progress/completion via the channel
-   - Show "Running in background" indicator instead of blocking the UI
-   - Cancel sends a message to the popup to stop
-
-4. **`src/services/tts-timings-storage.ts`** — Add a function to extract chunk lists without running measurement (the popup needs the chunk list), e.g. `getFluencyChunkTexts(courseType)` and `getPronunciationChunkTexts()`.
-
-### Key details
-- The popup is a plain HTML file (no React/Vite), so HMR cannot affect it
-- Uses the Supabase REST API directly (anon key from env) for storage uploads
-- Incremental saves every 10 chunks means partial progress survives popup closure
-- The main app can detect existing partial timings and show "Resume" option
-- BroadcastChannel works across same-origin tabs/popups without references
+**Expected improvement**: FCP should drop from ~4s to ~2.5–3s. The render-blocking script removal alone saves 400ms, lazy-loading global components saves another 300–500ms of JS parsing, and eliminating unnecessary video fetches removes 4+ wasted network requests.
 
