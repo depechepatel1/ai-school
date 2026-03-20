@@ -8,9 +8,10 @@ import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import DevNav from "@/components/DevNav";
-import GlobalOmniChat from "@/components/GlobalOmniChat";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
+
+const DevNav = lazy(() => import("@/components/DevNav"));
+const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
 
 // Lazy-loaded route pages — each becomes its own chunk
 // We store the import functions so we can prefetch them eagerly

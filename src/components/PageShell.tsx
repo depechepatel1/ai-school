@@ -32,6 +32,7 @@ export default function PageShell({ children, playIntroVideo = false, loopVideos
           {bgImage ? (
             <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
+            /* Only mount BackgroundStage when no bgImage — avoids video preloads on admin/static pages */
             <BackgroundStage
               videoList={loopVideos}
               playIntro={playIntroVideo}
