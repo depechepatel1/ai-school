@@ -9,6 +9,7 @@ export interface TimingWorkerConfig {
   storagePath: string;
   supabaseUrl: string;
   anonKey: string;
+  accessToken: string;
   jobLabel: string;
 }
 

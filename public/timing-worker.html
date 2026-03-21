@@ -246,18 +246,19 @@ async function measureWithRetry(text, accent, rate) {
 
 // --- Upload ---
 
-async function uploadTimings(path, result, supabaseUrl, anonKey) {
+async function uploadTimings(path, result, supabaseUrl, anonKey, accessToken) {
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
   const body = JSON.stringify(result, null, 2);
+  const authToken = accessToken || anonKey;
   let res = await fetch(url, {
     method: "PUT",
-    headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+    headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
     body
   });
   if (!res.ok) {
     res = await fetch(url, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+      headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
       body
     });
   }
@@ -267,7 +268,7 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
 // --- Single job runner ---
 
 async function runSingleJob(config) {
-  const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, jobLabel } = config;
+  const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
@@ -336,7 +337,7 @@ async function runSingleJob(config) {
       if (savedCount % SAVE_EVERY === 0) {
         try {
           const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
-          await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+          await uploadTimings(storagePath, partial, supabaseUrl, anonKey, accessToken);
           log(`Incremental save at ${doneOffset + i + 1}/${uniqueChunks.length}`);
         } catch (err) { log(`Incremental save failed: ${err.message}`); }
       }
@@ -353,7 +354,7 @@ async function runSingleJob(config) {
   if (cancelled) {
     try {
       const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
-      await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+      await uploadTimings(storagePath, partial, supabaseUrl, anonKey, accessToken);
       log("Saved partial progress before cancel");
     } catch (err) { log(`Save on cancel failed: ${err.message}`); }
 
@@ -364,7 +365,7 @@ async function runSingleJob(config) {
   } else {
     try {
       const finalResult = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, meta };
-      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey);
+      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey, accessToken);
       const summary = `✅ Done — ${Object.keys(timings).length} timings saved`;
       const warnings = [];
       if (meta.fallbackCount > 0) warnings.push(`${meta.fallbackCount} estimated (voice failures)`);
