@@ -74,6 +74,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   const part1IntroPhaseRef = useRef(true); // true = still doing introduction lines
 
   // ── Refs ──
+  const transitionLockRef = useRef(false);
   const ttsHandleRef = useRef<TTSHandle | null>(null);
   const sttHandleRef = useRef<STTHandle | null>(null);
   const currentTranscriptRef = useRef("");
