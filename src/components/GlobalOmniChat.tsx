@@ -34,7 +34,7 @@ export default function GlobalOmniChat() {
 
   return createPortal(
     <div
-      className="fixed bottom-8 right-8 z-[200] flex flex-col items-end gap-2"
+      className="fixed right-4 top-[calc(50%+160px)] z-[200] flex flex-col items-end gap-2"
       style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
     >
       <OmniChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} />
