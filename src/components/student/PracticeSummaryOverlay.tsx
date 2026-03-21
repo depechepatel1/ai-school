@@ -89,4 +89,6 @@ const PracticeSummaryOverlay = forwardRef<HTMLDivElement, PracticeSummaryOverlay
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default PracticeSummaryOverlay;
