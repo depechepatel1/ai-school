@@ -248,6 +248,7 @@ async function measureWithRetry(text, accent, rate) {
 // --- Token refresh ---
 
 let latestAccessToken = "";
+let lastTokenRefreshTime = Date.now();
 
 function requestTokenRefresh() {
   return new Promise((resolve) => {
