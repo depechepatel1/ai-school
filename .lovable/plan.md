@@ -1,40 +1,40 @@
 
 
-# Batch 7: Error Handling & Resilience
+# Batch 8: Type Safety Cleanup
 
-## What
-Five targeted fixes adding missing error handling, XSS prevention, timeout recovery, and proper loading states.
+## Summary
+Remove all `as any` casts in `src/services/db.ts` and `src/hooks/useStudentProgress.ts`, and properly type the realtime subscription callback. No logic changes.
 
 ## Changes
 
-### 1. `src/components/OmniChatModal.tsx` — Toast error + XSS sanitization
-- The try-catch already exists (lines 140-173) and already shows an inline error message. **Upgrade**: also fire a toast via `useToast` so the error is visible even if the chat scrolls.
-- Add `dompurify` dependency. Sanitize `m.content` before passing to `<ReactMarkdown>` for assistant messages. Apply same sanitization in the empty-state greeting (static string, but consistent pattern).
+### 1. `src/services/db.ts` — 6 fixes
 
-### 2. `src/lib/chat-stream.ts` — JSON parse resilience (line 67-70)
-- Currently on parse failure: puts partial line back in buffer and `break`s the inner loop, which can stall the stream if the chunk is genuinely malformed (not just incomplete).
-- Fix: add `console.warn("[chat-stream] JSON parse failed:", json)` and `continue` instead of `break`. Remove the buffer-restore line — a truly malformed SSE line should be skipped, not re-processed.
+**Line 73** — `onInsert: (payload: any)`: Import `RealtimePostgresChangesPayload` from `@supabase/supabase-js`. Type the callback as `(payload: RealtimePostgresChangesPayload<{ [key: string]: any }>) => void`. Wrap the `onInsert` call inside the `.on()` handler in a try-catch to prevent subscription crashes.
 
-### 3. `src/pages/Index.tsx` — 5-second role timeout
-- Add a second `useEffect` with a `setTimeout(5000)`. If `!loading && user && !role` persists after 5s, show a toast "Session expired. Please log in again." and navigate to `/login`.
-- Clean up timeout on unmount or when role arrives.
+**Line 102** — `(c: any)`: The Supabase query `select("*, class_memberships(count)")` returns rows typed as `classes.Row & { class_memberships: { count: number }[] }`. Define a local interface `ClassWithCount` extending the classes Row type and use it instead of `any`.
 
-### 4. `src/services/analytics.ts` — Catch unhandled rejection (line 87-92)
-- The `.then()` chain has no `.catch()`. Add `.catch((err) => console.error("[analytics] Unhandled insert error:", eventName, err))` after the `.then()`.
+**Line 238** — `data?.classes as any`: The joined query `select("class_id, classes(course_type)")` returns `classes` as `{ course_type: string } | null`. Type it as such — no cast needed, just access `data?.classes?.course_type` directly after removing the intermediate variable.
 
-### 5. `src/hooks/useTimerSettings.ts` — Already exports `loading`
-- The hook already returns `{ countdownMinutes, loading }`. The request asks to rename it to `isLoading` for clarity. Rename the returned key from `loading` to `isLoading` and update any consumers.
+**Line 248** — `(data as any)?.selected_week`: The profiles query already selects `selected_week` which is typed as `number` in the generated types. The `as any` is unnecessary — `data?.selected_week` works directly since `selected_week` exists on profiles.Row.
 
-## Dependencies
-- Add `dompurify` and `@types/dompurify` packages.
+**Line 254** — `{ selected_week: week } as any`: `selected_week` is in profiles.Update type (line 394 of types.ts). Remove the cast — `{ selected_week: week }` is valid.
+
+**Line 262** — `{ name, created_by: createdBy, course_type: courseType } as any`: `course_type` is in classes.Insert type (line 91 of types.ts). Remove the cast.
+
+### 2. `src/hooks/useStudentProgress.ts` — 3 fixes
+
+**Line 16** — `[key: string]: any` in ProgressPosition: Change to `[key: string]: Json | undefined` importing `Json` from types.ts.
+
+**Line 45** — `data.current_position as any`: The column is typed as `Json`. Cast to `Record<string, unknown>` and extract `.index` with a type guard or fallback.
+
+**Lines 80, 91** — `newPosition as any` in update/insert: `current_position` accepts `Json`. Since `ProgressPosition` will now use `Json`-compatible values, cast to `Json` instead of `any`.
+
+### 3. `src/services/db.ts` line 85 — try-catch wrapper
+Wrap the `onInsert` invocation in the `.on()` callback with try-catch, logging errors to console.error.
 
 ## Files touched
-- `src/components/OmniChatModal.tsx`
-- `src/lib/chat-stream.ts`
-- `src/pages/Index.tsx`
-- `src/services/analytics.ts`
-- `src/hooks/useTimerSettings.ts`
-- `package.json` (new dep: dompurify)
+- `src/services/db.ts`
+- `src/hooks/useStudentProgress.ts`
 
-No database migrations needed.
+No new dependencies. No database migrations.
 
