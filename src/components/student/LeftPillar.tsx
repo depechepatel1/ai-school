@@ -147,7 +147,7 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
       )}
 
       {/* Tasks / Messages Panel */}
-      <div className="flex-1 bg-background/40 backdrop-blur-xl border border-border rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
+      <div className="flex-[2] bg-background/40 backdrop-blur-xl border border-border rounded-3xl p-4 shadow-lg flex flex-col gap-2 overflow-hidden min-h-0 z-10">
         {/* ── Sliding pill tab bar ── */}
         <div className="relative flex bg-white/[0.04] rounded-full p-0.5 mb-1">
           <div
