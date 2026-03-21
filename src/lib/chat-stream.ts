@@ -65,8 +65,8 @@ export async function streamChat({
         const content = parsed.choices?.[0]?.delta?.content as string | undefined;
         if (content) onDelta(content);
       } catch {
-        buffer = line + "\n" + buffer;
-        break;
+        console.warn("[chat-stream] JSON parse failed, skipping chunk:", json);
+        continue;
       }
     }
   }

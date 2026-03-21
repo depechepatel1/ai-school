@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, forwardRef, useCallback } from "react";
 import { X, Send, Mic, Loader2, MicOff, Volume2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify";
 import { speak, stopSpeaking, type Accent } from "@/lib/tts-provider";
 import NeuralLogo from "./NeuralLogo";
 import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { streamChat } from "@/lib/chat-stream";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
@@ -24,6 +26,7 @@ type ChatMsg = { role: "user" | "assistant"; content: string };
 const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
   ({ isOpen, onClose }, ref) => {
     const { session } = useAuth();
+    const { toast } = useToast();
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -164,6 +167,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
       } catch (e: any) {
         if (e.name !== "AbortError") {
           console.error("Chat error:", e);
+          toast({ title: "Chat error", description: "Failed to get AI response. Please try again.", variant: "destructive" });
           setMessages((prev) => [
             ...prev,
             { role: "assistant", content: `Sorry, something went wrong: ${e.message}` },
@@ -171,7 +175,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         }
         setIsLoading(false);
       }
-    }, [input, isLoading, conversationId, session, messages]);
+    }, [input, isLoading, conversationId, session, messages, toast]);
 
     if (!isOpen) return null;
 
@@ -215,7 +219,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
               >
                 {m.role === "assistant" ? (
                   <div className="prose prose-invert prose-xs max-w-none [&_p]:m-0 [&_p]:leading-relaxed">
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                    <ReactMarkdown>{DOMPurify.sanitize(m.content)}</ReactMarkdown>
                     <button
                       type="button"
                       onClick={() => {
