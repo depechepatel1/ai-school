@@ -337,8 +337,13 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
 
 async function runSingleJob(config) {
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
-  // Seed the latest access token from config
+  // Seed the latest access token from config and track its expiry
   latestAccessToken = accessToken || "";
+  tokenExpiryMs = parseJwtExp(latestAccessToken);
+  if (tokenExpiryMs) {
+    const remaining = Math.round((tokenExpiryMs - Date.now()) / 1000);
+    log(`🔑 Initial token expires in ${remaining}s`);
+  }
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
