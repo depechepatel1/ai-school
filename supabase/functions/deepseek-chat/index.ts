@@ -27,9 +27,9 @@ serve(async (req) => {
     // --- Input validation ---
     const { messages } = await req.json();
 
-    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 100) {
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 500) {
       return new Response(
-        JSON.stringify({ error: "Messages must be an array of 1-100 items" }),
+        JSON.stringify({ error: "Messages must be an array of 1-500 items" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -43,9 +43,9 @@ serve(async (req) => {
           validRoles.has(m.role) &&
           typeof m.content === "string" &&
           m.content.length > 0 &&
-          m.content.length <= 10000,
+          m.content.length <= 100000,
       )
-      .map((m: any) => ({ role: m.role, content: m.content.substring(0, 10000) }));
+      .map((m: any) => ({ role: m.role, content: m.content.substring(0, 100000) }));
 
     if (validMessages.length === 0) {
       return new Response(
@@ -70,7 +70,7 @@ serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...validMessages],
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 16384,
       }),
     });
 

@@ -79,6 +79,7 @@ serve(async (req) => {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: text },
         ],
+        max_tokens: 16384,
         stream: false,
       }),
     });
