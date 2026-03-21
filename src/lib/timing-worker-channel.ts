@@ -88,17 +88,27 @@ function ensureTokenRefreshListener(): void {
     if (e.data?._source !== WORKER_SOURCE) return;
     if (e.data?.type !== "REQUEST_TOKEN_REFRESH") return;
 
+    let token = "";
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token || "";
-      if (workerWindow && !workerWindow.closed) {
-        workerWindow.postMessage(
-          { type: "TOKEN_REFRESH", accessToken: token, _source: MSG_SOURCE },
-          "*"
-        );
+      // Always force a real refresh to get a new JWT
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !refreshData?.session) {
+        console.warn("[timing-channel] refreshSession failed, falling back to getSession", refreshError);
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token || "";
+      } else {
+        token = refreshData.session.access_token;
+        console.log("[timing-channel] token refreshed successfully, new exp:", new Date((refreshData.session.expires_at ?? 0) * 1000).toISOString());
       }
     } catch (err) {
       console.error("[timing-channel] token refresh failed", err);
+    }
+
+    if (workerWindow && !workerWindow.closed) {
+      workerWindow.postMessage(
+        { type: "TOKEN_REFRESH", accessToken: token, _source: MSG_SOURCE },
+        "*"
+      );
     }
   });
 }
@@ -106,9 +116,13 @@ function ensureTokenRefreshListener(): void {
 /**
  * Ensure the popup window is open, returning it.
  */
-function ensurePopup(): Window {
+function ensurePopup(forceReload = false): Window {
   ensureTokenRefreshListener();
   if (workerWindow && !workerWindow.closed) {
+    if (forceReload) {
+      // Reload with fresh cache-busting URL to pick up latest code
+      workerWindow.location.href = `/timing-worker.html?t=${Date.now()}`;
+    }
     workerWindow.focus();
     return workerWindow;
   }
@@ -181,7 +195,7 @@ function sendWithAck(
  * Launch the timing worker popup and send it a single job config.
  */
 export function launchTimingWorker(config: TimingWorkerConfig): void {
-  ensurePopup();
+  ensurePopup(true);
   sendWithAck((requestId) => ({ type: "START", config, requestId }));
 }
 
@@ -190,7 +204,7 @@ export function launchTimingWorker(config: TimingWorkerConfig): void {
  */
 export function launchTimingWorkerQueue(configs: TimingWorkerConfig[]): void {
   if (configs.length === 0) return;
-  ensurePopup();
+  ensurePopup(true);
   sendWithAck((requestId) => ({ type: "START_QUEUE", configs, requestId }));
 }
 

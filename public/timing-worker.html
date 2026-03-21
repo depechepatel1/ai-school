@@ -248,7 +248,19 @@ async function measureWithRetry(text, accent, rate) {
 // --- Token refresh ---
 
 let latestAccessToken = "";
-let lastTokenRefreshTime = Date.now();
+let tokenExpiryMs = 0; // tracks actual JWT expiry in ms since epoch
+
+function parseJwtExp(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return (payload.exp || 0) * 1000;
+  } catch { return 0; }
+}
+
+function isTokenExpiringSoon(bufferMs = 120000) {
+  if (!tokenExpiryMs) return true;
+  return Date.now() >= tokenExpiryMs - bufferMs;
+}
 
 function requestTokenRefresh() {
   return new Promise((resolve) => {
@@ -263,7 +275,15 @@ function requestTokenRefresh() {
       clearTimeout(timeout);
       if (e.data.accessToken) {
         latestAccessToken = e.data.accessToken;
-        log("🔑 Token refreshed from parent");
+        const newExp = parseJwtExp(e.data.accessToken);
+        tokenExpiryMs = newExp;
+        const remaining = newExp ? Math.round((newExp - Date.now()) / 1000) : 0;
+        log(`🔑 Token refreshed from parent (expires in ${remaining}s)`);
+        if (newExp && newExp <= Date.now()) {
+          log("⚠️ WARNING: Received token is already expired!");
+        }
+      } else {
+        log("⚠️ Parent returned empty token — auth may fail");
       }
       resolve(latestAccessToken);
     };
@@ -275,10 +295,9 @@ function requestTokenRefresh() {
 // --- Upload ---
 
 async function ensureFreshToken() {
-  if (Date.now() - lastTokenRefreshTime > TOKEN_REFRESH_INTERVAL_MS) {
-    log("🔄 Proactive token refresh (45min interval)…");
+  if (isTokenExpiringSoon()) {
+    log("🔄 Proactive token refresh (token expiring within 2min)…");
     await requestTokenRefresh();
-    lastTokenRefreshTime = Date.now();
   }
 }
 
@@ -301,15 +320,15 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
 
   // On auth failure (including 400 for expired JWT), refresh and retry
   if (res.status === 401 || res.status === 403 || res.status === 400) {
-    log("🔄 Upload auth failed — requesting token refresh…");
+    const errBody = await res.text();
+    log(`🔄 Upload failed (${res.status}): ${errBody.substring(0, 120)} — refreshing token…`);
     const freshToken = await requestTokenRefresh();
-    lastTokenRefreshTime = Date.now();
     res = await attempt(freshToken, "PUT");
   }
 
   if (!res.ok) {
-    const freshToken = latestAccessToken || anonKey;
-    res = await attempt(freshToken, "POST");
+    // Fallback: POST with latest token
+    res = await attempt(latestAccessToken || anonKey, "POST");
   }
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
 }
@@ -318,8 +337,13 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
 
 async function runSingleJob(config) {
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
-  // Seed the latest access token from config
+  // Seed the latest access token from config and track its expiry
   latestAccessToken = accessToken || "";
+  tokenExpiryMs = parseJwtExp(latestAccessToken);
+  if (tokenExpiryMs) {
+    const remaining = Math.round((tokenExpiryMs - Date.now()) / 1000);
+    log(`🔑 Initial token expires in ${remaining}s`);
+  }
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
