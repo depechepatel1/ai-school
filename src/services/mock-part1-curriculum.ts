@@ -29,9 +29,19 @@ interface TopicFrame {
   questions: string[];
 }
 
+interface TestFlowStep {
+  script?: string[];
+  [key: string]: unknown;
+}
+
+interface TestFlow {
+  step_1_introduction?: TestFlowStep;
+  [key: string]: unknown;
+}
+
 export interface Part1Script {
   metadata: Record<string, unknown>;
-  test_flow: Record<string, unknown>;
+  test_flow: TestFlow;
   opening_frames: {
     R1_variants: R1Variant[];
     R2_variants: R2Variant[];
@@ -138,7 +148,7 @@ export function buildPart1Sequence(
   };
 
   // 1. Introduction lines
-  const introFlow = (script.test_flow as any).step_1_introduction;
+  const introFlow = script.test_flow.step_1_introduction;
   const introduction: string[] = (introFlow?.script ?? []).map(fill);
 
   // 2. Opening frame — randomly pick R1 or R2

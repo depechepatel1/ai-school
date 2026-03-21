@@ -231,9 +231,9 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
         resolve();
       };
 
-      utterance.onerror = (e) => {
+      utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
         clearFallbackTimers();
-        const errorType = (e as any).error || "unknown";
+        const errorType = e.error || "unknown";
         const voiceName = voice?.name ?? "default";
         console.warn(`[TTS] Voice "${voiceName}" failed with: ${errorType}`);
 
@@ -356,10 +356,10 @@ export function preloadVoices(): void {
   warmup.volume = 0.01;
   warmup.rate = 10;
   warmup.voice = voice;
-  warmup.onerror = (e) => {
+  warmup.onerror = (e: SpeechSynthesisErrorEvent) => {
     const name = voice.name;
-    console.warn(`[TTS] Warmup failed for "${name}":`, (e as any).error);
-    if ((e as any).error === "synthesis-failed") {
+    console.warn(`[TTS] Warmup failed for "${name}":`, e.error);
+    if (e.error === "synthesis-failed") {
       failedVoiceNames.add(name);
       refreshVoiceCache();
     }
@@ -377,9 +377,9 @@ export function preloadAccent(accent: Accent): void {
   warmup.voice = voice;
   warmup.volume = 0.01;
   warmup.rate = 10;
-  warmup.onerror = (e) => {
-    console.warn(`[TTS] Accent warmup failed for "${voice.name}":`, (e as any).error);
-    if ((e as any).error === "synthesis-failed") {
+  warmup.onerror = (e: SpeechSynthesisErrorEvent) => {
+    console.warn(`[TTS] Accent warmup failed for "${voice.name}":`, e.error);
+    if (e.error === "synthesis-failed") {
       failedVoiceNames.add(voice.name);
       refreshVoiceCache();
     }

@@ -22,14 +22,14 @@ export function useExtendedLeaderboard(
 
     const load = async () => {
       setLoading(true);
-      const { data, error } = await supabase.rpc("get_extended_practice_leaderboard" as any, {
+      const { data, error } = await supabase.rpc("get_extended_practice_leaderboard", {
         _range_start: rangeStart.toISOString(),
         _range_end: rangeEnd.toISOString(),
       });
 
       if (!error && data) {
         setEntries(
-          (data as any[]).map((r: any) => ({
+          (data as { user_id: string; display_name: string; avatar_url: string | null; extended_seconds: number; rank: number }[]).map((r) => ({
             user_id: r.user_id,
             display_name: r.display_name ?? "Student",
             avatar_url: r.avatar_url,

@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import type { Database } from "@/integrations/supabase/types";
 import { Code, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -131,7 +132,7 @@ export default function DevNav() {
         if (data.user) {
           const { error: re } = await supabase
             .from("user_roles")
-            .upsert({ user_id: data.user.id, role: role as any }, { onConflict: "user_id" });
+            .upsert({ user_id: data.user.id, role: role as Database["public"]["Enums"]["app_role"] }, { onConflict: "user_id" });
           if (re) results.push(`${role}: created, role FAILED — ${re.message}`);
           else results.push(`${role}: CREATED`);
 

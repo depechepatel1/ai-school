@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import type { Json } from "@/integrations/supabase/types";
 import type { TestPart, TestStatus, ChatMsg } from "@/types/speaking";
 import { SYSTEM_PROMPT } from "@/types/speaking";
 import { chat, type ChatMessage } from "@/services/ai";
@@ -408,13 +409,13 @@ Keep assessments to 1-2 sentences. Be encouraging but honest.`,
   // ── Save session ──
   const saveSession = useCallback(async () => {
     if (!userId || !result) return;
-    await supabase.from("mock_test_sessions" as any).insert({
+    await supabase.from("mock_test_sessions").insert({
       user_id: userId,
       week_number: selectedWeek,
       parts_completed: completedParts,
       transcript: result.transcript,
       overall_band: result.overallBand,
-      criteria_scores: result.criteria as any,
+      criteria_scores: result.criteria as unknown as Json,
       vocabulary_suggestions: result.vocabularySuggestions,
       accent,
       duration_seconds: 0,

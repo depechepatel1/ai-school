@@ -1,8 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 
-interface SpeechRecognitionEvent {
-  results: SpeechRecognitionResultList;
-}
+// SpeechRecognitionEvent is declared in src/types/web-speech.d.ts
 
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
@@ -10,14 +8,13 @@ export function useSpeechRecognition() {
   const recognitionRef = useRef<any>(null);
 
   const startListening = useCallback(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
       console.warn("Speech recognition not supported");
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.continuous = false;
