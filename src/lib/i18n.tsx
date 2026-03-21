@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, forwardRef, ReactNode } from "react";
 
 type Lang = "en" | "zh";
 
@@ -112,27 +112,29 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => {
-    const stored = localStorage.getItem("app-lang");
-    return (stored === "en" || stored === "zh") ? stored : "en";
-  });
+export const LanguageProvider = forwardRef<HTMLDivElement, { children: ReactNode }>(
+  function LanguageProvider({ children }, _ref) {
+    const [lang, setLangState] = useState<Lang>(() => {
+      const stored = localStorage.getItem("app-lang");
+      return (stored === "en" || stored === "zh") ? stored : "en";
+    });
 
-  const setLang = (l: Lang) => {
-    setLangState(l);
-    localStorage.setItem("app-lang", l);
-  };
+    const setLang = (l: Lang) => {
+      setLangState(l);
+      localStorage.setItem("app-lang", l);
+    };
 
-  const t = (key: string): string => {
-    return translations[key]?.[lang] ?? key;
-  };
+    const t = (key: string): string => {
+      return translations[key]?.[lang] ?? key;
+    };
 
-  return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-}
+    return (
+      <LanguageContext.Provider value={{ lang, setLang, t }}>
+        {children}
+      </LanguageContext.Provider>
+    );
+  }
+);
 
 export function useLanguage() {
   const ctx = useContext(LanguageContext);
