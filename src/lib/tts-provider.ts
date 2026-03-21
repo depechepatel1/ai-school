@@ -356,10 +356,10 @@ export function preloadVoices(): void {
   warmup.volume = 0.01;
   warmup.rate = 10;
   warmup.voice = voice;
-  warmup.onerror = (e) => {
+  warmup.onerror = (e: SpeechSynthesisErrorEvent) => {
     const name = voice.name;
-    console.warn(`[TTS] Warmup failed for "${name}":`, (e as any).error);
-    if ((e as any).error === "synthesis-failed") {
+    console.warn(`[TTS] Warmup failed for "${name}":`, e.error);
+    if (e.error === "synthesis-failed") {
       failedVoiceNames.add(name);
       refreshVoiceCache();
     }
