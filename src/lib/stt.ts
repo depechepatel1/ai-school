@@ -8,9 +8,8 @@ export function useSpeechRecognition() {
   const recognitionRef = useRef<any>(null);
 
   const startListening = useCallback(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
       console.warn("Speech recognition not supported");
       return;
     }

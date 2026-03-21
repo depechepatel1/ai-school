@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import type { Json } from "@/integrations/supabase/types";
 import type { TestPart, TestStatus, ChatMsg } from "@/types/speaking";
 import { SYSTEM_PROMPT } from "@/types/speaking";
 import { chat, type ChatMessage } from "@/services/ai";
