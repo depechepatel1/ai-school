@@ -1,25 +1,14 @@
 
 
-# Fix: Extend Tasks panel & flatten Welcome modal
+# Move Omni Mic Button Default Position
 
-## 1. Tasks/Messages panel not reaching bottom
+The right-side button stack on the fluency screen ends with the "Next" (ChevronRight) button at line 199. The stack is vertically centered (`top-1/2 -translate-y-1/2`) at `right-4`. The omni mic button should default to just below this stack on the right side.
 
-The LeftPillar container has `bottom-24` (96px from bottom). Change to `bottom-4` so the column extends nearly to the screen bottom, giving the Tasks/Messages panel much more vertical space.
+## Change
 
-**File:** `src/components/student/LeftPillar.tsx` line 53  
-- Change `bottom-24` → `bottom-4`
+**File:** `src/components/GlobalOmniChat.tsx`
+- Change the fixed position from `bottom-8 right-8` to `right-4 top-[calc(50%+160px)]` — this places it on the right edge, roughly 160px below center (just beneath the 6-button stack which spans ~280px centered vertically, so its bottom is at ~50%+140px).
+- This keeps it draggable so users can still reposition it.
 
-## 2. Welcome modal still obscures teacher's face
-
-The current modal is a tall vertical card (`w-[520px]`) centered at the bottom. Redesign as a **full-width horizontal banner** pinned to the very bottom of the screen:
-
-**File:** `src/components/student/WelcomeModal.tsx`
-- Outer container: full-width bar at bottom, `pb-0`, no centering
-- Inner card: `w-full max-w-[100vw]` horizontal layout, reduced height
-- Arrange the 3 practice mode tips in a **horizontal row** (flex-row) instead of stacked vertically
-- Compact padding, smaller text, single-line descriptions
-- Place heading + CTA button inline at the edges
-- Keep dismiss X button, keep slide-up animation
-
-Result: a slim bottom banner (~120px tall) spanning the screen width, leaving the teacher's face completely visible.
+Single line change in the portal container div's className.
 
