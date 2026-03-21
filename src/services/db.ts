@@ -103,7 +103,9 @@ export function subscribeToMessages(
         }
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err) console.error("[db] Realtime subscription error:", err);
+    });
 
   return () => {
     supabase.removeChannel(channel);

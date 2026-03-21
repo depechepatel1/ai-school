@@ -46,6 +46,7 @@ export function useStreak(userId: string | null): StreakData {
     queryKey: ["streak", userId],
     enabled: !!userId,
     staleTime: 60_000,
+    refetchInterval: 60 * 60 * 1000, // Refetch hourly to stay fresh across day boundaries
     queryFn: async () => {
       const { data, error } = await supabase
         .from("practice_time_log")
