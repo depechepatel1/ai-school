@@ -1,8 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 
-interface SpeechRecognitionEvent {
-  results: SpeechRecognitionResultList;
-}
+// SpeechRecognitionEvent is declared in src/types/web-speech.d.ts
 
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
