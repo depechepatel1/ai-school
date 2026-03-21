@@ -90,7 +90,8 @@ export function useStudentReport(
           _range_end: wkRange.end.toISOString(),
         });
         if (lb) {
-          const me = (lb as any[]).find((e: any) => e.user_id === userId);
+          const entries = lb as { user_id: string; rank: number }[];
+          const me = entries.find((e) => e.user_id === userId);
           if (me) leaderboardRank = Number(me.rank);
         }
       } catch {}

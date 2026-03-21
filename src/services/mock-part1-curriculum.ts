@@ -148,7 +148,7 @@ export function buildPart1Sequence(
   };
 
   // 1. Introduction lines
-  const introFlow = (script.test_flow as any).step_1_introduction;
+  const introFlow = script.test_flow.step_1_introduction;
   const introduction: string[] = (introFlow?.script ?? []).map(fill);
 
   // 2. Opening frame — randomly pick R1 or R2

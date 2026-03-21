@@ -27,7 +27,7 @@ export function useAccent(userId: string | null) {
       if (!userId) return;
       supabase
         .from("profiles")
-        .update({ accent: newAccent } as any)
+        .update({ accent: newAccent })
         .eq("id", userId)
         .then();
     },

@@ -110,7 +110,7 @@ export class RealtimePitchTracker {
   private tick = () => {
     if (!this.active) return;
     this.analyser.getFloatTimeDomainData(this.buffer);
-    const hz = detectPitch(this.buffer as any, this.sampleRate);
+    const hz = detectPitch(this.buffer, this.sampleRate);
     if (hz !== null) {
       this._currentValue = normalizeFrequency(hz);
       this.contour.push(this._currentValue);

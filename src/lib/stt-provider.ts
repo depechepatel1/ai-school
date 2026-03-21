@@ -27,9 +27,7 @@ function browserListen(
   callbacks: STTCallbacks,
   continuous = true
 ): STTHandle {
-  const SR =
-    (window as any).SpeechRecognition ||
-    (window as any).webkitSpeechRecognition;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SR) {
     console.warn("[STT] Speech recognition not supported in this browser.");

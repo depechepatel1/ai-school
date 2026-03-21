@@ -377,9 +377,9 @@ export function preloadAccent(accent: Accent): void {
   warmup.voice = voice;
   warmup.volume = 0.01;
   warmup.rate = 10;
-  warmup.onerror = (e) => {
-    console.warn(`[TTS] Accent warmup failed for "${voice.name}":`, (e as any).error);
-    if ((e as any).error === "synthesis-failed") {
+  warmup.onerror = (e: SpeechSynthesisErrorEvent) => {
+    console.warn(`[TTS] Accent warmup failed for "${voice.name}":`, e.error);
+    if (e.error === "synthesis-failed") {
       failedVoiceNames.add(voice.name);
       refreshVoiceCache();
     }

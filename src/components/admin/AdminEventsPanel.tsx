@@ -68,7 +68,7 @@ export default function AdminEventsPanel() {
     queryKey: ["admin-user-events", rangeStart, rangeEnd],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_events" as any)
+        .from("user_events")
         .select("id, user_id, event_name, metadata, created_at, course_type, deployment_region")
         .gte("created_at", rangeStart)
         .lte("created_at", rangeEnd)

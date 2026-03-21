@@ -86,8 +86,8 @@ async function track(
     // Fire-and-forget insert — don't block the UI
     Promise.resolve(
       supabase
-        .from("user_events" as any)
-        .insert(payload as any)
+        .from("user_events")
+        .insert(payload)
     ).then(({ error }) => {
       if (error) console.warn("[analytics] Failed to track event:", eventName, error.message);
     }).catch((err) => console.error("[analytics] Unhandled insert error:", eventName, err));
