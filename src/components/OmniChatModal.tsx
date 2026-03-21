@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, forwardRef, useCallback } from "react";
 import { X, Send, Mic, Loader2, MicOff, Volume2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify";
 import { speak, stopSpeaking, type Accent } from "@/lib/tts-provider";
 import NeuralLogo from "./NeuralLogo";
 import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { streamChat } from "@/lib/chat-stream";
 import { startListening, type STTHandle } from "@/lib/stt-provider";
