@@ -167,6 +167,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
       } catch (e: any) {
         if (e.name !== "AbortError") {
           console.error("Chat error:", e);
+          toast({ title: "Chat error", description: "Failed to get AI response. Please try again.", variant: "destructive" });
           setMessages((prev) => [
             ...prev,
             { role: "assistant", content: `Sorry, something went wrong: ${e.message}` },
@@ -174,7 +175,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
         }
         setIsLoading(false);
       }
-    }, [input, isLoading, conversationId, session, messages]);
+    }, [input, isLoading, conversationId, session, messages, toast]);
 
     if (!isOpen) return null;
 
