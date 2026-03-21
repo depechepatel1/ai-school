@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Check, Upload, Film, Loader2, Plus, Trash2 } from "lucide-react";
+import { Check, Upload, Film, Loader2, Plus, Trash2, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { transcodeToH264, type TranscodeProgress } from "@/lib/transcode";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -15,7 +16,7 @@ interface VideoSlot {
   existsInStorage: boolean;
 }
 
-type UploadStatus = "idle" | "uploading" | "done" | "error";
+type UploadStatus = "idle" | "transcoding" | "uploading" | "done" | "error";
 
 const FIXED_SLOTS: Omit<VideoSlot, "existsInStorage">[] = [
   { label: "Intro", path: "intro.mp4" },
@@ -74,15 +75,38 @@ export default function AdminUploadVideos() {
   }, []);
 
   const uploadFile = useCallback(async (file: File, slot: VideoSlot) => {
+    // Phase 1: Transcode
+    setStatuses((s) => ({ ...s, [slot.path]: "transcoding" }));
+    setProgress((p) => ({ ...p, [slot.path]: 5 }));
+
+    let finalFile = file;
+    let wasTranscoded = false;
+
+    try {
+      const result = await transcodeToH264(file, (tp: TranscodeProgress) => {
+        if (tp.phase === "loading" || tp.phase === "probing" || tp.phase === "transcoding") {
+          // Map transcode progress to 0-60%
+          const mapped = Math.round(tp.percent * 0.6);
+          setProgress((p) => ({ ...p, [slot.path]: mapped }));
+        }
+      });
+      finalFile = result.file;
+      wasTranscoded = result.wasTranscoded;
+    } catch (err) {
+      console.warn("[upload] Transcode failed, uploading original:", err);
+      toast({ title: `⚠️ ${slot.label}: transcoding failed, uploading original`, variant: "destructive" });
+    }
+
+    // Phase 2: Upload
     setStatuses((s) => ({ ...s, [slot.path]: "uploading" }));
-    setProgress((p) => ({ ...p, [slot.path]: 10 }));
+    setProgress((p) => ({ ...p, [slot.path]: 65 }));
 
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", finalFile);
       formData.append("path", slot.path);
 
-      setProgress((p) => ({ ...p, [slot.path]: 30 }));
+      setProgress((p) => ({ ...p, [slot.path]: 75 }));
 
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-video-file`, {
@@ -94,14 +118,16 @@ export default function AdminUploadVideos() {
         body: formData,
       });
 
-      setProgress((p) => ({ ...p, [slot.path]: 80 }));
+      setProgress((p) => ({ ...p, [slot.path]: 90 }));
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed");
 
       setProgress((p) => ({ ...p, [slot.path]: 100 }));
       setStatuses((s) => ({ ...s, [slot.path]: "done" }));
-      toast({ title: `✅ ${slot.label} uploaded successfully` });
+      toast({
+        title: `✅ ${slot.label} uploaded${wasTranscoded ? " (transcoded to H.264)" : ""}`,
+      });
     } catch (err: any) {
       setStatuses((s) => ({ ...s, [slot.path]: "error" }));
       setProgress((p) => ({ ...p, [slot.path]: 0 }));
@@ -249,7 +275,14 @@ export default function AdminUploadVideos() {
                 <CardContent className="space-y-3">
                   <p className="text-xs text-muted-foreground font-mono">{slot.path}</p>
 
-                  {status === "uploading" ? (
+                  {status === "transcoding" ? (
+                    <div className="space-y-2">
+                      <Progress value={prog} className="h-1.5" />
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Zap className="h-3 w-3 text-amber-400 animate-pulse" /> Transcoding to H.264…
+                      </div>
+                    </div>
+                  ) : status === "uploading" ? (
                     <div className="space-y-2">
                       <Progress value={prog} className="h-1.5" />
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
