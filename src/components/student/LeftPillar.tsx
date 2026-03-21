@@ -50,7 +50,7 @@ export default function LeftPillar({ onShowSkills, showSkills, activeTab, setAct
   const fluPct = analytics ? Math.round(analytics.shadowing.pct * 100) : 0;
   const speakPct = analytics ? Math.round(analytics.speaking.pct * 100) : 0;
   return (
-    <div className="absolute top-0 left-0 bottom-24 w-[280px] p-6 flex flex-col gap-4 z-20">
+    <div className="absolute top-0 left-0 bottom-4 w-[280px] p-6 flex flex-col gap-4 z-20">
       {/* Profile Card */}
       <div className="bg-background/40 backdrop-blur-xl border border-border rounded-3xl p-4 flex items-center gap-4 shadow-lg cursor-pointer hover:bg-background/60 transition-all relative z-50" onClick={onShowSkills}>
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-ring p-[2px] flex-shrink-0">
