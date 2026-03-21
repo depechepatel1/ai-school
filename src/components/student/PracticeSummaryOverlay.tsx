@@ -28,6 +28,7 @@ const PracticeSummaryOverlay = forwardRef<HTMLDivElement, PracticeSummaryOverlay
   onDismiss,
 }, ref) {
   return (
+    <div ref={ref}>
     <AnimatePresence>
       {visible && (
         <motion.div
