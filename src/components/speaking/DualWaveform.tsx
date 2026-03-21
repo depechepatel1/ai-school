@@ -278,4 +278,4 @@ export default memo(forwardRef<HTMLDivElement, OverlaidWaveformProps>(function O
       )}
     </div>
   );
-});
+}));

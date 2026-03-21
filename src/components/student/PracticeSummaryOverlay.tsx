@@ -89,6 +89,7 @@ const PracticeSummaryOverlay = forwardRef<HTMLDivElement, PracticeSummaryOverlay
         </motion.div>
       )}
     </AnimatePresence>
+    </div>
   );
 });
 
