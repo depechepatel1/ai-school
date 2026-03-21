@@ -233,6 +233,8 @@ export default function AdminCurriculumUpload() {
     try {
       const chunks = await getChunks();
       if (chunks.length === 0) throw new Error("No chunks found");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated — please log in again");
 
       launchTimingWorker({
         chunks,
@@ -241,6 +243,7 @@ export default function AdminCurriculumUpload() {
         storagePath,
         supabaseUrl: SUPABASE_URL,
         anonKey: ANON_KEY,
+        accessToken: session.access_token,
         jobLabel: label,
       });
     } catch (err) {

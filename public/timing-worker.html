@@ -246,18 +246,19 @@ async function measureWithRetry(text, accent, rate) {
 
 // --- Upload ---
 
-async function uploadTimings(path, result, supabaseUrl, anonKey) {
+async function uploadTimings(path, result, supabaseUrl, anonKey, accessToken) {
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
   const body = JSON.stringify(result, null, 2);
+  const authToken = accessToken || anonKey;
   let res = await fetch(url, {
     method: "PUT",
-    headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+    headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
     body
   });
   if (!res.ok) {
     res = await fetch(url, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+      headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
       body
     });
   }
