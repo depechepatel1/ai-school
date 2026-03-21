@@ -1,14 +1,22 @@
 
 
-# Move Omni Mic Button Default Position
+# Disable HMR to Stop Preview Auto-Refreshing
 
-The right-side button stack on the fluency screen ends with the "Next" (ChevronRight) button at line 199. The stack is vertically centered (`top-1/2 -translate-y-1/2`) at `right-4`. The omni mic button should default to just below this stack on the right side.
+The Vite dev server's Hot Module Replacement (HMR) causes full-page reloads whenever code changes are saved. Disabling it will keep the preview stable — you'll just need to manually refresh to see new changes.
 
 ## Change
 
-**File:** `src/components/GlobalOmniChat.tsx`
-- Change the fixed position from `bottom-8 right-8` to `right-4 top-[calc(50%+160px)]` — this places it on the right edge, roughly 160px below center (just beneath the 6-button stack which spans ~280px centered vertically, so its bottom is at ~50%+140px).
-- This keeps it draggable so users can still reposition it.
+**File:** `vite.config.ts`
 
-Single line change in the portal container div's className.
+In the `server` block, set `hmr: false` (currently it's `hmr: { overlay: false }`). This completely disables HMR so the preview won't blank out or reload on its own.
+
+```
+server: {
+  host: "::",
+  port: 8080,
+  hmr: false,
+},
+```
+
+Single property change. No other files affected.
 
