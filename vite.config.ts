@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       workbox: {
         // Cache JS/CSS/HTML produced by Vite
         globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff2}"],
