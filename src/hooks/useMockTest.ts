@@ -118,7 +118,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   }, [phase]);
 
   // ── Punctuation ──
-  const debouncedPunctuate = useMemo(
+  const debouncedPunctuateHandle = useMemo(
     () => createDebouncedPunctuate((punctuated) => {
       const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
       currentTranscriptRef.current = restored;
@@ -126,6 +126,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
     }, 800),
     []
   );
+  useEffect(() => () => debouncedPunctuateHandle.cancel(), [debouncedPunctuateHandle]);
 
   const punctuateWithMarkers = useCallback((raw: string) => {
     const { clean, slots } = stripPauseMarkers(raw);
