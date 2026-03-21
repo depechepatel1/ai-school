@@ -4,6 +4,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface UseStudentProgressOptions {
   userId: string | null;
@@ -13,7 +14,7 @@ interface UseStudentProgressOptions {
 
 interface ProgressPosition {
   index: number;
-  [key: string]: any;
+  [key: string]: Json | undefined;
 }
 
 export function useStudentProgress({ userId, courseType, moduleType }: UseStudentProgressOptions) {
@@ -42,8 +43,9 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
           .maybeSingle();
 
         if (data?.current_position) {
-          const pos = data.current_position as any;
-          setPosition({ index: pos.index ?? 0, ...pos });
+          const pos = data.current_position as Record<string, unknown>;
+          const index = typeof pos.index === "number" ? pos.index : 0;
+          setPosition({ ...pos, index } as ProgressPosition);
         }
       } catch (err) {
         console.error("useStudentProgress load error:", err);
@@ -77,7 +79,7 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
         await supabase
           .from("student_progress")
           .update({
-            current_position: newPosition as any,
+            current_position: newPosition as unknown as Json,
             last_accessed: new Date().toISOString(),
           })
           .eq("id", existing.id);
@@ -88,7 +90,7 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
             student_id: userId,
             course_type: courseType,
             module_type: moduleType,
-            current_position: newPosition as any,
+            current_position: newPosition as unknown as Json,
           });
       }
     } catch (err) {

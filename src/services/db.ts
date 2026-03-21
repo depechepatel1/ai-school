@@ -6,6 +6,19 @@
  * Supabase-compatible backend, only the client import path needs to change.
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type { Tables } from "@/integrations/supabase/types";
+
+// ── Local Types ────────────────────────────────────────────────
+
+interface ClassWithMembershipCount extends Tables<"classes"> {
+  class_memberships: { count: number }[];
+}
+
+interface MembershipWithClass {
+  class_id: string;
+  classes: { course_type: string } | null;
+}
 
 // ── Conversations ──────────────────────────────────────────────
 
@@ -70,7 +83,7 @@ export async function insertMessage(conversationId: string, role: string, conten
 
 export function subscribeToMessages(
   conversationId: string,
-  onInsert: (payload: any) => void
+  onInsert: (payload: RealtimePostgresChangesPayload<{ [key: string]: string }>) => void
 ) {
   const channel = supabase
     .channel(`messages-${conversationId}`)
@@ -82,7 +95,13 @@ export function subscribeToMessages(
         table: "messages",
         filter: `conversation_id=eq.${conversationId}`,
       },
-      onInsert
+      (payload) => {
+        try {
+          onInsert(payload);
+        } catch (error) {
+          console.error("[db] Error in message subscription callback:", error);
+        }
+      }
     )
     .subscribe();
 
@@ -99,7 +118,7 @@ export async function fetchClasses() {
     .select("*, class_memberships(count)")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((c: any) => ({
+  return (data ?? []).map((c: ClassWithMembershipCount) => ({
     ...c,
     student_count: c.class_memberships?.[0]?.count ?? 0,
   }));
@@ -226,7 +245,6 @@ export async function saveCurriculumProgress(
 // ── Course & Week Helpers ─────────────────────────────────────
 
 export async function fetchStudentCourseType(userId: string): Promise<string | null> {
-  // Join class_memberships → classes to get course_type
   const { data, error } = await supabase
     .from("class_memberships")
     .select("class_id, classes(course_type)")
@@ -234,9 +252,8 @@ export async function fetchStudentCourseType(userId: string): Promise<string | n
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  // classes is a joined object
-  const classes = data?.classes as any;
-  return classes?.course_type ?? null;
+  const membership = data as MembershipWithClass | null;
+  return membership?.classes?.course_type ?? null;
 }
 
 export async function fetchSelectedWeek(userId: string): Promise<number | null> {
@@ -245,13 +262,13 @@ export async function fetchSelectedWeek(userId: string): Promise<number | null> 
     .select("selected_week")
     .eq("id", userId)
     .maybeSingle();
-  return (data as any)?.selected_week ?? null;
+  return data?.selected_week ?? null;
 }
 
 export async function updateSelectedWeek(userId: string, week: number) {
   const { error } = await supabase
     .from("profiles")
-    .update({ selected_week: week } as any)
+    .update({ selected_week: week })
     .eq("id", userId);
   if (error) throw error;
 }
@@ -259,7 +276,7 @@ export async function updateSelectedWeek(userId: string, week: number) {
 export async function createClassWithCourse(name: string, createdBy: string, courseType: "ielts" | "igcse") {
   const { error } = await supabase
     .from("classes")
-    .insert({ name, created_by: createdBy, course_type: courseType } as any);
+    .insert({ name, created_by: createdBy, course_type: courseType });
   if (error) throw error;
 }
 
