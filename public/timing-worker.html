@@ -244,23 +244,58 @@ async function measureWithRetry(text, accent, rate) {
   return { duration: estimated, status: "fallback_estimated", errorType: "all_voices_failed", voiceName: null };
 }
 
+// --- Token refresh ---
+
+let latestAccessToken = "";
+
+function requestTokenRefresh() {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      log("⚠️ Token refresh timed out after 10s — using existing token");
+      resolve(latestAccessToken);
+    }, 10000);
+
+    const handler = (e) => {
+      if (e.data?._source !== PARENT_SOURCE || e.data?.type !== "TOKEN_REFRESH") return;
+      window.removeEventListener("message", handler);
+      clearTimeout(timeout);
+      if (e.data.accessToken) {
+        latestAccessToken = e.data.accessToken;
+        log("🔑 Token refreshed from parent");
+      }
+      resolve(latestAccessToken);
+    };
+    window.addEventListener("message", handler);
+    sendToParent({ type: "REQUEST_TOKEN_REFRESH" });
+  });
+}
+
 // --- Upload ---
 
-async function uploadTimings(path, result, supabaseUrl, anonKey, accessToken) {
+async function uploadTimings(path, result, supabaseUrl, anonKey) {
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
   const body = JSON.stringify(result, null, 2);
-  const authToken = accessToken || anonKey;
-  let res = await fetch(url, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
-    body
-  });
-  if (!res.ok) {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+  const authToken = latestAccessToken || anonKey;
+
+  async function attempt(token, method) {
+    return fetch(url, {
+      method,
+      headers: { "Authorization": `Bearer ${token}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
       body
     });
+  }
+
+  let res = await attempt(authToken, "PUT");
+
+  // On auth failure, try refreshing token once
+  if (res.status === 401 || res.status === 403) {
+    log("🔄 Upload auth failed — requesting token refresh…");
+    const freshToken = await requestTokenRefresh();
+    res = await attempt(freshToken, "PUT");
+  }
+
+  if (!res.ok) {
+    res = await attempt(latestAccessToken || anonKey, "POST");
   }
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
 }
