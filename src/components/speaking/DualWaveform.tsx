@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo, useCallback } from "react";
+import { useRef, useEffect, memo, useCallback, forwardRef } from "react";
 import type { WordData } from "@/lib/prosody";
 
 interface OverlaidWaveformProps {
@@ -71,7 +71,7 @@ function drawSmoothLine(
   ctx.fill();
 }
 
-export default memo(function OverlaidWaveform({
+export default memo(forwardRef<HTMLDivElement, OverlaidWaveformProps>(function OverlaidWaveform({
   prosodyData,
   activeWordIndex,
   isPlayingModel,
@@ -81,7 +81,7 @@ export default memo(function OverlaidWaveform({
   onRecordingComplete,
   modelAudioUrl = null,
   modelTimestamps = null,
-}: OverlaidWaveformProps) {
+}: OverlaidWaveformProps, _ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dimsRef = useRef({ w: 0, h: HEIGHT });
@@ -278,4 +278,4 @@ export default memo(function OverlaidWaveform({
       )}
     </div>
   );
-});
+}));
