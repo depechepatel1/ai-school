@@ -231,9 +231,9 @@ function browserSpeak(text: string, accent: Accent, opts: TTSOptions = {}): TTSH
         resolve();
       };
 
-      utterance.onerror = (e) => {
+      utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
         clearFallbackTimers();
-        const errorType = (e as any).error || "unknown";
+        const errorType = e.error || "unknown";
         const voiceName = voice?.name ?? "default";
         console.warn(`[TTS] Voice "${voiceName}" failed with: ${errorType}`);
 
