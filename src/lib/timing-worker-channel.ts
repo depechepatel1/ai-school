@@ -116,9 +116,13 @@ function ensureTokenRefreshListener(): void {
 /**
  * Ensure the popup window is open, returning it.
  */
-function ensurePopup(): Window {
+function ensurePopup(forceReload = false): Window {
   ensureTokenRefreshListener();
   if (workerWindow && !workerWindow.closed) {
+    if (forceReload) {
+      // Reload with fresh cache-busting URL to pick up latest code
+      workerWindow.location.href = `/timing-worker.html?t=${Date.now()}`;
+    }
     workerWindow.focus();
     return workerWindow;
   }
