@@ -6,14 +6,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const VALID_ACTIONS = new Set(["change_role", "delete_user", "list_members", "remove_member", "add_member"]);
+
+function respond(status: number, body: any) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+      return respond(500, { error: "Server misconfiguration" });
+    }
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
@@ -21,13 +35,9 @@ serve(async (req) => {
     // Verify caller is admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(401, { error: "Unauthorized" });
     }
 
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { autoRefreshToken: false, persistSession: false },
@@ -35,10 +45,7 @@ serve(async (req) => {
 
     const { data: { user: caller } } = await callerClient.auth.getUser();
     if (!caller) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(401, { error: "Unauthorized" });
     }
 
     // Check admin role
@@ -50,27 +57,31 @@ serve(async (req) => {
       .maybeSingle();
 
     if (!roleData) {
-      return new Response(JSON.stringify({ error: "Forbidden: admin role required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(403, { error: "Forbidden: admin role required" });
     }
 
     const { action, ...params } = await req.json();
 
-    // Helper to write audit log (fire-and-forget)
-    const audit = (targetUserId: string | null, details: Record<string, unknown> = {}) => {
-      adminClient
-        .from("admin_audit_logs")
-        .insert({
-          admin_id: caller.id,
-          action,
-          target_user_id: targetUserId,
-          details,
-        })
-        .then(({ error }) => {
-          if (error) console.error("Audit log error:", error.message);
-        });
+    // Validate action early
+    if (!action || !VALID_ACTIONS.has(action)) {
+      return respond(400, { error: `Invalid action. Must be one of: ${[...VALID_ACTIONS].join(", ")}` });
+    }
+
+    // Awaited audit logging (continues on failure)
+    const audit = async (targetUserId: string | null, details: Record<string, unknown> = {}) => {
+      try {
+        const { error } = await adminClient
+          .from("admin_audit_logs")
+          .insert({
+            admin_id: caller.id,
+            action,
+            target_user_id: targetUserId,
+            details,
+          });
+        if (error) console.error("Audit log error:", error.message);
+      } catch (e) {
+        console.error("Audit log exception:", e);
+      }
     };
 
     switch (action) {
@@ -82,7 +93,6 @@ serve(async (req) => {
         if (user_id === caller.id) {
           return respond(400, { error: "Cannot change your own role" });
         }
-        // Get old role for audit
         const { data: oldRoleData } = await adminClient
           .from("user_roles")
           .select("role")
@@ -94,7 +104,7 @@ serve(async (req) => {
         const { error } = await adminClient.from("user_roles").insert({ user_id, role: new_role });
         if (error) return respond(500, { error: error.message });
 
-        audit(user_id, { old_role: oldRole, new_role });
+        await audit(user_id, { old_role: oldRole, new_role });
         return respond(200, { success: true });
       }
 
@@ -104,7 +114,6 @@ serve(async (req) => {
         if (user_id === caller.id) {
           return respond(400, { error: "Cannot delete yourself" });
         }
-        // Get display name for audit
         const { data: profile } = await adminClient
           .from("profiles")
           .select("display_name")
@@ -119,7 +128,7 @@ serve(async (req) => {
         await adminClient.from("parent_student_links").delete().eq("student_id", user_id);
         await adminClient.from("profiles").delete().eq("id", user_id);
 
-        audit(user_id, { deleted_name: profile?.display_name ?? "Unknown" });
+        await audit(user_id, { deleted_name: profile?.display_name ?? "Unknown" });
         return respond(200, { success: true });
       }
 
@@ -153,7 +162,7 @@ serve(async (req) => {
           .eq("user_id", user_id);
         if (error) return respond(500, { error: error.message });
 
-        audit(user_id, { class_id, removed_from_class: true });
+        await audit(user_id, { class_id, removed_from_class: true });
         return respond(200, { success: true });
       }
 
@@ -165,7 +174,7 @@ serve(async (req) => {
           .upsert({ class_id, user_id }, { onConflict: "class_id,user_id" });
         if (error) return respond(500, { error: error.message });
 
-        audit(user_id, { class_id, added_to_class: true });
+        await audit(user_id, { class_id, added_to_class: true });
         return respond(200, { success: true });
       }
 
@@ -173,16 +182,6 @@ serve(async (req) => {
         return respond(400, { error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  function respond(status: number, body: any) {
-    return new Response(JSON.stringify(body), {
-      status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond(500, { error: err.message });
   }
 });

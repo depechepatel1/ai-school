@@ -15,7 +15,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
-    // --- Authentication: require any authenticated user ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -24,11 +23,18 @@ serve(async (req) => {
       });
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !anonKey) {
+      return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const token = authHeader.replace("Bearer ", "");
     const { data, error: claimsError } = await supabaseClient.auth.getClaims(token);
@@ -106,7 +112,6 @@ serve(async (req) => {
         );
       }
 
-      // Fallback: return original text
       return new Response(JSON.stringify({ text }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
