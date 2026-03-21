@@ -1,42 +1,51 @@
 
 
-# Batch 5: Edge Function Hardening
+# Rename & Abstract AI Chat Edge Function for Provider Switching
 
 ## What
-Targeted input validation and error handling improvements across 8 edge functions. No frontend changes.
+Rename the `deepseek-chat` edge function to `ai-chat`, update all frontend references, and add a provider-switching mechanism in the edge function so you can flip between Lovable AI and Aliyun DashScope by changing a single env var.
 
-## Changes by file
+## Why
+- Removes misleading "deepseek" naming (already using Lovable AI gateway)
+- Adds an `ai` provider flag to `provider-config.ts` for consistency
+- The edge function reads `AI_PROVIDER` env var to route to Lovable or Aliyun — one secret change to migrate
 
-### 1. `admin-manage-users/index.ts`
-- Validate `action` is one of the known values (`change_role`, `delete_user`, `list_members`, `remove_member`, `add_member`) before the switch — return 400 for unknown actions early
-- Convert `audit()` from fire-and-forget to async/awaited with error logging (still continues on failure)
-- Replace `Deno.env.get("...")!` with guarded checks returning 500
+## Changes
 
-### 2. `deepseek-chat/index.ts`
-- Add total conversation size check (sum of all message content lengths > 50,000 chars → 400)
-- Wrap AI gateway fetch in try-catch, return 502 on network failure
-- Already validates LOVABLE_API_KEY without `!` — no change needed there
+### 1. New edge function: `supabase/functions/ai-chat/index.ts`
+- Copy current `deepseek-chat` logic
+- Add provider routing at the top:
+  - `AI_PROVIDER` env var: `"lovable"` (default) or `"aliyun"`
+  - Lovable: `https://ai.gateway.lovable.dev/v1/chat/completions` with `LOVABLE_API_KEY`, model `google/gemini-3-flash-preview`
+  - Aliyun: `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` with `DASHSCOPE_API_KEY`, model `qwen-turbo`
+- All existing validation, error handling, streaming support preserved
 
-### 3. `check-video-headers/index.ts`
-- Add auth check: extract Authorization header, create Supabase client, call getUser(). Return 401 if no valid user
-- Replace `Deno.env.get("SUPABASE_URL")!` with guarded check
+### 2. Delete `supabase/functions/deepseek-chat/`
+- Remove the old function directory and undeploy it
 
-### 4. `upload-analysis-video/index.ts`
-- Replace hardcoded Cloudinary URL with `Deno.env.get("ANALYSIS_VIDEO_URL")` + validation
-- Replace remaining `!` assertions on env vars with guarded checks
+### 3. Update `src/services/ai.ts`
+- Change `supabase.functions.invoke("deepseek-chat"` → `"ai-chat"`
+- Update comments to remove DeepSeek references
 
-### 5. All other admin-gated functions (`upload-video-file`, `upload-videos`, `upload-curriculum`, `import-curriculum`, `create-dev-accounts`)
-- Replace `Deno.env.get("...")!` pattern with guarded checks returning 500 `"Server misconfiguration"`
+### 4. Update `src/lib/chat-stream.ts`
+- Change URL from `functions/v1/deepseek-chat` → `functions/v1/ai-chat`
+- Update comments
 
-### 6. `punctuate/index.ts`
-- Already handles env vars with `?? ""` and has auth — only add guard for empty SUPABASE_URL/ANON_KEY returning 500
+### 5. Update `src/lib/provider-config.ts`
+- Add new provider flag: `ai: "lovable" as "lovable" | "aliyun"` (for documentation; actual switching is via env var on the backend)
 
-## Not changed
-- No frontend/React files
-- No database migrations
-- `supabase/config.toml` unchanged
-- Note: `ANALYSIS_VIDEO_URL` secret will need to be added via the secrets tool with the current Cloudinary URL value
+### 6. Update `.env.example`
+- Replace DeepSeek references with `AI_PROVIDER` documentation
 
-## Deployment
-All 8 edge functions will be redeployed after changes.
+## How to migrate later
+When ready for Aliyun DashScope:
+1. Set secret `DASHSCOPE_API_KEY` with your Aliyun key
+2. Set secret `AI_PROVIDER` to `"aliyun"`
+3. Redeploy `ai-chat` — done. No code changes needed.
+
+## Files touched
+- **Created**: `supabase/functions/ai-chat/index.ts`
+- **Deleted**: `supabase/functions/deepseek-chat/index.ts`
+- **Edited**: `src/services/ai.ts`, `src/lib/chat-stream.ts`, `src/lib/provider-config.ts`, `.env.example`
+- No database changes
 
