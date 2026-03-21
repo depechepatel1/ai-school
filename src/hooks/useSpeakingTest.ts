@@ -40,17 +40,20 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
   // Refs for timeout cleanup
   const pendingTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const trackTimeout = useCallback((id: ReturnType<typeof setTimeout>) => {
     pendingTimeoutsRef.current.push(id);
     return id;
   }, []);
 
-  // Cleanup all pending timeouts on unmount
+  // Cleanup all pending timeouts and abort AI calls on unmount
   useEffect(() => {
     return () => {
       pendingTimeoutsRef.current.forEach(clearTimeout);
       pendingTimeoutsRef.current = [];
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
     };
   }, []);
 
@@ -104,6 +107,11 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
 
   // ── AI ──
   const triggerAIQuestion = useCallback(async () => {
+    // Abort any in-flight AI call
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsAiThinking(true);
     try {
       const history: ChatMessage[] = [
@@ -114,10 +122,12 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
         })),
       ];
       const response = await chat(history, `I am currently in ${testStateRef.current.currentPart}. Ask me a relevant question based on my previous answer if provided.`);
+      if (controller.signal.aborted) return;
       setIsAiThinking(false);
       setMessages((prev) => [...prev, { role: "teacher", text: response }]);
       speakTeacherText(response);
-    } catch {
+    } catch (err) {
+      if (controller.signal.aborted) return;
       setIsAiThinking(false);
       const fallback = "Let's move to the next question.";
       setMessages((prev) => [...prev, { role: "teacher", text: fallback }]);

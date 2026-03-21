@@ -74,6 +74,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   const part1IntroPhaseRef = useRef(true); // true = still doing introduction lines
 
   // ── Refs ──
+  const transitionLockRef = useRef(false);
   const ttsHandleRef = useRef<TTSHandle | null>(null);
   const sttHandleRef = useRef<STTHandle | null>(null);
   const currentTranscriptRef = useRef("");
@@ -294,6 +295,8 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
 
   // ── Part management ──
   const beginPart = useCallback((part: TestPart, duration: number) => {
+    if (transitionLockRef.current) return;
+    transitionLockRef.current = true;
     setCurrentPart(part);
     setTimeLeft(duration);
     setStatus("running");
@@ -313,6 +316,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
         trackTimeout(setTimeout(() => triggerAIQuestion(), 500));
       }
     }
+    transitionLockRef.current = false;
   }, [startSTT, triggerAIQuestion, speakNextPart1Question, trackTimeout]);
 
   const advancePart = useCallback(() => {
