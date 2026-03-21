@@ -365,7 +365,7 @@ async function runSingleJob(config) {
   } else {
     try {
       const finalResult = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, meta };
-      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey);
+      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey, accessToken);
       const summary = `✅ Done — ${Object.keys(timings).length} timings saved`;
       const warnings = [];
       if (meta.fallbackCount > 0) warnings.push(`${meta.fallbackCount} estimated (voice failures)`);
