@@ -1,52 +1,42 @@
 
 
-# Batch 4: Consolidate Duplicate Auth Triggers
+# Batch 5: Edge Function Hardening
 
 ## What
-Merge two separate auth triggers into one atomic function so profile creation and role assignment always succeed or fail together.
+Targeted input validation and error handling improvements across 8 edge functions. No frontend changes.
 
-## Current state (confirmed)
-- `on_auth_user_created` → calls `handle_new_user()` (inserts profile)
-- `on_auth_user_created_role` → calls `handle_new_user_role()` (inserts role)
+## Changes by file
 
-Both fire independently on `auth.users` INSERT, risking partial state if one fails.
+### 1. `admin-manage-users/index.ts`
+- Validate `action` is one of the known values (`change_role`, `delete_user`, `list_members`, `remove_member`, `add_member`) before the switch — return 400 for unknown actions early
+- Convert `audit()` from fire-and-forget to async/awaited with error logging (still continues on failure)
+- Replace `Deno.env.get("...")!` with guarded checks returning 500
 
-## Migration SQL (one new file)
+### 2. `deepseek-chat/index.ts`
+- Add total conversation size check (sum of all message content lengths > 50,000 chars → 400)
+- Wrap AI gateway fetch in try-catch, return 502 on network failure
+- Already validates LOVABLE_API_KEY without `!` — no change needed there
 
-```sql
--- 1. Drop the separate role trigger
-DROP TRIGGER IF EXISTS on_auth_user_created_role ON auth.users;
+### 3. `check-video-headers/index.ts`
+- Add auth check: extract Authorization header, create Supabase client, call getUser(). Return 401 if no valid user
+- Replace `Deno.env.get("SUPABASE_URL")!` with guarded check
 
--- 2. Drop the now-unused role function
-DROP FUNCTION IF EXISTS public.handle_new_user_role();
+### 4. `upload-analysis-video/index.ts`
+- Replace hardcoded Cloudinary URL with `Deno.env.get("ANALYSIS_VIDEO_URL")` + validation
+- Replace remaining `!` assertions on env vars with guarded checks
 
--- 3. Replace handle_new_user to do both inserts atomically
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-  RETURNS trigger
-  LANGUAGE plpgsql
-  SECURITY DEFINER
-  SET search_path TO 'public'
-AS $$
-DECLARE
-  _role app_role;
-BEGIN
-  -- Create profile
-  INSERT INTO public.profiles (id, display_name)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email));
+### 5. All other admin-gated functions (`upload-video-file`, `upload-videos`, `upload-curriculum`, `import-curriculum`, `create-dev-accounts`)
+- Replace `Deno.env.get("...")!` pattern with guarded checks returning 500 `"Server misconfiguration"`
 
-  -- Assign role (default to student)
-  _role := COALESCE(NEW.raw_user_meta_data->>'role', 'student')::app_role;
-  INSERT INTO public.user_roles (user_id, role)
-  VALUES (NEW.id, _role)
-  ON CONFLICT (user_id, role) DO NOTHING;
+### 6. `punctuate/index.ts`
+- Already handles env vars with `?? ""` and has auth — only add guard for empty SUPABASE_URL/ANON_KEY returning 500
 
-  RETURN NEW;
-END;
-$$;
-```
+## Not changed
+- No frontend/React files
+- No database migrations
+- `supabase/config.toml` unchanged
+- Note: `ANALYSIS_VIDEO_URL` secret will need to be added via the secrets tool with the current Cloudinary URL value
 
-## No other changes
-- Existing `on_auth_user_created` trigger remains, now calling the updated function
-- No TypeScript files modified
-- No existing migrations touched
+## Deployment
+All 8 edge functions will be redeployed after changes.
 
