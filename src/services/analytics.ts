@@ -73,7 +73,7 @@ async function track(
     let payload: EventPayload = {
       user_id: user.id,
       event_name: eventName,
-      metadata: metadata as Record<string, unknown>,
+      metadata: metadata as EventPayload["metadata"],
       session_id: getSessionId(),
       deployment_region: deploymentRegion,
       course_type: options?.courseType,
