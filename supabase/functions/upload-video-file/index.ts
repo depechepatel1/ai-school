@@ -8,7 +8,6 @@ const corsHeaders = {
 
 function isValidPath(path: string): boolean {
   if (path === "intro.mp4" || path === "analysis-bg.mp4") return true;
-  // Accept any loop-stack/<number>.mp4
   const match = path.match(/^loop-stack\/(\d+)\.mp4$/);
   return match !== null;
 }
@@ -26,15 +25,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // --- Auth: require admin ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return respond(401, { error: "Unauthorized" });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !anonKey || !serviceKey) {
+      return respond(500, { error: "Server misconfiguration" });
+    }
 
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },

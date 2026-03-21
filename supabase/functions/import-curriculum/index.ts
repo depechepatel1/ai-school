@@ -19,15 +19,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // --- Auth: require admin ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return respond(401, { error: "Unauthorized" });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !anonKey || !serviceKey) {
+      return respond(500, { error: "Server misconfiguration" });
+    }
 
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -57,7 +59,6 @@ Deno.serve(async (req) => {
 
     const text = await req.text();
     
-    // Handle concatenated JSON objects by extracting all curriculum arrays
     let items: any[] = [];
     const jsonObjects = text.split(/\}\s*\{/).map((chunk, i, arr) => {
       if (i === 0) return chunk + (arr.length > 1 ? "}" : "");

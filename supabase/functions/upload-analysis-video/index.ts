@@ -17,15 +17,17 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // --- Auth: require admin ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return respond(401, { error: "Unauthorized" });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !anonKey || !serviceKey) {
+      return respond(500, { error: "Server misconfiguration" });
+    }
 
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -51,10 +53,12 @@ Deno.serve(async (req) => {
       return respond(403, { error: "Admin role required" });
     }
 
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const videoUrl = Deno.env.get("ANALYSIS_VIDEO_URL");
+    if (!videoUrl) {
+      return respond(500, { error: "Server misconfiguration" });
+    }
 
-    const videoUrl =
-      "https://res.cloudinary.com/daujjfaqg/video/upload/2026-02-28T11-06-56_softly_atmospheric_ssio5s.mp4";
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     const res = await fetch(videoUrl);
     if (!res.ok) throw new Error(`Failed to download video: ${res.status}`);

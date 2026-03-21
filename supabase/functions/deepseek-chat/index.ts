@@ -18,13 +18,14 @@ Guidelines:
 - If the student seems stuck, offer prompts or rephrase your question
 - Use markdown formatting for emphasis when helpful`;
 
+const MAX_TOTAL_CHARS = 50000;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // --- Input validation ---
     const { messages } = await req.json();
 
     if (!Array.isArray(messages) || messages.length === 0 || messages.length > 100) {
@@ -54,25 +55,45 @@ serve(async (req) => {
       );
     }
 
-    // --- Lovable AI Gateway ---
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Total conversation size check
+    const totalChars = validMessages.reduce((sum: number, m: any) => sum + m.content.length, 0);
+    if (totalChars > MAX_TOTAL_CHARS) {
+      return new Response(
+        JSON.stringify({ error: "Conversation too long, please start a new chat." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...validMessages],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    });
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Server misconfiguration" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    let response: Response;
+    try {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...validMessages],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+    } catch (fetchError) {
+      console.error("AI gateway fetch error:", fetchError);
+      return new Response(
+        JSON.stringify({ error: "AI service temporarily unavailable" }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
