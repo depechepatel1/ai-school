@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import type { Database } from "@/integrations/supabase/types";
 import { Code, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
