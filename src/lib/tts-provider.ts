@@ -85,7 +85,7 @@ function getBestVoice(accent: Accent): SpeechSynthesisVoice | null {
 function ensureVoices(): void {
   if (voicesReady) return;
   // Early return if voices are already cached (avoids redundant list rebuilds)
-  if (cachedVoices.uk.length > 0 || cachedVoices.us.length > 0) {
+  if ((cachedVoices.uk?.length ?? 0) > 0 || (cachedVoices.us?.length ?? 0) > 0) {
     voicesReady = true;
     return;
   }
