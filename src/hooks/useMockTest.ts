@@ -295,6 +295,8 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
 
   // ── Part management ──
   const beginPart = useCallback((part: TestPart, duration: number) => {
+    if (transitionLockRef.current) return;
+    transitionLockRef.current = true;
     setCurrentPart(part);
     setTimeLeft(duration);
     setStatus("running");
