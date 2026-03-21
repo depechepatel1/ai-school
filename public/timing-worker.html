@@ -244,23 +244,58 @@ async function measureWithRetry(text, accent, rate) {
   return { duration: estimated, status: "fallback_estimated", errorType: "all_voices_failed", voiceName: null };
 }
 
+// --- Token refresh ---
+
+let latestAccessToken = "";
+
+function requestTokenRefresh() {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      log("⚠️ Token refresh timed out after 10s — using existing token");
+      resolve(latestAccessToken);
+    }, 10000);
+
+    const handler = (e) => {
+      if (e.data?._source !== PARENT_SOURCE || e.data?.type !== "TOKEN_REFRESH") return;
+      window.removeEventListener("message", handler);
+      clearTimeout(timeout);
+      if (e.data.accessToken) {
+        latestAccessToken = e.data.accessToken;
+        log("🔑 Token refreshed from parent");
+      }
+      resolve(latestAccessToken);
+    };
+    window.addEventListener("message", handler);
+    sendToParent({ type: "REQUEST_TOKEN_REFRESH" });
+  });
+}
+
 // --- Upload ---
 
-async function uploadTimings(path, result, supabaseUrl, anonKey, accessToken) {
+async function uploadTimings(path, result, supabaseUrl, anonKey) {
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
   const body = JSON.stringify(result, null, 2);
-  const authToken = accessToken || anonKey;
-  let res = await fetch(url, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
-    body
-  });
-  if (!res.ok) {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${authToken}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
+  const authToken = latestAccessToken || anonKey;
+
+  async function attempt(token, method) {
+    return fetch(url, {
+      method,
+      headers: { "Authorization": `Bearer ${token}`, "apikey": anonKey, "Content-Type": "application/json", "x-upsert": "true" },
       body
     });
+  }
+
+  let res = await attempt(authToken, "PUT");
+
+  // On auth failure, try refreshing token once
+  if (res.status === 401 || res.status === 403) {
+    log("🔄 Upload auth failed — requesting token refresh…");
+    const freshToken = await requestTokenRefresh();
+    res = await attempt(freshToken, "PUT");
+  }
+
+  if (!res.ok) {
+    res = await attempt(latestAccessToken || anonKey, "POST");
   }
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
 }
@@ -269,6 +304,8 @@ async function uploadTimings(path, result, supabaseUrl, anonKey, accessToken) {
 
 async function runSingleJob(config) {
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
+  // Seed the latest access token from config
+  latestAccessToken = accessToken || "";
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
@@ -337,7 +374,7 @@ async function runSingleJob(config) {
       if (savedCount % SAVE_EVERY === 0) {
         try {
           const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
-          await uploadTimings(storagePath, partial, supabaseUrl, anonKey, accessToken);
+          await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
           log(`Incremental save at ${doneOffset + i + 1}/${uniqueChunks.length}`);
         } catch (err) { log(`Incremental save failed: ${err.message}`); }
       }
@@ -354,7 +391,7 @@ async function runSingleJob(config) {
   if (cancelled) {
     try {
       const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
-      await uploadTimings(storagePath, partial, supabaseUrl, anonKey, accessToken);
+      await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
       log("Saved partial progress before cancel");
     } catch (err) { log(`Save on cancel failed: ${err.message}`); }
 
@@ -365,7 +402,7 @@ async function runSingleJob(config) {
   } else {
     try {
       const finalResult = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, meta };
-      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey, accessToken);
+      await uploadTimings(storagePath, finalResult, supabaseUrl, anonKey);
       const summary = `✅ Done — ${Object.keys(timings).length} timings saved`;
       const warnings = [];
       if (meta.fallbackCount > 0) warnings.push(`${meta.fallbackCount} estimated (voice failures)`);

@@ -1,6 +1,7 @@
 /**
  * postMessage wrapper for communicating with the TTS timing popup worker.
  */
+import { supabase } from "@/integrations/supabase/client";
 
 export interface TimingWorkerConfig {
   chunks: string[];
@@ -73,11 +74,40 @@ const MSG_SOURCE = "tts-timing-parent";
 const WORKER_SOURCE = "tts-timing-worker";
 
 let workerWindow: Window | null = null;
+let tokenRefreshListenerActive = false;
+
+/**
+ * Listen for TOKEN_REFRESH requests from the worker popup and respond
+ * with a fresh JWT obtained via supabase.auth.getSession().
+ */
+function ensureTokenRefreshListener(): void {
+  if (tokenRefreshListenerActive) return;
+  tokenRefreshListenerActive = true;
+
+  window.addEventListener("message", async (e) => {
+    if (e.data?._source !== WORKER_SOURCE) return;
+    if (e.data?.type !== "REQUEST_TOKEN_REFRESH") return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
+      if (workerWindow && !workerWindow.closed) {
+        workerWindow.postMessage(
+          { type: "TOKEN_REFRESH", accessToken: token, _source: MSG_SOURCE },
+          "*"
+        );
+      }
+    } catch (err) {
+      console.error("[timing-channel] token refresh failed", err);
+    }
+  });
+}
 
 /**
  * Ensure the popup window is open, returning it.
  */
 function ensurePopup(): Window {
+  ensureTokenRefreshListener();
   if (workerWindow && !workerWindow.closed) {
     workerWindow.focus();
     return workerWindow;
