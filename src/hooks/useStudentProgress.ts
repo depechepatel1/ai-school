@@ -20,6 +20,8 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
   const [position, setPosition] = useState<ProgressPosition>({ index: 0 });
   const [loading, setLoading] = useState(true);
   const positionRef = useRef(position);
+  const savingRef = useRef(false);
+  const pendingRef = useRef<ProgressPosition | null>(null);
 
   useEffect(() => {
     positionRef.current = position;
