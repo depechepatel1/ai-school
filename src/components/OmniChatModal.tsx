@@ -219,7 +219,7 @@ const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
               >
                 {m.role === "assistant" ? (
                   <div className="prose prose-invert prose-xs max-w-none [&_p]:m-0 [&_p]:leading-relaxed">
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                    <ReactMarkdown>{DOMPurify.sanitize(m.content)}</ReactMarkdown>
                     <button
                       type="button"
                       onClick={() => {

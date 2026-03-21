@@ -89,7 +89,8 @@ async function track(
       .insert(payload as any)
       .then(({ error }) => {
         if (error) console.warn("[analytics] Failed to track event:", eventName, error.message);
-      });
+      })
+      .catch((err) => console.error("[analytics] Unhandled insert error:", eventName, err));
   } catch (err) {
     // Never let analytics break the app
     console.warn("[analytics] Error tracking event:", eventName, err);

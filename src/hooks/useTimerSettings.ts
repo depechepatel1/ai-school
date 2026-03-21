@@ -31,5 +31,5 @@ export function useTimerSettings(courseType: string | null, moduleType: string) 
     })();
   }, [courseType, moduleType]);
 
-  return { countdownMinutes, loading };
+  return { countdownMinutes, loading, isLoading: loading };
 }
