@@ -84,13 +84,13 @@ async function track(
     payload = applyComplianceGate(payload);
 
     // Fire-and-forget insert — don't block the UI
-    supabase
-      .from("user_events" as any)
-      .insert(payload as any)
-      .then(({ error }) => {
-        if (error) console.warn("[analytics] Failed to track event:", eventName, error.message);
-      })
-      .catch((err) => console.error("[analytics] Unhandled insert error:", eventName, err));
+    Promise.resolve(
+      supabase
+        .from("user_events" as any)
+        .insert(payload as any)
+    ).then(({ error }) => {
+      if (error) console.warn("[analytics] Failed to track event:", eventName, error.message);
+    }).catch((err) => console.error("[analytics] Unhandled insert error:", eventName, err));
   } catch (err) {
     // Never let analytics break the app
     console.warn("[analytics] Error tracking event:", eventName, err);
