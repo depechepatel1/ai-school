@@ -71,8 +71,8 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const punctuateWithMarkers = useCallback((raw: string) => {
     const { clean, slots } = stripPauseMarkers(raw);
     pauseSlotsRef.current = slots;
-    debouncedPunctuate(clean);
-  }, [debouncedPunctuate]);
+    debouncedPunctuateHandle.punctuate(clean);
+  }, [debouncedPunctuateHandle]);
 
   useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
   useEffect(() => { testStateRef.current = testState; }, [testState]);

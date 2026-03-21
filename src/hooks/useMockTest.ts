@@ -131,8 +131,8 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
   const punctuateWithMarkers = useCallback((raw: string) => {
     const { clean, slots } = stripPauseMarkers(raw);
     pauseSlotsRef.current = slots;
-    debouncedPunctuate(clean);
-  }, [debouncedPunctuate]);
+    debouncedPunctuateHandle.punctuate(clean);
+  }, [debouncedPunctuateHandle]);
 
   // ── STT ──
   const startSTT = useCallback(() => {

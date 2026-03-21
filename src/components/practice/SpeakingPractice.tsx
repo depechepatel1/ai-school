@@ -116,8 +116,8 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   // Keep a ref to the latest slots so the callback can access them
   const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
 
-  const debouncedPunctuate = useCallback(
-    createDebouncedPunctuate((punctuated) => {
+  const debouncedPunctuateHandle = useCallback(
+    () => createDebouncedPunctuate((punctuated) => {
       // Re-inject pause markers that were stripped before sending to AI
       const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
       currentTranscriptRef.current = restored;
@@ -125,6 +125,8 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
     }, 800),
     []
   );
+  const { punctuate: debouncedPunctuate, cancel: cancelPunctuate } = useMemo(debouncedPunctuateHandle, [debouncedPunctuateHandle]);
+  useEffect(() => () => cancelPunctuate(), [cancelPunctuate]);
 
   // Wrapper that strips markers before punctuating
   const punctuateWithMarkers = useCallback((raw: string) => {
