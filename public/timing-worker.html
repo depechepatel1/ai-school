@@ -38,6 +38,7 @@ const INTER_UTTERANCE_MS = 500;
 const SAVE_EVERY = 10;
 const MAX_VOICE_RETRIES = 3;
 const CHAR_RATE_MS = 65; // approximate ms per character for estimation fallback
+const TOKEN_REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 minutes
 
 let cancelled = false;
 let isRunning = false;
