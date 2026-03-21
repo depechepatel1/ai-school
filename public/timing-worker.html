@@ -274,7 +274,17 @@ function requestTokenRefresh() {
 
 // --- Upload ---
 
+async function ensureFreshToken() {
+  if (Date.now() - lastTokenRefreshTime > TOKEN_REFRESH_INTERVAL_MS) {
+    log("🔄 Proactive token refresh (45min interval)…");
+    await requestTokenRefresh();
+    lastTokenRefreshTime = Date.now();
+  }
+}
+
 async function uploadTimings(path, result, supabaseUrl, anonKey) {
+  await ensureFreshToken();
+
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
   const body = JSON.stringify(result, null, 2);
   const authToken = latestAccessToken || anonKey;
@@ -289,15 +299,17 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
 
   let res = await attempt(authToken, "PUT");
 
-  // On auth failure, try refreshing token once
-  if (res.status === 401 || res.status === 403) {
+  // On auth failure (including 400 for expired JWT), refresh and retry
+  if (res.status === 401 || res.status === 403 || res.status === 400) {
     log("🔄 Upload auth failed — requesting token refresh…");
     const freshToken = await requestTokenRefresh();
+    lastTokenRefreshTime = Date.now();
     res = await attempt(freshToken, "PUT");
   }
 
   if (!res.ok) {
-    res = await attempt(latestAccessToken || anonKey, "POST");
+    const freshToken = latestAccessToken || anonKey;
+    res = await attempt(freshToken, "POST");
   }
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
 }
