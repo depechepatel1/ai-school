@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,8 @@ import { LanguageProvider } from "@/lib/i18n";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
+import { toast } from "@/hooks/use-toast";
+import { initPwaUpdateListener, applyPwaUpdate } from "@/lib/pwa-update";
 
 const DevNav = lazy(() => import("@/components/DevNav"));
 const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
@@ -97,6 +99,24 @@ if (prefetches) {
 const queryClient = new QueryClient();
 
 const App = () => {
+  useEffect(() => {
+    initPwaUpdateListener(() => {
+      toast({
+        title: "Update available",
+        description: "A new version is ready. Tap to refresh.",
+        duration: 15000,
+        action: (
+          <button
+            onClick={applyPwaUpdate}
+            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Refresh
+          </button>
+        ),
+      });
+    });
+  }, []);
+
   return (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
