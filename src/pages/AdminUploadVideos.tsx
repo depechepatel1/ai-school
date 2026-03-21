@@ -275,7 +275,14 @@ export default function AdminUploadVideos() {
                 <CardContent className="space-y-3">
                   <p className="text-xs text-muted-foreground font-mono">{slot.path}</p>
 
-                  {status === "uploading" ? (
+                  {status === "transcoding" ? (
+                    <div className="space-y-2">
+                      <Progress value={prog} className="h-1.5" />
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Zap className="h-3 w-3 text-amber-400 animate-pulse" /> Transcoding to H.264…
+                      </div>
+                    </div>
+                  ) : status === "uploading" ? (
                     <div className="space-y-2">
                       <Progress value={prog} className="h-1.5" />
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
