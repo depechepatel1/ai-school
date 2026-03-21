@@ -58,7 +58,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   }, []);
 
   // Debounced punctuation — updates liveTranscript with punctuated text
-  const debouncedPunctuate = useMemo(
+  const debouncedPunctuateHandle = useMemo(
     () => createDebouncedPunctuate((punctuated) => {
       const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
       currentTranscriptRef.current = restored;
@@ -66,6 +66,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     }, 800),
     []
   );
+  useEffect(() => () => debouncedPunctuateHandle.cancel(), [debouncedPunctuateHandle]);
 
   const punctuateWithMarkers = useCallback((raw: string) => {
     const { clean, slots } = stripPauseMarkers(raw);
