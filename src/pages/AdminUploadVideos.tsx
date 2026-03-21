@@ -16,7 +16,7 @@ interface VideoSlot {
   existsInStorage: boolean;
 }
 
-type UploadStatus = "idle" | "uploading" | "done" | "error";
+type UploadStatus = "idle" | "transcoding" | "uploading" | "done" | "error";
 
 const FIXED_SLOTS: Omit<VideoSlot, "existsInStorage">[] = [
   { label: "Intro", path: "intro.mp4" },
