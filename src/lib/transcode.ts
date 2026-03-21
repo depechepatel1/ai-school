@@ -125,7 +125,8 @@ export async function transcodeToH264(
     await ff.deleteFile("input.mp4").catch(() => {});
     await ff.deleteFile("output.mp4").catch(() => {});
 
-    const outputBlob = new Blob([new Uint8Array((outputData as Uint8Array).buffer)], { type: "video/mp4" });
+    const raw = outputData as unknown as Uint8Array;
+    const outputBlob = new Blob([raw.slice().buffer], { type: "video/mp4" });
     const outputFile = new File([outputBlob], file.name, { type: "video/mp4" });
 
     onProgress?.({ phase: "done", percent: 100 });
