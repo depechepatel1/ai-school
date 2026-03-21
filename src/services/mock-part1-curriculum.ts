@@ -29,9 +29,19 @@ interface TopicFrame {
   questions: string[];
 }
 
+interface TestFlowStep {
+  script?: string[];
+  [key: string]: unknown;
+}
+
+interface TestFlow {
+  step_1_introduction?: TestFlowStep;
+  [key: string]: unknown;
+}
+
 export interface Part1Script {
   metadata: Record<string, unknown>;
-  test_flow: Record<string, unknown>;
+  test_flow: TestFlow;
   opening_frames: {
     R1_variants: R1Variant[];
     R2_variants: R2Variant[];
