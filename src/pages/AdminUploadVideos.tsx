@@ -75,15 +75,38 @@ export default function AdminUploadVideos() {
   }, []);
 
   const uploadFile = useCallback(async (file: File, slot: VideoSlot) => {
+    // Phase 1: Transcode
+    setStatuses((s) => ({ ...s, [slot.path]: "transcoding" }));
+    setProgress((p) => ({ ...p, [slot.path]: 5 }));
+
+    let finalFile = file;
+    let wasTranscoded = false;
+
+    try {
+      const result = await transcodeToH264(file, (tp: TranscodeProgress) => {
+        if (tp.phase === "loading" || tp.phase === "probing" || tp.phase === "transcoding") {
+          // Map transcode progress to 0-60%
+          const mapped = Math.round(tp.percent * 0.6);
+          setProgress((p) => ({ ...p, [slot.path]: mapped }));
+        }
+      });
+      finalFile = result.file;
+      wasTranscoded = result.wasTranscoded;
+    } catch (err) {
+      console.warn("[upload] Transcode failed, uploading original:", err);
+      toast({ title: `⚠️ ${slot.label}: transcoding failed, uploading original`, variant: "destructive" });
+    }
+
+    // Phase 2: Upload
     setStatuses((s) => ({ ...s, [slot.path]: "uploading" }));
-    setProgress((p) => ({ ...p, [slot.path]: 10 }));
+    setProgress((p) => ({ ...p, [slot.path]: 65 }));
 
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", finalFile);
       formData.append("path", slot.path);
 
-      setProgress((p) => ({ ...p, [slot.path]: 30 }));
+      setProgress((p) => ({ ...p, [slot.path]: 75 }));
 
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-video-file`, {
@@ -95,14 +118,16 @@ export default function AdminUploadVideos() {
         body: formData,
       });
 
-      setProgress((p) => ({ ...p, [slot.path]: 80 }));
+      setProgress((p) => ({ ...p, [slot.path]: 90 }));
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed");
 
       setProgress((p) => ({ ...p, [slot.path]: 100 }));
       setStatuses((s) => ({ ...s, [slot.path]: "done" }));
-      toast({ title: `✅ ${slot.label} uploaded successfully` });
+      toast({
+        title: `✅ ${slot.label} uploaded${wasTranscoded ? " (transcoded to H.264)" : ""}`,
+      });
     } catch (err: any) {
       setStatuses((s) => ({ ...s, [slot.path]: "error" }));
       setProgress((p) => ({ ...p, [slot.path]: 0 }));
