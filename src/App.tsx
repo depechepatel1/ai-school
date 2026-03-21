@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,8 @@ import { LanguageProvider } from "@/lib/i18n";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
+import { toast } from "@/hooks/use-toast";
+import { initPwaUpdateListener, applyPwaUpdate } from "@/lib/pwa-update";
 
 const DevNav = lazy(() => import("@/components/DevNav"));
 const GlobalOmniChat = lazy(() => import("@/components/GlobalOmniChat"));
