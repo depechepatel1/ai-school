@@ -2,6 +2,7 @@
  * Post-session summary overlay
  * Shown when practice timer reaches its target
  */
+import { forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Clock, X } from "lucide-react";
 
@@ -19,13 +20,13 @@ function formatTime(secs: number): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
-export default function PracticeSummaryOverlay({
+const PracticeSummaryOverlay = forwardRef<HTMLDivElement, PracticeSummaryOverlayProps>(function PracticeSummaryOverlay({
   visible,
   activeSeconds,
   targetSeconds,
   activityLabel,
   onDismiss,
-}: PracticeSummaryOverlayProps) {
+}, ref) {
   return (
     <AnimatePresence>
       {visible && (
@@ -88,4 +89,6 @@ export default function PracticeSummaryOverlay({
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default PracticeSummaryOverlay;
