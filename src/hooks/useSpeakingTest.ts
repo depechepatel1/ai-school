@@ -47,11 +47,13 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
     return id;
   }, []);
 
-  // Cleanup all pending timeouts on unmount
+  // Cleanup all pending timeouts and abort AI calls on unmount
   useEffect(() => {
     return () => {
       pendingTimeoutsRef.current.forEach(clearTimeout);
       pendingTimeoutsRef.current = [];
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
     };
   }, []);
 
