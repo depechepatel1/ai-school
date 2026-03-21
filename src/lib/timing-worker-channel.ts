@@ -107,6 +107,7 @@ function ensureTokenRefreshListener(): void {
  * Ensure the popup window is open, returning it.
  */
 function ensurePopup(): Window {
+  ensureTokenRefreshListener();
   if (workerWindow && !workerWindow.closed) {
     workerWindow.focus();
     return workerWindow;
