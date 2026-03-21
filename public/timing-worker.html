@@ -268,7 +268,7 @@ async function uploadTimings(path, result, supabaseUrl, anonKey, accessToken) {
 // --- Single job runner ---
 
 async function runSingleJob(config) {
-  const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, jobLabel } = config;
+  const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
