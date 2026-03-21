@@ -20,6 +20,30 @@ Guidelines:
 
 const MAX_TOTAL_CHARS = 50000;
 
+/** Provider configuration — switch by setting the AI_PROVIDER env var */
+function getProviderConfig() {
+  const provider = Deno.env.get("AI_PROVIDER") || "lovable";
+
+  if (provider === "aliyun") {
+    const apiKey = Deno.env.get("DASHSCOPE_API_KEY");
+    if (!apiKey) return { error: "Server misconfiguration" };
+    return {
+      url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      apiKey,
+      model: "qwen-turbo",
+    };
+  }
+
+  // Default: Lovable AI gateway
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) return { error: "Server misconfiguration" };
+  return {
+    url: "https://ai.gateway.lovable.dev/v1/chat/completions",
+    apiKey,
+    model: "google/gemini-3-flash-preview",
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -55,7 +79,6 @@ serve(async (req) => {
       );
     }
 
-    // Total conversation size check
     const totalChars = validMessages.reduce((sum: number, m: any) => sum + m.content.length, 0);
     if (totalChars > MAX_TOTAL_CHARS) {
       return new Response(
@@ -64,24 +87,24 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+    const config = getProviderConfig();
+    if ("error" in config) {
       return new Response(
-        JSON.stringify({ error: "Server misconfiguration" }),
+        JSON.stringify({ error: config.error }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     let response: Response;
     try {
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      response = await fetch(config.url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${config.apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: config.model,
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...validMessages],
           temperature: 0.7,
           max_tokens: 500,

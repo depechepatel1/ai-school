@@ -24,4 +24,8 @@ export const PROVIDERS = {
 
   /** "lovable" = Lovable AI gateway (gemini-2.5-flash-lite), "aliyun" = DashScope qwen-turbo */
   punctuation: "lovable" as "lovable" | "aliyun",
+
+  /** "lovable" = Lovable AI gateway (gemini-3-flash-preview), "aliyun" = DashScope qwen-turbo
+   *  Actual switching is done via the AI_PROVIDER env var on the backend. */
+  ai: "lovable" as "lovable" | "aliyun",
 };
