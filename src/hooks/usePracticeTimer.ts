@@ -88,16 +88,16 @@ export function usePracticeTimer({
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Create/load log entry when activity starts
+  // Create/load log entry when activity starts (upsert to prevent duplicates)
   useEffect(() => {
     if (!userId || !courseType) return;
     logIdRef.current = null;
 
-    // Try to find today's existing log for this activity
     const loadOrCreate = async () => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
+      // First try to find today's existing log
       const { data: existing } = await supabase
         .from("student_practice_logs")
         .select("id, active_seconds")
@@ -114,9 +114,12 @@ export function usePracticeTimer({
         logIdRef.current = existing.id;
         setActiveSeconds(existing.active_seconds);
       } else {
-        const { data: newLog } = await supabase
+        // Insert with onConflict to handle race conditions —
+        // if two mounts race, one wins and the other becomes a no-op,
+        // then we re-query to get the winning row's id.
+        const { data: newLog, error } = await supabase
           .from("student_practice_logs")
-          .insert({
+          .upsert({
             user_id: userId,
             course_type: courseType,
             activity_type: activityType,
@@ -124,11 +127,33 @@ export function usePracticeTimer({
             target_seconds: practiceMode === "independent" ? 0 : targetSeconds,
             active_seconds: 0,
             practice_mode: practiceMode,
+          }, {
+            onConflict: "user_id,activity_type,course_type,week_number,practice_mode,created_date",
+            ignoreDuplicates: true,
           })
           .select("id")
           .single();
-        if (newLog) logIdRef.current = newLog.id;
-        setActiveSeconds(0);
+
+        if (newLog) {
+          logIdRef.current = newLog.id;
+          setActiveSeconds(0);
+        } else if (error) {
+          // Upsert returned nothing (duplicate ignored) — re-fetch the existing row
+          const { data: refetched } = await supabase
+            .from("student_practice_logs")
+            .select("id, active_seconds")
+            .eq("user_id", userId)
+            .eq("activity_type", activityType)
+            .eq("week_number", weekNumber)
+            .eq("practice_mode", practiceMode)
+            .gte("created_at", todayStart.toISOString())
+            .limit(1)
+            .maybeSingle();
+          if (refetched) {
+            logIdRef.current = refetched.id;
+            setActiveSeconds(refetched.active_seconds);
+          }
+        }
       }
     };
 
