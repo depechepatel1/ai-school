@@ -26,6 +26,7 @@ type ChatMsg = { role: "user" | "assistant"; content: string };
 const OmniChatModal = forwardRef<HTMLDivElement, OmniChatModalProps>(
   ({ isOpen, onClose }, ref) => {
     const { session } = useAuth();
+    const { toast } = useToast();
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [isLoading, setIsLoading] = useState(false);
