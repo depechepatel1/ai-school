@@ -195,7 +195,7 @@ function sendWithAck(
  * Launch the timing worker popup and send it a single job config.
  */
 export function launchTimingWorker(config: TimingWorkerConfig): void {
-  ensurePopup();
+  ensurePopup(true);
   sendWithAck((requestId) => ({ type: "START", config, requestId }));
 }
 
@@ -204,7 +204,7 @@ export function launchTimingWorker(config: TimingWorkerConfig): void {
  */
 export function launchTimingWorkerQueue(configs: TimingWorkerConfig[]): void {
   if (configs.length === 0) return;
-  ensurePopup();
+  ensurePopup(true);
   sendWithAck((requestId) => ({ type: "START_QUEUE", configs, requestId }));
 }
 
