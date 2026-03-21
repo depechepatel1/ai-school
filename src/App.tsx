@@ -98,6 +98,7 @@ if (prefetches) {
 
 const queryClient = new QueryClient();
 
+const App = () => {
   useEffect(() => {
     initPwaUpdateListener(() => {
       toast({
