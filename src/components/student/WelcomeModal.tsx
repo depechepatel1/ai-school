@@ -25,13 +25,13 @@ export default function WelcomeModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[600] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          className="fixed inset-x-0 bottom-0 z-[600] flex justify-center pb-24 pointer-events-none"
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="relative w-[440px] max-w-[90vw] bg-black/90 border border-white/10 rounded-3xl p-8 shadow-[0_0_60px_-10px_rgba(59,130,246,0.3)]"
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 60, opacity: 0 }}
+            className="relative w-[520px] max-w-[92vw] bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_0_60px_-10px_rgba(59,130,246,0.3)] pointer-events-auto"
           >
             <button
               onClick={dismiss}
