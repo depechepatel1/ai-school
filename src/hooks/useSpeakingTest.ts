@@ -40,6 +40,7 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
   const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
   // Refs for timeout cleanup
   const pendingTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const trackTimeout = useCallback((id: ReturnType<typeof setTimeout>) => {
     pendingTimeoutsRef.current.push(id);
