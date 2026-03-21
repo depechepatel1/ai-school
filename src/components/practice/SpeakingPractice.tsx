@@ -3,7 +3,7 @@
  * Shared by IELTS and IGCSE — parameterized by courseType.
  * Refactored: feedback panel and shared header extracted.
  */
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useCourseWeek } from "@/hooks/useCourseWeek";
@@ -116,15 +116,15 @@ export default function SpeakingPractice({ courseType }: SpeakingPracticeProps) 
   // Keep a ref to the latest slots so the callback can access them
   const pauseSlotsRef = useRef<ReturnType<typeof stripPauseMarkers>["slots"]>([]);
 
-  const debouncedPunctuate = useCallback(
-    createDebouncedPunctuate((punctuated) => {
-      // Re-inject pause markers that were stripped before sending to AI
+  const { punctuate: debouncedPunctuate, cancel: cancelPunctuate } = useMemo(
+    () => createDebouncedPunctuate((punctuated) => {
       const restored = reinsertPauseMarkers(punctuated, pauseSlotsRef.current);
       currentTranscriptRef.current = restored;
       setLiveTranscript(restored);
     }, 800),
     []
   );
+  useEffect(() => () => cancelPunctuate(), [cancelPunctuate]);
 
   // Wrapper that strips markers before punctuating
   const punctuateWithMarkers = useCallback((raw: string) => {

@@ -38,14 +38,20 @@ export async function punctuate(rawText: string): Promise<string> {
 export function createDebouncedPunctuate(
   callback: (punctuated: string) => void,
   delayMs = 800
-) {
+): { punctuate: (rawText: string) => void; cancel: () => void } {
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  return (rawText: string) => {
+  const punctuateFn = (rawText: string) => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(async () => {
       const result = await punctuate(rawText);
       callback(result);
     }, delayMs);
   };
+
+  const cancel = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+  };
+
+  return { punctuate: punctuateFn, cancel };
 }
