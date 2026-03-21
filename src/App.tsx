@@ -90,10 +90,15 @@ const pathPrefetchMap: Record<string, (() => Promise<unknown>)[]> = {
   "/admin/upload-videos": [pageImports.AdminUploadVideos],
 };
 
-// Fire prefetch immediately at module load time — no waiting for React to mount
+// Fire prefetch at module load — but only for authenticated users (avoid wasted downloads)
+// Public routes (login, signup, etc.) are always prefetched; protected routes only if a session exists.
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
 const prefetches = pathPrefetchMap[window.location.pathname];
 if (prefetches) {
-  prefetches.forEach((fn) => fn());
+  const isPublicRoute = PUBLIC_ROUTES.includes(window.location.pathname);
+  if (isPublicRoute || document.cookie.includes("sb-")) {
+    prefetches.forEach((fn) => fn());
+  }
 }
 
 const queryClient = new QueryClient();

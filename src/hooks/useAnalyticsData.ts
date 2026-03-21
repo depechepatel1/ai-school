@@ -77,12 +77,14 @@ export function useAnalyticsData(
     queryFn: async (): Promise<AnalyticsPeriodData> => {
       const targets = TIME_TARGETS[courseType!] ?? TIME_TARGETS.igcse;
 
+      // Limit to 500 rows to prevent payload bloat — TODO: implement proper pagination
       const { data: logs } = await supabase
         .from("student_practice_logs")
         .select("activity_type, active_seconds, created_at")
         .eq("user_id", userId!)
         .gte("created_at", rangeStart.toISOString())
-        .lte("created_at", rangeEnd.toISOString());
+        .lte("created_at", rangeEnd.toISOString())
+        .range(0, 499);
 
       const rows = logs ?? [];
       const sums: Record<Activity, number> = { shadowing: 0, pronunciation: 0, speaking: 0 };
