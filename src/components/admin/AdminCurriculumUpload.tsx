@@ -278,6 +278,8 @@ export default function AdminCurriculumUpload() {
   const buildConfig = async (job: typeof TIMING_JOBS_META[number]): Promise<TimingWorkerConfig> => {
     const chunks = await job.getChunks();
     if (chunks.length === 0) throw new Error(`No chunks found for ${job.label}`);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("Not authenticated — please log in again");
     return {
       chunks,
       accent: job.accent,
@@ -285,6 +287,7 @@ export default function AdminCurriculumUpload() {
       storagePath: job.path,
       supabaseUrl: SUPABASE_URL,
       anonKey: ANON_KEY,
+      accessToken: session.access_token,
       jobLabel: job.label,
     };
   };
