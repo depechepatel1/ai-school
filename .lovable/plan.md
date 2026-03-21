@@ -1,28 +1,52 @@
 
 
-# Batch 3: Add Missing Database Indexes
+# Batch 4: Consolidate Duplicate Auth Triggers
 
 ## What
-Create a single migration adding indexes on foreign key and frequently-queried columns to speed up RLS policy evaluation and common lookups.
+Merge two separate auth triggers into one atomic function so profile creation and role assignment always succeed or fail together.
 
-## Note
-The schema has `user_events`, not `analytics_events`. The last two indexes will target `user_events` instead.
+## Current state (confirmed)
+- `on_auth_user_created` → calls `handle_new_user()` (inserts profile)
+- `on_auth_user_created_role` → calls `handle_new_user_role()` (inserts role)
 
-## Migration SQL
+Both fire independently on `auth.users` INSERT, risking partial state if one fails.
+
+## Migration SQL (one new file)
 
 ```sql
-CREATE INDEX IF NOT EXISTS idx_classes_created_by ON public.classes(created_by);
-CREATE INDEX IF NOT EXISTS idx_class_memberships_user_id ON public.class_memberships(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);
-CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON public.conversations(user_id);
-CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON public.messages(conversation_id);
-CREATE INDEX IF NOT EXISTS idx_student_practice_logs_user_id ON public.student_practice_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_events_user_id ON public.user_events(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_events_created_at ON public.user_events(created_at DESC);
+-- 1. Drop the separate role trigger
+DROP TRIGGER IF EXISTS on_auth_user_created_role ON auth.users;
+
+-- 2. Drop the now-unused role function
+DROP FUNCTION IF EXISTS public.handle_new_user_role();
+
+-- 3. Replace handle_new_user to do both inserts atomically
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  SET search_path TO 'public'
+AS $$
+DECLARE
+  _role app_role;
+BEGIN
+  -- Create profile
+  INSERT INTO public.profiles (id, display_name)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email));
+
+  -- Assign role (default to student)
+  _role := COALESCE(NEW.raw_user_meta_data->>'role', 'student')::app_role;
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, _role)
+  ON CONFLICT (user_id, role) DO NOTHING;
+
+  RETURN NEW;
+END;
+$$;
 ```
 
 ## No other changes
+- Existing `on_auth_user_created` trigger remains, now calling the updated function
 - No TypeScript files modified
 - No existing migrations touched
-- Table name corrected: `user_events` (not `analytics_events`)
 
