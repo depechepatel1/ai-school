@@ -29,7 +29,7 @@ export function useClassLeaderboard(
 
       if (!error && data) {
         setEntries(
-          (data as any[]).map((r) => ({
+          (data as { user_id: string; display_name: string; avatar_url: string | null; total_seconds: number; rank: number }[]).map((r) => ({
             user_id: r.user_id,
             display_name: r.display_name ?? "Student",
             avatar_url: r.avatar_url,
