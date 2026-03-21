@@ -304,6 +304,8 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
 
 async function runSingleJob(config) {
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
+  // Seed the latest access token from config
+  latestAccessToken = accessToken || "";
   cancelled = false;
   cancelBtn.style.display = "inline-block";
   statusEl.textContent = `Measuring: ${jobLabel}`;
