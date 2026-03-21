@@ -24,7 +24,7 @@ export interface AIChatResponse {
 export async function sendChatMessage(
   messages: ChatMessage[]
 ): Promise<AIChatResponse> {
-  const { data, error } = await supabase.functions.invoke("deepseek-chat", {
+  const { data, error } = await supabase.functions.invoke("ai-chat", {
     body: { messages },
   });
 

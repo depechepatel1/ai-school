@@ -1,11 +1,11 @@
 /**
- * SSE streaming client for the deepseek-chat edge function.
+ * SSE streaming client for the ai-chat edge function.
  * Parses Server-Sent Events line-by-line for true token-by-token rendering.
  */
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deepseek-chat`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 export async function streamChat({
   messages,
