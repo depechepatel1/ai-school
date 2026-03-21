@@ -21,7 +21,7 @@ export interface EventMetadata {
 interface EventPayload {
   user_id: string;
   event_name: string;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
   session_id: string;
   deployment_region: string;
   course_type?: string;
