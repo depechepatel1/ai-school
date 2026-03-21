@@ -161,18 +161,21 @@ export function usePracticeTimer({
     loadOrCreate().catch(console.error);
   }, [userId, courseType, activityType, weekNumber, targetSeconds, practiceMode]);
 
-  // Periodic save (every 10 seconds while running)
+  // Periodic save (every 10 seconds while running) — only writes if value changed
   useEffect(() => {
     if (!isRunning || !logIdRef.current) return;
 
     if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
     saveIntervalRef.current = setInterval(() => {
-      if (logIdRef.current) {
+      if (logIdRef.current && activeSecondsRef.current !== lastSavedSecondsRef.current) {
+        const current = activeSecondsRef.current;
         supabase
           .from("student_practice_logs")
-          .update({ active_seconds: activeSecondsRef.current })
+          .update({ active_seconds: current })
           .eq("id", logIdRef.current)
-          .then(() => {});
+          .then(() => {
+            lastSavedSecondsRef.current = current;
+          });
       }
     }, 10_000);
 
