@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo, useCallback } from "react";
+import { useRef, useEffect, memo, useCallback, forwardRef } from "react";
 import type { WordData } from "@/lib/prosody";
 
 interface OverlaidWaveformProps {
