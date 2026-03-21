@@ -139,6 +139,7 @@ export function usePracticeTimer({
   useEffect(() => {
     if (!isRunning || !logIdRef.current) return;
 
+    if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
     saveIntervalRef.current = setInterval(() => {
       if (logIdRef.current) {
         supabase

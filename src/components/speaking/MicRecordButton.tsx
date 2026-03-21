@@ -56,14 +56,18 @@ export default function MicRecordButton({
 
   useEffect(() => {
     if (isActive && stream) {
-      const ctx = new AudioContext();
+      // Reuse existing AudioContext if possible
+      let ctx = ctxRef.current;
+      if (!ctx || ctx.state === "closed") {
+        ctx = new AudioContext();
+        ctxRef.current = ctx;
+      }
       const src = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 128;
       analyser.smoothingTimeConstant = 0.75;
       src.connect(analyser);
       
-      ctxRef.current = ctx;
       analyserRef.current = analyser;
       const buf = new Uint8Array(analyser.frequencyBinCount);
 
@@ -85,17 +89,24 @@ export default function MicRecordButton({
       return () => {
         active = false;
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        ctx.close().catch(() => {});
+        src.disconnect();
         analyserRef.current = null;
-        ctxRef.current = null;
         setLevels(Array(BAR_COUNT).fill(0));
       };
     } else {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (ctxRef.current) { ctxRef.current.close().catch(() => {}); ctxRef.current = null; }
+      analyserRef.current = null;
       setLevels(Array(BAR_COUNT).fill(0));
     }
   }, [isActive, stream]);
+
+  // Close AudioContext on unmount
+  useEffect(() => {
+    return () => {
+      ctxRef.current?.close().catch(() => {});
+      ctxRef.current = null;
+    };
+  }, []);
 
   const { btn, icon, stop } = SIZE_MAP[size];
   const shapeClass = SHAPE_MAP[shape];

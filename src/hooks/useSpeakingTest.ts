@@ -107,6 +107,11 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
 
   // ── AI ──
   const triggerAIQuestion = useCallback(async () => {
+    // Abort any in-flight AI call
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsAiThinking(true);
     try {
       const history: ChatMessage[] = [
@@ -117,10 +122,12 @@ export function useSpeakingTest({ accent, onRecordingStart, onRecordingStop }: U
         })),
       ];
       const response = await chat(history, `I am currently in ${testStateRef.current.currentPart}. Ask me a relevant question based on my previous answer if provided.`);
+      if (controller.signal.aborted) return;
       setIsAiThinking(false);
       setMessages((prev) => [...prev, { role: "teacher", text: response }]);
       speakTeacherText(response);
-    } catch {
+    } catch (err) {
+      if (controller.signal.aborted) return;
       setIsAiThinking(false);
       const fallback = "Let's move to the next question.";
       setMessages((prev) => [...prev, { role: "teacher", text: fallback }]);

@@ -57,6 +57,13 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
     setPosition(newPosition);
     if (!userId) return;
 
+    // Queue if a save is already in flight
+    if (savingRef.current) {
+      pendingRef.current = newPosition;
+      return;
+    }
+
+    savingRef.current = true;
     try {
       const { data: existing } = await supabase
         .from("student_progress")
@@ -86,6 +93,14 @@ export function useStudentProgress({ userId, courseType, moduleType }: UseStuden
       }
     } catch (err) {
       console.error("useStudentProgress save error:", err);
+    } finally {
+      savingRef.current = false;
+      // Process queued save if any
+      const pending = pendingRef.current;
+      if (pending) {
+        pendingRef.current = null;
+        savePosition(pending);
+      }
     }
   }, [userId, courseType, moduleType]);
 

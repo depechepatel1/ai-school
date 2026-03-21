@@ -316,6 +316,7 @@ export function useMockTest({ accent, userId }: UseMockTestOptions) {
         trackTimeout(setTimeout(() => triggerAIQuestion(), 500));
       }
     }
+    transitionLockRef.current = false;
   }, [startSTT, triggerAIQuestion, speakNextPart1Question, trackTimeout]);
 
   const advancePart = useCallback(() => {
