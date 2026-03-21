@@ -354,7 +354,7 @@ async function runSingleJob(config) {
   if (cancelled) {
     try {
       const partial = { timings, accent, rate, generatedAt: new Date().toISOString(), version: 2, partial: true, meta };
-      await uploadTimings(storagePath, partial, supabaseUrl, anonKey);
+      await uploadTimings(storagePath, partial, supabaseUrl, anonKey, accessToken);
       log("Saved partial progress before cancel");
     } catch (err) { log(`Save on cancel failed: ${err.message}`); }
 
