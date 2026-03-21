@@ -59,6 +59,7 @@ export function usePracticeTimer({
   const logIdRef = useRef<string | null>(null);
   const saveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const activeSecondsRef = useRef(0);
+  const lastSavedSecondsRef = useRef(0);
 
   const targetSeconds =
     courseType && TIME_TARGETS[courseType]
