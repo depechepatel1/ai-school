@@ -1,6 +1,7 @@
 /**
  * postMessage wrapper for communicating with the TTS timing popup worker.
  */
+import { supabase } from "@/integrations/supabase/client";
 
 export interface TimingWorkerConfig {
   chunks: string[];
