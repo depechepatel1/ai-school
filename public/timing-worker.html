@@ -37,7 +37,8 @@ const BATCH_REST_MS = 3000;
 const INTER_UTTERANCE_MS = 500;
 const SAVE_EVERY = 10;
 const MAX_VOICE_RETRIES = 3;
-const CHAR_RATE_MS = 65; // approximate ms per character for estimation fallback
+const CHAR_RATE_MS = 65;
+const ONLINE_VOICE_EXTRA_MS = 5000; // extra buffer for online/network voices
 const TOKEN_REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 minutes
 
 let cancelled = false;
@@ -142,16 +143,20 @@ function cleanForTTS(text) {
 
 // --- Adaptive timeout based on text length ---
 
-function getTimeout(text) {
+function isOnlineVoice(voice) {
+  return voice?.name?.includes("Online") || false;
+}
+
+function getTimeout(text, voice) {
   const len = cleanForTTS(text).length;
-  // min 4s, max 20s, ~80ms per char
-  return Math.max(4000, Math.min(20000, len * 80));
+  const base = Math.max(6000, Math.min(30000, len * 100));
+  return isOnlineVoice(voice) ? base + ONLINE_VOICE_EXTRA_MS : base;
 }
 
 // --- Structured measurement ---
 
 function measureSingle(text, voice, rate) {
-  const NO_START_MS = 3000; // if onstart doesn't fire within 3s, it's stuck
+  const NO_START_MS = isOnlineVoice(voice) ? 8000 : 4000;
   return new Promise(resolve => {
     const cleaned = cleanForTTS(text);
     if (!cleaned) {
@@ -159,7 +164,7 @@ function measureSingle(text, voice, rate) {
       return;
     }
 
-    const timeoutMs = getTimeout(text);
+    const timeoutMs = getTimeout(text, voice);
     const u = new SpeechSynthesisUtterance(cleaned);
     if (voice) u.voice = voice;
     u.rate = rate;
