@@ -38,7 +38,7 @@ export default function AdminDashboard() {
     { id: "practice", label: "Logs", icon: <BarChart3 className="w-3.5 h-3.5" /> },
     { id: "conversations", label: "Chat", icon: <MessageSquare className="w-3.5 h-3.5" /> },
     { id: "audit", label: "Audit", icon: <ClipboardList className="w-3.5 h-3.5" /> },
-    { id: "timers", label: "Timers", icon: <Timer className="w-3.5 h-3.5" /> },
+    { id: "timers", label: "Homework Timers", icon: <Timer className="w-3.5 h-3.5" /> },
     { id: "curriculum", label: "Curriculum", icon: <Upload className="w-3.5 h-3.5" /> },
   ];
 
