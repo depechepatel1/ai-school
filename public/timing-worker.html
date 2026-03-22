@@ -40,6 +40,7 @@ const MAX_VOICE_RETRIES = 3;
 const CHAR_RATE_MS = 65;
 const ONLINE_VOICE_EXTRA_MS = 5000; // extra buffer for online/network voices
 const TOKEN_REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 minutes
+const TOKEN_REFRESH_TIMEOUT_MS = 12000;
 
 let cancelled = false;
 let isRunning = false;
@@ -258,6 +259,7 @@ async function measureWithRetry(text, accent, rate) {
 // --- Token refresh ---
 
 let latestAccessToken = "";
+let latestRefreshToken = "";
 let tokenExpiryMs = 0; // tracks actual JWT expiry in ms since epoch
 
 function parseJwtExp(token) {
@@ -267,22 +269,90 @@ function parseJwtExp(token) {
   } catch { return 0; }
 }
 
+function loadStoredAuthTokens() {
+  try {
+    const key = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+    if (!key) return { accessToken: "", refreshToken: "" };
+    const raw = localStorage.getItem(key);
+    if (!raw) return { accessToken: "", refreshToken: "" };
+    const parsed = JSON.parse(raw);
+    const session = parsed?.currentSession || parsed?.session || parsed;
+    return {
+      accessToken: session?.access_token || "",
+      refreshToken: session?.refresh_token || "",
+    };
+  } catch {
+    return { accessToken: "", refreshToken: "" };
+  }
+}
+
+async function refreshTokenFromStorage(supabaseUrl, anonKey) {
+  const stored = loadStoredAuthTokens();
+  if (!latestRefreshToken && stored.refreshToken) latestRefreshToken = stored.refreshToken;
+  const refreshToken = latestRefreshToken;
+
+  if (!refreshToken) {
+    log("⚠️ No local refresh token available");
+    return "";
+  }
+
+  try {
+    const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": anonKey,
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!res.ok) {
+      log(`⚠️ Local token refresh failed (${res.status})`);
+      return "";
+    }
+
+    const data = await res.json();
+    if (!data?.access_token) return "";
+
+    latestAccessToken = data.access_token;
+    latestRefreshToken = data.refresh_token || refreshToken;
+    tokenExpiryMs = parseJwtExp(latestAccessToken);
+    const remaining = tokenExpiryMs ? Math.round((tokenExpiryMs - Date.now()) / 1000) : 0;
+    log(`🔑 Token refreshed locally (expires in ${remaining}s)`);
+    return latestAccessToken;
+  } catch (err) {
+    log(`⚠️ Local refresh error: ${err?.message || err}`);
+    return "";
+  }
+}
+
 function isTokenExpiringSoon(bufferMs = 120000) {
   if (!tokenExpiryMs) return true;
   return Date.now() >= tokenExpiryMs - bufferMs;
 }
 
-function requestTokenRefresh() {
+function requestTokenRefresh(supabaseUrl, anonKey) {
   return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (token) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      window.removeEventListener("message", handler);
+      resolve(token || latestAccessToken);
+    };
+
     const timeout = setTimeout(() => {
-      log("⚠️ Token refresh timed out after 10s — using existing token");
-      resolve(latestAccessToken);
-    }, 10000);
+      log("⚠️ Token refresh timed out — attempting local refresh");
+      refreshTokenFromStorage(supabaseUrl, anonKey)
+        .then((token) => finish(token || latestAccessToken))
+        .catch(() => finish(latestAccessToken));
+    }, TOKEN_REFRESH_TIMEOUT_MS);
 
     const handler = (e) => {
       if (e.data?._source !== PARENT_SOURCE || e.data?.type !== "TOKEN_REFRESH") return;
-      window.removeEventListener("message", handler);
-      clearTimeout(timeout);
+
       if (e.data.accessToken) {
         latestAccessToken = e.data.accessToken;
         const newExp = parseJwtExp(e.data.accessToken);
@@ -290,13 +360,23 @@ function requestTokenRefresh() {
         const remaining = newExp ? Math.round((newExp - Date.now()) / 1000) : 0;
         log(`🔑 Token refreshed from parent (expires in ${remaining}s)`);
         if (newExp && newExp <= Date.now()) {
-          log("⚠️ WARNING: Received token is already expired!");
+          log("⚠️ Parent returned expired token — attempting local refresh");
+          refreshTokenFromStorage(supabaseUrl, anonKey)
+            .then((token) => finish(token || latestAccessToken))
+            .catch(() => finish(latestAccessToken));
+          return;
         }
       } else {
-        log("⚠️ Parent returned empty token — auth may fail");
+        log("⚠️ Parent returned empty token — attempting local refresh");
+        refreshTokenFromStorage(supabaseUrl, anonKey)
+          .then((token) => finish(token || latestAccessToken))
+          .catch(() => finish(latestAccessToken));
+        return;
       }
-      resolve(latestAccessToken);
+
+      finish(latestAccessToken);
     };
+
     window.addEventListener("message", handler);
     sendToParent({ type: "REQUEST_TOKEN_REFRESH" });
   });
@@ -304,15 +384,15 @@ function requestTokenRefresh() {
 
 // --- Upload ---
 
-async function ensureFreshToken() {
+async function ensureFreshToken(supabaseUrl, anonKey) {
   if (isTokenExpiringSoon()) {
     log("🔄 Proactive token refresh (token expiring within 2min)…");
-    await requestTokenRefresh();
+    await requestTokenRefresh(supabaseUrl, anonKey);
   }
 }
 
 async function uploadTimings(path, result, supabaseUrl, anonKey) {
-  await ensureFreshToken();
+  await ensureFreshToken(supabaseUrl, anonKey);
 
   const url = `${supabaseUrl}/storage/v1/object/curriculums/${path}`;
   const body = JSON.stringify(result, null, 2);
@@ -332,7 +412,7 @@ async function uploadTimings(path, result, supabaseUrl, anonKey) {
   if (res.status === 401 || res.status === 403 || res.status === 400) {
     const errBody = await res.text();
     log(`🔄 Upload failed (${res.status}): ${errBody.substring(0, 120)} — refreshing token…`);
-    const freshToken = await requestTokenRefresh();
+    const freshToken = await requestTokenRefresh(supabaseUrl, anonKey);
     res = await attempt(freshToken, "PUT");
   }
 
@@ -349,6 +429,11 @@ async function runSingleJob(config) {
   const { chunks, accent, rate, storagePath, supabaseUrl, anonKey, accessToken, jobLabel } = config;
   // Seed the latest access token from config and track its expiry
   latestAccessToken = accessToken || "";
+  const storedTokens = loadStoredAuthTokens();
+  if (!latestAccessToken && storedTokens.accessToken) {
+    latestAccessToken = storedTokens.accessToken;
+  }
+  latestRefreshToken = storedTokens.refreshToken || "";
   tokenExpiryMs = parseJwtExp(latestAccessToken);
   if (tokenExpiryMs) {
     const remaining = Math.round((tokenExpiryMs - Date.now()) / 1000);
