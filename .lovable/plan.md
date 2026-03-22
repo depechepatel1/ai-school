@@ -1,43 +1,26 @@
 
 
-## Lossless-Quality Client-Side Transcoding
-
-### Problem
-The previous plan used `-crf 23` (moderate compression) which would visibly degrade the AI-generated videos. You need the H.264 output to be indistinguishable from the H.265 source.
+## Local-First Voice Selection (Implemented)
 
 ### Solution
-Use **two-pass constant bitrate matching** in the FFmpeg.wasm transcode step:
+Tiered priority system using `v.localService` API property:
 
-1. **Probe the source** — Before transcoding, run `ffprobe` (via FFmpeg.wasm) to extract the original video bitrate.
-2. **Transcode at matched bitrate** — Use `-b:v <original_bitrate> -maxrate <original_bitrate> -bufsize <2x_bitrate>` instead of CRF. This ensures the output file uses the same data rate as the input, preserving quality 1:1.
-3. **Fallback** — If bitrate detection fails, use `-crf 18 -preset slow` which is considered **visually lossless** (no perceptible difference from the source).
+1. **Local Natural** (`localService=true` + "Natural") — Edge built-in, zero latency
+2. **Local accent match** (`localService=true`)
+3. **Cloud Natural** — Chrome cloud voices, some latency
+4. **Cloud accent match**
+5. **Any English voice**
 
-### FFmpeg command
-```text
-# Quality-matched transcode:
--i input.mp4 -c:v libx264 -b:v {SOURCE_BITRATE} -maxrate {SOURCE_BITRATE} -bufsize {2x} -preset slow -c:a aac -b:a 192k -movflags +faststart output.mp4
+### Adaptive Timeouts (timing-worker)
+- Local voices: 3s startup, 4–15s overall
+- Cloud voices: 8s startup, 6–30s overall
 
-# Fallback (visually lossless):
--i input.mp4 -c:v libx264 -crf 18 -preset slow -c:a aac -b:a 192k -movflags +faststart output.mp4
-```
+### Browser Banner
+- Edge: no banner
+- Chrome: soft info banner recommending Edge
+- Other: warning about limited voice support
 
-### Files to create/edit
-- **New: `src/lib/transcode.ts`** — FFmpeg.wasm wrapper that probes source bitrate, then transcodes at matched quality. Reports progress callback for UI.
-- **Edit: `src/pages/AdminUploadVideos.tsx`** — Integrate transcode step before upload. Add "Transcoding…" status with progress. Skip transcode if file is already H.264 (check for `avc1` signature in first bytes).
-- **Edit: `package.json`** — Add `@ffmpeg/ffmpeg` and `@ffmpeg/util`.
-
-### Key quality guarantees
-| Parameter | Value | Why |
-|-----------|-------|-----|
-| Video bitrate | Matched to source | Same data rate = same quality |
-| Audio bitrate | 192k AAC | Higher than previous 128k plan |
-| Preset | `slow` | Better compression efficiency at same bitrate |
-| movflags | `+faststart` | Enables streaming playback |
-
-### What stays the same from previous plan
-- Client-side FFmpeg.wasm (no server needed)
-- Lazy WASM loading (~30MB, cached after first use)
-- Two-phase progress bar: Transcoding (0–60%) → Uploading (60–100%)
-- H.264 detection to skip already-compatible files
-- Fallback to upload original if transcoding fails
-
+### Files changed
+- `src/lib/tts-provider.ts` — refactored `findVoices()`, added `isLocalVoice()` export
+- `public/timing-worker.html` — `localService`-based voice selection + adaptive timeouts
+- `src/components/student/BrowserBanner.tsx` — tiered browser messaging with severity levels
