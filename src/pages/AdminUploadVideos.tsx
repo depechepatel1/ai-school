@@ -29,6 +29,7 @@ export default function AdminUploadVideos() {
   const [loading, setLoading] = useState(true);
   const [statuses, setStatuses] = useState<Record<string, UploadStatus>>({});
   const [progress, setProgress] = useState<Record<string, number>>({});
+  const [codecInfo, setCodecInfo] = useState<Record<string, "transcoded" | "native">>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const uploadQueue = useRef<{ file: File; slot: VideoSlot }[]>([]);
   const isProcessing = useRef(false);
