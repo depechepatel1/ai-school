@@ -127,6 +127,7 @@ export default function AdminUploadVideos() {
 
       setProgress((p) => ({ ...p, [slot.path]: 100 }));
       setStatuses((s) => ({ ...s, [slot.path]: "done" }));
+      setCodecInfo((c) => ({ ...c, [slot.path]: wasTranscoded ? "transcoded" : "native" }));
       toast({
         title: `✅ ${slot.label} uploaded${wasTranscoded ? " (transcoded to H.264)" : ""}`,
       });
