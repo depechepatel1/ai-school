@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Check, Upload, Film, Loader2, Plus, Trash2, Zap } from "lucide-react";
+import { Check, Upload, Film, Loader2, Plus, Trash2, Zap, RefreshCw, FileCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
