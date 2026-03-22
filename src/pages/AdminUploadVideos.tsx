@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Check, Upload, Film, Loader2, Plus, Trash2, Zap } from "lucide-react";
+import { Check, Upload, Film, Loader2, Plus, Trash2, Zap, RefreshCw, FileCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -28,6 +29,7 @@ export default function AdminUploadVideos() {
   const [loading, setLoading] = useState(true);
   const [statuses, setStatuses] = useState<Record<string, UploadStatus>>({});
   const [progress, setProgress] = useState<Record<string, number>>({});
+  const [codecInfo, setCodecInfo] = useState<Record<string, "transcoded" | "native">>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const uploadQueue = useRef<{ file: File; slot: VideoSlot }[]>([]);
   const isProcessing = useRef(false);
@@ -125,6 +127,7 @@ export default function AdminUploadVideos() {
 
       setProgress((p) => ({ ...p, [slot.path]: 100 }));
       setStatuses((s) => ({ ...s, [slot.path]: "done" }));
+      setCodecInfo((c) => ({ ...c, [slot.path]: wasTranscoded ? "transcoded" : "native" }));
       toast({
         title: `✅ ${slot.label} uploaded${wasTranscoded ? " (transcoded to H.264)" : ""}`,
       });
@@ -290,7 +293,19 @@ export default function AdminUploadVideos() {
                       </div>
                     </div>
                   ) : status === "done" ? (
-                    <p className="text-sm text-green-600 font-medium">Uploaded ✓</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-green-600 font-medium">Uploaded ✓</p>
+                      {codecInfo[slot.path] === "transcoded" && (
+                        <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-[10px] gap-1">
+                          <RefreshCw className="h-2.5 w-2.5" /> Transcoded
+                        </Badge>
+                      )}
+                      {codecInfo[slot.path] === "native" && (
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px] gap-1">
+                          <FileCheck className="h-2.5 w-2.5" /> H.264 Native
+                        </Badge>
+                      )}
+                    </div>
                   ) : (
                     <>
                       <input
