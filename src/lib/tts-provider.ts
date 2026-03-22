@@ -408,6 +408,13 @@ export function getActiveVoiceName(accent: Accent): string {
   return voice?.name || "System Default";
 }
 
+/** Check if the current best voice for an accent is local (zero-latency) */
+export function isLocalVoice(accent: Accent): boolean {
+  if (!voicesReady) ensureVoices();
+  const voice = getBestVoice(accent);
+  return voice?.localService === true;
+}
+
 /** Get the current provider name */
 export function getProviderName(): string {
   return PROVIDERS.tts === "aliyun" ? "Aliyun DashScope" : "Browser (Edge Natural)";

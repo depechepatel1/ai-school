@@ -161,7 +161,7 @@ function getTimeout(text, voice) {
 // --- Structured measurement ---
 
 function measureSingle(text, voice, rate) {
-  const NO_START_MS = isOnlineVoice(voice) ? 8000 : 4000;
+  const NO_START_MS = isLocalVoice(voice) ? 3000 : 8000;
   return new Promise(resolve => {
     const cleaned = cleanForTTS(text);
     if (!cleaned) {
