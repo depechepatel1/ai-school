@@ -143,10 +143,14 @@ function cleanForTTS(text) {
 
 // --- Adaptive timeout based on text length ---
 
-function getTimeout(text) {
+function isOnlineVoice(voice) {
+  return voice?.name?.includes("Online") || false;
+}
+
+function getTimeout(text, voice) {
   const len = cleanForTTS(text).length;
-  // min 4s, max 20s, ~80ms per char
-  return Math.max(4000, Math.min(20000, len * 80));
+  const base = Math.max(6000, Math.min(30000, len * 100));
+  return isOnlineVoice(voice) ? base + ONLINE_VOICE_EXTRA_MS : base;
 }
 
 // --- Structured measurement ---
