@@ -1,43 +1,48 @@
 
 
-## Lossless-Quality Client-Side Transcoding
+## Revised Plan: Local-First Voices with Cross-Browser Fallback
 
 ### Problem
-The previous plan used `-crf 23` (moderate compression) which would visibly degrade the AI-generated videos. You need the H.264 output to be indistinguishable from the H.265 source.
+The previous plan hardcoded Edge-only local Natural voices. If a student uses Chrome, Safari, or Firefox, no Natural voices exist and TTS would fail silently or use low-quality voices.
 
 ### Solution
-Use **two-pass constant bitrate matching** in the FFmpeg.wasm transcode step:
+A **tiered priority system** that prefers local voices but gracefully falls back on non-Edge browsers, plus adjusted timeouts based on whether the selected voice is local or cloud.
 
-1. **Probe the source** — Before transcoding, run `ffprobe` (via FFmpeg.wasm) to extract the original video bitrate.
-2. **Transcode at matched bitrate** — Use `-b:v <original_bitrate> -maxrate <original_bitrate> -bufsize <2x_bitrate>` instead of CRF. This ensures the output file uses the same data rate as the input, preserving quality 1:1.
-3. **Fallback** — If bitrate detection fails, use `-crf 18 -preset slow` which is considered **visually lossless** (no perceptible difference from the source).
+### Changes
 
-### FFmpeg command
+**1. `src/lib/tts-provider.ts` — `findVoices()`**
+- New priority chain using `v.localService` property:
+  1. Local Natural voices (`localService === true` + name includes "Natural")
+  2. Any local voice matching the accent
+  3. Cloud/online Natural voices (for Chrome which has good cloud voices)
+  4. Any voice matching the accent
+  5. Any English voice
+- Export a helper `isLocalVoice(): boolean` so the timing worker and UI can adapt behavior based on which voice was selected
+- Log a warning when falling back to cloud voices
+
+**2. `public/timing-worker.html` — adaptive timeouts**
+- Check if the selected voice is local (`localService === true`)
+- Local voices: tight timeouts (3s startup, 4–15s overall)
+- Cloud voices: generous timeouts (8s startup, 6–30s overall) — keeps current tolerant values
+- This way Edge users get instant performance while Chrome users still work reliably
+
+**3. `src/components/student/BrowserBanner.tsx`**
+- Edge: no banner (optimal experience)
+- Chrome: soft recommendation — "For the best experience, use Microsoft Edge. Chrome works but may have slightly slower voice responses."
+- Other browsers: stronger warning about limited voice support
+- Keep the dismissible behavior
+
+### Priority chain summary
+
 ```text
-# Quality-matched transcode:
--i input.mp4 -c:v libx264 -b:v {SOURCE_BITRATE} -maxrate {SOURCE_BITRATE} -bufsize {2x} -preset slow -c:a aac -b:a 192k -movflags +faststart output.mp4
-
-# Fallback (visually lossless):
--i input.mp4 -c:v libx264 -crf 18 -preset slow -c:a aac -b:a 192k -movflags +faststart output.mp4
+Edge:    localNatural → localOther → cloudNatural → anyAccent → anyEnglish
+Chrome:  cloudNatural → localNatural → anyAccent → anyEnglish
+Safari:  localNatural → anyAccent → anyEnglish
+Firefox: anyAccent → anyEnglish → system default
 ```
 
-### Files to create/edit
-- **New: `src/lib/transcode.ts`** — FFmpeg.wasm wrapper that probes source bitrate, then transcodes at matched quality. Reports progress callback for UI.
-- **Edit: `src/pages/AdminUploadVideos.tsx`** — Integrate transcode step before upload. Add "Transcoding…" status with progress. Skip transcode if file is already H.264 (check for `avc1` signature in first bytes).
-- **Edit: `package.json`** — Add `@ffmpeg/ffmpeg` and `@ffmpeg/util`.
-
-### Key quality guarantees
-| Parameter | Value | Why |
-|-----------|-------|-----|
-| Video bitrate | Matched to source | Same data rate = same quality |
-| Audio bitrate | 192k AAC | Higher than previous 128k plan |
-| Preset | `slow` | Better compression efficiency at same bitrate |
-| movflags | `+faststart` | Enables streaming playback |
-
-### What stays the same from previous plan
-- Client-side FFmpeg.wasm (no server needed)
-- Lazy WASM loading (~30MB, cached after first use)
-- Two-phase progress bar: Transcoding (0–60%) → Uploading (60–100%)
-- H.264 detection to skip already-compatible files
-- Fallback to upload original if transcoding fails
+### Files to edit
+- `src/lib/tts-provider.ts` — refactor `findVoices()`, export `isLocalVoice()`
+- `public/timing-worker.html` — adaptive timeouts based on voice locality
+- `src/components/student/BrowserBanner.tsx` — tiered browser messaging
 
