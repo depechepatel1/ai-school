@@ -76,6 +76,21 @@ const WORKER_SOURCE = "tts-timing-worker";
 let workerWindow: Window | null = null;
 let tokenRefreshListenerActive = false;
 
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return new Promise((resolve) => {
+    const timeout = window.setTimeout(() => resolve(null), ms);
+    promise
+      .then((value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      })
+      .catch(() => {
+        window.clearTimeout(timeout);
+        resolve(null);
+      });
+  });
+}
+
 /**
  * Listen for TOKEN_REFRESH requests from the worker popup and respond
  * with a fresh JWT obtained via supabase.auth.getSession().
@@ -90,12 +105,15 @@ function ensureTokenRefreshListener(): void {
 
     let token = "";
     try {
-      // Always force a real refresh to get a new JWT
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      // Always try real refresh first, but never block indefinitely.
+      const refreshResult = await withTimeout(supabase.auth.refreshSession(), 7000);
+      const refreshData = refreshResult?.data;
+      const refreshError = refreshResult?.error;
+
       if (refreshError || !refreshData?.session) {
-        console.warn("[timing-channel] refreshSession failed, falling back to getSession", refreshError);
-        const { data: { session } } = await supabase.auth.getSession();
-        token = session?.access_token || "";
+        console.warn("[timing-channel] refreshSession unavailable/timed out, falling back to getSession", refreshError);
+        const sessionResult = await withTimeout(supabase.auth.getSession(), 3000);
+        token = sessionResult?.data?.session?.access_token || "";
       } else {
         token = refreshData.session.access_token;
         console.log("[timing-channel] token refreshed successfully, new exp:", new Date((refreshData.session.expires_at ?? 0) * 1000).toISOString());
@@ -104,11 +122,16 @@ function ensureTokenRefreshListener(): void {
       console.error("[timing-channel] token refresh failed", err);
     }
 
+    const sourceWindow = e.source && "closed" in (e.source as object) ? (e.source as Window) : null;
+    if (sourceWindow && !sourceWindow.closed) {
+      sourceWindow.postMessage({ type: "TOKEN_REFRESH", accessToken: token, _source: MSG_SOURCE }, "*");
+      return;
+    }
+
     if (workerWindow && !workerWindow.closed) {
-      workerWindow.postMessage(
-        { type: "TOKEN_REFRESH", accessToken: token, _source: MSG_SOURCE },
-        "*"
-      );
+      workerWindow.postMessage({ type: "TOKEN_REFRESH", accessToken: token, _source: MSG_SOURCE }, "*");
+    } else {
+      console.warn("[timing-channel] token refresh response dropped: no active worker window");
     }
   });
 }
