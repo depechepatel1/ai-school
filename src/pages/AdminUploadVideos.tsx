@@ -293,7 +293,19 @@ export default function AdminUploadVideos() {
                       </div>
                     </div>
                   ) : status === "done" ? (
-                    <p className="text-sm text-green-600 font-medium">Uploaded ✓</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-green-600 font-medium">Uploaded ✓</p>
+                      {codecInfo[slot.path] === "transcoded" && (
+                        <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-[10px] gap-1">
+                          <RefreshCw className="h-2.5 w-2.5" /> Transcoded
+                        </Badge>
+                      )}
+                      {codecInfo[slot.path] === "native" && (
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px] gap-1">
+                          <FileCheck className="h-2.5 w-2.5" /> H.264 Native
+                        </Badge>
+                      )}
+                    </div>
                   ) : (
                     <>
                       <input
