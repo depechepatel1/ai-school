@@ -35,40 +35,49 @@ let cachedVoices: Record<string, SpeechSynthesisVoice[]> = {};
 let voicesReady = false;
 
 /**
- * Find all candidate voices for an accent, ordered by priority.
- * Excludes voices known to have failed.
+ * Find all candidate voices for an accent, ordered by tiered priority:
+ *  1. Local Natural (localService=true + "Natural") — Edge built-in, zero latency
+ *  2. Local accent match (localService=true)
+ *  3. Cloud Natural (!localService + "Natural") — Chrome cloud voices, some latency
+ *  4. Any voice matching accent
+ *  5. Any English voice
  */
 function findVoices(accent: Accent): SpeechSynthesisVoice[] {
   const voices = speechSynthesis.getVoices();
   if (voices.length === 0) return [];
 
-  const candidates: SpeechSynthesisVoice[] = [];
-
   if (accent === "zh") {
-    // Chinese voice priority
     const zhVoices = voices.filter((v) => v.lang.startsWith("zh"));
-    // Natural local > Natural online > any zh-CN > any zh
-    const naturalLocal = zhVoices.filter((v) => v.name.includes("Natural") && !v.name.includes("Online"));
-    const naturalOnline = zhVoices.filter((v) => v.name.includes("Natural") && v.name.includes("Online"));
-    const other = zhVoices.filter((v) => !v.name.includes("Natural"));
-    candidates.push(...naturalLocal, ...naturalOnline, ...other);
-  } else {
-    const langPrefix = accent === "uk" ? "en-GB" : "en-US";
+    const localNatural = zhVoices.filter((v) => v.localService && v.name.includes("Natural"));
+    const localOther = zhVoices.filter((v) => v.localService && !v.name.includes("Natural"));
+    const cloudNatural = zhVoices.filter((v) => !v.localService && v.name.includes("Natural"));
+    const cloudOther = zhVoices.filter((v) => !v.localService && !v.name.includes("Natural"));
+    const candidates = [...localNatural, ...localOther, ...cloudNatural, ...cloudOther];
+    const viable = candidates.filter((v) => !failedVoiceNames.has(v.name));
+    return viable.length > 0 ? viable : candidates;
+  }
 
-    // Priority tiers for English:
-    // 1. Local Natural voices (offline, high quality)
-    // 2. Online Natural voices (cloud, may fail in iframes)
-    // 3. Any voice matching the accent
-    // 4. Any English voice
-    const accentVoices = voices.filter((v) => v.lang.startsWith(langPrefix));
-    const naturalLocal = accentVoices.filter((v) => v.name.includes("Natural") && !v.name.includes("Online"));
-    const naturalOnline = accentVoices.filter((v) => v.name.includes("Natural") && v.name.includes("Online"));
-    const otherAccent = accentVoices.filter((v) => !v.name.includes("Natural"));
+  const langPrefix = accent === "uk" ? "en-GB" : "en-US";
 
-    // Fallback: any English voice not matching primary accent
-    const otherEn = voices.filter((v) => v.lang.startsWith("en") && !v.lang.startsWith(langPrefix));
+  const accentVoices = voices.filter((v) => v.lang.startsWith(langPrefix));
+  const otherEn = voices.filter((v) => v.lang.startsWith("en") && !v.lang.startsWith(langPrefix));
 
-    candidates.push(...naturalLocal, ...naturalOnline, ...otherAccent, ...otherEn);
+  // Tier 1: Local Natural voices (Edge built-in, instant)
+  const localNatural = accentVoices.filter((v) => v.localService && v.name.includes("Natural"));
+  // Tier 2: Any local voice matching accent
+  const localOther = accentVoices.filter((v) => v.localService && !v.name.includes("Natural"));
+  // Tier 3: Cloud Natural voices (Chrome, some latency)
+  const cloudNatural = accentVoices.filter((v) => !v.localService && v.name.includes("Natural"));
+  // Tier 4: Any accent voice
+  const cloudOther = accentVoices.filter((v) => !v.localService && !v.name.includes("Natural"));
+  // Tier 5: Any English voice
+  const anyEnLocal = otherEn.filter((v) => v.localService);
+  const anyEnCloud = otherEn.filter((v) => !v.localService);
+
+  const candidates = [...localNatural, ...localOther, ...cloudNatural, ...cloudOther, ...anyEnLocal, ...anyEnCloud];
+
+  if (localNatural.length === 0) {
+    console.warn(`[TTS] No local Natural voice found for ${accent}. Falling back to cloud/other voices.`);
   }
 
   // Filter out voices that have previously failed

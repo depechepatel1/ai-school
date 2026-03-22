@@ -89,38 +89,38 @@ function getVoiceCandidates(accent) {
   const voices = speechSynthesis.getVoices();
   const langPrefix = accent === "uk" ? "en-GB" : accent === "us" ? "en-US" : "zh-CN";
 
-  // Categorize voices
+  // Tiered: localNatural → localOther → cloudNatural → cloudOther → anyEnglish
   const localNatural = [];
-  const onlineNatural = [];
   const localOther = [];
-  const onlineOther = [];
+  const cloudNatural = [];
+  const cloudOther = [];
   const anyEnglish = [];
 
   for (const v of voices) {
     if (failedVoiceNames.has(v.name)) continue;
     const matchesLang = v.lang.startsWith(langPrefix);
-    const isOnline = v.name.includes("Online");
+    const isLocal = v.localService === true;
     const isNatural = v.name.includes("Natural");
 
     if (matchesLang) {
-      if (isNatural && !isOnline) localNatural.push(v);
-      else if (isNatural && isOnline) onlineNatural.push(v);
-      else if (!isOnline) localOther.push(v);
-      else onlineOther.push(v);
+      if (isLocal && isNatural) localNatural.push(v);
+      else if (isLocal) localOther.push(v);
+      else if (isNatural) cloudNatural.push(v);
+      else cloudOther.push(v);
     } else if (v.lang.startsWith("en")) {
       anyEnglish.push(v);
     }
   }
 
-  // Priority: local natural > local other > online natural > online other > any English > null (system default)
-  return [...localNatural, ...localOther, ...onlineNatural, ...onlineOther, ...anyEnglish, null];
+  return [...localNatural, ...localOther, ...cloudNatural, ...cloudOther, ...anyEnglish, null];
 }
 
 function pickBestVoice(accent) {
   const candidates = getVoiceCandidates(accent);
   const voice = candidates.length > 0 ? candidates[0] : null;
   currentVoiceName = voice?.name || "(system default)";
-  voiceInfoEl.textContent = `🔊 Voice: ${currentVoiceName}${failedVoiceNames.size > 0 ? ` (${failedVoiceNames.size} blacklisted)` : ""}`;
+  const locality = voice ? (voice.localService ? "local" : "cloud") : "unknown";
+  voiceInfoEl.textContent = `🔊 Voice: ${currentVoiceName} [${locality}]${failedVoiceNames.size > 0 ? ` (${failedVoiceNames.size} blacklisted)` : ""}`;
   return voice;
 }
 
@@ -141,16 +141,21 @@ function cleanForTTS(text) {
     .trim();
 }
 
-// --- Adaptive timeout based on text length ---
+// --- Adaptive timeout based on text length and voice locality ---
 
-function isOnlineVoice(voice) {
-  return voice?.name?.includes("Online") || false;
+function isLocalVoice(voice) {
+  return voice?.localService === true;
 }
 
 function getTimeout(text, voice) {
   const len = cleanForTTS(text).length;
+  if (isLocalVoice(voice)) {
+    // Local voices: tight timeouts (4s–15s)
+    return Math.max(4000, Math.min(15000, len * 80));
+  }
+  // Cloud voices: generous timeouts (6s–30s)
   const base = Math.max(6000, Math.min(30000, len * 100));
-  return isOnlineVoice(voice) ? base + ONLINE_VOICE_EXTRA_MS : base;
+  return base + ONLINE_VOICE_EXTRA_MS;
 }
 
 // --- Structured measurement ---

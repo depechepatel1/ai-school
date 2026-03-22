@@ -3,27 +3,37 @@ import { X, Globe } from "lucide-react";
 
 const STORAGE_KEY = "browser_banner_dismissed";
 
-function detectBrowserSupport(): { showBanner: boolean; message: string } {
+function detectBrowserSupport(): { showBanner: boolean; message: string; severity: "none" | "info" | "warning" } {
   const ua = navigator.userAgent;
-  const isChrome = /Chrome\//i.test(ua) && !/Edg\//i.test(ua);
   const isEdge = /Edg\//i.test(ua);
+  const isChrome = /Chrome\//i.test(ua) && !isEdge;
   const hasSpeechRecognition = "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
 
   if (!hasSpeechRecognition) {
     return {
       showBanner: true,
-      message: "Your browser doesn't support speech recognition. For the best experience, use Chrome or Microsoft Edge on desktop.",
+      severity: "warning",
+      message: "Your browser doesn't support speech recognition. Please use Microsoft Edge for the best experience, or Chrome as an alternative.",
     };
   }
 
-  if (!isChrome && !isEdge) {
+  if (isEdge) {
+    return { showBanner: false, message: "", severity: "none" };
+  }
+
+  if (isChrome) {
     return {
       showBanner: true,
-      message: "For the best voice experience, use Chrome or Microsoft Edge — they have built-in speech recognition and natural voices.",
+      severity: "info",
+      message: "For the best voice experience with zero latency, use Microsoft Edge. Chrome works but voice responses may be slightly slower.",
     };
   }
 
-  return { showBanner: false, message: "" };
+  return {
+    showBanner: true,
+    severity: "warning",
+    message: "For the best experience, use Microsoft Edge (recommended) or Chrome. Your current browser has limited voice support.",
+  };
 }
 
 export default function BrowserBanner() {
