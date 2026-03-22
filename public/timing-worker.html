@@ -164,7 +164,7 @@ function measureSingle(text, voice, rate) {
       return;
     }
 
-    const timeoutMs = getTimeout(text);
+    const timeoutMs = getTimeout(text, voice);
     const u = new SpeechSynthesisUtterance(cleaned);
     if (voice) u.voice = voice;
     u.rate = rate;
